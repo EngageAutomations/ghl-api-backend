@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import TabNavigation from "@/components/configuration/TabNavigation";
 import ListingOptInsConfig from "@/components/configuration/ListingOptInsConfig";
-import EmbeddedFormConfig from "@/components/configuration/EmbeddedFormConfig";
 import StylingConfig from "@/components/configuration/StylingConfig";
 import PortalDomainConfig from "@/components/configuration/PortalDomainConfig";
 import PreviewSection from "@/components/configuration/PreviewSection";
@@ -53,13 +52,6 @@ export default function Configuration() {
       {activeTab === "action-buttons" && (
         <>
           <ListingOptInsConfig />
-          <PreviewSection />
-        </>
-      )}
-      
-      {activeTab === "embedded-forms" && (
-        <>
-          <EmbeddedFormConfig />
           <PreviewSection />
         </>
       )}
