@@ -15,30 +15,56 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const [, navigate] = useLocation();
   
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!loading && !user) {
       console.log("User not authenticated, redirecting to login...");
-      navigate("/login");
+      
+      // Short timeout to allow state to settle
+      setTimeout(() => {
+        navigate("/login");
+      }, 50);
     }
   }, [user, loading, navigate]);
   
+  // Show loading state
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-lg font-medium text-gray-700">Loading...</p>
+        </div>
+      </div>
+    );
   }
   
+  // Show redirect message if no user
   if (!user) {
-    return <div className="min-h-screen flex items-center justify-center">Redirecting to login...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-lg font-medium text-gray-700">Redirecting to login...</p>
+        </div>
+      </div>
+    );
   }
   
+  // User is authenticated, render children
   return <>{children}</>;
 }
 
 function Router() {
   return (
     <Switch>
-      <Route path="/login" component={Login} />
+      {/* Public routes */}
+      <Route path="/login">
+        <Login />
+      </Route>
       
-      <Route path="/">
+      {/* Protected routes */}
+      <Route path="/" exact>
         <ProtectedRoute>
           <AppLayout>
             <Dashboard />
@@ -54,7 +80,10 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-      <Route component={NotFound} />
+      {/* 404 route */}
+      <Route>
+        <NotFound />
+      </Route>
     </Switch>
   );
 }

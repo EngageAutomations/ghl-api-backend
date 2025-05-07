@@ -25,7 +25,10 @@ export default function Login() {
   useEffect(() => {
     if (user) {
       console.log("User already logged in, redirecting to dashboard...");
-      navigate("/");
+      // Set a short timeout to ensure redirects happen after state is fully updated
+      setTimeout(() => {
+        navigate("/");
+      }, 100);
     }
   }, [user, navigate]);
   
@@ -43,14 +46,17 @@ export default function Login() {
     
     try {
       console.log("Submitting login form with:", email);
-      await login(email, password);
+      const userData = await login(email, password);
       
-      // We don't need to navigate here as the useEffect in AuthContext will take care of it
-      // when the user state is updated
+      // Show success message
       toast({
         title: "Success!",
         description: "You've been successfully logged in.",
       });
+      
+      console.log("Login successful, navigating to dashboard...");
+      // Force navigation to dashboard
+      navigate("/");
     } catch (error) {
       console.error("Login error:", error);
       toast({
