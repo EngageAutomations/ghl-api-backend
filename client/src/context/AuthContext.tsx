@@ -34,6 +34,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     
     try {
+      console.log("Attempting login with:", email);
+      
       // Generate a simple mock user
       const mockUserData: MockUser = {
         uid: "mock-user-123",
@@ -43,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setMockUser(mockUserData);
       
-      // Check if user exists in our database
+      // Login with our backend - this will automatically create a user if needed
       const response = await apiRequest(
         "POST", 
         "/api/auth/login", 
@@ -55,28 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (response.ok) {
         const userData = await response.json();
+        console.log("Login successful, user data:", userData);
         setUser(userData);
-      } else if (response.status === 401) {
-        // User doesn't exist, register them
-        const registerResponse = await apiRequest(
-          "POST",
-          "/api/auth/register",
-          {
-            username: email,
-            password: password,
-            displayName: email.split('@')[0],
-            email: email,
-          }
-        );
-        
-        if (registerResponse.ok) {
-          const userData = await registerResponse.json();
-          setUser(userData);
-        } else {
-          throw new Error("Failed to register user");
-        }
       } else {
-        throw new Error("Failed to authenticate user");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to authenticate user");
       }
     } catch (err) {
       setMockUser(null);

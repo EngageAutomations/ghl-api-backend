@@ -40,9 +40,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Username and password are required" });
       }
       
+      // Check if user exists
       const user = await storage.getUserByUsername(username);
       
-      if (!user || user.password !== password) {
+      if (!user) {
+        // User doesn't exist, create a new user account
+        console.log("[AUTH] User not found, creating new account:", username);
+        
+        try {
+          // Create a new user with the provided credentials
+          const newUser = await storage.createUser({
+            username,
+            password,
+            displayName: username.split('@')[0],
+            email: username
+          });
+          
+          // Don't return the password
+          const { password: _, ...userResponse } = newUser;
+          
+          // Return the newly created user
+          return res.status(200).json(userResponse);
+        } catch (error) {
+          console.error("[AUTH] Error creating user:", error);
+          return res.status(500).json({ message: "Failed to create user account" });
+        }
+      }
+      
+      // User exists, validate password
+      if (user.password !== password) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
@@ -50,6 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password: _, ...userResponse } = user;
       res.status(200).json(userResponse);
     } catch (error) {
+      console.error("[AUTH] Login error:", error);
       res.status(500).json({ message: "Failed to login" });
     }
   });
