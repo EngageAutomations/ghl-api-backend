@@ -16,7 +16,7 @@ export default function AdvancedStylingConfig() {
   
   return (
     <ConfigCard 
-      title="Web Builder Styling Code"
+      title="Site Builder Styling Code"
       description="Copy this code to customize your directory listings"
     >
       <div className="space-y-8">
