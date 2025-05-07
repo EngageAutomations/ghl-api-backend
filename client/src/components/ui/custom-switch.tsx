@@ -66,7 +66,7 @@ export function CustomSwitch({
           "bg-white shadow-lg transform ring-0",
           "transition-transform duration-300 ease-in-out",
           isChecked 
-            ? "translate-x-6 scale-110 shadow-[0_0_5px_rgba(var(--primary-rgb),0.4)]" 
+            ? "translate-x-5 scale-110 shadow-[0_0_5px_rgba(var(--primary-rgb),0.4)]" 
             : "translate-x-0"
         )}
       ></span>
