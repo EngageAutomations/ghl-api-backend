@@ -1,0 +1,74 @@
+Project Name: HighLevel eCommerce Directory Extension
+
+Purpose:
+This is a Go HighLevel Marketplace extension that transforms HighLevel’s built-in eCommerce system into a multi-user directory platform. Listings are built from HL products, and the app adds modular functionality like custom action buttons, embedded forms, popups, UTM tracking, and custom user portal routing.
+
+💡 Key Functionalities
+✅ 1. Custom Action Button Per Product
+Designers can enable a call-to-action button on any product
+
+Button types: popup, link, or download
+
+Popup buttons launch an iframe modal with a dynamic URL
+
+URLs support {product_name} token injection for UTM tracking
+
+UTM parameters are automatically built from the product page slug
+
+✅ 2. Embedded Form on Listing Page (Static Embed)
+Optional form (e.g. contact, booking) directly on the product page
+
+URL supports UTM injection from the product URL or slug
+
+Configurable fallback message if the embed fails
+
+✅ 3. Designer Config UI
+Designers configure:
+
+Action buttons (label, type, URL, popup size)
+
+Static form embed (toggle, embed URL, fallback)
+
+Button styling via presets or custom classes
+
+Custom CSS options to hide HL eCommerce elements:
+
+Price
+
+Cart icon
+
+Add-to-cart button
+
+✅ 4. User Portal Subdomain Config
+Designers can map a custom subdomain (e.g., portal.example.com) to a user portal
+
+Portal shows listings for the users associated with that designer
+
+CNAME instructions and DNS verification flow are provided in the config UI
+
+🛠 Tech Expectations
+Frontend: React + Tailwind (preferred)
+
+Backend: Node.js, Supabase/Firebase, or Express
+
+Hosting: Vercel/Firebase/Render
+
+Authentication: Google Sign-In
+
+Embed Handling: Iframe injection, UTM param building via window.location or DOM parsing
+
+Modal System: Custom popup that injects iframe with UTM-aware form URL
+
+✅ Key Dev Tasks
+Build Designer Config UI with grouped interaction settings
+
+Add popup modal logic with iframe injection
+
+Implement CSS generator module
+
+Route user portal access based on designer’s subdomain config
+
+Parse URL or DOM for product name → inject into form URLs as UTM param
+
+Create reusable components for button rendering, embed preview, and DNS helper
+
