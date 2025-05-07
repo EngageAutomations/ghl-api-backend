@@ -96,9 +96,9 @@ export default function TopNavbar() {
           {/* Logo and Brand Name */}
           <div className="flex items-center">
             <div className="h-8 w-8 bg-primary rounded-md flex items-center justify-center text-white font-bold mr-2">
-              HL
+              DE
             </div>
-            <h1 className="text-lg font-heading font-semibold text-slate-800 mr-8">HL Directory</h1>
+            <h1 className="text-lg font-heading font-semibold text-slate-800 mr-8">Directory Engine</h1>
             
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-4 ml-4">
