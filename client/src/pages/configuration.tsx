@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import TabNavigation from "@/components/configuration/TabNavigation";
 import ListingOptInsConfig from "@/components/configuration/ListingOptInsConfig";
-import StylingConfig from "@/components/configuration/StylingConfig";
 import PortalDomainConfig from "@/components/configuration/PortalDomainConfig";
 import PreviewSection from "@/components/configuration/PreviewSection";
 import SaveButtonBar from "@/components/shared/SaveButtonBar";
@@ -52,13 +51,6 @@ export default function Configuration() {
       {activeTab === "action-buttons" && (
         <>
           <ListingOptInsConfig />
-          <PreviewSection />
-        </>
-      )}
-      
-      {activeTab === "styling" && (
-        <>
-          <StylingConfig />
           <PreviewSection />
         </>
       )}

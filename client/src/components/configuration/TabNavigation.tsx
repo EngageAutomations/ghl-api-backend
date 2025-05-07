@@ -6,8 +6,7 @@ interface TabNavigationProps {
 }
 
 const tabs = [
-  { id: "action-buttons", label: "Listing Opt-Ins" },
-  { id: "styling", label: "Styling" },
+  { id: "action-buttons", label: "Listing & Styling" },
   { id: "portal-domains", label: "Portal Domains" },
 ];
 
