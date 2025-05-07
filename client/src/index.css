@@ -80,4 +80,25 @@
   .sidebar-icon {
     @apply w-5 h-5 mr-3;
   }
+  
+  /* Top Navbar Styles */
+  .nav-item {
+    @apply flex items-center px-3 py-2 text-sm font-medium transition-colors rounded-md;
+  }
+  
+  .nav-item.active {
+    @apply bg-primary/10 text-primary;
+  }
+  
+  .nav-item.inactive {
+    @apply text-slate-700 hover:bg-slate-100/60 hover:text-primary;
+  }
+  
+  .nav-icon {
+    @apply h-4 w-4 mr-2;
+  }
+  
+  .primary-100 {
+    @apply bg-primary/10 text-primary;
+  }
 }

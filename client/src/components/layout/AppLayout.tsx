@@ -1,26 +1,19 @@
-import Sidebar from "./Sidebar";
-import Header from "./Header";
-import { useState } from "react";
+import TopNavbar from "./TopNavbar";
 
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  
   return (
-    <div className="min-h-screen bg-slate-50 flex">
-      {/* Sidebar (desktop) */}
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* Top Navigation Bar */}
+      <TopNavbar />
       
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        <Header onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
-      </div>
+      <main className="flex-1 overflow-y-auto">
+        {children}
+      </main>
     </div>
   );
 }
