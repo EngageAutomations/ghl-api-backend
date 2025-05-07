@@ -37,14 +37,38 @@ export default function ListingOptInsConfig() {
     setShowCustomCss(config.buttonStyle === "custom");
   }, [config.buttonStyle]);
   
+  // This effect ensures only one option can be active at a time
+  useEffect(() => {
+    // If both options are somehow enabled, prioritize the most recently changed one
+    if (config.enableActionButton && config.enableEmbeddedForm) {
+      console.log("Both options enabled - fixing inconsistency...");
+      
+      // Check which section is active in the accordion to determine user's intent
+      if (activeSection === "action-button") {
+        console.log("Prioritizing action button, disabling embedded form");
+        updateConfig({ enableEmbeddedForm: false });
+      } else if (activeSection === "embedded-form") {
+        console.log("Prioritizing embedded form, disabling action button");
+        updateConfig({ enableActionButton: false });
+      } else {
+        // If no section is active, default to disabling embedded form
+        console.log("No active section, defaulting to action button");
+        updateConfig({ enableEmbeddedForm: false });
+      }
+    }
+  }, [config.enableActionButton, config.enableEmbeddedForm, activeSection, updateConfig]);
+  
   // Handle toggling of opt-in methods to ensure only one is active
   const handleToggleActionButton = (checked: boolean) => {
+    console.log("Action Button toggle:", checked, "Current config:", config);
     if (checked) {
       // If enabling action button, disable embedded form
-      updateConfig({ 
+      const updates = { 
         enableActionButton: true, 
         enableEmbeddedForm: false 
-      });
+      };
+      console.log("Updating with:", updates);
+      updateConfig(updates);
       setActiveSection("action-button");
       toast({
         title: "Action Button Enabled",
@@ -58,12 +82,15 @@ export default function ListingOptInsConfig() {
   };
   
   const handleToggleEmbeddedForm = (checked: boolean) => {
+    console.log("Embedded Form toggle:", checked, "Current config:", config);
     if (checked) {
       // If enabling embedded form, disable action button
-      updateConfig({ 
+      const updates = { 
         enableEmbeddedForm: true, 
         enableActionButton: false 
-      });
+      };
+      console.log("Updating with:", updates);
+      updateConfig(updates);
       setActiveSection("embedded-form");
       toast({
         title: "Embedded Form Enabled",
