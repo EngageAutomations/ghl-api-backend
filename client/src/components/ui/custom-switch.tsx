@@ -62,11 +62,11 @@ export function CustomSwitch({
     >
       <span
         className={cn(
-          "pointer-events-none absolute top-[2px] left-[2px] inline-block h-5 w-5 rounded-full",
+          "pointer-events-none absolute top-0.5 left-0.5 inline-block h-4 w-4 rounded-full",
           "bg-white shadow-lg transform ring-0",
           "transition-transform duration-300 ease-in-out",
           isChecked 
-            ? "translate-x-5 scale-110 shadow-[0_0_5px_rgba(var(--primary-rgb),0.4)]" 
+            ? "translate-x-6 scale-110 shadow-[0_0_5px_rgba(var(--primary-rgb),0.4)]" 
             : "translate-x-0"
         )}
       ></span>
