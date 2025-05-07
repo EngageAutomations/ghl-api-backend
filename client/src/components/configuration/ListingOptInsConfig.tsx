@@ -280,9 +280,9 @@ export default function ListingOptInsConfig() {
                 )}
                 
                 {/* Save Button */}
-                <div className="mt-6">
+                <div className="mt-6 flex justify-end">
                   <Button 
-                    className="w-full"
+                    size="sm"
                     onClick={() => {
                       // Future implementation: save to server
                       toast({
@@ -291,7 +291,7 @@ export default function ListingOptInsConfig() {
                       });
                     }}
                   >
-                    Save Action Button Configuration
+                    Save
                   </Button>
                 </div>
               </div>
@@ -386,9 +386,9 @@ export default function ListingOptInsConfig() {
                 </div>
                 
                 {/* Save Button for Embedded Form */}
-                <div className="mt-6">
+                <div className="mt-6 flex justify-end">
                   <Button 
-                    className="w-full"
+                    size="sm"
                     onClick={() => {
                       // Future implementation: save to server
                       toast({
@@ -397,7 +397,7 @@ export default function ListingOptInsConfig() {
                       });
                     }}
                   >
-                    Save Embedded Form Configuration
+                    Save
                   </Button>
                 </div>
               </div>
