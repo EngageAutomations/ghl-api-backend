@@ -2,8 +2,18 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    let errorMessage;
+    try {
+      // Try to parse as JSON first
+      const errorData = await res.json();
+      errorMessage = errorData.message || res.statusText;
+    } catch (e) {
+      // If it's not JSON, use text
+      const text = await res.text() || res.statusText;
+      errorMessage = text;
+    }
+    console.error(`API Error (${res.status}):`, errorMessage);
+    throw new Error(`${res.status}: ${errorMessage}`);
   }
 }
 
@@ -12,15 +22,26 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
-
-  await throwIfResNotOk(res);
-  return res;
+  console.log(`Making ${method} request to ${url}`, data);
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: data ? { "Content-Type": "application/json" } : {},
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
+    
+    // For login/auth endpoints, don't throw an error so we can handle it in the login function
+    if (url.includes('/api/auth/')) {
+      return res;
+    }
+    
+    await throwIfResNotOk(res);
+    return res;
+  } catch (error) {
+    console.error("API request failed:", error);
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

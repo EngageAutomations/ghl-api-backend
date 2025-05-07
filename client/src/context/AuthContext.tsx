@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log("Attempting login with:", email);
       
-      // Generate a simple mock user
+      // Generate a simple mock user first (for demo purposes)
       const mockUserData: MockUser = {
         uid: "mock-user-123",
         email: email,
@@ -46,27 +46,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setMockUser(mockUserData);
       
       // Login with our backend - this will automatically create a user if needed
-      const response = await apiRequest(
-        "POST", 
-        "/api/auth/login", 
-        { 
+      console.log("Sending login request to backend");
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
           username: email,
           password: password
-        }
-      );
+        }),
+        credentials: "include"
+      });
+      
+      console.log("Login response status:", response.status);
       
       if (response.ok) {
         const userData = await response.json();
         console.log("Login successful, user data:", userData);
         setUser(userData);
+        return userData; // Return the user data for the login page to use
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to authenticate user");
+        let errorMessage = "Failed to authenticate user";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+        console.error("Authentication failed:", errorMessage);
+        throw new Error(errorMessage);
       }
     } catch (err) {
       setMockUser(null);
-      setError(err instanceof Error ? err.message : "Authentication error");
+      const errorMessage = err instanceof Error ? err.message : "Authentication error";
+      setError(errorMessage);
       console.error("Auth error:", err);
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
