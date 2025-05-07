@@ -21,22 +21,74 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ListingOptInsConfig() {
   const { config, updateConfig } = useConfig();
   const [showCustomCss, setShowCustomCss] = useState(config.buttonStyle === "custom");
+  const [activeSection, setActiveSection] = useState<string | undefined>(
+    config.enableActionButton ? "action-button" : 
+    config.enableEmbeddedForm ? "embedded-form" : 
+    undefined
+  );
+  const { toast } = useToast();
   
   useEffect(() => {
     setShowCustomCss(config.buttonStyle === "custom");
   }, [config.buttonStyle]);
   
+  // Handle toggling of opt-in methods to ensure only one is active
+  const handleToggleActionButton = (checked: boolean) => {
+    if (checked) {
+      // If enabling action button, disable embedded form
+      updateConfig({ 
+        enableActionButton: true, 
+        enableEmbeddedForm: false 
+      });
+      setActiveSection("action-button");
+      toast({
+        title: "Action Button Enabled",
+        description: "Embedded Form has been automatically disabled.",
+      });
+    } else {
+      // Just disable action button
+      updateConfig({ enableActionButton: false });
+      setActiveSection(undefined);
+    }
+  };
+  
+  const handleToggleEmbeddedForm = (checked: boolean) => {
+    if (checked) {
+      // If enabling embedded form, disable action button
+      updateConfig({ 
+        enableEmbeddedForm: true, 
+        enableActionButton: false 
+      });
+      setActiveSection("embedded-form");
+      toast({
+        title: "Embedded Form Enabled",
+        description: "Action Button has been automatically disabled.",
+      });
+    } else {
+      // Just disable embedded form
+      updateConfig({ enableEmbeddedForm: false });
+      setActiveSection(undefined);
+    }
+  };
+  
   return (
     <ConfigCard 
       title="Listing Opt-Ins Configuration"
-      description="Configure opt-in options that will appear on your business listings"
+      description="Configure opt-in options that will appear on your business listings (only one method can be active at a time)"
     >
       <div className="space-y-8">
-        <Accordion type="single" collapsible className="w-full border rounded-md">
+        <Accordion 
+          type="single" 
+          collapsible 
+          className="w-full border rounded-md"
+          value={activeSection}
+          onValueChange={setActiveSection}
+        >
           <AccordionItem value="action-button" className="border-b-0 px-4">
             <AccordionTrigger className="py-4 hover:no-underline">
               <div className="flex justify-between items-center w-full">
@@ -48,7 +100,8 @@ export default function ListingOptInsConfig() {
                 </div>
                 <Switch 
                   checked={config.enableActionButton}
-                  onCheckedChange={(checked) => updateConfig({ enableActionButton: checked })}
+                  onCheckedChange={handleToggleActionButton}
+                  onClick={(e) => e.stopPropagation()}
                 />
               </div>
             </AccordionTrigger>
@@ -199,7 +252,13 @@ export default function ListingOptInsConfig() {
           </AccordionItem>
         </Accordion>
 
-        <Accordion type="single" collapsible className="w-full border rounded-md">
+        <Accordion 
+          type="single" 
+          collapsible 
+          className="w-full border rounded-md"
+          value={activeSection}
+          onValueChange={setActiveSection}
+        >
           <AccordionItem value="embedded-form" className="border-b-0 px-4">
             <AccordionTrigger className="py-4 hover:no-underline">
               <div className="flex justify-between items-center w-full">
@@ -211,7 +270,8 @@ export default function ListingOptInsConfig() {
                 </div>
                 <Switch 
                   checked={config.enableEmbeddedForm}
-                  onCheckedChange={(checked) => updateConfig({ enableEmbeddedForm: checked })}
+                  onCheckedChange={handleToggleEmbeddedForm}
+                  onClick={(e) => e.stopPropagation()}
                 />
               </div>
             </AccordionTrigger>
