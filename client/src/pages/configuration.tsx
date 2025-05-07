@@ -51,7 +51,10 @@ export default function Configuration() {
       {activeTab === "action-buttons" && (
         <>
           <div className="space-y-8">
+            <h2 className="text-lg font-semibold text-slate-800 mb-4">Step 1: Choose your opt in type</h2>
             <ListingOptInsConfig />
+            
+            <h2 className="text-lg font-semibold text-slate-800 mt-8 mb-4">Step 2: Style your listings</h2>
             <AdvancedStylingConfig />
           </div>
         </>
