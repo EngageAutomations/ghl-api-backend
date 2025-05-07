@@ -117,31 +117,21 @@ export default function ListingOptInsConfig() {
           onValueChange={setActiveSection}
         >
           <AccordionItem value="action-button" className="border-b-0 px-4">
-            <div className="flex justify-between items-center w-full py-4 px-0">
-              <AccordionTrigger className="flex-1 hover:no-underline py-0">
+            <AccordionTrigger className="py-4 hover:no-underline">
+              <div className="flex justify-between items-center w-full">
                 <div className="flex items-center gap-4">
                   <div>
                     <h3 className="text-base font-medium text-slate-800 text-left">Action Button Opt-In</h3>
                     <p className="text-sm text-slate-500 text-left">Configure a call-to-action button for listings</p>
                   </div>
                 </div>
-              </AccordionTrigger>
-              <div onClick={(e) => e.stopPropagation()} className="ml-4">
                 <CustomSwitch 
                   checked={config.enableActionButton || false}
-                  onCheckedChange={(checked) => {
-                    handleToggleActionButton(checked);
-                    if (checked && config.enableEmbeddedForm) {
-                      // Force disable the other option immediately (don't wait for effect)
-                      updateConfig({ 
-                        enableActionButton: true, 
-                        enableEmbeddedForm: false 
-                      });
-                    }
-                  }}
+                  onCheckedChange={handleToggleActionButton}
+                  onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
                 />
               </div>
-            </div>
+            </AccordionTrigger>
             <AccordionContent className="pb-4 pt-2">
               <div className="space-y-6">
                 {/* Button Type Selector */}
@@ -297,31 +287,21 @@ export default function ListingOptInsConfig() {
           onValueChange={setActiveSection}
         >
           <AccordionItem value="embedded-form" className="border-b-0 px-4">
-            <div className="flex justify-between items-center w-full py-4 px-0">
-              <AccordionTrigger className="flex-1 hover:no-underline py-0">
+            <AccordionTrigger className="py-4 hover:no-underline">
+              <div className="flex justify-between items-center w-full">
                 <div className="flex items-center gap-4">
                   <div>
                     <h3 className="text-base font-medium text-slate-800 text-left">Embedded Form Opt-In</h3>
                     <p className="text-sm text-slate-500 text-left">Configure a form embedded directly on the listing page</p>
                   </div>
                 </div>
-              </AccordionTrigger>
-              <div onClick={(e) => e.stopPropagation()} className="ml-4">
                 <CustomSwitch 
                   checked={config.enableEmbeddedForm || false}
-                  onCheckedChange={(checked) => {
-                    handleToggleEmbeddedForm(checked);
-                    if (checked && config.enableActionButton) {
-                      // Force disable the other option immediately (don't wait for effect)
-                      updateConfig({ 
-                        enableEmbeddedForm: true, 
-                        enableActionButton: false 
-                      });
-                    }
-                  }}
+                  onCheckedChange={handleToggleEmbeddedForm}
+                  onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
                 />
               </div>
-            </div>
+            </AccordionTrigger>
             <AccordionContent className="pb-4 pt-2">
               <div className="space-y-6">
                 {/* Form URL Configuration */}
