@@ -384,6 +384,22 @@ export default function ListingOptInsConfig() {
                     </SelectContent>
                   </Select>
                 </div>
+                
+                {/* Save Button for Embedded Form */}
+                <div className="mt-6">
+                  <Button 
+                    className="w-full"
+                    onClick={() => {
+                      // Future implementation: save to server
+                      toast({
+                        title: "Embedded Form configuration saved!",
+                        description: "Your changes have been applied"
+                      });
+                    }}
+                  >
+                    Save Embedded Form Configuration
+                  </Button>
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
