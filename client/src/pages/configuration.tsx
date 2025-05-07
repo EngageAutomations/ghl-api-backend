@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import TabNavigation from "@/components/configuration/TabNavigation";
 import ListingOptInsConfig from "@/components/configuration/ListingOptInsConfig";
-import VisibilityOptionsConfig from "@/components/configuration/VisibilityOptionsConfig";
 import AdvancedStylingConfig from "@/components/configuration/AdvancedStylingConfig";
 import PortalDomainConfig from "@/components/configuration/PortalDomainConfig";
-import PreviewSection from "@/components/configuration/PreviewSection";
 import SaveButtonBar from "@/components/shared/SaveButtonBar";
 import { useConfig } from "@/context/ConfigContext";
 
@@ -54,10 +52,8 @@ export default function Configuration() {
         <>
           <div className="space-y-8">
             <ListingOptInsConfig />
-            <VisibilityOptionsConfig />
             <AdvancedStylingConfig />
           </div>
-          <PreviewSection />
         </>
       )}
       
