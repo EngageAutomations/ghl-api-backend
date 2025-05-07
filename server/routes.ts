@@ -34,13 +34,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/login", async (req, res) => {
     try {
+      console.log("[AUTH] Login attempt received:", req.body);
       const { username, password } = req.body;
       
       if (!username || !password) {
+        console.log("[AUTH] Login failed: Missing username or password");
         return res.status(400).json({ message: "Username and password are required" });
       }
       
       // Check if user exists
+      console.log("[AUTH] Checking if user exists:", username);
       const user = await storage.getUserByUsername(username);
       
       if (!user) {
@@ -56,10 +59,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             email: username
           });
           
+          console.log("[AUTH] New user created:", newUser.id);
+          
           // Don't return the password
           const { password: _, ...userResponse } = newUser;
           
           // Return the newly created user
+          console.log("[AUTH] Returning new user data:", userResponse);
           return res.status(200).json(userResponse);
         } catch (error) {
           console.error("[AUTH] Error creating user:", error);
@@ -68,12 +74,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // User exists, validate password
+      console.log("[AUTH] User found, validating password");
       if (user.password !== password) {
+        console.log("[AUTH] Invalid password for user:", username);
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
       // Don't return the password
       const { password: _, ...userResponse } = user;
+      console.log("[AUTH] Login successful for user:", userResponse.id);
       res.status(200).json(userResponse);
     } catch (error) {
       console.error("[AUTH] Login error:", error);

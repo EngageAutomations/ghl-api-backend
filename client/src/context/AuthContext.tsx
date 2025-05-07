@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log("Attempting login with:", email);
       
-      // Generate a simple mock user first (for demo purposes)
+      // Set a mock user temporarily (for testing)
       const mockUserData: MockUser = {
         uid: "mock-user-123",
         email: email,
@@ -45,41 +45,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setMockUser(mockUserData);
       
-      // Login with our backend - this will automatically create a user if needed
+      // Make direct fetch request to login API
       console.log("Sending login request to backend");
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          username: email,
-          password: password
-        }),
-        credentials: "include"
-      });
-      
-      console.log("Login response status:", response.status);
-      
-      if (response.ok) {
-        const userData = await response.json();
-        console.log("Login successful, user data:", userData);
-        setUser(userData);
-        return userData; // Return the user data for the login page to use
-      } else {
-        let errorMessage = "Failed to authenticate user";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch (e) {
-          // Ignore JSON parsing errors
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            username: email,
+            password: password
+          }),
+          credentials: "include"
+        });
+        
+        console.log("Login response status:", response.status);
+        
+        if (response.ok) {
+          const userData = await response.json();
+          console.log("Login successful, user data:", userData);
+          
+          // Set the user data in state - this will trigger redirects in components
+          setUser(userData);
+          return userData;
+        } else {
+          // Handle error response
+          try {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Authentication failed");
+          } catch (parseError) {
+            throw new Error(`Authentication failed (${response.status})`);
+          }
         }
-        console.error("Authentication failed:", errorMessage);
-        throw new Error(errorMessage);
+      } catch (fetchError) {
+        console.error("Fetch error:", fetchError);
+        throw fetchError;
       }
     } catch (err) {
+      // Clear mock user on error
       setMockUser(null);
+      
+      // Set error state
       const errorMessage = err instanceof Error ? err.message : "Authentication error";
       setError(errorMessage);
       console.error("Auth error:", err);
+      
+      // Re-throw for the login component to handle
       throw new Error(errorMessage);
     } finally {
       setLoading(false);

@@ -10,7 +10,6 @@ import Dashboard from "@/pages/dashboard";
 import Configuration from "@/pages/configuration";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuth } from "@/context/AuthContext";
-import { AuthProvider } from "@/context/AuthContext";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
