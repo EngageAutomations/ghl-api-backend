@@ -23,8 +23,17 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [mockUser, setMockUser] = useState<MockUser | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  // Initialize state from localStorage if available
+  const [mockUser, setMockUser] = useState<MockUser | null>(() => {
+    const saved = localStorage.getItem('mockUser');
+    return saved ? JSON.parse(saved) : null;
+  });
+  
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -64,6 +73,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const userData = await response.json();
           console.log("Login successful, user data:", userData);
           
+          // Save user data to localStorage for persistence
+          localStorage.setItem('user', JSON.stringify(userData));
+          localStorage.setItem('mockUser', JSON.stringify(mockUserData));
+          
           // Set the user data in state - this will trigger redirects in components
           setUser(userData);
           return userData;
@@ -99,6 +112,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await signOutUser();
+      
+      // Clear localStorage
+      localStorage.removeItem('user');
+      localStorage.removeItem('mockUser');
+      
+      // Clear state
       setMockUser(null);
       setUser(null);
     } catch (err) {

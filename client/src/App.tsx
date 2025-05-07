@@ -64,7 +64,7 @@ function Router() {
       </Route>
       
       {/* Protected routes */}
-      <Route path="/" exact>
+      <Route path="/">
         <ProtectedRoute>
           <AppLayout>
             <Dashboard />
