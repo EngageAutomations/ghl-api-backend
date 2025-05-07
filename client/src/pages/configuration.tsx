@@ -54,7 +54,7 @@ export default function Configuration() {
             <h2 className="text-lg font-semibold text-slate-800 mb-4">Step 1: Choose your opt in type</h2>
             <ListingOptInsConfig />
             
-            <h2 className="text-lg font-semibold text-slate-800 mt-8 mb-4">Step 2: Style your listings</h2>
+            <h2 className="text-lg font-semibold text-slate-800 mt-8 mb-4">Step 2: Add our code to the web builder's styling section</h2>
             <AdvancedStylingConfig />
           </div>
         </>

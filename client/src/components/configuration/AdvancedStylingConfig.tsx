@@ -16,8 +16,8 @@ export default function AdvancedStylingConfig() {
   
   return (
     <ConfigCard 
-      title="Styling Configuration"
-      description="Customize the appearance of your directory listings"
+      title="Web Builder Styling Code"
+      description="Copy this code to customize your directory listings"
     >
       <div className="space-y-8">
         {/* Visibility Options Section */}
