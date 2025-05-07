@@ -101,4 +101,25 @@
   .primary-100 {
     @apply bg-primary/10 text-primary;
   }
+  
+  /* Enhanced Switch Animation */
+  [data-state=checked].bg-primary {
+    animation: switchOn 0.4s ease-in-out forwards;
+  }
+  
+  [data-state=unchecked].bg-input {
+    animation: switchOff 0.4s ease-in-out forwards;
+  }
+  
+  @keyframes switchOn {
+    0% { background-color: hsl(var(--input)); }
+    50% { background-color: hsl(var(--primary) / 0.7); }
+    100% { background-color: hsl(var(--primary)); }
+  }
+  
+  @keyframes switchOff {
+    0% { background-color: hsl(var(--primary)); }
+    50% { background-color: hsl(var(--primary) / 0.5); }
+    100% { background-color: hsl(var(--input)); }
+  }
 }
