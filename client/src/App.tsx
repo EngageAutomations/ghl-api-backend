@@ -15,15 +15,20 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const [, navigate] = useLocation();
   
-  // Redirect to login if not authenticated
+  // Add debug logging for authentication state
   useEffect(() => {
-    if (!loading && !user) {
-      console.log("User not authenticated, redirecting to login...");
-      
-      // Short timeout to allow state to settle
-      setTimeout(() => {
+    console.log("AUTH DEBUG - Protected Route");
+    console.log("Loading:", loading);
+    console.log("User state:", user);
+    console.log("localStorage user:", localStorage.getItem('user'));
+    
+    if (!loading) {
+      if (!user) {
+        console.log("User not authenticated, redirecting to login...");
         navigate("/login");
-      }, 50);
+      } else {
+        console.log("User is authenticated:", user.email || user.username);
+      }
     }
   }, [user, loading, navigate]);
   
@@ -33,7 +38,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-lg font-medium text-gray-700">Loading...</p>
+          <p className="text-lg font-medium text-gray-700">Loading authentication...</p>
         </div>
       </div>
     );
@@ -41,29 +46,38 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   
   // Show redirect message if no user
   if (!user) {
+    // Force redirect
+    navigate("/login");
+    
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-lg font-medium text-gray-700">Redirecting to login...</p>
+          <p className="text-lg font-medium text-gray-700">Not logged in, redirecting...</p>
         </div>
       </div>
     );
   }
   
   // User is authenticated, render children
+  console.log("Rendering protected content for user:", user.email || user.username);
   return <>{children}</>;
 }
 
 function Router() {
+  // Add location tracking for debugging
+  const [location] = useLocation();
+  console.log("Current location:", location);
+  
+  // This component defines all routes for the application
   return (
     <Switch>
-      {/* Public routes */}
+      {/* Public routes that don't require auth */}
       <Route path="/login">
         <Login />
       </Route>
       
-      {/* Protected routes */}
+      {/* Root dashboard route (must come after more specific routes) */}
       <Route path="/">
         <ProtectedRoute>
           <AppLayout>
@@ -72,6 +86,7 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      {/* Configuration route */}
       <Route path="/configuration">
         <ProtectedRoute>
           <AppLayout>
@@ -80,7 +95,7 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-      {/* 404 route */}
+      {/* 404 route - catch all unmatched routes */}
       <Route>
         <NotFound />
       </Route>

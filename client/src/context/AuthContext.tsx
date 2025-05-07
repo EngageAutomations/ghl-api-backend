@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { auth, MockUser } from "@/lib/firebase";
 import { signOutUser } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
@@ -23,19 +23,39 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Initialize state from localStorage if available
-  const [mockUser, setMockUser] = useState<MockUser | null>(() => {
-    const saved = localStorage.getItem('mockUser');
-    return saved ? JSON.parse(saved) : null;
-  });
-  
-  const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
-  });
-  
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with loading true
   const [error, setError] = useState<string | null>(null);
+  
+  // Initialize state from localStorage if available
+  const [mockUser, setMockUser] = useState<MockUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  
+  // Effect to load user from localStorage on mount
+  useEffect(() => {
+    try {
+      // Load saved authentication from localStorage
+      const savedMockUser = localStorage.getItem('mockUser');
+      const savedUser = localStorage.getItem('user');
+      
+      console.log("AUTH PROVIDER - Initial Load");
+      console.log("Saved mock user in localStorage:", savedMockUser);
+      console.log("Saved user in localStorage:", savedUser);
+      
+      // Set state from localStorage
+      if (savedMockUser) {
+        setMockUser(JSON.parse(savedMockUser));
+      }
+      
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
+    } catch (err) {
+      console.error("Error loading auth from localStorage:", err);
+    } finally {
+      // Set loading to false once we've loaded from localStorage
+      setLoading(false);
+    }
+  }, []);
   
   // Login function that will be passed to the login page
   const login = async (email: string, password: string) => {

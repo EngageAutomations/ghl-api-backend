@@ -23,12 +23,18 @@ export default function Login() {
   
   // Effect to redirect if already logged in
   useEffect(() => {
+    console.log("LOGIN PAGE DEBUG - Auth Check");
+    console.log("Current user state:", user);
+    console.log("localStorage user:", localStorage.getItem('user'));
+    
     if (user) {
       console.log("User already logged in, redirecting to dashboard...");
-      // Set a short timeout to ensure redirects happen after state is fully updated
-      setTimeout(() => {
-        navigate("/");
-      }, 100);
+      console.log("User details:", user.username || user.email);
+      
+      // Force navigation to dashboard
+      navigate("/");
+    } else {
+      console.log("No user detected in login page");
     }
   }, [user, navigate]);
   
@@ -45,6 +51,10 @@ export default function Login() {
     }
     
     try {
+      // Clear any existing data to avoid conflicts
+      localStorage.removeItem('user');
+      localStorage.removeItem('mockUser');
+      
       console.log("Submitting login form with:", email);
       const userData = await login(email, password);
       
@@ -54,9 +64,17 @@ export default function Login() {
         description: "You've been successfully logged in.",
       });
       
-      console.log("Login successful, navigating to dashboard...");
-      // Force navigation to dashboard
-      navigate("/");
+      console.log("Login successful, userData:", userData);
+      
+      // Ensure data is properly saved to localStorage
+      console.log("After login - localStorage user:", localStorage.getItem('user'));
+      
+      // Wait briefly for state to update
+      setTimeout(() => {
+        console.log("Navigating to dashboard after login...");
+        // Force navigation to dashboard
+        window.location.href = "/";
+      }, 500);
     } catch (error) {
       console.error("Login error:", error);
       toast({
