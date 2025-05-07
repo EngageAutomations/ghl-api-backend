@@ -35,7 +35,7 @@ export default function ListingOptInsConfig() {
             <p className="text-sm text-slate-500">Show an opt-in button on business listings</p>
           </div>
           <Switch 
-            checked={config.enableActionButton} 
+            checked={config.enableActionButton}
             onCheckedChange={(checked) => updateConfig({ enableActionButton: checked })}
           />
         </div>
@@ -113,7 +113,7 @@ export default function ListingOptInsConfig() {
                   type="number"
                   min="300"
                   max="1200"
-                  value={config.popupWidth}
+                  value={config.popupWidth || 600}
                   onChange={(e) => updateConfig({ popupWidth: parseInt(e.target.value) || 600 })}
                   className="flex-1"
                 />
@@ -131,7 +131,7 @@ export default function ListingOptInsConfig() {
                   type="number"
                   min="300"
                   max="1000"
-                  value={config.popupHeight}
+                  value={config.popupHeight || 500}
                   onChange={(e) => updateConfig({ popupHeight: parseInt(e.target.value) || 500 })}
                   className="flex-1"
                 />
