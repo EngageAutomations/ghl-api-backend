@@ -30,9 +30,25 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!email || !password) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter both email and password",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
+      console.log("Submitting login form with:", email);
       await login(email, password);
-      navigate("/");
+      
+      // We don't need to navigate here as the useEffect in AuthContext will take care of it
+      // when the user state is updated
+      toast({
+        title: "Success!",
+        description: "You've been successfully logged in.",
+      });
     } catch (error) {
       console.error("Login error:", error);
       toast({
