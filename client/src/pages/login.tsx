@@ -12,34 +12,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login, loading, error, user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
   const { toast } = useToast();
   const [, navigate] = useLocation();
   
-  // Effect to redirect if already logged in
+  // Check if user is already logged in
   useEffect(() => {
-    console.log("LOGIN PAGE DEBUG - Auth Check");
-    console.log("Current user state:", user);
-    console.log("localStorage user:", localStorage.getItem('user'));
-    
-    if (user) {
-      console.log("User already logged in, redirecting to dashboard...");
-      console.log("User details:", user.username || user.email);
-      
-      // Force navigation to dashboard
-      navigate("/");
-    } else {
-      console.log("No user detected in login page");
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      console.log("User found in localStorage, redirecting to dashboard");
+      window.location.href = "/";
     }
-  }, [user, navigate]);
+  }, []);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     if (!email || !password) {
       toast({
@@ -50,38 +44,56 @@ export default function Login() {
       return;
     }
     
+    setLoading(true);
+    
     try {
-      // Clear any existing data to avoid conflicts
+      // Clear any previous auth data
       localStorage.removeItem('user');
-      localStorage.removeItem('mockUser');
       
-      console.log("Submitting login form with:", email);
-      const userData = await login(email, password);
-      
-      // Show success message
-      toast({
-        title: "Success!",
-        description: "You've been successfully logged in.",
+      // Direct API call without going through context
+      console.log("Submitting login with:", email);
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          username: email,
+          password: password
+        }),
+        credentials: "include"
       });
       
-      console.log("Login successful, userData:", userData);
-      
-      // Ensure data is properly saved to localStorage
-      console.log("After login - localStorage user:", localStorage.getItem('user'));
-      
-      // Wait briefly for state to update
-      setTimeout(() => {
-        console.log("Navigating to dashboard after login...");
-        // Force navigation to dashboard
+      if (response.ok) {
+        const userData = await response.json();
+        console.log("Login successful:", userData);
+        
+        // Save user data to localStorage
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Show success message
+        toast({
+          title: "Success!",
+          description: "You've been successfully logged in.",
+        });
+        
+        // Force a full page reload to dashboard
         window.location.href = "/";
-      }, 500);
-    } catch (error) {
-      console.error("Login error:", error);
+      } else {
+        // Handle error response
+        const errorData = await response.json().catch(() => ({ message: "Authentication failed" }));
+        throw new Error(errorData.message || `Authentication failed (${response.status})`);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Authentication error";
+      setError(errorMessage);
+      console.error("Login error:", err);
+      
       toast({
         title: "Authentication Error",
-        description: error instanceof Error ? error.message : "Failed to sign in",
+        description: errorMessage,
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
   

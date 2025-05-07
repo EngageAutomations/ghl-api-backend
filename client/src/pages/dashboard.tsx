@@ -1,13 +1,21 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useConfig } from "@/context/ConfigContext";
-import { useAuth } from "@/context/AuthContext";
 import { Settings, List, Globe, ChevronRight } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
   const { config, loading } = useConfig();
-  const { user } = useAuth();
+  const [user, setUser] = useState(null);
+  
+  // Load user from localStorage
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
   
   if (loading) {
     return (
@@ -22,7 +30,7 @@ export default function Dashboard() {
       <div className="mb-6">
         <h1 className="text-2xl font-heading font-bold text-slate-800">Dashboard</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Welcome back, {user?.displayName || "User"}! Manage your HighLevel Directory settings.
+          Welcome back, {user?.displayName || user?.username || user?.email || "User"}! Manage your HighLevel Directory settings.
         </p>
       </div>
       
