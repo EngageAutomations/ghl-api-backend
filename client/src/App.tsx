@@ -8,6 +8,7 @@ import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import Configuration from "@/pages/configuration";
+import Listings from "@/pages/listings";
 import AppLayout from "@/components/layout/AppLayout";
 
 // Simple protected route component that checks for user in localStorage
@@ -67,6 +68,15 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <Configuration />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      {/* Listings route */}
+      <Route path="/listings">
+        <ProtectedRoute>
+          <AppLayout>
+            <Listings />
           </AppLayout>
         </ProtectedRoute>
       </Route>
