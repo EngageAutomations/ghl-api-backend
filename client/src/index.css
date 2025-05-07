@@ -16,6 +16,7 @@
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
   --primary: 221 83% 53%;
+  --primary-rgb: 65, 105, 225; /* Royal blue in RGB for animations */
   --primary-foreground: 210 40% 98%;
   --secondary: 196 100% 50%;
   --secondary-foreground: 210 40% 98%;
@@ -102,24 +103,46 @@
     @apply bg-primary/10 text-primary;
   }
   
-  /* Enhanced Switch Animation */
+  /* Custom Animated Switch Styles */
+  /* These styles are for our completely custom AnimatedSwitch component */
+  @keyframes slideRight {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(0.7rem); }
+    100% { transform: translateX(1.25rem); }
+  }
+  
+  @keyframes slideLeft {
+    0% { transform: translateX(1.25rem); }
+    50% { transform: translateX(0.5rem); }
+    100% { transform: translateX(0); }
+  }
+  
+  @keyframes glowOn {
+    0% { box-shadow: 0 0 0 rgba(var(--primary-rgb), 0); background-color: #e5e7eb; }
+    50% { box-shadow: 0 0 5px rgba(var(--primary-rgb), 0.3); background-color: rgba(var(--primary-rgb), 0.7); }
+    100% { box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.4); background-color: rgba(var(--primary-rgb), 1); }
+  }
+  
+  @keyframes glowOff {
+    0% { box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.4); background-color: rgba(var(--primary-rgb), 1); }
+    50% { box-shadow: 0 0 4px rgba(var(--primary-rgb), 0.2); background-color: rgba(var(--primary-rgb), 0.5); }
+    100% { box-shadow: 0 0 0 rgba(var(--primary-rgb), 0); background-color: #e5e7eb; }
+  }
+  
+  /* Original ShadCN Switch Styles - Enhanced */
   .switch-root[data-state="checked"] {
-    background-color: hsl(var(--primary));
-    box-shadow: 0 0 10px 0 hsla(var(--primary), 0.4);
-    transform: scale(1.02);
+    animation: glowOn 0.3s ease-in-out forwards;
   }
   
   .switch-root[data-state="unchecked"] {
-    background-color: hsl(var(--input));
-    transform: scale(1);
+    animation: glowOff 0.3s ease-in-out forwards;
   }
   
   .switch-thumb[data-state="checked"] {
-    transform: translateX(1.25rem);
-    box-shadow: 0 0 8px 2px hsla(var(--primary), 0.4);
+    animation: slideRight 0.3s ease-in-out forwards;
   }
   
   .switch-thumb[data-state="unchecked"] {
-    transform: translateX(0);
+    animation: slideLeft 0.3s ease-in-out forwards;
   }
 }
