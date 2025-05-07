@@ -1,0 +1,121 @@
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
+
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { login, loading, error, user } = useAuth();
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
+  
+  // Redirect if already logged in
+  if (user) {
+    navigate("/");
+    return null;
+  }
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      await login(email, password);
+      navigate("/");
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+        title: "Authentication Error",
+        description: error instanceof Error ? error.message : "Failed to sign in",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="h-16 w-16 bg-primary rounded-xl flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+            HL
+          </div>
+          <h1 className="text-2xl font-heading font-bold text-slate-800">HighLevel Directory</h1>
+          <p className="text-slate-500 mt-2">Sign in to access your directory configuration</p>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Sign In</CardTitle>
+            <CardDescription>
+              Enter your email and password to sign in
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              
+              {error && (
+                <div className="text-sm text-red-500 mt-2">
+                  {error}
+                </div>
+              )}
+              
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Signing in...
+                  </div>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-center text-xs text-slate-500">
+            <p>
+              For demo use: Enter any email and password. New users will be automatically registered.
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
+  );
+}
