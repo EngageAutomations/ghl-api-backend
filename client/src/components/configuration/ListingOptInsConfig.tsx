@@ -4,6 +4,7 @@ import { CustomSwitch } from "@/components/ui/custom-switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -277,6 +278,22 @@ export default function ListingOptInsConfig() {
                     </p>
                   </div>
                 )}
+                
+                {/* Save Button */}
+                <div className="mt-6">
+                  <Button 
+                    className="w-full"
+                    onClick={() => {
+                      // Future implementation: save to server
+                      toast({
+                        title: "Action Button configuration saved!",
+                        description: "Your changes have been applied"
+                      });
+                    }}
+                  >
+                    Save Action Button Configuration
+                  </Button>
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
