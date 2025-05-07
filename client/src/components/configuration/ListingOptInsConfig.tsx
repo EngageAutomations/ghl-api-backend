@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useConfig } from "@/context/ConfigContext";
-import { AnimatedSwitch } from "@/components/ui/animated-switch";
+import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -98,10 +98,11 @@ export default function ListingOptInsConfig() {
                     <p className="text-sm text-slate-500 text-left">Configure a call-to-action button for listings</p>
                   </div>
                 </div>
-                <AnimatedSwitch 
+                <Switch 
                   checked={config.enableActionButton || false}
                   onCheckedChange={handleToggleActionButton}
                   onClick={(e) => e.stopPropagation()}
+                  className="switch-animated"
                 />
               </div>
             </AccordionTrigger>
@@ -268,10 +269,11 @@ export default function ListingOptInsConfig() {
                     <p className="text-sm text-slate-500 text-left">Configure a form embedded directly on the listing page</p>
                   </div>
                 </div>
-                <AnimatedSwitch 
+                <Switch 
                   checked={config.enableEmbeddedForm || false}
                   onCheckedChange={handleToggleEmbeddedForm}
                   onClick={(e) => e.stopPropagation()}
+                  className="switch-animated"
                 />
               </div>
             </AccordionTrigger>

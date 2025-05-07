@@ -103,46 +103,29 @@
     @apply bg-primary/10 text-primary;
   }
   
-  /* Custom Animated Switch Styles */
-  /* These styles are for our completely custom AnimatedSwitch component */
-  @keyframes slideRight {
-    0% { transform: translateX(0); }
-    50% { transform: translateX(0.7rem); }
-    100% { transform: translateX(1.25rem); }
+  /* Enhanced Switch Animation */
+  .switch-animated[data-state="checked"] {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background-color: hsl(var(--primary));
+    box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.4);
+    transform: scale(1.05);
   }
   
-  @keyframes slideLeft {
-    0% { transform: translateX(1.25rem); }
-    50% { transform: translateX(0.5rem); }
-    100% { transform: translateX(0); }
+  .switch-animated[data-state="unchecked"] {
+    transition: all 0.3s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+    background-color: hsl(var(--input));
+    transform: scale(1);
   }
   
-  @keyframes glowOn {
-    0% { box-shadow: 0 0 0 rgba(var(--primary-rgb), 0); background-color: #e5e7eb; }
-    50% { box-shadow: 0 0 5px rgba(var(--primary-rgb), 0.3); background-color: rgba(var(--primary-rgb), 0.7); }
-    100% { box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.4); background-color: rgba(var(--primary-rgb), 1); }
+  .switch-animated[data-state="checked"] > span {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: translateX(1.25rem) scale(1.1);
+    box-shadow: 0 0 5px rgba(var(--primary-rgb), 0.4);
   }
   
-  @keyframes glowOff {
-    0% { box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.4); background-color: rgba(var(--primary-rgb), 1); }
-    50% { box-shadow: 0 0 4px rgba(var(--primary-rgb), 0.2); background-color: rgba(var(--primary-rgb), 0.5); }
-    100% { box-shadow: 0 0 0 rgba(var(--primary-rgb), 0); background-color: #e5e7eb; }
-  }
-  
-  /* Original ShadCN Switch Styles - Enhanced */
-  .switch-root[data-state="checked"] {
-    animation: glowOn 0.3s ease-in-out forwards;
-  }
-  
-  .switch-root[data-state="unchecked"] {
-    animation: glowOff 0.3s ease-in-out forwards;
-  }
-  
-  .switch-thumb[data-state="checked"] {
-    animation: slideRight 0.3s ease-in-out forwards;
-  }
-  
-  .switch-thumb[data-state="unchecked"] {
-    animation: slideLeft 0.3s ease-in-out forwards;
+  .switch-animated[data-state="unchecked"] > span {
+    transition: all 0.3s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+    transform: translateX(0);
+    box-shadow: none;
   }
 }
