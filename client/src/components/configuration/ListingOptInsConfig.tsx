@@ -26,80 +26,83 @@ import { useToast } from "@/hooks/use-toast";
 export default function ListingOptInsConfig() {
   const { config, updateConfig } = useConfig();
   const [showCustomCss, setShowCustomCss] = useState(config.buttonStyle === "custom");
-  const [activeSection, setActiveSection] = useState<string | undefined>(
+  
+  // Single source of truth for which opt-in method is selected
+  const [selectedOptIn, setSelectedOptIn] = useState<"action-button" | "embedded-form" | null>(
     config.enableActionButton ? "action-button" : 
     config.enableEmbeddedForm ? "embedded-form" : 
-    undefined
+    null
   );
+  
+  // Separate state for accordion expansion
+  const [expandedSection, setExpandedSection] = useState<string | undefined>(undefined);
   const { toast } = useToast();
   
   useEffect(() => {
     setShowCustomCss(config.buttonStyle === "custom");
   }, [config.buttonStyle]);
   
-  // This effect ensures only one option can be active at a time
+  // Sync with config once on load
   useEffect(() => {
-    // If both options are somehow enabled, prioritize the most recently changed one
-    if (config.enableActionButton && config.enableEmbeddedForm) {
-      console.log("Both options enabled - fixing inconsistency...");
-      
-      // Check which section is active in the accordion to determine user's intent
-      if (activeSection === "action-button") {
-        console.log("Prioritizing action button, disabling embedded form");
-        updateConfig({ enableEmbeddedForm: false });
-      } else if (activeSection === "embedded-form") {
-        console.log("Prioritizing embedded form, disabling action button");
-        updateConfig({ enableActionButton: false });
-      } else {
-        // If no section is active, default to disabling embedded form
-        console.log("No active section, defaulting to action button");
-        updateConfig({ enableEmbeddedForm: false });
-      }
+    // Set initial expanded section based on what's enabled
+    if (config.enableActionButton) {
+      setExpandedSection("action-button");
+    } else if (config.enableEmbeddedForm) {
+      setExpandedSection("embedded-form");
     }
-  }, [config.enableActionButton, config.enableEmbeddedForm, activeSection, updateConfig]);
+  }, []);
   
-  // Handle toggling of opt-in methods to ensure only one is active
-  const handleToggleActionButton = (checked: boolean) => {
-    console.log("Action Button toggle:", checked, "Current config:", config);
-    if (checked) {
-      // If enabling action button, disable embedded form
-      const updates = { 
+  // Effect to sync the selectedOptIn state with the config
+  useEffect(() => {
+    // Update the config when selectedOptIn changes
+    if (selectedOptIn === "action-button") {
+      updateConfig({ 
         enableActionButton: true, 
         enableEmbeddedForm: false 
-      };
-      console.log("Updating with:", updates);
-      updateConfig(updates);
-      setActiveSection("action-button");
+      });
+    } else if (selectedOptIn === "embedded-form") {
+      updateConfig({ 
+        enableActionButton: false, 
+        enableEmbeddedForm: true 
+      });
+    } else if (selectedOptIn === null) {
+      updateConfig({ 
+        enableActionButton: false, 
+        enableEmbeddedForm: false 
+      });
+    }
+  }, [selectedOptIn, updateConfig]);
+  
+  // Simple toggle handlers - just change selectedOptIn state
+  const handleToggleActionButton = (checked: boolean) => {
+    console.log("Action Button toggle:", checked);
+    if (checked) {
+      setSelectedOptIn("action-button");
+      // Only expand if user explicitly clicks on the header, not the toggle
+      // setExpandedSection("action-button");
       toast({
         title: "Action Button Enabled",
         description: "Embedded Form has been automatically disabled.",
       });
     } else {
-      // Just disable action button
-      updateConfig({ enableActionButton: false });
-      setActiveSection(undefined);
+      setSelectedOptIn(null);
+      // setExpandedSection(undefined);
     }
   };
   
   const handleToggleEmbeddedForm = (checked: boolean) => {
-    console.log("Embedded Form toggle:", checked, "Current config:", config);
+    console.log("Embedded Form toggle:", checked);
     if (checked) {
-      // If enabling embedded form, disable action button
-      const updates = { 
-        enableEmbeddedForm: true, 
-        enableActionButton: false 
-      };
-      console.log("Updating with:", updates);
-      updateConfig(updates);
-      setActiveSection("embedded-form");
+      setSelectedOptIn("embedded-form");
+      // Only expand if user explicitly clicks on the header, not the toggle
+      // setExpandedSection("embedded-form");
       toast({
         title: "Embedded Form Enabled",
         description: "Action Button has been automatically disabled.",
       });
     } else {
-      // Just disable embedded form
-      updateConfig({ enableEmbeddedForm: false });
-      setActiveSection(undefined);
+      setSelectedOptIn(null);
+      // setExpandedSection(undefined);
     }
   };
   
@@ -113,25 +116,25 @@ export default function ListingOptInsConfig() {
           type="single" 
           collapsible 
           className="w-full border rounded-md"
-          value={activeSection}
-          onValueChange={setActiveSection}
+          value={expandedSection}
+          onValueChange={setExpandedSection}
         >
           <AccordionItem value="action-button" className="border-b-0 px-4">
-            <AccordionTrigger className="py-4 hover:no-underline">
-              <div className="flex justify-between items-center w-full">
-                <div className="flex items-center gap-4">
-                  <div>
-                    <h3 className="text-base font-medium text-slate-800 text-left">Action Button Opt-In</h3>
-                    <p className="text-sm text-slate-500 text-left">Configure a call-to-action button for listings</p>
-                  </div>
-                </div>
+            <div className="flex items-center justify-between py-4">
+              {/* Left section: clickable header */}
+              <div className="flex-1 cursor-pointer" onClick={() => setExpandedSection(expandedSection === "action-button" ? undefined : "action-button")}>
+                <h3 className="text-base font-medium text-slate-800 text-left">Action Button Opt-In</h3>
+                <p className="text-sm text-slate-500 text-left">Configure a call-to-action button for listings</p>
+              </div>
+              
+              {/* Right section: toggle switch (outside accordion trigger) */}
+              <div className="ml-4" onClick={e => e.stopPropagation()}>
                 <CustomSwitch 
-                  checked={config.enableActionButton || false}
+                  checked={selectedOptIn === "action-button"}
                   onCheckedChange={handleToggleActionButton}
-                  onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
                 />
               </div>
-            </AccordionTrigger>
+            </div>
             <AccordionContent className="pb-4 pt-2">
               <div className="space-y-6">
                 {/* Button Type Selector */}
@@ -283,25 +286,25 @@ export default function ListingOptInsConfig() {
           type="single" 
           collapsible 
           className="w-full border rounded-md"
-          value={activeSection}
-          onValueChange={setActiveSection}
+          value={expandedSection}
+          onValueChange={setExpandedSection}
         >
           <AccordionItem value="embedded-form" className="border-b-0 px-4">
-            <AccordionTrigger className="py-4 hover:no-underline">
-              <div className="flex justify-between items-center w-full">
-                <div className="flex items-center gap-4">
-                  <div>
-                    <h3 className="text-base font-medium text-slate-800 text-left">Embedded Form Opt-In</h3>
-                    <p className="text-sm text-slate-500 text-left">Configure a form embedded directly on the listing page</p>
-                  </div>
-                </div>
+            <div className="flex items-center justify-between py-4">
+              {/* Left section: clickable header */}
+              <div className="flex-1 cursor-pointer" onClick={() => setExpandedSection(expandedSection === "embedded-form" ? undefined : "embedded-form")}>
+                <h3 className="text-base font-medium text-slate-800 text-left">Embedded Form Opt-In</h3>
+                <p className="text-sm text-slate-500 text-left">Configure a form embedded directly on the listing page</p>
+              </div>
+              
+              {/* Right section: toggle switch (outside accordion trigger) */}
+              <div className="ml-4" onClick={e => e.stopPropagation()}>
                 <CustomSwitch 
-                  checked={config.enableEmbeddedForm || false}
+                  checked={selectedOptIn === "embedded-form"}
                   onCheckedChange={handleToggleEmbeddedForm}
-                  onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
                 />
               </div>
-            </AccordionTrigger>
+            </div>
             <AccordionContent className="pb-4 pt-2">
               <div className="space-y-6">
                 {/* Form URL Configuration */}
