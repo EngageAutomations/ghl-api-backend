@@ -80,7 +80,7 @@ export default function ListingOptInsConfig() {
     return;
   }, [buttonType, config.buttonUrl, convertedUrl, isChecking]);
   
-  // Sync with config once on load
+  // Sync with config once on load and clear any example URLs
   useEffect(() => {
     // Set initial expanded section based on what's enabled
     if (config.enableActionButton) {
@@ -88,7 +88,20 @@ export default function ListingOptInsConfig() {
     } else if (config.enableEmbeddedForm) {
       setExpandedSection("embedded-form");
     }
-  }, []);
+    
+    // Clear any default or example URLs that might be saved
+    if (config.buttonUrl && (
+      config.buttonUrl.includes("example.com") || 
+      config.buttonUrl.includes("{product_name}")
+    )) {
+      updateConfig({ buttonUrl: "" });
+      setLocalUrlValue("");
+    }
+    
+    if (config.formEmbedUrl && config.formEmbedUrl.includes("example.com")) {
+      updateConfig({ formEmbedUrl: "" });
+    }
+  }, [config.buttonUrl, config.formEmbedUrl, updateConfig]);
   
   // Effect to sync the selectedOptIn state with the config
   useEffect(() => {
@@ -511,7 +524,7 @@ export default function ListingOptInsConfig() {
                     id="form-fallback"
                     value={config.formFallback ?? ""}
                     onChange={(e) => updateConfig({ formFallback: e.target.value })}
-                    placeholder="Unable to load the form. Please try again later or contact us directly."
+                    placeholder="Enter a fallback message to show if the form fails to load"
                     rows={3}
                   />
                   <p className="text-xs text-slate-500">
