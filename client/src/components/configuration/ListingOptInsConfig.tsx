@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function ListingOptInsConfig() {
   const { config, updateConfig } = useConfig();
   const [showCustomCss, setShowCustomCss] = useState(config.buttonStyle === "custom");
+  const [buttonType, setButtonType] = useState(config.buttonType || "popup");
   
   // Type assertion helper for form elements
   const getConfigValue = <T extends string>(value: T | string | null | undefined, defaultValue: T): T => {
@@ -47,6 +48,12 @@ export default function ListingOptInsConfig() {
   useEffect(() => {
     setShowCustomCss(config.buttonStyle === "custom");
   }, [config.buttonStyle]);
+  
+  // Update buttonType state when config changes
+  useEffect(() => {
+    setButtonType(config.buttonType || "popup");
+    console.log("Updated buttonType from config:", config.buttonType);
+  }, [config.buttonType]);
   
   // Sync with config once on load
   useEffect(() => {
@@ -149,7 +156,11 @@ export default function ListingOptInsConfig() {
                     <Label htmlFor="button-type">Opt-In Type</Label>
                     <Select 
                       value={config.buttonType || "popup"}
-                      onValueChange={(value) => updateConfig({ buttonType: value })}
+                      onValueChange={(value) => {
+                        console.log("Button type changed to:", value);
+                        setButtonType(value);
+                        updateConfig({ buttonType: value });
+                      }}
                     >
                       <SelectTrigger id="button-type">
                         <SelectValue placeholder="Select opt-in type" />
@@ -176,8 +187,8 @@ export default function ListingOptInsConfig() {
                 {/* URL Configuration for Popup/Link */}
                 <div className="space-y-2">
                   <Label htmlFor="popup-url" className="flex items-center gap-2">
-                    {config.buttonType === "popup" ? "Pop Up Embed" : 
-                     config.buttonType === "download" ? "Download Link" :
+                    {buttonType === "popup" ? "Pop Up Embed" : 
+                     buttonType === "download" ? "Download Link" :
                      "URL"}
                     <TooltipProvider>
                       <Tooltip>
@@ -197,16 +208,16 @@ export default function ListingOptInsConfig() {
                       id="popup-url"
                       value={config.buttonUrl || ""}
                       onChange={(e) => updateConfig({ buttonUrl: e.target.value })}
-                      placeholder={config.buttonType === "popup" ? "https://forms.example.com/signup?business={business_name}" : 
-                                    config.buttonType === "download" ? "https://example.com/downloads/resource.pdf" :
+                      placeholder={buttonType === "popup" ? "https://forms.example.com/signup?business={business_name}" : 
+                                    buttonType === "download" ? "https://example.com/downloads/resource.pdf" :
                                     "https://example.com/page"}
                       className="flex-1"
                     />
                   </div>
                   <p className="text-xs text-slate-500">
-                    {config.buttonType === "popup" ? 
+                    {buttonType === "popup" ? 
                       "This form will be shown in a popup window when the button is clicked." :
-                     config.buttonType === "download" ? 
+                     buttonType === "download" ? 
                       "This file will be downloaded when the button is clicked." :
                       "This URL will open in a new window when the button is clicked."}
                     {" "}Use {"{business_name}"} to insert the business name for tracking.
@@ -214,7 +225,7 @@ export default function ListingOptInsConfig() {
                 </div>
 
                 {/* Popup Size Configuration */}
-                {config.buttonType === "popup" && (
+                {buttonType === "popup" && (
                   <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="popup-width">Popup Width</Label>
