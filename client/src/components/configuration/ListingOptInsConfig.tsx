@@ -247,7 +247,7 @@ export default function ListingOptInsConfig() {
                     <Label htmlFor="button-label">Button Text</Label>
                     <Input 
                       id="button-label"
-                      value={config.buttonLabel || ""}
+                      value={config.buttonLabel ?? ""}
                       onChange={(e) => updateConfig({ buttonLabel: e.target.value })}
                       placeholder="Get Updates"
                     />
@@ -278,7 +278,7 @@ export default function ListingOptInsConfig() {
                   <div className={`flex rounded-md ${buttonType === "download" ? "mb-1" : ""}`}>
                     <Input 
                       id="popup-url"
-                      value={config.buttonUrl || ""}
+                      value={config.buttonUrl ?? ""}
                       onChange={(e) => {
                         updateConfig({ buttonUrl: e.target.value });
                         // Reset conversion info when URL changes
@@ -351,7 +351,7 @@ export default function ListingOptInsConfig() {
                           type="number"
                           min="300"
                           max="1200"
-                          value={config.popupWidth || 600}
+                          value={config.popupWidth ?? 600}
                           onChange={(e) => updateConfig({ popupWidth: parseInt(e.target.value) || 600 })}
                           className="flex-1"
                         />
@@ -369,7 +369,7 @@ export default function ListingOptInsConfig() {
                           type="number"
                           min="300"
                           max="1000"
-                          value={config.popupHeight || 500}
+                          value={config.popupHeight ?? 500}
                           onChange={(e) => updateConfig({ popupHeight: parseInt(e.target.value) || 500 })}
                           className="flex-1"
                         />
@@ -385,7 +385,7 @@ export default function ListingOptInsConfig() {
                 <div className="space-y-2">
                   <Label htmlFor="button-style">Button Style</Label>
                   <Select 
-                    value={config.buttonStyle || "primary"}
+                    value={config.buttonStyle ?? "primary"}
                     onValueChange={(value) => {
                       updateConfig({ buttonStyle: value });
                       setShowCustomCss(value === "custom");
@@ -409,7 +409,7 @@ export default function ListingOptInsConfig() {
                     <Label htmlFor="custom-css">Custom CSS Classes</Label>
                     <Input 
                       id="custom-css"
-                      value={config.customCss || ""}
+                      value={config.customCss ?? ""}
                       onChange={(e) => updateConfig({ customCss: e.target.value })}
                       placeholder="e.g. my-custom-button text-lg"
                     />
@@ -483,7 +483,7 @@ export default function ListingOptInsConfig() {
                   </Label>
                   <Input 
                     id="form-embed-url"
-                    value={config.formEmbedUrl || ""}
+                    value={config.formEmbedUrl ?? ""}
                     onChange={(e) => updateConfig({ formEmbedUrl: e.target.value })}
                     placeholder="https://forms.example.com/embed?business={business_name}"
                   />
@@ -497,7 +497,7 @@ export default function ListingOptInsConfig() {
                   <Label htmlFor="form-fallback">Fallback Message</Label>
                   <Textarea 
                     id="form-fallback"
-                    value={config.formFallback || ""}
+                    value={config.formFallback ?? ""}
                     onChange={(e) => updateConfig({ formFallback: e.target.value })}
                     placeholder="Unable to load the form. Please try again later or contact us directly."
                     rows={3}
