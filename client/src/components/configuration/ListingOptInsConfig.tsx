@@ -28,7 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function ListingOptInsConfig() {
   const { config, updateConfig } = useConfig();
   const [showCustomCss, setShowCustomCss] = useState(config.buttonStyle === "custom");
-  const [buttonType, setButtonType] = useState(config.buttonType || "popup");
+  const [buttonType, setButtonType] = useState(config.buttonType ?? "popup");
   const [convertedUrl, setConvertedUrl] = useState("");
   const [conversionInfo, setConversionInfo] = useState<{wasConverted: boolean; provider?: string}>({wasConverted: false});
   const [isChecking, setIsChecking] = useState(false);
@@ -55,7 +55,7 @@ export default function ListingOptInsConfig() {
   
   // Update buttonType state when config changes
   useEffect(() => {
-    setButtonType(config.buttonType || "popup");
+    setButtonType(config.buttonType ?? "popup");
     console.log("Updated buttonType from config:", config.buttonType);
     
     // Clear conversion state when changing away from download type
@@ -147,8 +147,14 @@ export default function ListingOptInsConfig() {
   
   // Function to handle download link conversion
   const handleCheckDownloadLink = () => {
-    const url = config.buttonUrl || "";
-    if (!url) return;
+    const url = config.buttonUrl ?? "";
+    if (!url) {
+      toast({
+        title: "No URL to Check",
+        description: "Please enter a URL first.",
+      });
+      return;
+    }
     
     setIsChecking(true);
     
@@ -225,7 +231,7 @@ export default function ListingOptInsConfig() {
                   <div className="space-y-2">
                     <Label htmlFor="button-type">Opt-In Type</Label>
                     <Select 
-                      value={config.buttonType || "popup"}
+                      value={config.buttonType ?? "popup"}
                       onValueChange={(value) => {
                         console.log("Button type changed to:", value);
                         setButtonType(value);
@@ -300,7 +306,7 @@ export default function ListingOptInsConfig() {
                         size="icon"
                         type="button"
                         onClick={handleCheckDownloadLink}
-                        disabled={isChecking || !config.buttonUrl}
+                        disabled={isChecking}
                         className="ml-2 flex-shrink-0 rounded-md focus-visible:ring-slate-950"
                         title="Convert to direct download link"
                       >
