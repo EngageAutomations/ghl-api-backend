@@ -28,6 +28,11 @@ export default function ListingOptInsConfig() {
   const { config, updateConfig } = useConfig();
   const [showCustomCss, setShowCustomCss] = useState(config.buttonStyle === "custom");
   
+  // Type assertion helper for form elements
+  const getConfigValue = <T extends string>(value: T | string | null | undefined, defaultValue: T): T => {
+    return (value as T) || defaultValue;
+  };
+  
   // Single source of truth for which opt-in method is selected
   const [selectedOptIn, setSelectedOptIn] = useState<"action-button" | "embedded-form" | null>(
     config.enableActionButton ? "action-button" : 
@@ -379,7 +384,7 @@ export default function ListingOptInsConfig() {
                 <div className="space-y-2">
                   <Label htmlFor="form-position">Form Position</Label>
                   <Select 
-                    value={config.formPosition || "Below Business Description"}
+                    value={getConfigValue(config.formPosition, "Below Business Description")}
                     onValueChange={(value) => updateConfig({ formPosition: value })}
                   >
                     <SelectTrigger id="form-position">
