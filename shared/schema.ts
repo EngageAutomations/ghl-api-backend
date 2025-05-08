@@ -45,6 +45,7 @@ export const designerConfigs = pgTable("designer_configs", {
   hidePrice: boolean("hide_price").default(false),
   hideCartIcon: boolean("hide_cart_icon").default(false),
   hideAddToCartButton: boolean("hide_add_to_cart_button").default(false),
+  enableDownloadButton: boolean("enable_download_button").default(false),
   customCssCode: text("custom_css_code"),
   
   // Portal Domain Configuration
