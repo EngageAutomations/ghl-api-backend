@@ -143,7 +143,7 @@ export default function ListingOptInsConfig() {
                   <div className="space-y-2">
                     <Label htmlFor="button-type">Opt-In Type</Label>
                     <Select 
-                      value={config.buttonType}
+                      value={config.buttonType || "popup"}
                       onValueChange={(value) => updateConfig({ buttonType: value })}
                     >
                       <SelectTrigger id="button-type">
@@ -151,8 +151,8 @@ export default function ListingOptInsConfig() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="popup">Popup Form</SelectItem>
-                        <SelectItem value="link">External Link</SelectItem>
-                        <SelectItem value="download">Resource Download</SelectItem>
+                        <SelectItem value="link">Website Link</SelectItem>
+                        <SelectItem value="download">Direct Download</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -161,7 +161,7 @@ export default function ListingOptInsConfig() {
                     <Label htmlFor="button-label">Button Text</Label>
                     <Input 
                       id="button-label"
-                      value={config.buttonLabel}
+                      value={config.buttonLabel || ""}
                       onChange={(e) => updateConfig({ buttonLabel: e.target.value })}
                       placeholder="Get Updates"
                     />
@@ -171,7 +171,9 @@ export default function ListingOptInsConfig() {
                 {/* URL Configuration for Popup/Link */}
                 <div className="space-y-2">
                   <Label htmlFor="popup-url" className="flex items-center gap-2">
-                    {config.buttonType === "popup" ? "Form URL" : "Destination URL"}
+                    {config.buttonType === "popup" ? "Pop Up Embed" : 
+                     config.buttonType === "download" ? "Download Link" :
+                     "URL"}
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
@@ -190,13 +192,19 @@ export default function ListingOptInsConfig() {
                       id="popup-url"
                       value={config.buttonUrl || ""}
                       onChange={(e) => updateConfig({ buttonUrl: e.target.value })}
-                      placeholder="https://forms.example.com/signup?business={business_name}"
+                      placeholder={config.buttonType === "popup" ? "https://forms.example.com/signup?business={business_name}" : 
+                                    config.buttonType === "download" ? "https://example.com/downloads/resource.pdf" :
+                                    "https://example.com/page"}
                       className="flex-1"
                     />
                   </div>
                   <p className="text-xs text-slate-500">
-                    This URL will be loaded in a {config.buttonType === "popup" ? "popup" : "new window"}. 
-                    Use {"{business_name}"} to insert the business name for tracking.
+                    {config.buttonType === "popup" ? 
+                      "This form will be shown in a popup window when the button is clicked." :
+                     config.buttonType === "download" ? 
+                      "This file will be downloaded when the button is clicked." :
+                      "This URL will open in a new window when the button is clicked."}
+                    {" "}Use {"{business_name}"} to insert the business name for tracking.
                   </p>
                 </div>
 
@@ -245,7 +253,7 @@ export default function ListingOptInsConfig() {
                 <div className="space-y-2">
                   <Label htmlFor="button-style">Button Style</Label>
                   <Select 
-                    value={config.buttonStyle}
+                    value={config.buttonStyle || "primary"}
                     onValueChange={(value) => {
                       updateConfig({ buttonStyle: value });
                       setShowCustomCss(value === "custom");
@@ -371,7 +379,7 @@ export default function ListingOptInsConfig() {
                 <div className="space-y-2">
                   <Label htmlFor="form-position">Form Position</Label>
                   <Select 
-                    value={config.formPosition}
+                    value={config.formPosition || "Below Business Description"}
                     onValueChange={(value) => updateConfig({ formPosition: value })}
                   >
                     <SelectTrigger id="form-position">
