@@ -75,43 +75,12 @@ const HIDE_PRICE_CSS = `
 }
 `;
 
-// Download button styling
-const DOWNLOAD_BUTTON_CSS = `
-/* Turn plain anchor tags in description into styled buttons */
-#description p > a {
-    display: inline-block;
-    background-color: #9966CC; /* Change this to your desired button color */
-    color: #fff !important;
-    padding: 10px 20px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-}
 
-/* Hover effect */
-#description p > a:hover {
-    background-color: #0056b3; /* Hover color */
-}
-`;
-
-// Script for changing link text (if needed)
-const DOWNLOAD_BUTTON_SCRIPT = `
-<script>
-  const links = document.querySelectorAll('#description p > a');
-  links.forEach(link => {
-    if (link.innerText.length < 10) {
-      link.innerText = "Download Now"; // Customize this text
-    }
-  });
-</script>
-`;
 
 export default function AdvancedStylingConfig() {
   const { config, updateConfig } = useConfig();
   const [cssCode, setCssCode] = useState(CORE_CSS);
   const [hidePriceEnabled, setHidePriceEnabled] = useState(config.hidePrice || false);
-  const [downloadButtonEnabled, setDownloadButtonEnabled] = useState(config.enableDownloadButton || false);
   
   // Generate CSS based on local toggle states
   const generateCss = () => {
@@ -122,10 +91,6 @@ export default function AdvancedStylingConfig() {
       css += "\n" + HIDE_PRICE_CSS;
     }
     
-    if (downloadButtonEnabled) {
-      css += "\n" + DOWNLOAD_BUTTON_CSS;
-    }
-    
     return css;
   };
   
@@ -133,11 +98,6 @@ export default function AdvancedStylingConfig() {
   const handleToggleHidePrice = (checked: boolean) => {
     setHidePriceEnabled(checked);
     updateConfig({ hidePrice: checked });
-  };
-  
-  const handleToggleDownloadButton = (checked: boolean) => {
-    setDownloadButtonEnabled(checked);
-    updateConfig({ enableDownloadButton: checked });
   };
   
   // When the component first loads, set the initial CSS
@@ -152,7 +112,7 @@ export default function AdvancedStylingConfig() {
     const generatedCss = generateCss();
     setCssCode(generatedCss);
     updateConfig({ customCssCode: generatedCss });
-  }, [hidePriceEnabled, downloadButtonEnabled]);
+  }, [hidePriceEnabled]);
   
   return (
     <ConfigCard 
@@ -190,30 +150,7 @@ export default function AdvancedStylingConfig() {
               />
             </div>
             
-            <div className="flex items-center justify-between">
-              <Label 
-                htmlFor="enable-download-button" 
-                className="font-normal flex items-center gap-2"
-              >
-                Style Download Links
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <InfoCircledIcon className="h-4 w-4 text-slate-500" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">
-                        Convert regular links in description to styled download buttons
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </Label>
-              <CustomSwitch 
-                checked={downloadButtonEnabled}
-                onCheckedChange={handleToggleDownloadButton}
-              />
-            </div>
+
           </div>
         </div>
         
