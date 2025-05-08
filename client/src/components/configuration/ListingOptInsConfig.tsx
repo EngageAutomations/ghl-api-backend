@@ -186,17 +186,17 @@ export default function ListingOptInsConfig() {
         updateConfig({ buttonUrl: result.convertedUrl });
         toast({
           title: "Link Converted Successfully",
-          description: `Your ${result.provider} link has been optimized for direct download.`,
+          description: `Your ${result.provider} link has been optimized for direct download. Check console for details.`,
         });
       } else if (result.provider) {
         toast({
           title: "Link Unchanged",
-          description: `We couldn't convert your ${result.provider} link to a direct download URL.`,
+          description: `We couldn't convert your ${result.provider} link to a direct download URL. Check console for details.`,
         });
       } else {
         toast({
           title: "Link Verification",
-          description: "This appears to be a direct download link already.",
+          description: "This appears to be a direct download link already. Check console for details.",
         });
       }
     } catch (error) {
@@ -311,29 +311,35 @@ export default function ListingOptInsConfig() {
                         }
                       }}
                       placeholder={buttonType === "popup" ? "Enter form URL here" : 
-                                    buttonType === "download" ? "We automatically convert your link for direct download when possible." :
+                                    buttonType === "download" ? "We automatically convert your link for direct download when possible. Press Enter to test." :
                                     "Enter URL here"}
+                      onKeyDown={(e) => {
+                        // Add Enter key handling for download link testing
+                        if (e.key === 'Enter' && buttonType === 'download') {
+                          e.preventDefault();
+                          handleCheckDownloadLink();
+                        }
+                      }}
                       className="flex-1"
                     />
                     
                     {/* Only show conversion button for download links */}
                     {buttonType === "download" && (
                       <Button
-                        variant="outline"
-                        size="icon"
+                        variant="default"
+                        size="sm"
                         type="button"
                         onClick={handleCheckDownloadLink}
                         disabled={isChecking}
-                        className="ml-2 flex-shrink-0 rounded-md focus-visible:ring-slate-950"
+                        className="ml-2 flex-shrink-0"
                         title="Convert to direct download link"
                       >
                         {isChecking ? (
-                          <ReloadIcon className="h-4 w-4 animate-spin" />
-                        ) : conversionInfo.wasConverted ? (
-                          <CheckIcon className="h-4 w-4 text-green-500" />
+                          <ReloadIcon className="h-4 w-4 mr-1 animate-spin" />
                         ) : (
-                          <Link1Icon className="h-4 w-4" />
+                          <Link1Icon className="h-4 w-4 mr-1" />
                         )}
+                        Test
                       </Button>
                     )}
                   </div>
