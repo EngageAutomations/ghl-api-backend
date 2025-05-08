@@ -232,7 +232,7 @@ export default function ListingOptInsConfig() {
                   <div className="space-y-2">
                     <Label htmlFor="button-type">Opt-In Type</Label>
                     <Select 
-                      value={config.buttonType ?? "popup"}
+                      value={buttonType}
                       onValueChange={(value) => {
                         console.log("Button type changed to:", value);
                         setButtonType(value);
@@ -240,7 +240,7 @@ export default function ListingOptInsConfig() {
                       }}
                     >
                       <SelectTrigger id="button-type">
-                        <SelectValue placeholder="Select opt-in type" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="popup">Popup Form</SelectItem>
