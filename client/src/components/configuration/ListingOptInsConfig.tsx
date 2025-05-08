@@ -172,6 +172,7 @@ export default function ListingOptInsConfig() {
     
     try {
       const result = convertToDirectDownloadLink(url);
+      console.log('Conversion result:', result);
       setConvertedUrl(result.convertedUrl);
       setConversionInfo({
         wasConverted: result.wasConverted,
