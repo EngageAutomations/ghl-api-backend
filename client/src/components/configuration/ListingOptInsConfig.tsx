@@ -65,20 +65,13 @@ export default function ListingOptInsConfig() {
     }
   }, [config.buttonType]);
   
-  // Automatically check for direct download links when user enters a URL in download mode
+  // Completely disable auto-checking to avoid issues with user input
+  // This effect has been intentionally disabled to prevent interference with text input
+  // Users will need to manually click the button to convert URLs
   useEffect(() => {
-    // Only run this effect if we're in download mode and have a URL to check
-    if (buttonType === "download" && config.buttonUrl && !convertedUrl && !isChecking) {
-      // Avoid checking the same URL multiple times
-      const url = config.buttonUrl.trim();
-      if (url.length > 10 && (url.startsWith('http://') || url.startsWith('https://'))) {
-        // Auto-check URL after a small delay to avoid checking while user is still typing
-        const timer = setTimeout(() => {
-          handleCheckDownloadLink();
-        }, 1000);
-        return () => clearTimeout(timer);
-      }
-    }
+    // This auto-check feature is now disabled
+    // It was causing conflicts with user input
+    return;
   }, [buttonType, config.buttonUrl, convertedUrl, isChecking]);
   
   // Sync with config once on load
@@ -286,9 +279,11 @@ export default function ListingOptInsConfig() {
                       id="popup-url"
                       value={config.buttonUrl ?? ""}
                       onChange={(e) => {
-                        updateConfig({ buttonUrl: e.target.value });
+                        const newValue = e.target.value;
+                        console.log("URL changed to:", newValue);
+                        updateConfig({ buttonUrl: newValue });
                         // Reset conversion info when URL changes
-                        if (convertedUrl && e.target.value !== convertedUrl) {
+                        if (convertedUrl && newValue !== convertedUrl) {
                           setConvertedUrl("");
                           setConversionInfo({ wasConverted: false });
                         }
