@@ -288,7 +288,7 @@ export default function ListingOptInsConfig() {
                         }
                       }}
                       placeholder={buttonType === "popup" ? "https://forms.example.com/signup?business={business_name}" : 
-                                    buttonType === "download" ? "https://drive.google.com/file/d/FILE_ID/view or any file URL" :
+                                    buttonType === "download" ? "" :
                                     "https://example.com/page"}
                       className="flex-1"
                     />
