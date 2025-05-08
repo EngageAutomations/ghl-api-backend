@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useConfig } from "@/context/ConfigContext";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -109,6 +109,7 @@ const DOWNLOAD_BUTTON_SCRIPT = `
 
 export default function AdvancedStylingConfig() {
   const { config, updateConfig } = useConfig();
+  const [cssCode, setCssCode] = useState(CORE_CSS);
   
   // Generate CSS based on config options
   const generateCss = () => {
@@ -126,9 +127,17 @@ export default function AdvancedStylingConfig() {
     return css;
   };
   
-  // Update CSS when config changes
+  // When the component first loads, set the initial CSS
   useEffect(() => {
     const generatedCss = generateCss();
+    setCssCode(generatedCss);
+    updateConfig({ customCssCode: generatedCss });
+  }, []);
+  
+  // Update CSS when toggle options change
+  useEffect(() => {
+    const generatedCss = generateCss();
+    setCssCode(generatedCss);
     updateConfig({ customCssCode: generatedCss });
   }, [config.hidePrice, config.enableDownloadButton]);
   
@@ -208,7 +217,7 @@ export default function AdvancedStylingConfig() {
             <Label htmlFor="custom-css-code" className="font-medium">CSS Code</Label>
             <Textarea 
               id="custom-css-code"
-              value={config.customCssCode || ""}
+              value={cssCode}
               readOnly
               className="font-mono text-sm bg-slate-50"
               rows={12}
