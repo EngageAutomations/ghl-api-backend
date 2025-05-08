@@ -12,8 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { InfoCircledIcon, ReloadIcon, Link1Icon, ExternalLinkIcon, CheckIcon } from "@radix-ui/react-icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { convertToDirectDownloadLink } from "@/lib/utils";
 import { ConfigCard } from "../ui/config-card";
 import {
   Accordion,
@@ -28,6 +29,9 @@ export default function ListingOptInsConfig() {
   const { config, updateConfig } = useConfig();
   const [showCustomCss, setShowCustomCss] = useState(config.buttonStyle === "custom");
   const [buttonType, setButtonType] = useState(config.buttonType || "popup");
+  const [convertedUrl, setConvertedUrl] = useState("");
+  const [conversionInfo, setConversionInfo] = useState<{wasConverted: boolean; provider?: string}>({wasConverted: false});
+  const [isChecking, setIsChecking] = useState(false);
   
   // Type assertion helper for form elements
   const getConfigValue = <T extends string>(value: T | string | null | undefined, defaultValue: T): T => {
@@ -53,7 +57,29 @@ export default function ListingOptInsConfig() {
   useEffect(() => {
     setButtonType(config.buttonType || "popup");
     console.log("Updated buttonType from config:", config.buttonType);
+    
+    // Clear conversion state when changing away from download type
+    if (config.buttonType !== "download") {
+      setConvertedUrl("");
+      setConversionInfo({ wasConverted: false });
+    }
   }, [config.buttonType]);
+  
+  // Automatically check for direct download links when user enters a URL in download mode
+  useEffect(() => {
+    // Only run this effect if we're in download mode and have a URL to check
+    if (buttonType === "download" && config.buttonUrl && !convertedUrl && !isChecking) {
+      // Avoid checking the same URL multiple times
+      const url = config.buttonUrl.trim();
+      if (url.length > 10 && (url.startsWith('http://') || url.startsWith('https://'))) {
+        // Auto-check URL after a small delay to avoid checking while user is still typing
+        const timer = setTimeout(() => {
+          handleCheckDownloadLink();
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [buttonType, config.buttonUrl, convertedUrl, isChecking]);
   
   // Sync with config once on load
   useEffect(() => {
@@ -116,6 +142,50 @@ export default function ListingOptInsConfig() {
     } else {
       setSelectedOptIn(null);
       // setExpandedSection(undefined);
+    }
+  };
+  
+  // Function to handle download link conversion
+  const handleCheckDownloadLink = () => {
+    const url = config.buttonUrl || "";
+    if (!url) return;
+    
+    setIsChecking(true);
+    
+    try {
+      const result = convertToDirectDownloadLink(url);
+      setConvertedUrl(result.convertedUrl);
+      setConversionInfo({
+        wasConverted: result.wasConverted,
+        provider: result.provider
+      });
+      
+      if (result.wasConverted) {
+        // Automatically update the config with the converted URL
+        updateConfig({ buttonUrl: result.convertedUrl });
+        toast({
+          title: "Link Converted Successfully",
+          description: `Your ${result.provider} link has been optimized for direct download.`,
+        });
+      } else if (result.provider) {
+        toast({
+          title: "Link Unchanged",
+          description: `We couldn't convert your ${result.provider} link to a direct download URL.`,
+        });
+      } else {
+        toast({
+          title: "Link Verification",
+          description: "This appears to be a direct download link already.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Link Check Failed",
+        description: "There was a problem verifying your download link.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsChecking(false);
     }
   };
   
@@ -203,24 +273,70 @@ export default function ListingOptInsConfig() {
                       </Tooltip>
                     </TooltipProvider>
                   </Label>
-                  <div className="flex rounded-md">
+                  
+                  {/* Input with button for download link conversion */}
+                  <div className={`flex rounded-md ${buttonType === "download" ? "mb-1" : ""}`}>
                     <Input 
                       id="popup-url"
                       value={config.buttonUrl || ""}
-                      onChange={(e) => updateConfig({ buttonUrl: e.target.value })}
+                      onChange={(e) => {
+                        updateConfig({ buttonUrl: e.target.value });
+                        // Reset conversion info when URL changes
+                        if (convertedUrl && e.target.value !== convertedUrl) {
+                          setConvertedUrl("");
+                          setConversionInfo({ wasConverted: false });
+                        }
+                      }}
                       placeholder={buttonType === "popup" ? "https://forms.example.com/signup?business={business_name}" : 
-                                    buttonType === "download" ? "https://example.com/downloads/resource.pdf" :
+                                    buttonType === "download" ? "https://drive.google.com/file/d/FILE_ID/view or any file URL" :
                                     "https://example.com/page"}
                       className="flex-1"
                     />
+                    
+                    {/* Only show conversion button for download links */}
+                    {buttonType === "download" && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        type="button"
+                        onClick={handleCheckDownloadLink}
+                        disabled={isChecking || !config.buttonUrl}
+                        className="ml-2 flex-shrink-0 rounded-md focus-visible:ring-slate-950"
+                        title="Convert to direct download link"
+                      >
+                        {isChecking ? (
+                          <ReloadIcon className="h-4 w-4 animate-spin" />
+                        ) : conversionInfo.wasConverted ? (
+                          <CheckIcon className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Link1Icon className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
                   </div>
+                  
+                  {/* Download link conversion status */}
+                  {buttonType === "download" && (
+                    <>
+                      {conversionInfo.wasConverted && (
+                        <div className="rounded-md bg-slate-50 p-2 text-xs text-slate-700 border border-slate-200">
+                          <div className="flex items-center gap-1 font-medium text-green-600 mb-1">
+                            <CheckIcon className="h-3 w-3" />
+                            <span>Optimized for direct download</span>
+                          </div>
+                          <p>Original {conversionInfo.provider} link has been converted to a direct download URL.</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
                   <p className="text-xs text-slate-500">
                     {buttonType === "popup" ? 
                       "This form will be shown in a popup window when the button is clicked." :
                      buttonType === "download" ? 
-                      "This file will be downloaded when the button is clicked." :
+                      "Paste any Google Drive, Dropbox, or direct file URL. We'll automatically optimize it for direct downloads." :
                       "This URL will open in a new window when the button is clicked."}
-                    {" "}Use {"{business_name}"} to insert the business name for tracking.
+                    {buttonType !== "download" && " Use {\"business_name\"} to insert the business name for tracking."}
                   </p>
                 </div>
 

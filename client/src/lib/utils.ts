@@ -79,3 +79,77 @@ export function addUtmParams(url: string, params: Record<string, string>): strin
   
   return urlObj.toString();
 }
+
+/**
+ * Converts a cloud storage link to a direct download link
+ * @param url The original URL from Google Drive, Dropbox, etc.
+ * @returns Object containing the converted URL and conversion status
+ */
+export function convertToDirectDownloadLink(url: string): { 
+  convertedUrl: string; 
+  wasConverted: boolean;
+  provider?: string;
+} {
+  if (!url) {
+    return { convertedUrl: url, wasConverted: false };
+  }
+
+  try {
+    const urlObj = new URL(url);
+    
+    // Google Drive conversion
+    if (urlObj.hostname.includes('drive.google.com')) {
+      const fileIdMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (fileIdMatch && fileIdMatch[1]) {
+        const fileId = fileIdMatch[1];
+        return {
+          convertedUrl: `https://drive.google.com/uc?export=download&id=${fileId}`,
+          wasConverted: true,
+          provider: 'Google Drive'
+        };
+      }
+    }
+    
+    // Dropbox conversion (change dl=0 to dl=1)
+    if (urlObj.hostname.includes('dropbox.com')) {
+      const newUrl = url.replace(/[?&]dl=0/, '?dl=1');
+      if (newUrl !== url) {
+        return {
+          convertedUrl: newUrl,
+          wasConverted: true,
+          provider: 'Dropbox'
+        };
+      } else if (!url.includes('dl=')) {
+        // If dl parameter doesn't exist, add it
+        const separator = url.includes('?') ? '&' : '?';
+        return {
+          convertedUrl: `${url}${separator}dl=1`,
+          wasConverted: true,
+          provider: 'Dropbox'
+        };
+      }
+    }
+
+    // OneDrive conversion (less reliable, may need testing)
+    if (urlObj.hostname.includes('onedrive.live.com') || urlObj.hostname.includes('1drv.ms')) {
+      if (!url.includes('download=1')) {
+        const separator = url.includes('?') ? '&' : '?';
+        return {
+          convertedUrl: `${url}${separator}download=1`,
+          wasConverted: true,
+          provider: 'OneDrive'
+        };
+      }
+    }
+    
+    // Default case - couldn't convert, return original URL
+    return { 
+      convertedUrl: url, 
+      wasConverted: false,
+      provider: urlObj.hostname.split('.').slice(-2, -1)[0] // Extract domain name without TLD
+    };
+  } catch (e) {
+    // If URL parsing fails, return the original
+    return { convertedUrl: url, wasConverted: false };
+  }
+}
