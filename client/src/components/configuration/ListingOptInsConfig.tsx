@@ -296,9 +296,9 @@ export default function ListingOptInsConfig() {
                           setConversionInfo({ wasConverted: false });
                         }
                       }}
-                      placeholder={buttonType === "popup" ? "https://forms.example.com/signup?business={business_name}" : 
+                      placeholder={buttonType === "popup" ? "Enter form URL here" : 
                                     buttonType === "download" ? "We automatically convert your link for direct download when possible." :
-                                    "https://example.com/page"}
+                                    "Enter URL here"}
                       className="flex-1"
                     />
                     
@@ -497,7 +497,7 @@ export default function ListingOptInsConfig() {
                     id="form-embed-url"
                     value={config.formEmbedUrl ?? ""}
                     onChange={(e) => updateConfig({ formEmbedUrl: e.target.value })}
-                    placeholder="https://forms.example.com/embed?business={business_name}"
+                    placeholder="Enter embed form URL here"
                   />
                   <p className="text-xs text-slate-500">
                     This form will be embedded directly on the listing page. Use {"{business_name}"} for tracking.
