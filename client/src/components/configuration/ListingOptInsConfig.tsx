@@ -29,6 +29,7 @@ export default function ListingOptInsConfig() {
   const { config, updateConfig } = useConfig();
   const [showCustomCss, setShowCustomCss] = useState(config.buttonStyle === "custom");
   const [buttonType, setButtonType] = useState(config.buttonType ?? "popup");
+  const [localUrlValue, setLocalUrlValue] = useState(config.buttonUrl ?? "");
   const [convertedUrl, setConvertedUrl] = useState("");
   const [conversionInfo, setConversionInfo] = useState<{wasConverted: boolean; provider?: string}>({wasConverted: false});
   const [isChecking, setIsChecking] = useState(false);
@@ -53,7 +54,7 @@ export default function ListingOptInsConfig() {
     setShowCustomCss(config.buttonStyle === "custom");
   }, [config.buttonStyle]);
   
-  // Update buttonType state when config changes
+  // Update buttonType and localUrl state when config changes
   useEffect(() => {
     setButtonType(config.buttonType ?? "popup");
     console.log("Updated buttonType from config:", config.buttonType);
@@ -64,6 +65,11 @@ export default function ListingOptInsConfig() {
       setConversionInfo({ wasConverted: false });
     }
   }, [config.buttonType]);
+  
+  // Update local URL value when config.buttonUrl changes
+  useEffect(() => {
+    setLocalUrlValue(config.buttonUrl ?? "");
+  }, [config.buttonUrl]);
   
   // Completely disable auto-checking to avoid issues with user input
   // This effect has been intentionally disabled to prevent interference with text input
@@ -140,7 +146,7 @@ export default function ListingOptInsConfig() {
   
   // Function to handle download link conversion
   const handleCheckDownloadLink = () => {
-    const url = config.buttonUrl ?? "";
+    const url = localUrlValue;
     if (!url) {
       toast({
         title: "No URL to Check",
@@ -160,7 +166,9 @@ export default function ListingOptInsConfig() {
       });
       
       if (result.wasConverted) {
-        // Automatically update the config with the converted URL
+        // Update local state first
+        setLocalUrlValue(result.convertedUrl);
+        // Then update the global config
         updateConfig({ buttonUrl: result.convertedUrl });
         toast({
           title: "Link Converted Successfully",
@@ -277,11 +285,11 @@ export default function ListingOptInsConfig() {
                   <div className={`flex rounded-md ${buttonType === "download" ? "mb-1" : ""}`}>
                     <Input 
                       id="popup-url"
-                      value={config.buttonUrl ?? ""}
+                      value={localUrlValue}
                       onChange={(e) => {
                         const newValue = e.target.value;
                         console.log("URL changed to:", newValue);
-                        updateConfig({ buttonUrl: newValue });
+                        setLocalUrlValue(newValue);
                         // Reset conversion info when URL changes
                         if (convertedUrl && newValue !== convertedUrl) {
                           setConvertedUrl("");
@@ -425,6 +433,9 @@ export default function ListingOptInsConfig() {
                   <Button 
                     size="sm"
                     onClick={() => {
+                      // Update the global config with local URL value
+                      updateConfig({ buttonUrl: localUrlValue });
+                      
                       // Future implementation: save to server
                       toast({
                         title: "Action Button configuration saved!",
