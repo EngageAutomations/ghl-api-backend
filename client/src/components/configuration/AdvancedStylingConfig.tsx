@@ -110,21 +110,34 @@ const DOWNLOAD_BUTTON_SCRIPT = `
 export default function AdvancedStylingConfig() {
   const { config, updateConfig } = useConfig();
   const [cssCode, setCssCode] = useState(CORE_CSS);
+  const [hidePriceEnabled, setHidePriceEnabled] = useState(config.hidePrice || false);
+  const [downloadButtonEnabled, setDownloadButtonEnabled] = useState(config.enableDownloadButton || false);
   
-  // Generate CSS based on config options
+  // Generate CSS based on local toggle states
   const generateCss = () => {
     let css = CORE_CSS;
     
-    // Add optional CSS based on configuration
-    if (config.hidePrice) {
+    // Add optional CSS based on local toggle states
+    if (hidePriceEnabled) {
       css += "\n" + HIDE_PRICE_CSS;
     }
     
-    if (config.enableDownloadButton) {
+    if (downloadButtonEnabled) {
       css += "\n" + DOWNLOAD_BUTTON_CSS;
     }
     
     return css;
+  };
+  
+  // Toggle handlers with immediate CSS update
+  const handleToggleHidePrice = (checked: boolean) => {
+    setHidePriceEnabled(checked);
+    updateConfig({ hidePrice: checked });
+  };
+  
+  const handleToggleDownloadButton = (checked: boolean) => {
+    setDownloadButtonEnabled(checked);
+    updateConfig({ enableDownloadButton: checked });
   };
   
   // When the component first loads, set the initial CSS
@@ -134,12 +147,12 @@ export default function AdvancedStylingConfig() {
     updateConfig({ customCssCode: generatedCss });
   }, []);
   
-  // Update CSS when toggle options change
+  // Update CSS when toggle states change
   useEffect(() => {
     const generatedCss = generateCss();
     setCssCode(generatedCss);
     updateConfig({ customCssCode: generatedCss });
-  }, [config.hidePrice, config.enableDownloadButton]);
+  }, [hidePriceEnabled, downloadButtonEnabled]);
   
   return (
     <ConfigCard 
@@ -172,8 +185,8 @@ export default function AdvancedStylingConfig() {
                 </TooltipProvider>
               </Label>
               <CustomSwitch 
-                checked={config.hidePrice || false}
-                onCheckedChange={(checked) => updateConfig({ hidePrice: checked })}
+                checked={hidePriceEnabled}
+                onCheckedChange={handleToggleHidePrice}
               />
             </div>
             
@@ -197,8 +210,8 @@ export default function AdvancedStylingConfig() {
                 </TooltipProvider>
               </Label>
               <CustomSwitch 
-                checked={config.enableDownloadButton || false}
-                onCheckedChange={(checked) => updateConfig({ enableDownloadButton: checked })}
+                checked={downloadButtonEnabled}
+                onCheckedChange={handleToggleDownloadButton}
               />
             </div>
           </div>
