@@ -285,6 +285,7 @@ export default function ListingOptInsConfig() {
                       <SelectContent>
                         <SelectItem value="popup">Pop Up Embed</SelectItem>
                         <SelectItem value="link">Website Link</SelectItem>
+                        <SelectItem value="download">Direct Download</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -307,7 +308,9 @@ export default function ListingOptInsConfig() {
                 {/* URL Configuration for Popup/Link */}
                 <div className="space-y-2">
                   <Label htmlFor="popup-url" className="flex items-center gap-2">
-                    {buttonType === "popup" ? "Embed Code" : "URL"}
+                    {buttonType === "popup" ? "Embed Code" : 
+                     buttonType === "download" ? "Download Link" :
+                     "URL"}
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
@@ -322,8 +325,8 @@ export default function ListingOptInsConfig() {
                     </TooltipProvider>
                   </Label>
                   
-                  {/* Input for URL or embed code */}
-                  <div className={`flex ${buttonType === "popup" ? "flex-col" : "rounded-md"}`}>
+                  {/* Input with button for download link conversion */}
+                  <div className={`flex ${buttonType === "popup" ? "flex-col" : "rounded-md"} ${buttonType === "download" ? "mb-1" : ""}`}>
                     {buttonType === "popup" ? (
                       <Textarea 
                         id="popup-url"
@@ -343,18 +346,76 @@ export default function ListingOptInsConfig() {
                           const newValue = e.target.value;
                           console.log("URL changed to:", newValue);
                           setLocalUrlValue(newValue);
+                          // Reset conversion info when URL changes
+                          if (convertedUrl && newValue !== convertedUrl) {
+                            setConvertedUrl("");
+                            setConversionInfo({ wasConverted: false });
+                            // Hide any existing error when user starts typing a new URL
+                            setShowConversionError(false);
+                          }
                         }}
-                        placeholder="Enter URL here"
+                        placeholder={buttonType === "download" ? "Paste link here - click Convert button to process before saving" : "Enter URL here"}
+                        onKeyDown={(e) => {
+                          // Add Enter key handling for download link testing
+                          if (e.key === 'Enter' && buttonType === 'download') {
+                            e.preventDefault();
+                            handleCheckDownloadLink();
+                          }
+                        }}
                         className="flex-1"
                       />
                     )}
+                    
+                    {/* Only show conversion button for download links */}
+                    {buttonType === "download" && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        type="button"
+                        onClick={handleCheckDownloadLink}
+                        disabled={isChecking}
+                        className="ml-2 flex-shrink-0"
+                        title="Convert to direct download link"
+                      >
+                        {isChecking ? (
+                          <ReloadIcon className="h-4 w-4 mr-1 animate-spin" />
+                        ) : (
+                          <Link1Icon className="h-4 w-4 mr-1" />
+                        )}
+                        Convert
+                      </Button>
+                    )}
                   </div>
                   
+                  {/* Download link conversion status */}
+                  {buttonType === "download" && (
+                    <>
+                      {conversionInfo.wasConverted && (
+                        <div className="rounded-md bg-slate-50 p-2 text-xs text-slate-700 border border-slate-200">
+                          <div className="flex items-center gap-1 font-medium text-green-600 mb-1">
+                            <CheckIcon className="h-3 w-3" />
+                            <span>Link ready for use</span>
+                          </div>
+                          {/* Used only for Google Drive, Dropbox, etc. with actual conversion */}
+                          {localUrlValue !== convertedUrl && convertedUrl && (
+                            <p>Original {conversionInfo.provider} link has been converted to a direct download URL.</p>
+                          )}
+                          {/* Used for other provider types without conversion */}
+                          {(localUrlValue === convertedUrl || !convertedUrl) && (
+                            <p>{conversionInfo.provider} link will be used as-is.</p>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
                   <p className="text-xs text-slate-500">
-                    {buttonType === "popup" 
-                      ? "This embed code will be shown in a popup window when the button is clicked."
-                      : "This URL will open in a new window when the button is clicked."}
-                    {" Use {\"business_name\"} to insert the business name for tracking."}
+                    {buttonType === "popup" ? 
+                      "This embed code will be shown in a popup window when the button is clicked." :
+                     buttonType === "download" ? 
+                      "You must click the Convert button before saving. For cloud storage links (Google Drive, Dropbox, etc.), we'll optimize them for direct download. For other links, we'll use them as-is." :
+                      "This URL will open in a new window when the button is clicked."}
+                    {buttonType !== "download" && " Use {\"business_name\"} to insert the business name for tracking."}
                   </p>
                 </div>
 
@@ -537,10 +598,26 @@ export default function ListingOptInsConfig() {
                 
                 {/* Save Button */}
                 <div className="mt-6 flex justify-end flex-col">
+                  {buttonType === "download" && showConversionError && !conversionInfo.wasConverted && (
+                    <div className="mb-2 text-xs text-red-600">
+                      You must convert your link using the Convert button before saving
+                    </div>
+                  )}
                   <div className="flex justify-end">
                     <Button 
                       size="sm"
                       onClick={() => {
+                        // For download type, validate that the link has been converted
+                        if (buttonType === "download" && !conversionInfo.wasConverted) {
+                          setShowConversionError(true);
+                          toast({
+                            title: "Link Not Converted",
+                            description: "You must convert your link using the Convert button before saving",
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+                        
                         // Update the global config with local URL value
                         updateConfig({ buttonUrl: localUrlValue });
                         
@@ -572,6 +649,9 @@ export default function ListingOptInsConfig() {
                           title: "Action Button configuration saved!",
                           description: "Your changes have been applied and CSS code has been updated"
                         });
+                        
+                        // Reset any error messages
+                        setShowConversionError(false);
                       }}
                     >
                       Save
@@ -686,7 +766,8 @@ export default function ListingOptInsConfig() {
                         ...config,
                         enableEmbeddedForm: true,
                         enableActionButton: false,
-                        formEmbedUrl: config.formEmbedUrl || ""
+                        formEmbedUrl: config.formEmbedUrl || "",
+                        formHeight: config.formHeight || 500
                       };
                       
                       // Directly trigger CSS update with the new config
