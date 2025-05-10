@@ -442,27 +442,7 @@ export default function ListingOptInsConfig() {
                 )}
 
                 {/* Button Style Configuration */}
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="button-style">Button Style</Label>
-                    <Select 
-                      value={config.buttonStyle ?? "primary"}
-                      onValueChange={(value) => {
-                        updateConfig({ buttonStyle: value });
-                        setShowCustomCss(value === "custom");
-                      }}
-                    >
-                      <SelectTrigger id="button-style">
-                        <SelectValue placeholder="Select button style" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="primary">Primary</SelectItem>
-                        <SelectItem value="secondary">Secondary</SelectItem>
-                        <SelectItem value="outline">Outline</SelectItem>
-                        <SelectItem value="custom">Custom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-6 pt-2">
 
                   {/* Button Preview */}
                   <div className="space-y-2 pb-2">
@@ -509,10 +489,13 @@ export default function ListingOptInsConfig() {
                   <div className="space-y-2">
                     <Label htmlFor="button-color">Button Color</Label>
                     <div className="flex rounded-md overflow-hidden">
-                      <div className="w-10 border border-r-0 border-slate-300 flex items-center justify-center">
-                        <div 
-                          className="w-6 h-6 rounded-sm" 
-                          style={{ backgroundColor: config.buttonColor ?? "#4F46E5" }}
+                      <div className="flex items-center justify-center">
+                        <Input 
+                          id="button-color-picker"
+                          type="color"
+                          value={config.buttonColor ?? "#4F46E5"}
+                          onChange={(e) => updateConfig({ buttonColor: e.target.value })}
+                          className="w-16 h-10 p-0 m-0 cursor-pointer border-slate-300"
                         />
                       </div>
                       <Input 
@@ -525,7 +508,7 @@ export default function ListingOptInsConfig() {
                       />
                     </div>
                     <p className="text-xs text-slate-500">
-                      Enter a hexadecimal color code (e.g. #4F46E5)
+                      Click on the color box to open a color picker, or enter a hexadecimal color code
                     </p>
                   </div>
 
