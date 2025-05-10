@@ -268,7 +268,7 @@ export default function ListingOptInsConfig() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="popup">Popup Form</SelectItem>
+                        <SelectItem value="popup">Pop Up Embed</SelectItem>
                         <SelectItem value="link">Website Link</SelectItem>
                         <SelectItem value="download">Direct Download</SelectItem>
                       </SelectContent>
@@ -289,7 +289,7 @@ export default function ListingOptInsConfig() {
                 {/* URL Configuration for Popup/Link */}
                 <div className="space-y-2">
                   <Label htmlFor="popup-url" className="flex items-center gap-2">
-                    {buttonType === "popup" ? "Pop Up Embed" : 
+                    {buttonType === "popup" ? "Embed Code" : 
                      buttonType === "download" ? "Download Link" :
                      "URL"}
                     <TooltipProvider>
@@ -307,34 +307,45 @@ export default function ListingOptInsConfig() {
                   </Label>
                   
                   {/* Input with button for download link conversion */}
-                  <div className={`flex rounded-md ${buttonType === "download" ? "mb-1" : ""}`}>
-                    <Input 
-                      id="popup-url"
-                      value={localUrlValue}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        console.log("URL changed to:", newValue);
-                        setLocalUrlValue(newValue);
-                        // Reset conversion info when URL changes
-                        if (convertedUrl && newValue !== convertedUrl) {
-                          setConvertedUrl("");
-                          setConversionInfo({ wasConverted: false });
-                          // Hide any existing error when user starts typing a new URL
-                          setShowConversionError(false);
-                        }
-                      }}
-                      placeholder={buttonType === "popup" ? "Enter your embed code here" : 
-                                    buttonType === "download" ? "Paste link here - click Convert button to process before saving" :
-                                    "Enter URL here"}
-                      onKeyDown={(e) => {
-                        // Add Enter key handling for download link testing
-                        if (e.key === 'Enter' && buttonType === 'download') {
-                          e.preventDefault();
-                          handleCheckDownloadLink();
-                        }
-                      }}
-                      className="flex-1"
-                    />
+                  <div className={`flex ${buttonType === "popup" ? "flex-col" : "rounded-md"} ${buttonType === "download" ? "mb-1" : ""}`}>
+                    {buttonType === "popup" ? (
+                      <Textarea 
+                        id="popup-url"
+                        value={localUrlValue}
+                        onChange={(e) => {
+                          const newValue = e.target.value;
+                          setLocalUrlValue(newValue);
+                        }}
+                        placeholder="Paste your embed code here (HTML, iFrame, etc.)"
+                        className="flex-1 min-h-[120px] font-mono text-xs"
+                      />
+                    ) : (
+                      <Input 
+                        id="popup-url"
+                        value={localUrlValue}
+                        onChange={(e) => {
+                          const newValue = e.target.value;
+                          console.log("URL changed to:", newValue);
+                          setLocalUrlValue(newValue);
+                          // Reset conversion info when URL changes
+                          if (convertedUrl && newValue !== convertedUrl) {
+                            setConvertedUrl("");
+                            setConversionInfo({ wasConverted: false });
+                            // Hide any existing error when user starts typing a new URL
+                            setShowConversionError(false);
+                          }
+                        }}
+                        placeholder={buttonType === "download" ? "Paste link here - click Convert button to process before saving" : "Enter URL here"}
+                        onKeyDown={(e) => {
+                          // Add Enter key handling for download link testing
+                          if (e.key === 'Enter' && buttonType === 'download') {
+                            e.preventDefault();
+                            handleCheckDownloadLink();
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                    )}
                     
                     {/* Only show conversion button for download links */}
                     {buttonType === "download" && (
@@ -381,7 +392,7 @@ export default function ListingOptInsConfig() {
                   
                   <p className="text-xs text-slate-500">
                     {buttonType === "popup" ? 
-                      "This form will be shown in a popup window when the button is clicked." :
+                      "This embed code will be shown in a popup window when the button is clicked." :
                      buttonType === "download" ? 
                       "You must click the Convert button before saving. For cloud storage links (Google Drive, Dropbox, etc.), we'll optimize them for direct download. For other links, we'll use them as-is." :
                       "This URL will open in a new window when the button is clicked."}
