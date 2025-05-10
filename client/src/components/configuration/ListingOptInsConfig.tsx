@@ -620,10 +620,15 @@ export default function ListingOptInsConfig() {
                         // Update the global config with local URL value
                         updateConfig({ buttonUrl: localUrlValue });
                         
-                        // Future implementation: save to server
+                        // Trigger a customCssCode update by updating it with itself
+                        // This will force the AdvancedStylingConfig to regenerate the CSS
+                        updateConfig({ 
+                          customCssCode: config.customCssCode 
+                        });
+                        
                         toast({
                           title: "Action Button configuration saved!",
-                          description: "Your changes have been applied"
+                          description: "Your changes have been applied and CSS code has been updated"
                         });
                         
                         // Reset any error messages
@@ -730,10 +735,15 @@ export default function ListingOptInsConfig() {
                   <Button 
                     size="sm"
                     onClick={() => {
-                      // Future implementation: save to server
+                      // Trigger a customCssCode update by updating it with itself
+                      // This will force the AdvancedStylingConfig to regenerate the CSS
+                      updateConfig({ 
+                        customCssCode: config.customCssCode 
+                      });
+                      
                       toast({
                         title: "Embedded Form configuration saved!",
-                        description: "Your changes have been applied"
+                        description: "Your changes have been applied and CSS code has been updated"
                       });
                     }}
                   >

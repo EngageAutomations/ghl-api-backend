@@ -75,6 +75,70 @@ const HIDE_PRICE_CSS = `
 }
 `;
 
+// Action Button CSS Template (using variables for dynamic values)
+const getActionButtonCSS = (config: any) => {
+  // Default fallback values
+  const buttonColor = config.buttonColor || "#4F46E5";
+  const buttonTextColor = config.buttonTextColor || "#FFFFFF";
+  const borderRadius = (config.buttonBorderRadius || 4) + "px";
+  
+  return `
+/* --- Action Button Styling --- */
+.directory-action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: ${buttonColor};
+    color: ${buttonTextColor};
+    border-radius: ${borderRadius};
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    margin-top: 1rem;
+    text-decoration: none;
+}
+
+.directory-action-button:hover {
+    opacity: 0.9;
+}
+
+/* Position for the action button */
+.directory-action-container {
+    display: flex;
+    justify-content: flex-start;
+    margin: 1.5rem 0;
+}
+`;
+};
+
+// Embedded Form CSS Template
+const EMBEDDED_FORM_CSS = `
+/* --- Embedded Form Styling --- */
+.directory-embedded-form {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    background-color: #f8fafc;
+}
+
+.directory-embedded-form iframe {
+    width: 100%;
+    min-height: 400px;
+    border: none;
+}
+
+.directory-form-fallback {
+    padding: 1rem;
+    text-align: center;
+    color: #64748b;
+    font-style: italic;
+}
+`;
+
 
 
 export default function AdvancedStylingConfig() {
@@ -82,13 +146,23 @@ export default function AdvancedStylingConfig() {
   const [cssCode, setCssCode] = useState(CORE_CSS);
   const [hidePriceEnabled, setHidePriceEnabled] = useState(config.hidePrice || false);
   
-  // Generate CSS based on local toggle states
+  // Generate CSS based on config options
   const generateCss = () => {
     let css = CORE_CSS;
     
     // Add optional CSS based on local toggle states
     if (hidePriceEnabled) {
       css += "\n" + HIDE_PRICE_CSS;
+    }
+    
+    // Add Action Button CSS if enabled
+    if (config.enableActionButton) {
+      css += "\n" + getActionButtonCSS(config);
+    }
+    
+    // Add Embedded Form CSS if enabled
+    if (config.enableEmbeddedForm) {
+      css += "\n" + EMBEDDED_FORM_CSS;
     }
     
     return css;
@@ -107,12 +181,19 @@ export default function AdvancedStylingConfig() {
     updateConfig({ customCssCode: generatedCss });
   }, []);
   
-  // Update CSS when toggle states change
+  // Update CSS when configuration changes
   useEffect(() => {
     const generatedCss = generateCss();
     setCssCode(generatedCss);
     updateConfig({ customCssCode: generatedCss });
-  }, [hidePriceEnabled]);
+  }, [
+    hidePriceEnabled, 
+    config.enableActionButton, 
+    config.enableEmbeddedForm,
+    config.buttonColor,
+    config.buttonTextColor,
+    config.buttonBorderRadius
+  ]);
   
   return (
     <ConfigCard 
