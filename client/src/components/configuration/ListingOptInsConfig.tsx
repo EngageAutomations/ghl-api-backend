@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/accordion";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { cssUpdateEmitter } from "./AdvancedStylingConfig";
+import { cssUpdateEmitter } from "@/lib/events";
 
 export default function ListingOptInsConfig() {
   const { config, updateConfig } = useConfig();
@@ -628,9 +628,22 @@ export default function ListingOptInsConfig() {
                           enableEmbeddedForm: false
                         });
                         
-                        // Directly trigger CSS update via the event emitter
-                        console.log("Emitting CSS update event from Action Button save");
-                        cssUpdateEmitter.emit();
+                        // Collect the current configuration after updates
+                        const updatedConfig = {
+                          ...config,
+                          enableActionButton: true,
+                          enableEmbeddedForm: false,
+                          buttonType: buttonType,
+                          buttonUrl: localUrlValue,
+                          buttonLabel: previewButtonText,
+                          buttonColor: previewColor,
+                          buttonTextColor: previewTextColor,
+                          buttonBorderRadius: previewBorderRadius
+                        };
+                        
+                        // Directly trigger CSS update with the new config
+                        console.log("Emitting CSS update event from Action Button save with:", updatedConfig);
+                        cssUpdateEmitter.emit(updatedConfig);
                         
                         toast({
                           title: "Action Button configuration saved!",
@@ -748,9 +761,18 @@ export default function ListingOptInsConfig() {
                         enableActionButton: false
                       });
                       
-                      // Directly trigger CSS update via the event emitter
-                      console.log("Emitting CSS update event from Embedded Form save");
-                      cssUpdateEmitter.emit();
+                      // Collect the current configuration after updates
+                      const updatedConfig = {
+                        ...config,
+                        enableEmbeddedForm: true,
+                        enableActionButton: false,
+                        formEmbedUrl: localFormUrl,
+                        formHeight: localFormHeight
+                      };
+                      
+                      // Directly trigger CSS update with the new config
+                      console.log("Emitting CSS update event from Embedded Form save with:", updatedConfig);
+                      cssUpdateEmitter.emit(updatedConfig);
                       
                       toast({
                         title: "Embedded Form configuration saved!",

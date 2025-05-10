@@ -141,21 +141,7 @@ const EMBEDDED_FORM_CSS = `
 
 
 
-// Create a simple event emitter for component communication
-export const cssUpdateEmitter = {
-  listeners: [] as Function[],
-  
-  subscribe(callback: Function) {
-    this.listeners.push(callback);
-    return () => {
-      this.listeners = this.listeners.filter(listener => listener !== callback);
-    };
-  },
-  
-  emit() {
-    this.listeners.forEach(listener => listener());
-  }
-};
+import { cssUpdateEmitter } from "@/lib/events";
 
 export default function AdvancedStylingConfig() {
   const { config, updateConfig } = useConfig();
@@ -164,26 +150,31 @@ export default function AdvancedStylingConfig() {
   
   // Listen to direct update events from other components
   useEffect(() => {
-    const unsubscribe = cssUpdateEmitter.subscribe(() => {
-      console.log("CSS Update event received, regenerating CSS");
-      const generatedCss = generateCss();
+    const unsubscribe = cssUpdateEmitter.subscribe((configOverrides) => {
+      console.log("CSS Update event received, regenerating CSS with:", configOverrides);
+      // Use the received config overrides if available
+      const configToUse = configOverrides || config;
+      const generatedCss = generateCss(configToUse);
       setCssCode(generatedCss);
       updateConfig({ customCssCode: generatedCss });
     });
     
     return unsubscribe;
-  }, []);
+  }, [config, updateConfig]);
   
   // Generate CSS based on config options
-  const generateCss = () => {
+  const generateCss = (configOverride?: any) => {
+    // Use override config if provided, otherwise use current config
+    const configToUse = configOverride || config;
+    
     console.log("Generating CSS with config:", {
       hidePriceEnabled,
-      enableActionButton: config.enableActionButton,
-      enableEmbeddedForm: config.enableEmbeddedForm,
-      buttonType: config.buttonType,
-      buttonColor: config.buttonColor,
-      buttonTextColor: config.buttonTextColor,
-      buttonBorderRadius: config.buttonBorderRadius
+      enableActionButton: configToUse.enableActionButton,
+      enableEmbeddedForm: configToUse.enableEmbeddedForm,
+      buttonType: configToUse.buttonType,
+      buttonColor: configToUse.buttonColor,
+      buttonTextColor: configToUse.buttonTextColor,
+      buttonBorderRadius: configToUse.buttonBorderRadius
     });
     
     let css = CORE_CSS;
@@ -194,13 +185,13 @@ export default function AdvancedStylingConfig() {
     }
     
     // Add Action Button CSS if enabled
-    if (config.enableActionButton) {
-      css += "\n" + getActionButtonCSS(config);
+    if (configToUse.enableActionButton) {
+      css += "\n" + getActionButtonCSS(configToUse);
       console.log("Added Action Button CSS");
     }
     
     // Add Embedded Form CSS if enabled
-    if (config.enableEmbeddedForm) {
+    if (configToUse.enableEmbeddedForm) {
       css += "\n" + EMBEDDED_FORM_CSS;
       console.log("Added Embedded Form CSS");
     }
