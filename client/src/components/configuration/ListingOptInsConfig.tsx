@@ -305,119 +305,82 @@ export default function ListingOptInsConfig() {
                   </div>
                 </div>
 
-                {/* URL Configuration for Popup/Link */}
-                <div className="space-y-2">
-                  <Label htmlFor="popup-url" className="flex items-center gap-2">
-                    {buttonType === "popup" ? "Embed Code" : 
-                     buttonType === "download" ? "Download Link" :
-                     "URL"}
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <InfoCircledIcon className="h-4 w-4 text-slate-500" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="max-w-xs">
-                            Supports {"{business_name}"} token that will be replaced with actual business name for tracking.
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </Label>
-                  
-                  {/* Input with button for download link conversion */}
-                  <div className={`flex ${buttonType === "popup" ? "flex-col" : "rounded-md"} ${buttonType === "download" ? "mb-1" : ""}`}>
-                    {buttonType === "popup" ? (
-                      <Textarea 
-                        id="popup-url"
-                        value={localUrlValue}
-                        onChange={(e) => {
-                          const newValue = e.target.value;
-                          setLocalUrlValue(newValue);
-                        }}
-                        placeholder="Paste your embed code here (HTML, iFrame, etc.)"
-                        className="flex-1 min-h-[120px] font-mono text-xs"
-                      />
-                    ) : (
-                      <Input 
-                        id="popup-url"
-                        value={localUrlValue}
-                        onChange={(e) => {
-                          const newValue = e.target.value;
-                          console.log("URL changed to:", newValue);
-                          setLocalUrlValue(newValue);
-                          // Reset conversion info when URL changes
-                          if (convertedUrl && newValue !== convertedUrl) {
-                            setConvertedUrl("");
-                            setConversionInfo({ wasConverted: false });
-                            // Hide any existing error when user starts typing a new URL
-                            setShowConversionError(false);
-                          }
-                        }}
-                        placeholder={buttonType === "download" ? "Paste link here - click Convert button to process before saving" : "Enter URL here"}
-                        onKeyDown={(e) => {
-                          // Add Enter key handling for download link testing
-                          if (e.key === 'Enter' && buttonType === 'download') {
-                            e.preventDefault();
-                            handleCheckDownloadLink();
-                          }
-                        }}
-                        className="flex-1"
-                      />
-                    )}
+                {/* URL Configuration for Popup/Link - only shown for popup and URL types */}
+                {buttonType !== "download" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="popup-url" className="flex items-center gap-2">
+                      {buttonType === "popup" ? "Embed Code" : "URL"}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <InfoCircledIcon className="h-4 w-4 text-slate-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs">
+                              Supports {"{business_name}"} token that will be replaced with actual business name for tracking.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </Label>
                     
-                    {/* Only show conversion button for download links */}
-                    {buttonType === "download" && (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        type="button"
-                        onClick={handleCheckDownloadLink}
-                        disabled={isChecking}
-                        className="ml-2 flex-shrink-0"
-                        title="Convert to direct download link"
-                      >
-                        {isChecking ? (
-                          <ReloadIcon className="h-4 w-4 mr-1 animate-spin" />
-                        ) : (
-                          <Link1Icon className="h-4 w-4 mr-1" />
-                        )}
-                        Convert
-                      </Button>
-                    )}
-                  </div>
-                  
-                  {/* Download link conversion status */}
-                  {buttonType === "download" && (
-                    <>
-                      {conversionInfo.wasConverted && (
-                        <div className="rounded-md bg-slate-50 p-2 text-xs text-slate-700 border border-slate-200">
-                          <div className="flex items-center gap-1 font-medium text-green-600 mb-1">
-                            <CheckIcon className="h-3 w-3" />
-                            <span>Link ready for use</span>
-                          </div>
-                          {/* Used only for Google Drive, Dropbox, etc. with actual conversion */}
-                          {localUrlValue !== convertedUrl && convertedUrl && (
-                            <p>Original {conversionInfo.provider} link has been converted to a direct download URL.</p>
-                          )}
-                          {/* Used for other provider types without conversion */}
-                          {(localUrlValue === convertedUrl || !convertedUrl) && (
-                            <p>{conversionInfo.provider} link will be used as-is.</p>
-                          )}
-                        </div>
+                    {/* Input for popup/URL configuration */}
+                    <div className={buttonType === "popup" ? "flex flex-col" : "rounded-md"}>
+                      {buttonType === "popup" ? (
+                        <Textarea 
+                          id="popup-url"
+                          value={localUrlValue}
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            setLocalUrlValue(newValue);
+                          }}
+                          placeholder="Paste your embed code here (HTML, iFrame, etc.)"
+                          className="flex-1 min-h-[120px] font-mono text-xs"
+                        />
+                      ) : (
+                        <Input 
+                          id="popup-url"
+                          value={localUrlValue}
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            console.log("URL changed to:", newValue);
+                            setLocalUrlValue(newValue);
+                          }}
+                          placeholder="Enter URL here"
+                          className="flex-1"
+                        />
                       )}
-                    </>
-                  )}
-                  
-                  <p className="text-xs text-slate-500">
-                    {buttonType === "popup" ? 
-                      "This embed code will be shown in a popup window when the button is clicked." :
-                     buttonType === "download" ? 
-                      "You must click the Convert button before saving. For cloud storage links (Google Drive, Dropbox, etc.), we'll optimize them for direct download. For other links, we'll use them as-is." :
-                      "This URL will open in a new window when the button is clicked."}
-                    {buttonType !== "download" && " Use {\"business_name\"} to insert the business name for tracking."}
-                  </p>
-                </div>
+                    </div>
+                    
+                    <p className="text-xs text-slate-500">
+                      {buttonType === "popup" 
+                        ? "This embed code will be shown in a popup window when the button is clicked." 
+                        : "This URL will open in a new window when the button is clicked."}
+                      {" Use {\"business_name\"} to insert the business name for tracking."}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Download Link Information - shown for download type */}
+                {buttonType === "download" && (
+                  <div className="space-y-2">
+                    <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-800 border border-blue-100">
+                      <div className="flex items-start gap-2">
+                        <InfoCircledIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium mb-1">Download links moved to listing form</p>
+                          <p className="text-xs text-blue-700">
+                            Download links are now configured directly in each listing's form. This allows for unique download files per listing with automatic link conversion.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <p className="text-xs text-slate-500">
+                      When you select "download" as the button type, each listing can have its own download file. Configure this when editing individual listings.
+                    </p>
+                  </div>
+                )}
 
                 {/* Popup Size Configuration */}
                 {buttonType === "popup" && (
@@ -607,19 +570,14 @@ export default function ListingOptInsConfig() {
                     <Button 
                       size="sm"
                       onClick={() => {
-                        // For download type, validate that the link has been converted
-                        if (buttonType === "download" && !conversionInfo.wasConverted) {
-                          setShowConversionError(true);
-                          toast({
-                            title: "Link Not Converted",
-                            description: "You must convert your link using the Convert button before saving",
-                            variant: "destructive"
-                          });
-                          return;
+                        // The URL/embed code is only relevant for non-download types
+                        if (buttonType !== "download") {
+                          // Update the global config with local URL value
+                          updateConfig({ buttonUrl: localUrlValue });
+                        } else {
+                          // For download type, just clear the URL since it's handled by listing forms
+                          updateConfig({ buttonUrl: "" });
                         }
-                        
-                        // Update the global config with local URL value
-                        updateConfig({ buttonUrl: localUrlValue });
                         
                         // Immediately save the enableActionButton flag to ensure it's true
                         // when other components observe changes
@@ -634,7 +592,7 @@ export default function ListingOptInsConfig() {
                           enableActionButton: true,
                           enableEmbeddedForm: false,
                           buttonType: buttonType,
-                          buttonUrl: localUrlValue,
+                          buttonUrl: buttonType !== "download" ? localUrlValue : "",
                           buttonLabel: previewButtonText,
                           buttonColor: previewColor,
                           buttonTextColor: previewTextColor,
