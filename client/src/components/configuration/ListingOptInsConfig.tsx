@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/accordion";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cssUpdateEmitter } from "./AdvancedStylingConfig";
 
 export default function ListingOptInsConfig() {
   const { config, updateConfig } = useConfig();
@@ -627,11 +628,9 @@ export default function ListingOptInsConfig() {
                           enableEmbeddedForm: false
                         });
                         
-                        // Use buttonUrl update again to force a change detection
-                        // This creates a legitimate config value change that will trigger updates
-                        updateConfig({ 
-                          buttonUrl: localUrlValue + "?t=" + Date.now()
-                        });
+                        // Directly trigger CSS update via the event emitter
+                        console.log("Emitting CSS update event from Action Button save");
+                        cssUpdateEmitter.emit();
                         
                         toast({
                           title: "Action Button configuration saved!",
@@ -749,11 +748,9 @@ export default function ListingOptInsConfig() {
                         enableActionButton: false
                       });
                       
-                      // Use formEmbedUrl update to force a change detection
-                      // This creates a legitimate config value change that will trigger updates
-                      updateConfig({ 
-                        formEmbedUrl: (config.formEmbedUrl || "") + "?t=" + Date.now()
-                      });
+                      // Directly trigger CSS update via the event emitter
+                      console.log("Emitting CSS update event from Embedded Form save");
+                      cssUpdateEmitter.emit();
                       
                       toast({
                         title: "Embedded Form configuration saved!",
