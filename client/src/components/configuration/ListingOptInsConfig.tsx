@@ -620,10 +620,17 @@ export default function ListingOptInsConfig() {
                         // Update the global config with local URL value
                         updateConfig({ buttonUrl: localUrlValue });
                         
-                        // Trigger a customCssCode update by updating it with itself
-                        // This will force the AdvancedStylingConfig to regenerate the CSS
+                        // Immediately save the enableActionButton flag to ensure it's true
+                        // when other components observe changes
                         updateConfig({ 
-                          customCssCode: config.customCssCode 
+                          enableActionButton: true,
+                          enableEmbeddedForm: false
+                        });
+                        
+                        // Use buttonUrl update again to force a change detection
+                        // This creates a legitimate config value change that will trigger updates
+                        updateConfig({ 
+                          buttonUrl: localUrlValue + "?t=" + Date.now()
                         });
                         
                         toast({
@@ -735,10 +742,17 @@ export default function ListingOptInsConfig() {
                   <Button 
                     size="sm"
                     onClick={() => {
-                      // Trigger a customCssCode update by updating it with itself
-                      // This will force the AdvancedStylingConfig to regenerate the CSS
+                      // Immediately save the enableEmbeddedForm flag to ensure it's true
+                      // when other components observe changes
                       updateConfig({ 
-                        customCssCode: config.customCssCode 
+                        enableEmbeddedForm: true,
+                        enableActionButton: false
+                      });
+                      
+                      // Use formEmbedUrl update to force a change detection
+                      // This creates a legitimate config value change that will trigger updates
+                      updateConfig({ 
+                        formEmbedUrl: (config.formEmbedUrl || "") + "?t=" + Date.now()
                       });
                       
                       toast({

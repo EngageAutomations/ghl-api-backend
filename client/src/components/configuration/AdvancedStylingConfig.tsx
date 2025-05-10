@@ -141,13 +141,51 @@ const EMBEDDED_FORM_CSS = `
 
 
 
+// Create a simple event emitter for component communication
+export const cssUpdateEmitter = {
+  listeners: [] as Function[],
+  
+  subscribe(callback: Function) {
+    this.listeners.push(callback);
+    return () => {
+      this.listeners = this.listeners.filter(listener => listener !== callback);
+    };
+  },
+  
+  emit() {
+    this.listeners.forEach(listener => listener());
+  }
+};
+
 export default function AdvancedStylingConfig() {
   const { config, updateConfig } = useConfig();
   const [cssCode, setCssCode] = useState(CORE_CSS);
   const [hidePriceEnabled, setHidePriceEnabled] = useState(config.hidePrice || false);
   
+  // Listen to direct update events from other components
+  useEffect(() => {
+    const unsubscribe = cssUpdateEmitter.subscribe(() => {
+      console.log("CSS Update event received, regenerating CSS");
+      const generatedCss = generateCss();
+      setCssCode(generatedCss);
+      updateConfig({ customCssCode: generatedCss });
+    });
+    
+    return unsubscribe;
+  }, []);
+  
   // Generate CSS based on config options
   const generateCss = () => {
+    console.log("Generating CSS with config:", {
+      hidePriceEnabled,
+      enableActionButton: config.enableActionButton,
+      enableEmbeddedForm: config.enableEmbeddedForm,
+      buttonType: config.buttonType,
+      buttonColor: config.buttonColor,
+      buttonTextColor: config.buttonTextColor,
+      buttonBorderRadius: config.buttonBorderRadius
+    });
+    
     let css = CORE_CSS;
     
     // Add optional CSS based on local toggle states
@@ -158,11 +196,13 @@ export default function AdvancedStylingConfig() {
     // Add Action Button CSS if enabled
     if (config.enableActionButton) {
       css += "\n" + getActionButtonCSS(config);
+      console.log("Added Action Button CSS");
     }
     
     // Add Embedded Form CSS if enabled
     if (config.enableEmbeddedForm) {
       css += "\n" + EMBEDDED_FORM_CSS;
+      console.log("Added Embedded Form CSS");
     }
     
     return css;
@@ -183,6 +223,7 @@ export default function AdvancedStylingConfig() {
   
   // Update CSS when configuration changes
   useEffect(() => {
+    console.log("AdvancedStylingConfig detected change in watched dependencies");
     const generatedCss = generateCss();
     setCssCode(generatedCss);
     updateConfig({ customCssCode: generatedCss });
@@ -190,9 +231,12 @@ export default function AdvancedStylingConfig() {
     hidePriceEnabled, 
     config.enableActionButton, 
     config.enableEmbeddedForm,
+    config.buttonType,
     config.buttonColor,
     config.buttonTextColor,
-    config.buttonBorderRadius
+    config.buttonBorderRadius,
+    config.buttonLabel,
+    config.buttonUrl
   ]);
   
   return (
