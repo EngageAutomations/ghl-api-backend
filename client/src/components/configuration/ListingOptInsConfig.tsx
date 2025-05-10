@@ -476,7 +476,7 @@ export default function ListingOptInsConfig() {
                   {/* Button Border Radius */}
                   <div className="space-y-2">
                     <Label htmlFor="button-border-radius">Button Border Radius</Label>
-                    <div className="flex rounded-md">
+                    <div className="relative rounded-md">
                       <Input 
                         id="button-border-radius"
                         type="number"
@@ -488,9 +488,9 @@ export default function ListingOptInsConfig() {
                           updateConfig({ buttonBorderRadius: value });
                           setPreviewBorderRadius(value);
                         }}
-                        className="flex-1"
+                        className="flex-1 pr-8"
                       />
-                      <div className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-slate-300 bg-slate-50 text-slate-500 text-sm">
+                      <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500 text-sm">
                         px
                       </div>
                     </div>
