@@ -39,6 +39,12 @@ export default function ListingOptInsConfig() {
   const [previewColor, setPreviewColor] = useState(config.buttonColor ?? "#4F46E5");
   const [previewBorderRadius, setPreviewBorderRadius] = useState(config.buttonBorderRadius ?? 4);
   
+  // Keep preview in sync with config changes
+  useEffect(() => {
+    setPreviewColor(config.buttonColor ?? "#4F46E5");
+    setPreviewBorderRadius(config.buttonBorderRadius ?? 4);
+  }, [config.buttonColor, config.buttonBorderRadius]);
+  
   // Type assertion helper for form elements
   const getConfigValue = <T extends string>(value: T | string | null | undefined, defaultValue: T): T => {
     return (value as T) || defaultValue;
