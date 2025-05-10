@@ -482,7 +482,7 @@ export default function ListingOptInsConfig() {
                         type="number"
                         min="0"
                         max="20"
-                        value={config.buttonBorderRadius ?? 4}
+                        value={previewBorderRadius}
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 0;
                           updateConfig({ buttonBorderRadius: value });
@@ -507,7 +507,7 @@ export default function ListingOptInsConfig() {
                         <Input 
                           id="button-color-picker"
                           type="color"
-                          value={config.buttonColor ?? "#4F46E5"}
+                          value={previewColor}
                           onChange={(e) => {
                             const value = e.target.value;
                             updateConfig({ buttonColor: value });
@@ -519,7 +519,7 @@ export default function ListingOptInsConfig() {
                       <Input 
                         id="button-color"
                         type="text"
-                        value={config.buttonColor ?? "#4F46E5"}
+                        value={previewColor}
                         onChange={(e) => {
                           const value = e.target.value;
                           updateConfig({ buttonColor: value });
