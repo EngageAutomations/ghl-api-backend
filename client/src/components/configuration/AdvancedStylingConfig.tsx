@@ -150,7 +150,7 @@ export default function AdvancedStylingConfig() {
   
   // Listen to direct update events from other components
   useEffect(() => {
-    const unsubscribe = cssUpdateEmitter.subscribe((configOverrides) => {
+    const unsubscribe = cssUpdateEmitter.subscribe((configOverrides: any) => {
       console.log("CSS Update event received, regenerating CSS with:", configOverrides);
       // Use the received config overrides if available
       const configToUse = configOverrides || config;
@@ -160,7 +160,7 @@ export default function AdvancedStylingConfig() {
     });
     
     return unsubscribe;
-  }, [config, updateConfig]);
+  }, []);
   
   // Generate CSS based on config options
   const generateCss = (configOverride?: any) => {

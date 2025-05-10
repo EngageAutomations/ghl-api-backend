@@ -766,8 +766,8 @@ export default function ListingOptInsConfig() {
                         ...config,
                         enableEmbeddedForm: true,
                         enableActionButton: false,
-                        formEmbedUrl: localFormUrl,
-                        formHeight: localFormHeight
+                        formEmbedUrl: config.formEmbedUrl || "",
+                        formHeight: config.formHeight || 500
                       };
                       
                       // Directly trigger CSS update with the new config
