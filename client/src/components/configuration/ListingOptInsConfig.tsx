@@ -33,6 +33,7 @@ export default function ListingOptInsConfig() {
   const [convertedUrl, setConvertedUrl] = useState("");
   const [conversionInfo, setConversionInfo] = useState<{wasConverted: boolean; provider?: string}>({wasConverted: false});
   const [isChecking, setIsChecking] = useState(false);
+  const [showConversionError, setShowConversionError] = useState(false);
   
   // Type assertion helper for form elements
   const getConfigValue = <T extends string>(value: T | string | null | undefined, defaultValue: T): T => {
@@ -308,10 +309,12 @@ export default function ListingOptInsConfig() {
                         if (convertedUrl && newValue !== convertedUrl) {
                           setConvertedUrl("");
                           setConversionInfo({ wasConverted: false });
+                          // Hide any existing error when user starts typing a new URL
+                          setShowConversionError(false);
                         }
                       }}
                       placeholder={buttonType === "popup" ? "Enter your embed code here" : 
-                                    buttonType === "download" ? "We automatically convert your link for direct download when possible. Press Enter to test." :
+                                    buttonType === "download" ? "Paste your Google Drive, Dropbox, or other cloud storage link here - you must click Convert before saving" :
                                     "Enter URL here"}
                       onKeyDown={(e) => {
                         // Add Enter key handling for download link testing
@@ -339,7 +342,7 @@ export default function ListingOptInsConfig() {
                         ) : (
                           <Link1Icon className="h-4 w-4 mr-1" />
                         )}
-                        Test
+                        Convert
                       </Button>
                     )}
                   </div>
@@ -363,7 +366,7 @@ export default function ListingOptInsConfig() {
                     {buttonType === "popup" ? 
                       "This form will be shown in a popup window when the button is clicked." :
                      buttonType === "download" ? 
-                      "Paste any Google Drive, Dropbox, or direct file URL. We'll automatically optimize it for direct downloads." :
+                      "You must click the Convert button to optimize your link for direct download before saving. This is required for cloud storage links." :
                       "This URL will open in a new window when the button is clicked."}
                     {buttonType !== "download" && " Use {\"business_name\"} to insert the business name for tracking."}
                   </p>
@@ -449,22 +452,43 @@ export default function ListingOptInsConfig() {
                 )}
                 
                 {/* Save Button */}
-                <div className="mt-6 flex justify-end">
-                  <Button 
-                    size="sm"
-                    onClick={() => {
-                      // Update the global config with local URL value
-                      updateConfig({ buttonUrl: localUrlValue });
-                      
-                      // Future implementation: save to server
-                      toast({
-                        title: "Action Button configuration saved!",
-                        description: "Your changes have been applied"
-                      });
-                    }}
-                  >
-                    Save
-                  </Button>
+                <div className="mt-6 flex justify-end flex-col">
+                  {buttonType === "download" && showConversionError && !conversionInfo.wasConverted && (
+                    <div className="mb-2 text-xs text-red-600">
+                      You must convert your link using the Convert button before saving
+                    </div>
+                  )}
+                  <div className="flex justify-end">
+                    <Button 
+                      size="sm"
+                      onClick={() => {
+                        // For download type, validate that the link has been converted
+                        if (buttonType === "download" && !conversionInfo.wasConverted) {
+                          setShowConversionError(true);
+                          toast({
+                            title: "Link Not Converted",
+                            description: "You must convert your link using the Convert button before saving",
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+                        
+                        // Update the global config with local URL value
+                        updateConfig({ buttonUrl: localUrlValue });
+                        
+                        // Future implementation: save to server
+                        toast({
+                          title: "Action Button configuration saved!",
+                          description: "Your changes have been applied"
+                        });
+                        
+                        // Reset any error messages
+                        setShowConversionError(false);
+                      }}
+                    >
+                      Save
+                    </Button>
+                  </div>
                 </div>
               </div>
             </AccordionContent>
