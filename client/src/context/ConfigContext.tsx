@@ -17,6 +17,7 @@ const defaultConfig: DesignerConfig = {
   buttonStyle: "primary",
   buttonBorderRadius: 4,
   buttonColor: "#4F46E5",
+  buttonTextColor: "#FFFFFF",
   customCss: "",
   enableEmbeddedForm: false,
   formEmbedUrl: "https://forms.example.com/embed?product={product_name}",

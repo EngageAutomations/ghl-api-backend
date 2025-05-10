@@ -37,15 +37,17 @@ export default function ListingOptInsConfig() {
   
   // Button preview state
   const [previewColor, setPreviewColor] = useState(config.buttonColor ?? "#4F46E5");
+  const [previewTextColor, setPreviewTextColor] = useState(config.buttonTextColor ?? "#FFFFFF");
   const [previewBorderRadius, setPreviewBorderRadius] = useState(config.buttonBorderRadius ?? 4);
   const [previewButtonText, setPreviewButtonText] = useState(config.buttonLabel ?? "Contact Us");
   
   // Keep preview in sync with config changes
   useEffect(() => {
     setPreviewColor(config.buttonColor ?? "#4F46E5");
+    setPreviewTextColor(config.buttonTextColor ?? "#FFFFFF");
     setPreviewBorderRadius(config.buttonBorderRadius ?? 4);
     setPreviewButtonText(config.buttonLabel ?? "Contact Us");
-  }, [config.buttonColor, config.buttonBorderRadius, config.buttonLabel]);
+  }, [config.buttonColor, config.buttonTextColor, config.buttonBorderRadius, config.buttonLabel]);
   
   // Type assertion helper for form elements
   const getConfigValue = <T extends string>(value: T | string | null | undefined, defaultValue: T): T => {
@@ -465,9 +467,10 @@ export default function ListingOptInsConfig() {
                     <Label>Button Preview</Label>
                     <div className="border border-slate-200 rounded-md p-4 bg-slate-50 flex justify-center">
                       <div 
-                        className="py-2 px-4 inline-flex items-center justify-center text-sm font-medium text-white"
+                        className="py-2 px-4 inline-flex items-center justify-center text-sm font-medium"
                         style={{ 
                           backgroundColor: previewColor,
+                          color: previewTextColor,
                           borderRadius: `${previewBorderRadius}px`,
                           transitionProperty: "all",
                           transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
@@ -505,9 +508,9 @@ export default function ListingOptInsConfig() {
                     </p>
                   </div>
 
-                  {/* Button Color */}
+                  {/* Button Background Color */}
                   <div className="space-y-2">
-                    <Label htmlFor="button-color">Button Color</Label>
+                    <Label htmlFor="button-color">Button Background Color</Label>
                     <div className="flex rounded-md overflow-hidden">
                       <div className="flex items-center justify-center">
                         <Input 
@@ -536,7 +539,42 @@ export default function ListingOptInsConfig() {
                       />
                     </div>
                     <p className="text-xs text-slate-500">
-                      Click on the color box to open a color picker, or enter a hexadecimal color code
+                      The background color for the button
+                    </p>
+                  </div>
+                  
+                  {/* Button Text Color */}
+                  <div className="space-y-2">
+                    <Label htmlFor="button-text-color">Button Text Color</Label>
+                    <div className="flex rounded-md overflow-hidden">
+                      <div className="flex items-center justify-center">
+                        <Input 
+                          id="button-text-color-picker"
+                          type="color"
+                          value={previewTextColor}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            updateConfig({ buttonTextColor: value });
+                            setPreviewTextColor(value);
+                          }}
+                          className="w-16 h-10 p-0 m-0 cursor-pointer border-slate-300"
+                        />
+                      </div>
+                      <Input 
+                        id="button-text-color"
+                        type="text"
+                        value={previewTextColor}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          updateConfig({ buttonTextColor: value });
+                          setPreviewTextColor(value);
+                        }}
+                        className="flex-1"
+                        placeholder="#FFFFFF"
+                      />
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      The text color for the button
                     </p>
                   </div>
 

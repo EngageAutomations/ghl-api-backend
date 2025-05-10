@@ -35,6 +35,7 @@ export const designerConfigs = pgTable("designer_configs", {
   buttonStyle: text("button_style").default("primary"), // primary, secondary, outline, custom
   buttonBorderRadius: integer("button_border_radius").default(4), // border radius in pixels
   buttonColor: text("button_color").default("#4F46E5"), // hexadecimal color code
+  buttonTextColor: text("button_text_color").default("#FFFFFF"), // text color for the button
   customCss: text("custom_css"),
   
   // Embedded Form Configuration
