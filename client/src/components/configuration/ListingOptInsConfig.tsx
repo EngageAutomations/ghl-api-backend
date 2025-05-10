@@ -442,42 +442,109 @@ export default function ListingOptInsConfig() {
                 )}
 
                 {/* Button Style Configuration */}
-                <div className="space-y-2">
-                  <Label htmlFor="button-style">Button Style</Label>
-                  <Select 
-                    value={config.buttonStyle ?? "primary"}
-                    onValueChange={(value) => {
-                      updateConfig({ buttonStyle: value });
-                      setShowCustomCss(value === "custom");
-                    }}
-                  >
-                    <SelectTrigger id="button-style">
-                      <SelectValue placeholder="Select button style" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="primary">Primary</SelectItem>
-                      <SelectItem value="secondary">Secondary</SelectItem>
-                      <SelectItem value="outline">Outline</SelectItem>
-                      <SelectItem value="custom">Custom</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Custom CSS */}
-                {showCustomCss && (
+                <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="custom-css">Custom CSS Classes</Label>
-                    <Input 
-                      id="custom-css"
-                      value={config.customCss ?? ""}
-                      onChange={(e) => updateConfig({ customCss: e.target.value })}
-                      placeholder="e.g. my-custom-button text-lg"
-                    />
+                    <Label htmlFor="button-style">Button Style</Label>
+                    <Select 
+                      value={config.buttonStyle ?? "primary"}
+                      onValueChange={(value) => {
+                        updateConfig({ buttonStyle: value });
+                        setShowCustomCss(value === "custom");
+                      }}
+                    >
+                      <SelectTrigger id="button-style">
+                        <SelectValue placeholder="Select button style" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="primary">Primary</SelectItem>
+                        <SelectItem value="secondary">Secondary</SelectItem>
+                        <SelectItem value="outline">Outline</SelectItem>
+                        <SelectItem value="custom">Custom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Button Preview */}
+                  <div className="space-y-2 pb-2">
+                    <Label>Button Preview</Label>
+                    <div className="border border-slate-200 rounded-md p-4 bg-slate-50 flex justify-center">
+                      <div 
+                        className="py-2 px-4 inline-flex items-center justify-center text-sm font-medium text-white"
+                        style={{ 
+                          backgroundColor: config.buttonColor ?? "#4F46E5",
+                          borderRadius: `${config.buttonBorderRadius ?? 4}px`,
+                          transitionProperty: "all",
+                          transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+                          transitionDuration: "150ms",
+                        }}
+                      >
+                        {config.buttonLabel || "Contact Us"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Button Border Radius */}
+                  <div className="space-y-2">
+                    <Label htmlFor="button-border-radius">Button Border Radius</Label>
+                    <div className="flex rounded-md">
+                      <Input 
+                        id="button-border-radius"
+                        type="number"
+                        min="0"
+                        max="20"
+                        value={config.buttonBorderRadius ?? 4}
+                        onChange={(e) => updateConfig({ buttonBorderRadius: parseInt(e.target.value) || 0 })}
+                        className="flex-1"
+                      />
+                      <div className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-slate-300 bg-slate-50 text-slate-500 text-sm">
+                        px
+                      </div>
+                    </div>
                     <p className="text-xs text-slate-500">
-                      Add your own custom CSS classes for the button
+                      Controls how rounded the button corners are (0 = square corners)
                     </p>
                   </div>
-                )}
+
+                  {/* Button Color */}
+                  <div className="space-y-2">
+                    <Label htmlFor="button-color">Button Color</Label>
+                    <div className="flex rounded-md overflow-hidden">
+                      <div className="w-10 border border-r-0 border-slate-300 flex items-center justify-center">
+                        <div 
+                          className="w-6 h-6 rounded-sm" 
+                          style={{ backgroundColor: config.buttonColor ?? "#4F46E5" }}
+                        />
+                      </div>
+                      <Input 
+                        id="button-color"
+                        type="text"
+                        value={config.buttonColor ?? "#4F46E5"}
+                        onChange={(e) => updateConfig({ buttonColor: e.target.value })}
+                        className="flex-1"
+                        placeholder="#4F46E5"
+                      />
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Enter a hexadecimal color code (e.g. #4F46E5)
+                    </p>
+                  </div>
+
+                  {/* Custom CSS */}
+                  {showCustomCss && (
+                    <div className="space-y-2">
+                      <Label htmlFor="custom-css">Custom CSS Classes</Label>
+                      <Input 
+                        id="custom-css"
+                        value={config.customCss ?? ""}
+                        onChange={(e) => updateConfig({ customCss: e.target.value })}
+                        placeholder="e.g. my-custom-button text-lg"
+                      />
+                      <p className="text-xs text-slate-500">
+                        Add your own custom CSS classes for the button
+                      </p>
+                    </div>
+                  )}
+                </div>
                 
                 {/* Save Button */}
                 <div className="mt-6 flex justify-end flex-col">

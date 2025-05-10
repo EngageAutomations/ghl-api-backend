@@ -33,6 +33,8 @@ export const designerConfigs = pgTable("designer_configs", {
   popupWidth: integer("popup_width").default(600),
   popupHeight: integer("popup_height").default(500),
   buttonStyle: text("button_style").default("primary"), // primary, secondary, outline, custom
+  buttonBorderRadius: integer("button_border_radius").default(4), // border radius in pixels
+  buttonColor: text("button_color").default("#4F46E5"), // hexadecimal color code
   customCss: text("custom_css"),
   
   // Embedded Form Configuration
