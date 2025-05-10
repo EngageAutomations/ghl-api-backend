@@ -38,12 +38,14 @@ export default function ListingOptInsConfig() {
   // Button preview state
   const [previewColor, setPreviewColor] = useState(config.buttonColor ?? "#4F46E5");
   const [previewBorderRadius, setPreviewBorderRadius] = useState(config.buttonBorderRadius ?? 4);
+  const [previewButtonText, setPreviewButtonText] = useState(config.buttonLabel ?? "Contact Us");
   
   // Keep preview in sync with config changes
   useEffect(() => {
     setPreviewColor(config.buttonColor ?? "#4F46E5");
     setPreviewBorderRadius(config.buttonBorderRadius ?? 4);
-  }, [config.buttonColor, config.buttonBorderRadius]);
+    setPreviewButtonText(config.buttonLabel ?? "Contact Us");
+  }, [config.buttonColor, config.buttonBorderRadius, config.buttonLabel]);
   
   // Type assertion helper for form elements
   const getConfigValue = <T extends string>(value: T | string | null | undefined, defaultValue: T): T => {
@@ -289,8 +291,12 @@ export default function ListingOptInsConfig() {
                     <Label htmlFor="button-label">Button Text</Label>
                     <Input 
                       id="button-label"
-                      value={config.buttonLabel ?? ""}
-                      onChange={(e) => updateConfig({ buttonLabel: e.target.value })}
+                      value={previewButtonText}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        updateConfig({ buttonLabel: value });
+                        setPreviewButtonText(value);
+                      }}
                       placeholder="Get Updates"
                     />
                   </div>
@@ -468,7 +474,7 @@ export default function ListingOptInsConfig() {
                           transitionDuration: "150ms",
                         }}
                       >
-                        {config.buttonLabel || "Contact Us"}
+                        {previewButtonText || "Contact Us"}
                       </div>
                     </div>
                   </div>
