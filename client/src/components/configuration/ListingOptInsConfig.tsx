@@ -35,6 +35,10 @@ export default function ListingOptInsConfig() {
   const [isChecking, setIsChecking] = useState(false);
   const [showConversionError, setShowConversionError] = useState(false);
   
+  // Button preview state
+  const [previewColor, setPreviewColor] = useState(config.buttonColor ?? "#4F46E5");
+  const [previewBorderRadius, setPreviewBorderRadius] = useState(config.buttonBorderRadius ?? 4);
+  
   // Type assertion helper for form elements
   const getConfigValue = <T extends string>(value: T | string | null | undefined, defaultValue: T): T => {
     return (value as T) || defaultValue;
@@ -451,8 +455,8 @@ export default function ListingOptInsConfig() {
                       <div 
                         className="py-2 px-4 inline-flex items-center justify-center text-sm font-medium text-white"
                         style={{ 
-                          backgroundColor: config.buttonColor ?? "#4F46E5",
-                          borderRadius: `${config.buttonBorderRadius ?? 4}px`,
+                          backgroundColor: previewColor,
+                          borderRadius: `${previewBorderRadius}px`,
                           transitionProperty: "all",
                           transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
                           transitionDuration: "150ms",
@@ -473,7 +477,11 @@ export default function ListingOptInsConfig() {
                         min="0"
                         max="20"
                         value={config.buttonBorderRadius ?? 4}
-                        onChange={(e) => updateConfig({ buttonBorderRadius: parseInt(e.target.value) || 0 })}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          updateConfig({ buttonBorderRadius: value });
+                          setPreviewBorderRadius(value);
+                        }}
                         className="flex-1"
                       />
                       <div className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-slate-300 bg-slate-50 text-slate-500 text-sm">
@@ -494,7 +502,11 @@ export default function ListingOptInsConfig() {
                           id="button-color-picker"
                           type="color"
                           value={config.buttonColor ?? "#4F46E5"}
-                          onChange={(e) => updateConfig({ buttonColor: e.target.value })}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            updateConfig({ buttonColor: value });
+                            setPreviewColor(value);
+                          }}
                           className="w-16 h-10 p-0 m-0 cursor-pointer border-slate-300"
                         />
                       </div>
@@ -502,7 +514,11 @@ export default function ListingOptInsConfig() {
                         id="button-color"
                         type="text"
                         value={config.buttonColor ?? "#4F46E5"}
-                        onChange={(e) => updateConfig({ buttonColor: e.target.value })}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          updateConfig({ buttonColor: value });
+                          setPreviewColor(value);
+                        }}
                         className="flex-1"
                         placeholder="#4F46E5"
                       />
