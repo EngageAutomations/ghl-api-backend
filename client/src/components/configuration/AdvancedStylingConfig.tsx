@@ -81,9 +81,22 @@ const getActionButtonCSS = (config: any) => {
   const buttonColor = config.buttonColor || "#4F46E5";
   const buttonTextColor = config.buttonTextColor || "#FFFFFF";
   const borderRadius = (config.buttonBorderRadius || 4) + "px";
+  const buttonType = config.buttonType || "popup";
+  
+  // Generate the appropriate comment header based on button type
+  let commentHeader = "";
+  if (buttonType === "download") {
+    commentHeader = "/* --- Direct Download Action Button Styling --- */";
+  } else if (buttonType === "link" || buttonType === "url") {
+    commentHeader = "/* --- URL Action Button Styling --- */";
+  } else if (buttonType === "popup") {
+    commentHeader = "/* --- Popup Action Button Styling --- */";
+  } else {
+    commentHeader = "/* --- Action Button Styling --- */";
+  }
   
   return `
-/* --- Action Button Styling --- */
+${commentHeader}
 .directory-action-button {
     display: inline-flex;
     align-items: center;
