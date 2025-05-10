@@ -190,14 +190,24 @@ export default function ListingOptInsConfig() {
           description: `Your ${result.provider} link has been optimized for direct download. Check console for details.`,
         });
       } else if (result.provider) {
+        // For non-supported providers, we'll still mark as "converted" to allow saving
+        setConversionInfo({
+          wasConverted: true,
+          provider: result.provider
+        });
         toast({
-          title: "Link Unchanged",
-          description: `We couldn't convert your ${result.provider} link to a direct download URL. Check console for details.`,
+          title: "Link Accepted",
+          description: `We'll use your ${result.provider} link as-is. This provider is not optimized for direct downloads, but we'll still allow it.`,
         });
       } else {
+        // For direct links or unknown providers, mark as "converted" to allow saving
+        setConversionInfo({
+          wasConverted: true,
+          provider: "Unknown"
+        });
         toast({
-          title: "Link Verification",
-          description: "This appears to be a direct download link already. Check console for details.",
+          title: "Link Accepted",
+          description: "This appears to be a direct URL. We'll use it as-is.",
         });
       }
     } catch (error) {
@@ -314,7 +324,7 @@ export default function ListingOptInsConfig() {
                         }
                       }}
                       placeholder={buttonType === "popup" ? "Enter your embed code here" : 
-                                    buttonType === "download" ? "Paste your Google Drive, Dropbox, or other cloud storage link here - you must click Convert before saving" :
+                                    buttonType === "download" ? "Paste link here - click Convert button to process before saving" :
                                     "Enter URL here"}
                       onKeyDown={(e) => {
                         // Add Enter key handling for download link testing
@@ -354,9 +364,16 @@ export default function ListingOptInsConfig() {
                         <div className="rounded-md bg-slate-50 p-2 text-xs text-slate-700 border border-slate-200">
                           <div className="flex items-center gap-1 font-medium text-green-600 mb-1">
                             <CheckIcon className="h-3 w-3" />
-                            <span>Optimized for direct download</span>
+                            <span>Link ready for use</span>
                           </div>
-                          <p>Original {conversionInfo.provider} link has been converted to a direct download URL.</p>
+                          {/* Used only for Google Drive, Dropbox, etc. with actual conversion */}
+                          {localUrlValue !== convertedUrl && convertedUrl && (
+                            <p>Original {conversionInfo.provider} link has been converted to a direct download URL.</p>
+                          )}
+                          {/* Used for other provider types without conversion */}
+                          {(localUrlValue === convertedUrl || !convertedUrl) && (
+                            <p>{conversionInfo.provider} link will be used as-is.</p>
+                          )}
                         </div>
                       )}
                     </>
@@ -366,7 +383,7 @@ export default function ListingOptInsConfig() {
                     {buttonType === "popup" ? 
                       "This form will be shown in a popup window when the button is clicked." :
                      buttonType === "download" ? 
-                      "You must click the Convert button to optimize your link for direct download before saving. This is required for cloud storage links." :
+                      "You must click the Convert button before saving. For cloud storage links (Google Drive, Dropbox, etc.), we'll optimize them for direct download. For other links, we'll use them as-is." :
                       "This URL will open in a new window when the button is clicked."}
                     {buttonType !== "download" && " Use {\"business_name\"} to insert the business name for tracking."}
                   </p>
