@@ -283,44 +283,11 @@ export default function ListingOptInsConfig() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="popup" className="flex items-center gap-2">
-                          <div className="p-1 bg-indigo-50 rounded-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                              <line x1="3" y1="9" x2="21" y2="9"/>
-                              <line x1="9" y1="21" x2="9" y2="9"/>
-                            </svg>
-                          </div>
-                          <span>Pop Up Embed</span>
-                        </SelectItem>
-                        <SelectItem value="link" className="flex items-center gap-2">
-                          <div className="p-1 bg-blue-50 rounded-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
-                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                              <polyline points="15 3 21 3 21 9"/>
-                              <line x1="10" y1="14" x2="21" y2="3"/>
-                            </svg>
-                          </div>
-                          <span>Website Link</span>
-                        </SelectItem>
-                        <SelectItem value="download" className="flex items-center gap-2">
-                          <div className="p-1 bg-emerald-50 rounded-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                              <polyline points="7 10 12 15 17 10"/>
-                              <line x1="12" y1="15" x2="12" y2="3"/>
-                            </svg>
-                          </div>
-                          <span>Direct Download</span>
-                        </SelectItem>
+                        <SelectItem value="popup">Pop Up Embed</SelectItem>
+                        <SelectItem value="link">Website Link</SelectItem>
+                        <SelectItem value="download">Direct Download</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-slate-500 pt-1">
-                      <span className="font-medium">Button behavior when clicked:</span><br/>
-                      • <span className="text-indigo-600 font-medium">Pop Up Embed</span>: Opens a popup with embedded content<br/>
-                      • <span className="text-blue-600 font-medium">Website Link</span>: Redirects to an external URL<br/>
-                      • <span className="text-emerald-600 font-medium">Direct Download</span>: Initiates file download (configured per listing)
-                    </p>
                   </div>
                   
                   <div className="space-y-2">
@@ -338,14 +305,11 @@ export default function ListingOptInsConfig() {
                   </div>
                 </div>
 
-                {/* Popup Embed Configuration */}
-                {buttonType === "popup" && (
+                {/* URL Configuration for Popup/Link - only shown for popup and URL types */}
+                {buttonType !== "download" && (
                   <div className="space-y-2">
                     <Label htmlFor="popup-url" className="flex items-center gap-2">
-                      <span className="flex items-center gap-1">
-                        <div className="h-3 w-3 rounded-full bg-indigo-500"></div>
-                        Embed Code
-                      </span>
+                      {buttonType === "popup" ? "Embed Code" : "URL"}
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger>
@@ -353,108 +317,68 @@ export default function ListingOptInsConfig() {
                           </TooltipTrigger>
                           <TooltipContent>
                             <p className="max-w-xs">
-                              Paste HTML or iFrame code here. Supports {"{business_name}"} token for tracking.
+                              Supports {"{business_name}"} token that will be replaced with actual business name for tracking.
                             </p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </Label>
                     
-                    <div className="flex flex-col">
-                      <Textarea 
-                        id="popup-url"
-                        value={localUrlValue}
-                        onChange={(e) => {
-                          const newValue = e.target.value;
-                          setLocalUrlValue(newValue);
-                        }}
-                        placeholder="Paste your embed code here (HTML, iFrame, etc.)"
-                        className="flex-1 min-h-[120px] font-mono text-xs"
-                      />
+                    {/* Input for popup/URL configuration */}
+                    <div className={buttonType === "popup" ? "flex flex-col" : "rounded-md"}>
+                      {buttonType === "popup" ? (
+                        <Textarea 
+                          id="popup-url"
+                          value={localUrlValue}
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            setLocalUrlValue(newValue);
+                          }}
+                          placeholder="Paste your embed code here (HTML, iFrame, etc.)"
+                          className="flex-1 min-h-[120px] font-mono text-xs"
+                        />
+                      ) : (
+                        <Input 
+                          id="popup-url"
+                          value={localUrlValue}
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            console.log("URL changed to:", newValue);
+                            setLocalUrlValue(newValue);
+                          }}
+                          placeholder="Enter URL here"
+                          className="flex-1"
+                        />
+                      )}
                     </div>
                     
                     <p className="text-xs text-slate-500">
-                      This embed code will be shown in a popup window when the button is clicked.
-                      Use {"{business_name}"} to insert the business name for tracking.
+                      {buttonType === "popup" 
+                        ? "This embed code will be shown in a popup window when the button is clicked." 
+                        : "This URL will open in a new window when the button is clicked."}
+                      {" Use {\"business_name\"} to insert the business name for tracking."}
                     </p>
                   </div>
                 )}
                 
-                {/* Website Link Configuration */}
-                {buttonType === "link" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="link-url" className="flex items-center gap-2">
-                      <span className="flex items-center gap-1">
-                        <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                        Website URL
-                      </span>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <InfoCircledIcon className="h-4 w-4 text-slate-500" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">
-                              Enter the full URL including https://. Supports {"{business_name}"} token for tracking.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </Label>
-                    
-                    <div className="flex">
-                      <Input 
-                        id="link-url"
-                        value={localUrlValue}
-                        onChange={(e) => {
-                          const newValue = e.target.value;
-                          console.log("URL changed to:", newValue);
-                          setLocalUrlValue(newValue);
-                        }}
-                        placeholder="https://example.com/page"
-                        className="flex-1"
-                      />
-                    </div>
-                    
-                    <p className="text-xs text-slate-500">
-                      This URL will open in a new window when the button is clicked.
-                      Use {"{business_name}"} to insert the business name for tracking.
-                    </p>
-                  </div>
-                )}
-                
-                {/* Download Link Information */}
+                {/* Download Link Information - shown for download type */}
                 {buttonType === "download" && (
                   <div className="space-y-2">
-                    <div className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 border border-emerald-100">
+                    <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-800 border border-blue-100">
                       <div className="flex items-start gap-2">
-                        <InfoCircledIcon className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                        <InfoCircledIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="font-medium mb-1">Download links managed per listing</p>
-                          <p className="text-xs text-emerald-700">
-                            Download files are configured individually for each listing. This allows for unique downloadable content per listing with automatic cloud storage link conversion.
+                          <p className="font-medium mb-1">Download links moved to listing form</p>
+                          <p className="text-xs text-blue-700">
+                            Download links are now configured directly in each listing's form. This allows for unique download files per listing with automatic link conversion.
                           </p>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-3 rounded-md border border-slate-200 mt-2">
-                      <div>
-                        <h4 className="text-sm font-medium mb-1">How it works:</h4>
-                        <ul className="text-xs text-slate-600 space-y-1 list-disc pl-4">
-                          <li>Each listing can have its own downloadable file</li>
-                          <li>Cloud storage links (Google Drive, Dropbox) are automatically converted</li>
-                          <li>File downloads start immediately when button is clicked</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium mb-1">Where to configure:</h4>
-                        <p className="text-xs text-slate-600">
-                          Add download files in the listing editor under the "Downloads" section.
-                          All download button styling (colors, text) is controlled here.
-                        </p>
-                      </div>
-                    </div>
+                    <p className="text-xs text-slate-500">
+                      When you select "download" as the button type, each listing can have its own download file. Configure this when editing individual listings.
+                    </p>
                   </div>
                 )}
 
@@ -800,7 +724,8 @@ export default function ListingOptInsConfig() {
                         ...config,
                         enableEmbeddedForm: true,
                         enableActionButton: false,
-                        formEmbedUrl: config.formEmbedUrl || ""
+                        formEmbedUrl: config.formEmbedUrl || "",
+                        formHeight: config.formHeight || 500
                       };
                       
                       // Directly trigger CSS update with the new config
