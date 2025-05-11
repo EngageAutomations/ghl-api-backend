@@ -1,5 +1,6 @@
 import { apiRequest } from './queryClient';
 import type { Listing } from '@shared/schema';
+import { addListingDataAttributes } from './listing-attributes';
 
 /**
  * Interface representing listing data structure
