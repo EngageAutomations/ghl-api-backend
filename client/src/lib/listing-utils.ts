@@ -1,6 +1,5 @@
 import { apiRequest } from './queryClient';
 import type { Listing } from '@shared/schema';
-import { addListingDataAttributes } from './listing-attributes';
 
 /**
  * Interface representing listing data structure
@@ -10,53 +9,59 @@ export type ListingData = Listing;
 
 /**
  * Extracts the slug from the current URL
- * Example: /product-details/product/open-frame-pc-case returns 'open-frame-pc-case'
+ * Example: https://makerexpress3d.com/product-details/product/4-5l-mini-itx-sff-pc-case-pico-psu-single-slot-gpu
+ * returns '4-5l-mini-itx-sff-pc-case-pico-psu-single-slot-gpu'
  */
 export function getSlugFromUrl(): string {
-  const path = window.location.pathname;
-  // Extract the slug from URL patterns like /product-details/product/[slug]
-  const slugMatch = path.match(/\/product-details\/product\/([^\/]+)$/);
+  const url = window.location.href;
+  // Extract the slug from URLs like domain.com/product-details/product/[slug]
+  const slugMatch = url.match(/\/product-details\/product\/([^\/\?#]+)/);
   
   if (slugMatch && slugMatch[1]) {
     return slugMatch[1];
   }
   
   // Fallback: try to get the last segment of any URL path
+  const path = window.location.pathname;
   const segments = path.split('/').filter(segment => segment.length > 0);
   return segments.length > 0 ? segments[segments.length - 1] : '';
 }
 
 /**
- * Fetches listing data based on the provided slug
- * Also adds data attributes to the page container for CSS-based styling
+ * Gets and applies the slug to the product container in the page
+ * This allows the CSS to apply specific styling based on the URL slug
  */
-export async function fetchListing(slug: string): Promise<ListingData> {
-  try {
-    const url = `/api/listings/${slug}`;
-    const response = await fetch(url, {
-      credentials: "include"
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch listing: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
-    // Apply data attributes to the container for CSS selector-based styling
-    // This ensures our CSS selectors work even if the HTML doesn't include them
-    addListingDataAttributes(data);
-    
-    return data;
-  } catch (error) {
-    console.error(`Error fetching listing with slug "${slug}":`, error);
-    const safeListing = getSafeListing({ slug });
-    
-    // Even with an error, apply data attributes with what we know
-    addListingDataAttributes(safeListing);
-    
-    return safeListing;
+export function applySlugFromUrl(): void {
+  // Extract slug from URL
+  const slug = getSlugFromUrl();
+  
+  if (!slug) {
+    console.warn('Could not extract slug from URL');
+    return;
   }
+  
+  // Find the main content container
+  const possibleContainers = [
+    document.querySelector('.product-container'),
+    document.querySelector('.product-detail'),
+    document.querySelector('.hl-product-detail'),
+    document.querySelector('.c-product-details'),
+    document.querySelector('main'),
+    document.body
+  ];
+  
+  // Find the first valid container
+  const container = possibleContainers.find(el => el !== null);
+  
+  if (!container) {
+    console.warn('Could not find container to add listing slug attribute');
+    return;
+  }
+  
+  // Set the data-product-slug attribute
+  container.setAttribute('data-product-slug', slug);
+  
+  console.log('Added data-product-slug attribute:', slug);
 }
 
 /**

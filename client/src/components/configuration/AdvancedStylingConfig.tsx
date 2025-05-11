@@ -273,114 +273,104 @@ export default function AdvancedStylingConfig() {
       console.log("Added Embedded Form CSS");
     }
     
-    // Always include attribute-based CSS for URL slug-based listing association 
-    // This ensure users get the selector-based styling without any extra steps
+    // Always include URL slug-based product selector CSS
+    // This is a simplified selector approach that works based only on the URL slug
     css += `
 
 /* ==========================================================================
-   URL Slug-Based Listing Association System
+   URL Slug-Based Product Selector System
    ========================================================================== */
 
-/* --- Base Attribute Selectors --- */
+/* This CSS uses a data-product-slug attribute that contains the product slug extracted from the URL.
+   Example URL: https://makerexpress3d.com/product-details/product/4-5l-mini-itx-sff-pc-case-pico-psu-single-slot-gpu
+   The slug would be: 4-5l-mini-itx-sff-pc-case-pico-psu-single-slot-gpu
+   
+   To apply this CSS, add the following JavaScript to your site:
+   
+   <script>
+     // Function to extract product slug from URL
+     function getProductSlug() {
+       const path = window.location.pathname;
+       const match = path.match(/\\/product-details\\/product\\/([^\\/]+)/);
+       return match ? match[1] : '';
+     }
+     
+     // Function to apply slug to container
+     function applyProductSlug() {
+       const slug = getProductSlug();
+       if (slug) {
+         const container = document.querySelector('.product-container') || 
+                          document.querySelector('.product-detail') ||
+                          document.querySelector('.hl-product-detail') ||
+                          document.querySelector('main') || 
+                          document.body;
+         if (container) {
+           container.setAttribute('data-product-slug', slug);
+         }
+       }
+     }
+     
+     // Run when DOM is ready
+     document.addEventListener('DOMContentLoaded', applyProductSlug);
+   </script>
+*/
 
-/* Base styling for all listing containers */
-[data-listing-slug] {
-    position: relative; /* Ensure proper stacking context */
-}
-
-/* --- Category-specific Styling --- */
-
-/* Category: electronics */
-[data-listing-category="electronics"] {
+/* PC Cases - Apply specific styling for PC case products */
+[data-product-slug*="pc-case"],
+[data-product-slug*="atx"],
+[data-product-slug*="itx"],
+[data-product-slug*="matx"] {
     position: relative;
 }
 
-[data-listing-category="electronics"] .directory-action-button {
-    background-color: #2563eb !important;
-    color: #ffffff !important;
+[data-product-slug*="pc-case"] .hl-product-detail-product-price,
+[data-product-slug*="atx"] .hl-product-detail-product-price,
+[data-product-slug*="itx"] .hl-product-detail-product-price,
+[data-product-slug*="matx"] .hl-product-detail-product-price {
+    font-weight: bold !important;
+    color: #4F46E5 !important;
 }
 
-[data-listing-category="electronics"] .directory-embedded-form {
-    border-left: 4px solid #93c5fd !important;
-    padding-left: 16px;
+/* Add a custom indicator for PC cases that have GPU support */
+[data-product-slug*="gpu"] .product-title:after {
+    content: " - GPU Compatible";
+    color: #10B981;
+    font-weight: normal;
+    font-size: 0.8em;
 }
 
-[data-listing-category="electronics"] h1,
-[data-listing-category="electronics"] h2,
-[data-listing-category="electronics"] .category-accent {
-    color: #1d4ed8 !important;
+/* Highlight products with "premium" in the name */
+[data-product-slug*="premium"] .hl-product-detail-product-name {
+    color: #7C3AED !important;
 }
 
-/* Category: clothing */
-[data-listing-category="clothing"] {
+/* Add subtle highlight for premium products */
+[data-product-slug*="premium"] .hl-product-detail {
     position: relative;
 }
 
-[data-listing-category="clothing"] .directory-action-button {
-    background-color: #7c3aed !important;
-    color: #ffffff !important;
-}
-
-/* Category: health */
-[data-listing-category="health"] {
-    position: relative;
-}
-
-[data-listing-category="health"] .directory-action-button {
-    background-color: #16a34a !important;
-    color: #ffffff !important;
-}
-
-/* --- Priority-based Styling --- */
-
-/* Priority: featured */
-[data-listing-priority="featured"] {
-    position: relative;
-}
-
-[data-listing-priority="featured"]::before {
+[data-product-slug*="premium"] .hl-product-detail:before {
     content: "";
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, transparent 50%);
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, transparent 50%);
     pointer-events: none;
     z-index: -1;
 }
 
-/* Priority: premium */
-[data-listing-priority="premium"]::after {
-    content: "premium";
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 4px 8px;
-    border-radius: 4px;
-    background-color: #7C3AED;
-    color: white;
-    z-index: 5;
+/* Apply specific styling for Mini ITX cases */
+[data-product-slug*="mini-itx"],
+[data-product-slug*="itx"] {
+    position: relative;
 }
 
-/* --- Location-based Styling --- */
-
-/* New York locations */
-[data-listing-location*="new-york"] .directory-action-button {
-    border-bottom: 3px solid #2563eb !important;
-}
-
-/* California locations */
-[data-listing-location*="california"] .directory-action-button {
-    border-bottom: 3px solid #16a34a !important;
-}
-
-/* Texas locations */
-[data-listing-location*="texas"] .directory-action-button {
-    border-bottom: 3px solid #dc2626 !important;
+[data-product-slug*="mini-itx"] .product-specs,
+[data-product-slug*="itx"] .product-specs {
+    border-left: 3px solid #3B82F6 !important;
+    padding-left: 16px;
 }`;
     
     console.log("Added URL slug-based listing association CSS");
@@ -464,31 +454,42 @@ export default function AdvancedStylingConfig() {
         
         {/* Data Attribute Information */}
         <div className="space-y-4">
-          <h3 className="text-base font-medium text-slate-800">URL Slug-Based Listing Association</h3>
+          <h3 className="text-base font-medium text-slate-800">URL Slug-Based Product Styling</h3>
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-700">
-            <p className="font-medium mb-1">Automatic Styling with HTML Data Attributes</p>
+            <p className="font-medium mb-1">Automatic Styling Based on Product URL</p>
             <p className="mb-2">
-              The CSS we've generated <strong>automatically includes</strong> styling based on listing attributes. 
-              This means you'll get category-specific and priority-based styling without any extra coding.
+              The CSS we've generated <strong>automatically includes</strong> styling that matches product URLs.
+              For example, URLs containing "itx", "pc-case", or "gpu" will have specific styling applied.
             </p>
             <p className="mb-2">
-              Simply add these data attributes to the container element of each listing page:
+              To make this work, add this small JavaScript snippet to your site:
             </p>
-            <div className="bg-white p-2 rounded font-mono text-xs">
-              &lt;div
-              <br />&nbsp;&nbsp;data-listing-slug="product-name"
-              <br />&nbsp;&nbsp;data-listing-category="electronics"
-              <br />&nbsp;&nbsp;data-listing-priority="featured" 
-              <br />&nbsp;&nbsp;data-listing-location="new-york"
-              <br />&gt;
-              <br />&nbsp;&nbsp;/* Listing content */
-              <br />&lt;/div&gt;
+            <div className="bg-white p-2 rounded">
+              <pre className="font-mono text-xs overflow-auto">
+{`<script>
+  // Extract product slug from URL
+  function getProductSlug() {
+    const path = window.location.pathname;
+    const match = path.match(/\\/product-details\\/product\\/([^\\/]+)/);
+    return match ? match[1] : '';
+  }
+
+  // Add data-product-slug attribute to page
+  document.addEventListener('DOMContentLoaded', function() {
+    const slug = getProductSlug();
+    if (slug) {
+      document.querySelector('.product-container')?.setAttribute('data-product-slug', slug);
+    }
+  });
+</script>`}
+              </pre>
             </div>
             <p className="mt-2">
-              <strong>Pre-defined categories</strong> that will automatically receive custom styling: 
-              <span className="font-semibold text-blue-700">electronics</span>, 
-              <span className="font-semibold text-purple-700">clothing</span>, 
-              <span className="font-semibold text-green-700">health</span>
+              <strong>Keywords in URLs</strong> that will automatically receive styling:
+              <span className="font-semibold text-blue-700"> pc-case</span>, 
+              <span className="font-semibold text-purple-700"> itx</span>,
+              <span className="font-semibold text-green-700"> gpu</span>,
+              <span className="font-semibold text-amber-700"> premium</span>
             </p>
           </div>
         </div>
