@@ -124,6 +124,25 @@ ${commentHeader}
     justify-content: flex-start;
     margin: 1.5rem 0;
 }
+
+/* Slug-based selector styling for listing-specific buttons */
+[data-listing-slug] .directory-action-button {
+    /* Apply default styles from above plus any listing-specific attributes */
+    display: inline-flex !important;
+}
+
+/* Common category-based styling examples */
+[data-listing-category="electronics"] .directory-action-button {
+    background-color: #2563eb !important; /* Adjust for electronics */
+}
+
+[data-listing-category="clothing"] .directory-action-button {
+    background-color: #7c3aed !important; /* Adjust for clothing */
+}
+
+[data-listing-category="home-decor"] .directory-action-button {
+    background-color: #0d9488 !important; /* Adjust for home decor */
+}
 `;
 };
 
@@ -149,6 +168,45 @@ const EMBEDDED_FORM_CSS = `
     text-align: center;
     color: #64748b;
     font-style: italic;
+}
+
+/* --- Listing-Specific Form Styling via Selectors --- */
+
+/* Slug-based form styling */
+[data-listing-slug] .directory-embedded-form {
+    /* Base styling remains, but ensure it's applied consistently */
+    display: block !important;
+}
+
+/* Category-specific form styling examples */
+[data-listing-category="electronics"] .directory-embedded-form {
+    border-color: #2563eb !important;
+    background-color: #eff6ff !important;
+}
+
+[data-listing-category="clothing"] .directory-embedded-form {
+    border-color: #7c3aed !important;
+    background-color: #f5f3ff !important;
+}
+
+[data-listing-category="home-decor"] .directory-embedded-form {
+    border-color: #0d9488 !important;
+    background-color: #f0fdfa !important;
+}
+
+/* Priority-based form styling examples */
+[data-listing-priority="high"] .directory-embedded-form {
+    border-width: 2px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Location-based styling examples */
+[data-listing-location*="new-york"] .directory-embedded-form {
+    border-left: 4px solid #2563eb !important;
+}
+
+[data-listing-location*="los-angeles"] .directory-embedded-form {
+    border-left: 4px solid #7c3aed !important;
 }
 `;
 
