@@ -28,6 +28,7 @@ export function getSlugFromUrl(): string {
 
 /**
  * Fetches listing data based on the provided slug
+ * Also adds data attributes to the page container for CSS-based styling
  */
 export async function fetchListing(slug: string): Promise<ListingData> {
   try {
@@ -41,10 +42,20 @@ export async function fetchListing(slug: string): Promise<ListingData> {
     }
     
     const data = await response.json();
+    
+    // Apply data attributes to the container for CSS selector-based styling
+    // This ensures our CSS selectors work even if the HTML doesn't include them
+    addListingDataAttributes(data);
+    
     return data;
   } catch (error) {
     console.error(`Error fetching listing with slug "${slug}":`, error);
-    return getSafeListing({ slug });
+    const safeListing = getSafeListing({ slug });
+    
+    // Even with an error, apply data attributes with what we know
+    addListingDataAttributes(safeListing);
+    
+    return safeListing;
   }
 }
 

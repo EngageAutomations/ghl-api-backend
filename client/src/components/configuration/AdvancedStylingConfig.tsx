@@ -12,6 +12,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { 
+  generateAttributeBasedCSS, 
+  DEFAULT_CATEGORY_STYLES, 
+  DEFAULT_PRIORITY_STYLES 
+} from "@/lib/listing-css-generator";
 
 // Core CSS - always applied
 const CORE_CSS = `/* --- Core Layout, Spacing & Text Behavior Fixes --- */
@@ -267,6 +272,14 @@ export default function AdvancedStylingConfig() {
       console.log("Added Embedded Form CSS");
     }
     
+    // Add attribute-based CSS for selector-based styling
+    const attributeBasedCSS = generateAttributeBasedCSS(
+      DEFAULT_CATEGORY_STYLES,
+      DEFAULT_PRIORITY_STYLES
+    );
+    css += "\n\n" + attributeBasedCSS;
+    console.log("Added attribute-based CSS for listing selectors");
+    
     return css;
   };
   
@@ -344,6 +357,31 @@ export default function AdvancedStylingConfig() {
         {/* Divider */}
         <div className="border-t border-slate-200"></div>
         
+        {/* Data Attribute Information */}
+        <div className="space-y-4">
+          <h3 className="text-base font-medium text-slate-800">URL Slug-Based Listing Association</h3>
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-700">
+            <p className="font-medium mb-1">Automatic Styling with HTML Data Attributes</p>
+            <p className="mb-2">
+              The generated CSS includes selectors that apply styles based on listing attributes.
+              For this to work, add the following data attributes to the container element of each listing:
+            </p>
+            <div className="bg-white p-2 rounded font-mono text-xs">
+              &lt;div
+              <br />&nbsp;&nbsp;data-listing-slug="product-name"
+              <br />&nbsp;&nbsp;data-listing-category="electronics"
+              <br />&nbsp;&nbsp;data-listing-priority="featured" 
+              <br />&nbsp;&nbsp;data-listing-location="new-york"
+              <br />&gt;
+              <br />&nbsp;&nbsp;/* Listing content */
+              <br />&lt;/div&gt;
+            </div>
+          </div>
+        </div>
+        
+        {/* Divider */}
+        <div className="border-t border-slate-200 mt-4 pt-4"></div>
+        
         {/* CSS Code Display */}
         <div className="space-y-4">
           <p className="text-sm text-slate-500">
@@ -360,7 +398,7 @@ export default function AdvancedStylingConfig() {
               rows={12}
             />
             <p className="text-xs text-slate-500">
-              This code includes all the styling options you've selected above.
+              This code includes all the styling options you've selected above plus category and priority-based styles.
             </p>
           </div>
         </div>
