@@ -253,6 +253,7 @@ export default function AdvancedStylingConfig() {
       buttonBorderRadius: configToUse.buttonBorderRadius
     });
     
+    // Always include these in the generated CSS
     let css = CORE_CSS;
     
     // Add optional CSS based on local toggle states
@@ -272,13 +273,117 @@ export default function AdvancedStylingConfig() {
       console.log("Added Embedded Form CSS");
     }
     
-    // Add attribute-based CSS for selector-based styling
-    const attributeBasedCSS = generateAttributeBasedCSS(
-      DEFAULT_CATEGORY_STYLES,
-      DEFAULT_PRIORITY_STYLES
-    );
-    css += "\n\n" + attributeBasedCSS;
-    console.log("Added attribute-based CSS for listing selectors");
+    // Always include attribute-based CSS for URL slug-based listing association 
+    // This ensure users get the selector-based styling without any extra steps
+    css += `
+
+/* ==========================================================================
+   URL Slug-Based Listing Association System
+   ========================================================================== */
+
+/* --- Base Attribute Selectors --- */
+
+/* Base styling for all listing containers */
+[data-listing-slug] {
+    position: relative; /* Ensure proper stacking context */
+}
+
+/* --- Category-specific Styling --- */
+
+/* Category: electronics */
+[data-listing-category="electronics"] {
+    position: relative;
+}
+
+[data-listing-category="electronics"] .directory-action-button {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+[data-listing-category="electronics"] .directory-embedded-form {
+    border-left: 4px solid #93c5fd !important;
+    padding-left: 16px;
+}
+
+[data-listing-category="electronics"] h1,
+[data-listing-category="electronics"] h2,
+[data-listing-category="electronics"] .category-accent {
+    color: #1d4ed8 !important;
+}
+
+/* Category: clothing */
+[data-listing-category="clothing"] {
+    position: relative;
+}
+
+[data-listing-category="clothing"] .directory-action-button {
+    background-color: #7c3aed !important;
+    color: #ffffff !important;
+}
+
+/* Category: health */
+[data-listing-category="health"] {
+    position: relative;
+}
+
+[data-listing-category="health"] .directory-action-button {
+    background-color: #16a34a !important;
+    color: #ffffff !important;
+}
+
+/* --- Priority-based Styling --- */
+
+/* Priority: featured */
+[data-listing-priority="featured"] {
+    position: relative;
+}
+
+[data-listing-priority="featured"]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Priority: premium */
+[data-listing-priority="premium"]::after {
+    content: "premium";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: #7C3AED;
+    color: white;
+    z-index: 5;
+}
+
+/* --- Location-based Styling --- */
+
+/* New York locations */
+[data-listing-location*="new-york"] .directory-action-button {
+    border-bottom: 3px solid #2563eb !important;
+}
+
+/* California locations */
+[data-listing-location*="california"] .directory-action-button {
+    border-bottom: 3px solid #16a34a !important;
+}
+
+/* Texas locations */
+[data-listing-location*="texas"] .directory-action-button {
+    border-bottom: 3px solid #dc2626 !important;
+}`;
+    
+    console.log("Added URL slug-based listing association CSS");
     
     return css;
   };
@@ -363,8 +468,11 @@ export default function AdvancedStylingConfig() {
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-700">
             <p className="font-medium mb-1">Automatic Styling with HTML Data Attributes</p>
             <p className="mb-2">
-              The generated CSS includes selectors that apply styles based on listing attributes.
-              For this to work, add the following data attributes to the container element of each listing:
+              The CSS we've generated <strong>automatically includes</strong> styling based on listing attributes. 
+              This means you'll get category-specific and priority-based styling without any extra coding.
+            </p>
+            <p className="mb-2">
+              Simply add these data attributes to the container element of each listing page:
             </p>
             <div className="bg-white p-2 rounded font-mono text-xs">
               &lt;div
@@ -376,6 +484,12 @@ export default function AdvancedStylingConfig() {
               <br />&nbsp;&nbsp;/* Listing content */
               <br />&lt;/div&gt;
             </div>
+            <p className="mt-2">
+              <strong>Pre-defined categories</strong> that will automatically receive custom styling: 
+              <span className="font-semibold text-blue-700">electronics</span>, 
+              <span className="font-semibold text-purple-700">clothing</span>, 
+              <span className="font-semibold text-green-700">health</span>
+            </p>
           </div>
         </div>
         
