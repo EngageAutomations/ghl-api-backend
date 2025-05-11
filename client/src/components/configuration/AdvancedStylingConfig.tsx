@@ -282,8 +282,8 @@ export default function AdvancedStylingConfig() {
    ========================================================================== */
 
 /* This CSS uses a data-product-slug attribute that contains the product slug extracted from the URL.
-   Example URL: https://makerexpress3d.com/product-details/product/4-5l-mini-itx-sff-pc-case-pico-psu-single-slot-gpu
-   The slug would be: 4-5l-mini-itx-sff-pc-case-pico-psu-single-slot-gpu
+   Example URL: https://example.com/product-details/product/product-name
+   The slug would be: product-name
    
    To apply this CSS, add the following JavaScript to your site:
    
@@ -315,62 +315,46 @@ export default function AdvancedStylingConfig() {
    </script>
 */
 
-/* PC Cases - Apply specific styling for PC case products */
-[data-product-slug*="pc-case"],
-[data-product-slug*="atx"],
-[data-product-slug*="itx"],
-[data-product-slug*="matx"] {
+/* General product styling - will apply to any product */
+[data-product-slug] {
     position: relative;
 }
 
-[data-product-slug*="pc-case"] .hl-product-detail-product-price,
-[data-product-slug*="atx"] .hl-product-detail-product-price,
-[data-product-slug*="itx"] .hl-product-detail-product-price,
-[data-product-slug*="matx"] .hl-product-detail-product-price {
+/* Product price styling */
+[data-product-slug] .hl-product-detail-product-price {
     font-weight: bold !important;
     color: #4F46E5 !important;
 }
 
-/* Add a custom indicator for PC cases that have GPU support */
-[data-product-slug*="gpu"] .product-title:after {
-    content: " - GPU Compatible";
-    color: #10B981;
-    font-weight: normal;
-    font-size: 0.8em;
+/* Product name styling */
+[data-product-slug] .hl-product-detail-product-name {
+    color: #1F2937 !important;
+    font-size: 24px !important;
 }
 
-/* Highlight products with "premium" in the name */
+/* Product description styling */
+[data-product-slug] #description {
+    color: #374151 !important;
+    line-height: 1.6 !important;
+}
+
+/* Example: Style products with "premium" keyword differently */
 [data-product-slug*="premium"] .hl-product-detail-product-name {
-    color: #7C3AED !important;
+    color: #7C3AED !important; /* Purple color for premium products */
 }
 
-/* Add subtle highlight for premium products */
-[data-product-slug*="premium"] .hl-product-detail {
-    position: relative;
-}
-
-[data-product-slug*="premium"] .hl-product-detail:before {
-    content: "";
+/* Example: Add badge to featured products */
+[data-product-slug*="featured"]::before {
+    content: "Featured";
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: -1;
-}
-
-/* Apply specific styling for Mini ITX cases */
-[data-product-slug*="mini-itx"],
-[data-product-slug*="itx"] {
-    position: relative;
-}
-
-[data-product-slug*="mini-itx"] .product-specs,
-[data-product-slug*="itx"] .product-specs {
-    border-left: 3px solid #3B82F6 !important;
-    padding-left: 16px;
+    top: 10px;
+    right: 10px;
+    background: #10B981;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 10;
 }`;
     
     console.log("Added URL slug-based listing association CSS");
@@ -458,8 +442,8 @@ export default function AdvancedStylingConfig() {
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-700">
             <p className="font-medium mb-1">Automatic Styling Based on Product URL</p>
             <p className="mb-2">
-              The CSS we've generated <strong>automatically includes</strong> styling that matches product URLs.
-              For example, URLs containing "itx", "pc-case", or "gpu" will have specific styling applied.
+              The CSS we've generated <strong>automatically includes</strong> styling that applies to all product pages.
+              It also includes examples of how to style products with specific keywords in their URLs (like "premium" or "featured").
             </p>
             <p className="mb-2">
               To make this work, add this small JavaScript snippet to your site:
@@ -485,11 +469,9 @@ export default function AdvancedStylingConfig() {
               </pre>
             </div>
             <p className="mt-2">
-              <strong>Keywords in URLs</strong> that will automatically receive styling:
-              <span className="font-semibold text-blue-700"> pc-case</span>, 
-              <span className="font-semibold text-purple-700"> itx</span>,
-              <span className="font-semibold text-green-700"> gpu</span>,
-              <span className="font-semibold text-amber-700"> premium</span>
+              <strong>Example keywords in URLs</strong> that will automatically receive special styling:
+              <span className="font-semibold text-purple-700"> premium</span>, 
+              <span className="font-semibold text-green-700"> featured</span>
             </p>
           </div>
         </div>
