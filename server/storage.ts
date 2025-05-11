@@ -151,6 +151,62 @@ export class MemStorage implements IStorage {
     this.portalDomains.set(portalDomain.id, updatedDomain);
     return true;
   }
+  
+  // Listing methods
+  async getListing(id: number): Promise<Listing | undefined> {
+    return this.listings.get(id);
+  }
+  
+  async getListingBySlug(slug: string): Promise<Listing | undefined> {
+    return Array.from(this.listings.values()).find(
+      (listing) => listing.slug === slug
+    );
+  }
+  
+  async getListingsByUser(userId: number): Promise<Listing[]> {
+    return Array.from(this.listings.values()).filter(
+      (listing) => listing.userId === userId
+    );
+  }
+  
+  async createListing(insertListing: InsertListing): Promise<Listing> {
+    const id = this.currentListingId++;
+    const now = new Date();
+    const listing: Listing = { 
+      ...insertListing, 
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.listings.set(id, listing);
+    return listing;
+  }
+  
+  async updateListing(id: number, partialListing: Partial<InsertListing>): Promise<Listing | undefined> {
+    const existingListing = this.listings.get(id);
+    
+    if (!existingListing) {
+      return undefined;
+    }
+    
+    const updatedListing: Listing = { 
+      ...existingListing, 
+      ...partialListing,
+      updatedAt: new Date()
+    };
+    
+    this.listings.set(id, updatedListing);
+    return updatedListing;
+  }
+  
+  async deleteListing(id: number): Promise<boolean> {
+    const exists = this.listings.has(id);
+    if (exists) {
+      this.listings.delete(id);
+      return true;
+    }
+    return false;
+  }
 }
 
 export const storage = new MemStorage();

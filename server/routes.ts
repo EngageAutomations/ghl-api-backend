@@ -5,7 +5,8 @@ import { z } from "zod";
 import { 
   insertUserSchema, 
   insertDesignerConfigSchema, 
-  insertPortalDomainSchema 
+  insertPortalDomainSchema,
+  insertListingSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -221,6 +222,169 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json({ message: "Domain verified successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to verify domain" });
+    }
+  });
+
+  // Listing Routes
+  // Get all listings for a user
+  app.get("/api/listings/user/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const listings = await storage.getListingsByUser(userId);
+      res.status(200).json(listings);
+    } catch (error) {
+      console.error("Error getting listings by user:", error);
+      res.status(500).json({ message: "Failed to get listings" });
+    }
+  });
+
+  // Get a specific listing by ID
+  app.get("/api/listings/id/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid listing ID" });
+      }
+      
+      const listing = await storage.getListing(id);
+      
+      if (!listing) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+      
+      res.status(200).json(listing);
+    } catch (error) {
+      console.error("Error getting listing by ID:", error);
+      res.status(500).json({ message: "Failed to get listing" });
+    }
+  });
+
+  // Get a specific listing by slug
+  app.get("/api/listings/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      
+      if (!slug) {
+        return res.status(400).json({ message: "Slug is required" });
+      }
+      
+      const listing = await storage.getListingBySlug(slug);
+      
+      if (!listing) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+      
+      res.status(200).json(listing);
+    } catch (error) {
+      console.error("Error getting listing by slug:", error);
+      res.status(500).json({ message: "Failed to get listing" });
+    }
+  });
+
+  // Create a new listing
+  app.post("/api/listings", async (req, res) => {
+    try {
+      const listingData = insertListingSchema.parse(req.body);
+      
+      // Check if a listing with this slug already exists
+      const existingListing = await storage.getListingBySlug(listingData.slug);
+      
+      if (existingListing) {
+        return res.status(400).json({ message: "A listing with this slug already exists" });
+      }
+      
+      const listing = await storage.createListing(listingData);
+      res.status(201).json(listing);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid listing data", errors: error.errors });
+      }
+      console.error("Error creating listing:", error);
+      res.status(500).json({ message: "Failed to create listing" });
+    }
+  });
+
+  // Update a listing
+  app.patch("/api/listings/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid listing ID" });
+      }
+      
+      const listingData = req.body;
+      
+      // If slug is being updated, check if it's unique
+      if (listingData.slug) {
+        const existingListing = await storage.getListingBySlug(listingData.slug);
+        
+        if (existingListing && existingListing.id !== id) {
+          return res.status(400).json({ message: "A listing with this slug already exists" });
+        }
+      }
+      
+      const updatedListing = await storage.updateListing(id, listingData);
+      
+      if (!updatedListing) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+      
+      res.status(200).json(updatedListing);
+    } catch (error) {
+      console.error("Error updating listing:", error);
+      res.status(500).json({ message: "Failed to update listing" });
+    }
+  });
+
+  // Delete a listing
+  app.delete("/api/listings/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid listing ID" });
+      }
+      
+      const success = await storage.deleteListing(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+      
+      res.status(200).json({ message: "Listing deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting listing:", error);
+      res.status(500).json({ message: "Failed to delete listing" });
+    }
+  });
+
+  // Tracking endpoint for opt-in interactions
+  app.post("/api/tracking/opt-in", async (req, res) => {
+    try {
+      const { type, listingId, listingTitle, listingSlug, timestamp, ...details } = req.body;
+      
+      // In a real implementation, you would store this tracking data in a database
+      console.log("Tracking opt-in interaction:", {
+        type,
+        listingId,
+        listingTitle,
+        listingSlug,
+        timestamp,
+        ...details
+      });
+      
+      res.status(200).json({ message: "Tracking data recorded" });
+    } catch (error) {
+      console.error("Error tracking opt-in:", error);
+      // Always return 200 for tracking endpoints to prevent disrupting the user experience
+      res.status(200).json({ message: "Tracking request received" });
     }
   });
 
