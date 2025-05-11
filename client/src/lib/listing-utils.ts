@@ -9,8 +9,8 @@ export type ListingData = Listing;
 
 /**
  * Extracts the slug from the current URL
- * Example: https://makerexpress3d.com/product-details/product/4-5l-mini-itx-sff-pc-case-pico-psu-single-slot-gpu
- * returns '4-5l-mini-itx-sff-pc-case-pico-psu-single-slot-gpu'
+ * Example: https://example.com/product-details/product/product-name
+ * returns 'product-name'
  */
 export function getSlugFromUrl(): string {
   const url = window.location.href;
@@ -28,40 +28,16 @@ export function getSlugFromUrl(): string {
 }
 
 /**
- * Gets and applies the slug to the product container in the page
- * This allows the CSS to apply specific styling based on the URL slug
+ * Master function to apply all slug-based functionality
+ * Calls the individual functions from listing-attributes.ts
  */
-export function applySlugFromUrl(): void {
-  // Extract slug from URL
-  const slug = getSlugFromUrl();
+export function applySlugBasedTracking(): void {
+  // This function is now implemented in listing-attributes.ts 
+  // as applySlugBasedFunctionality() for better organization
   
-  if (!slug) {
-    console.warn('Could not extract slug from URL');
-    return;
-  }
-  
-  // Find the main content container
-  const possibleContainers = [
-    document.querySelector('.product-container'),
-    document.querySelector('.product-detail'),
-    document.querySelector('.hl-product-detail'),
-    document.querySelector('.c-product-details'),
-    document.querySelector('main'),
-    document.body
-  ];
-  
-  // Find the first valid container
-  const container = possibleContainers.find(el => el !== null);
-  
-  if (!container) {
-    console.warn('Could not find container to add listing slug attribute');
-    return;
-  }
-  
-  // Set the data-product-slug attribute
-  container.setAttribute('data-product-slug', slug);
-  
-  console.log('Added data-product-slug attribute:', slug);
+  // Import needed functions
+  const { applySlugBasedFunctionality } = require('./listing-attributes');
+  applySlugBasedFunctionality();
 }
 
 /**

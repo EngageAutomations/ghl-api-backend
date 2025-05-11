@@ -273,89 +273,71 @@ export default function AdvancedStylingConfig() {
       console.log("Added Embedded Form CSS");
     }
     
-    // Always include URL slug-based product selector CSS
-    // This is a simplified selector approach that works based only on the URL slug
+    // Include only the JavaScript for slug-based link/form handling (no styling)
     css += `
 
 /* ==========================================================================
-   URL Slug-Based Product Selector System
+   URL Slug-Based Listing Association System (JavaScript Only - No CSS Required)
    ========================================================================== */
 
-/* This CSS uses a data-product-slug attribute that contains the product slug extracted from the URL.
+/*
+   This system extracts the product slug from the URL and uses it for functional purposes only:
+   1. Applying UTM parameters to links and forms
+   2. Adding correct direct download links to buttons
+   3. Customizing URLs based on the current product
+   
    Example URL: https://example.com/product-details/product/product-name
    The slug would be: product-name
    
-   To apply this CSS, add the following JavaScript to your site:
-   
-   <script>
-     // Function to extract product slug from URL
-     function getProductSlug() {
-       const path = window.location.pathname;
-       const match = path.match(/\\/product-details\\/product\\/([^\\/]+)/);
-       return match ? match[1] : '';
-     }
-     
-     // Function to apply slug to container
-     function applyProductSlug() {
-       const slug = getProductSlug();
-       if (slug) {
-         const container = document.querySelector('.product-container') || 
-                          document.querySelector('.product-detail') ||
-                          document.querySelector('.hl-product-detail') ||
-                          document.querySelector('main') || 
-                          document.body;
-         if (container) {
-           container.setAttribute('data-product-slug', slug);
-         }
-       }
-     }
-     
-     // Run when DOM is ready
-     document.addEventListener('DOMContentLoaded', applyProductSlug);
-   </script>
+   To implement this system, add the following JavaScript to your site:
 */
 
-/* General product styling - will apply to any product */
-[data-product-slug] {
-    position: relative;
-}
-
-/* Product price styling */
-[data-product-slug] .hl-product-detail-product-price {
-    font-weight: bold !important;
-    color: #4F46E5 !important;
-}
-
-/* Product name styling */
-[data-product-slug] .hl-product-detail-product-name {
-    color: #1F2937 !important;
-    font-size: 24px !important;
-}
-
-/* Product description styling */
-[data-product-slug] #description {
-    color: #374151 !important;
-    line-height: 1.6 !important;
-}
-
-/* Example: Style products with "premium" keyword differently */
-[data-product-slug*="premium"] .hl-product-detail-product-name {
-    color: #7C3AED !important; /* Purple color for premium products */
-}
-
-/* Example: Add badge to featured products */
-[data-product-slug*="featured"]::before {
-    content: "Featured";
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #10B981;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    z-index: 10;
-}`;
+<script>
+  // Extract product slug from URL
+  function getProductSlug() {
+    const path = window.location.pathname;
+    const match = path.match(/\\/product-details\\/product\\/([^\\/]+)/);
+    return match ? match[1] : '';
+  }
+  
+  // Apply UTM parameters and handle forms/downloads
+  function applyProductTrackingParameters() {
+    const slug = getProductSlug();
+    if (!slug) return;
+    
+    // 1. Apply to all links on the page
+    document.querySelectorAll('a').forEach(link => {
+      if (!link.href.includes('utm_')) {
+        const separator = link.href.includes('?') ? '&' : '?';
+        link.href = link.href + separator + 'utm_source=directory&utm_medium=product&utm_campaign=' + slug;
+      }
+    });
+    
+    // 2. Handle download buttons
+    document.querySelectorAll('.download-button').forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const baseDownloadUrl = button.getAttribute('data-download-url') || '';
+        if (baseDownloadUrl) {
+          window.location.href = baseDownloadUrl + '?product=' + slug;
+        }
+      });
+    });
+    
+    // 3. Handle forms - add hidden fields for tracking
+    document.querySelectorAll('form').forEach(form => {
+      // Add hidden field for product tracking
+      const hiddenField = document.createElement('input');
+      hiddenField.type = 'hidden';
+      hiddenField.name = 'product_slug';
+      hiddenField.value = slug;
+      form.appendChild(hiddenField);
+    });
+  }
+  
+  // Run when DOM is ready
+  document.addEventListener('DOMContentLoaded', applyProductTrackingParameters);
+</script>`;
     
     console.log("Added URL slug-based listing association CSS");
     
@@ -436,15 +418,19 @@ export default function AdvancedStylingConfig() {
         {/* Divider */}
         <div className="border-t border-slate-200"></div>
         
-        {/* Data Attribute Information */}
+        {/* URL Slug Information */}
         <div className="space-y-4">
-          <h3 className="text-base font-medium text-slate-800">URL Slug-Based Product Styling</h3>
+          <h3 className="text-base font-medium text-slate-800">URL Slug-Based Listing Association</h3>
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-700">
-            <p className="font-medium mb-1">Automatic Styling Based on Product URL</p>
+            <p className="font-medium mb-1">Automatic Listing Association Based on Product URL</p>
             <p className="mb-2">
-              The CSS we've generated <strong>automatically includes</strong> styling that applies to all product pages.
-              It also includes examples of how to style products with specific keywords in their URLs (like "premium" or "featured").
+              The script we've generated <strong>extracts the product slug from the URL</strong> and uses it for the following purposes:
             </p>
+            <ol className="list-decimal pl-5 mt-2 mb-2 space-y-1">
+              <li>Adding UTM parameters to all links to track the source listing</li>
+              <li>Adding the correct direct download link to download buttons</li>
+              <li>Inserting hidden fields into forms to associate submissions with the listing</li>
+            </ol>
             <p className="mb-2">
               To make this work, add this small JavaScript snippet to your site:
             </p>
@@ -458,20 +444,37 @@ export default function AdvancedStylingConfig() {
     return match ? match[1] : '';
   }
 
-  // Add data-product-slug attribute to page
-  document.addEventListener('DOMContentLoaded', function() {
+  // Apply UTM parameters and handle forms/downloads
+  function applyProductTrackingParameters() {
     const slug = getProductSlug();
-    if (slug) {
-      document.querySelector('.product-container')?.setAttribute('data-product-slug', slug);
-    }
-  });
+    if (!slug) return;
+    
+    // Apply to links, forms, and download buttons
+    document.querySelectorAll('a').forEach(link => {
+      if (!link.href.includes('utm_')) {
+        const separator = link.href.includes('?') ? '&' : '?';
+        link.href = link.href + separator + 'utm_source=directory&utm_medium=product&utm_campaign=' + slug;
+      }
+    });
+    
+    // Add hidden fields to forms
+    document.querySelectorAll('form').forEach(form => {
+      const hiddenField = document.createElement('input');
+      hiddenField.type = 'hidden';
+      hiddenField.name = 'product_slug';
+      hiddenField.value = slug;
+      form.appendChild(hiddenField);
+    });
+  }
+  
+  // Run when DOM is ready
+  document.addEventListener('DOMContentLoaded', applyProductTrackingParameters);
 </script>`}
               </pre>
             </div>
             <p className="mt-2">
-              <strong>Example keywords in URLs</strong> that will automatically receive special styling:
-              <span className="font-semibold text-purple-700"> premium</span>, 
-              <span className="font-semibold text-green-700"> featured</span>
+              <strong>How it works:</strong> When a user visits a product page, this script automatically adds tracking parameters to links and forms, 
+              ensuring that all interactions are associated with the specific listing.
             </p>
           </div>
         </div>
