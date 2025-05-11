@@ -1,7 +1,8 @@
 import { 
   users, User, InsertUser, 
   designerConfigs, DesignerConfig, InsertDesignerConfig,
-  portalDomains, PortalDomain, InsertPortalDomain
+  portalDomains, PortalDomain, InsertPortalDomain,
+  listings, Listing, InsertListing
 } from "@shared/schema";
 
 // Storage interface with all CRUD methods
@@ -23,25 +24,37 @@ export interface IStorage {
   createPortalDomain(domain: InsertPortalDomain): Promise<PortalDomain>;
   updatePortalDomain(id: number, domain: Partial<InsertPortalDomain>): Promise<PortalDomain | undefined>;
   verifyPortalDomain(userId: number, subdomain: string, domain: string): Promise<boolean>;
+  
+  // Listing methods
+  getListing(id: number): Promise<Listing | undefined>;
+  getListingBySlug(slug: string): Promise<Listing | undefined>;
+  getListingsByUser(userId: number): Promise<Listing[]>;
+  createListing(listing: InsertListing): Promise<Listing>;
+  updateListing(id: number, listing: Partial<InsertListing>): Promise<Listing | undefined>;
+  deleteListing(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private designerConfigs: Map<number, DesignerConfig>;
   private portalDomains: Map<number, PortalDomain>;
+  private listings: Map<number, Listing>;
   
   currentUserId: number;
   currentConfigId: number;
   currentDomainId: number;
+  currentListingId: number;
 
   constructor() {
     this.users = new Map();
     this.designerConfigs = new Map();
     this.portalDomains = new Map();
+    this.listings = new Map();
     
     this.currentUserId = 1;
     this.currentConfigId = 1;
     this.currentDomainId = 1;
+    this.currentListingId = 1;
   }
 
   // User methods

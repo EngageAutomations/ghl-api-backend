@@ -218,7 +218,7 @@ export function initializeForm(formElement: HTMLElement, listing: ListingData): 
     // Determine the value based on the data type
     switch (dataType) {
       case 'listingId':
-        value = listing.id;
+        value = listing.id.toString();
         break;
       case 'listingTitle':
         value = listing.title;
@@ -248,7 +248,7 @@ export function initializeForm(formElement: HTMLElement, listing: ListingData): 
   });
   
   // Add data attributes to the form for easier identification
-  formElement.dataset.listingId = listing.id;
+  formElement.dataset.listingId = listing.id.toString();
   formElement.dataset.listingTitle = listing.title;
   formElement.dataset.listingSlug = listing.slug;
 }
@@ -259,7 +259,7 @@ export function initializeForm(formElement: HTMLElement, listing: ListingData): 
 export function storeListingInSession(listing: ListingData): void {
   try {
     sessionStorage.setItem('current_listing', JSON.stringify({
-      id: listing.id,
+      id: listing.id.toString(),
       title: listing.title,
       slug: listing.slug,
       category: listing.category,
