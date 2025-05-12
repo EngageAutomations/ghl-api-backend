@@ -746,16 +746,30 @@ export default function ListingOptInsConfig() {
                   </Select>
                 </div>
 
-                {/* UTM Parameter Tracking Configuration */}
+                {/* Form Tracking Configuration */}
                 <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
-                  <h4 className="text-sm font-medium text-slate-800">UTM Parameter Tracking</h4>
+                  <h4 className="text-sm font-medium text-slate-800">Form Tracking Configuration</h4>
                   <p className="text-xs text-slate-500">
-                    Configure how listing data is tracked in your Go HighLevel forms
+                    Configure tracking for both form fields and iframe parameters
                   </p>
                   
                   {/* Custom Field Name */}
                   <div className="space-y-2">
-                    <Label htmlFor="custom-field-name">Custom Field Name</Label>
+                    <Label htmlFor="custom-field-name" className="flex items-center gap-2">
+                      Form Field Name
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <InfoCircledIcon className="h-4 w-4 text-slate-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs">
+                              Used for hidden fields in HTML forms
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </Label>
                     <Input 
                       id="custom-field-name"
                       value={config.customFormFieldName ?? ""}
@@ -767,21 +781,48 @@ export default function ListingOptInsConfig() {
                     </p>
                   </div>
                   
+                  {/* Iframe Parameter Name */}
+                  <div className="space-y-2 mt-4">
+                    <Label htmlFor="form-param-name" className="flex items-center gap-2">
+                      Iframe URL Parameter
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <InfoCircledIcon className="h-4 w-4 text-slate-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs">
+                              Used for URL parameters in iframe src attributes
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </Label>
+                    <Input 
+                      id="form-param-name"
+                      value={config.formParamName ?? ""}
+                      onChange={(e) => updateConfig({ formParamName: e.target.value })}
+                      placeholder="e.g., listing_id"
+                    />
+                    <p className="text-xs text-slate-500">
+                      Parameter name that will be added to iframe URLs in embedded forms
+                    </p>
+                  </div>
+                  
                   <div className="p-4 bg-slate-50 rounded-md border border-slate-200 mt-2">
                     <h5 className="text-sm font-medium flex items-center gap-1.5 text-slate-800">
                       <InfoCircledIcon className="h-4 w-4 text-blue-500" />
-                      How to set up tracking in Go HighLevel
+                      How tracking works
                     </h5>
                     <ol className="text-xs text-slate-600 space-y-1.5 mt-2 list-decimal pl-4">
-                      <li>Log in to your Go HighLevel account</li>
-                      <li>Go to Settings &gt; Custom Fields</li>
-                      <li>Create a new custom field (text type recommended)</li>
-                      <li>Copy the exact field name and paste it above</li>
-                      <li>Make sure this field is available in your forms</li>
+                      <li>For HTML forms: hidden fields are added with your configured field name</li>
+                      <li>For iframes: URL parameters are added to the src attribute</li>
+                      <li>Both methods will capture the listing slug for analytics</li>
+                      <li>Additional data like timestamps are also included</li>
                     </ol>
                     <p className="text-xs mt-3 text-slate-600">
-                      When a user submits a form from a listing page, this field will automatically be 
-                      populated with the listing information for accurate tracking.
+                      This dual-tracking approach ensures that regardless of form implementation method,
+                      you'll always capture which listing the form submission came from.
                     </p>
                   </div>
                 </div>

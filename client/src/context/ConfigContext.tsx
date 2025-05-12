@@ -28,6 +28,7 @@ const defaultConfig: DesignerConfig = {
   customFormFieldType: "hidden",
   createCustomFieldInGHL: false,
   popupParamName: "listing_id",
+  formParamName: "listing_id",
   hidePrice: false,
   hideCartIcon: false,
   hideAddToCartButton: false,

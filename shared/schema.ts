@@ -77,8 +77,9 @@ export const designerConfigs = pgTable("designer_configs", {
   customFormFieldType: text("custom_form_field_type").default("hidden"), // hidden, text, select, etc.
   createCustomFieldInGHL: boolean("create_custom_field_in_ghl").default(false),
   
-  // Popup Embed Tracking Configuration
+  // Tracking Configuration for URL Parameters
   popupParamName: text("popup_param_name").default("listing_id"),
+  formParamName: text("form_param_name").default("listing_id"),
   
   // Styling Configuration
   hidePrice: boolean("hide_price").default(false),

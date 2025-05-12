@@ -113,8 +113,8 @@ function getStoredConfig(): DesignerConfig | undefined {
 }
 
 /**
- * Adds UTM parameters to iframes in popup embeds
- * Uses configured parameter name from config if provided
+ * Adds UTM parameters to iframes in popup embeds and embedded forms
+ * Uses configured parameter names from config
  */
 export function addParamsToIframes(slug: string, config?: DesignerConfig): void {
   if (!slug) return;
@@ -126,24 +126,45 @@ export function addParamsToIframes(slug: string, config?: DesignerConfig): void 
     return;
   }
   
-  // Get the custom parameter name from config, or use default
-  const paramName = config?.popupParamName || 'listing_id';
+  // Get the custom parameter names from config, or use defaults
+  const popupParamName = config?.popupParamName || 'listing_id';
+  const formParamName = config?.formParamName || 'listing_id';
   
   // Process each iframe to add the parameter to the src URL
   iframes.forEach(iframe => {
     if (iframe.src) {
-      const srcUrl = new URL(iframe.src);
-      // Only add if not already present
-      if (!srcUrl.searchParams.has(paramName)) {
-        srcUrl.searchParams.set(paramName, slug);
-        iframe.src = srcUrl.toString();
-        console.log(`Added parameter ${paramName}=${slug} to iframe src`);
-      }
-      
-      // Also add a timestamp for tracking purposes
-      if (!srcUrl.searchParams.has('timestamp')) {
-        srcUrl.searchParams.set('timestamp', new Date().toISOString());
-        iframe.src = srcUrl.toString();
+      try {
+        const srcUrl = new URL(iframe.src);
+        
+        // Determine if this is a popup iframe or form iframe
+        // by looking at the parent element or container
+        const isInPopup = iframe.closest('[data-popup]') !== null;
+        const isInEmbeddedForm = iframe.closest('[data-embedded-form]') !== null;
+        
+        // Choose the appropriate parameter name based on context
+        const paramName = isInPopup ? popupParamName : 
+                          isInEmbeddedForm ? formParamName : 
+                          'listing_id'; // default if can't determine
+        
+        // Only add if not already present
+        if (!srcUrl.searchParams.has(paramName)) {
+          srcUrl.searchParams.set(paramName, slug);
+          iframe.src = srcUrl.toString();
+          console.log(`Added parameter ${paramName}=${slug} to iframe src`);
+        }
+        
+        // Also add a timestamp for tracking purposes
+        if (!srcUrl.searchParams.has('timestamp')) {
+          srcUrl.searchParams.set('timestamp', new Date().toISOString());
+          iframe.src = srcUrl.toString();
+        }
+        
+        // Add data attributes for debugging
+        iframe.setAttribute('data-tracking-param', paramName);
+        iframe.setAttribute('data-tracking-slug', slug);
+        
+      } catch (error) {
+        console.error('Error processing iframe src URL:', error);
       }
     }
   });
@@ -173,6 +194,7 @@ export function applySlugBasedFunctionality(): void {
     console.log('Configuration found:');
     console.log(`- Custom field name: ${config.customFormFieldName || 'Not set (using default: product_slug)'}`);
     console.log(`- Popup parameter name: ${config.popupParamName || 'Not set (using default: listing_id)'}`);
+    console.log(`- Form parameter name: ${config.formParamName || 'Not set (using default: listing_id)'}`);
     console.log(`- Form position: ${config.formPosition || 'Default position'}`);
   } else {
     console.log('No configuration found, using default settings');
@@ -190,14 +212,19 @@ export function applySlugBasedFunctionality(): void {
   // Store the field names used for easier access by other scripts
   const fieldName = config?.customFormFieldName || 'product_slug';
   sessionStorage.setItem('listing_field_name', fieldName);
-  const paramName = config?.popupParamName || 'listing_id';
-  sessionStorage.setItem('popup_param_name', paramName);
+  
+  const popupParamName = config?.popupParamName || 'listing_id';
+  sessionStorage.setItem('popup_param_name', popupParamName);
+  
+  const formParamName = config?.formParamName || 'listing_id';
+  sessionStorage.setItem('form_param_name', formParamName);
   
   // Track page visit in console
   console.log('----------------------------------------');
   console.log(`Listing Page Tracking Active | Slug: ${slug}`);
   console.log(`Custom Field Name: ${fieldName}`);
-  console.log(`Popup Parameter Name: ${paramName}`);
+  console.log(`Popup Parameter Name: ${popupParamName}`);
+  console.log(`Form Parameter Name: ${formParamName}`);
   console.log(`Timestamp: ${new Date().toISOString()}`);
   console.log('----------------------------------------');
 }
