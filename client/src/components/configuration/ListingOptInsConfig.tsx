@@ -432,43 +432,48 @@ export default function ListingOptInsConfig() {
                       {/* Button Type and Preview section */}
                       <div className="space-y-2">
                         <Label htmlFor="close-button-type" className="mb-1">Close Button Type</Label>
-                        <div className="flex gap-4 items-center">
-                          <Select 
-                            value={config.closeButtonType ?? "x"}
-                            onValueChange={(value) => updateConfig({ closeButtonType: value })}
-                          >
-                            <SelectTrigger id="close-button-type">
-                              <SelectValue placeholder="Select button type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="x">X Symbol</SelectItem>
-                              <SelectItem value="text">Text Button</SelectItem>
-                            </SelectContent>
-                          </Select>
+                        <div className="grid grid-cols-2 gap-4 items-center">
+                          <div>
+                            <Select 
+                              value={config.closeButtonType ?? "x"}
+                              onValueChange={(value) => updateConfig({ closeButtonType: value })}
+                            >
+                              <SelectTrigger id="close-button-type">
+                                <SelectValue placeholder="Select button type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="x">X Symbol</SelectItem>
+                                <SelectItem value="text">Text Button</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                           
                           {/* Preview inline with dropdown */}
-                          <div className="w-16 h-10 flex items-center justify-center border border-slate-200 rounded-md bg-slate-50">
-                            {config.closeButtonType === "x" ? (
-                              <div 
-                                className="h-6 w-6 rounded-full flex items-center justify-center text-sm"
-                                style={{ 
-                                  backgroundColor: config.closeButtonBgColor || "#333333",
-                                  color: config.closeButtonTextColor || "#FFFFFF"
-                                }}
-                              >
-                                ×
-                              </div>
-                            ) : (
-                              <div 
-                                className="py-0.5 px-1.5 rounded-md inline-flex items-center justify-center text-xs"
-                                style={{ 
-                                  backgroundColor: config.closeButtonBgColor || "#333333",
-                                  color: config.closeButtonTextColor || "#FFFFFF"
-                                }}
-                              >
-                                {config.closeButtonText || "Close"}
-                              </div>
-                            )}
+                          <div className="flex items-center gap-2">
+                            <Label className="text-xs text-slate-600 w-14 shrink-0">Preview:</Label>
+                            <div className="w-20 h-10 flex items-center justify-center border border-slate-200 rounded-md bg-slate-50 flex-1">
+                              {config.closeButtonType === "x" ? (
+                                <div 
+                                  className="h-6 w-6 rounded-full flex items-center justify-center text-sm"
+                                  style={{ 
+                                    backgroundColor: config.closeButtonBgColor || "#333333",
+                                    color: config.closeButtonTextColor || "#FFFFFF"
+                                  }}
+                                >
+                                  ×
+                                </div>
+                              ) : (
+                                <div 
+                                  className="py-0.5 px-1.5 rounded-md inline-flex items-center justify-center text-xs"
+                                  style={{ 
+                                    backgroundColor: config.closeButtonBgColor || "#333333",
+                                    color: config.closeButtonTextColor || "#FFFFFF"
+                                  }}
+                                >
+                                  {config.closeButtonText || "Close"}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <p className="text-xs text-slate-500 mt-1">
