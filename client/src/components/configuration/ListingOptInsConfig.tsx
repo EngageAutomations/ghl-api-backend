@@ -596,120 +596,137 @@ export default function ListingOptInsConfig() {
                     Action Opt-In Button Settings
                   </h4>
 
-                  {/* Button Preview */}
-                  <div className="space-y-2 pb-2">
-                    <Label>Button Preview</Label>
-                    <div className="border border-slate-200 rounded-md p-4 bg-slate-50 flex justify-center">
-                      <div 
-                        className="py-2 px-4 inline-flex items-center justify-center text-sm font-medium"
-                        style={{ 
-                          backgroundColor: previewColor,
-                          color: previewTextColor,
-                          borderRadius: `${previewBorderRadius}px`,
-                          transitionProperty: "all",
-                          transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-                          transitionDuration: "150ms",
-                        }}
-                      >
-                        {previewButtonText || "Contact Us"}
+                  {/* Button Preview and Border Radius in a 2-column layout */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
+                    {/* Preview */}
+                    <div className="space-y-2">
+                      <Label>Button Preview</Label>
+                      <div className="border border-slate-200 rounded-md p-4 bg-slate-50 flex justify-center h-[95px]">
+                        <div 
+                          className="py-2 px-4 inline-flex items-center justify-center text-sm font-medium"
+                          style={{ 
+                            backgroundColor: previewColor,
+                            color: previewTextColor,
+                            borderRadius: `${previewBorderRadius}px`,
+                            transitionProperty: "all",
+                            transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+                            transitionDuration: "150ms",
+                          }}
+                        >
+                          {previewButtonText || "Contact Us"}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Button Border Radius */}
-                  <div className="space-y-2">
-                    <Label htmlFor="button-border-radius">Button Border Radius</Label>
-                    <div className="relative rounded-md">
-                      <Input 
-                        id="button-border-radius"
-                        type="number"
-                        min="0"
-                        max="20"
-                        value={previewBorderRadius}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value) || 0;
-                          updateConfig({ buttonBorderRadius: value });
-                          setPreviewBorderRadius(value);
-                        }}
-                        className="flex-1 pr-8"
-                      />
-                      <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500 text-sm">
-                        px
-                      </div>
-                    </div>
-                    <p className="text-xs text-slate-500">
-                      Controls how rounded the button corners are (0 = square corners)
-                    </p>
-                  </div>
-
-                  {/* Button Background Color */}
-                  <div className="space-y-2">
-                    <Label htmlFor="button-color">Button Background Color</Label>
-                    <div className="flex rounded-md overflow-hidden">
-                      <div className="flex items-center justify-center">
+                    {/* Button Border Radius */}
+                    <div className="space-y-2">
+                      <Label htmlFor="button-border-radius">Button Border Radius</Label>
+                      <div className="relative rounded-md">
                         <Input 
-                          id="button-color-picker"
-                          type="color"
+                          id="button-border-radius"
+                          type="number"
+                          min="0"
+                          max="20"
+                          value={previewBorderRadius}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            updateConfig({ buttonBorderRadius: value });
+                            setPreviewBorderRadius(value);
+                          }}
+                          className="flex-1 pr-8"
+                        />
+                        <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500 text-sm">
+                          px
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        Controls how rounded the button corners are (0 = square corners)
+                      </p>
+                      <div className="mt-2">
+                        <div className="flex items-center gap-2">
+                          <div className="bg-slate-200 w-full h-1 rounded-full">
+                            <div 
+                              className="bg-indigo-500 h-1 rounded-full" 
+                              style={{ width: `${Math.min(100, previewBorderRadius * 5)}%` }}
+                            ></div>
+                          </div>
+                          <div className="text-xs text-slate-500 w-8 text-right">{previewBorderRadius}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Button Colors - Two columns */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Button Background Color */}
+                    <div className="space-y-2">
+                      <Label htmlFor="button-color">Button Background Color</Label>
+                      <div className="flex rounded-md overflow-hidden">
+                        <div className="flex items-center justify-center">
+                          <Input 
+                            id="button-color-picker"
+                            type="color"
+                            value={previewColor}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              updateConfig({ buttonColor: value });
+                              setPreviewColor(value);
+                            }}
+                            className="w-10 h-8 p-0 m-0 cursor-pointer border-slate-300"
+                          />
+                        </div>
+                        <Input 
+                          id="button-color"
+                          type="text"
                           value={previewColor}
                           onChange={(e) => {
                             const value = e.target.value;
                             updateConfig({ buttonColor: value });
                             setPreviewColor(value);
                           }}
-                          className="w-16 h-10 p-0 m-0 cursor-pointer border-slate-300"
+                          className="flex-1"
+                          placeholder="#4F46E5"
                         />
                       </div>
-                      <Input 
-                        id="button-color"
-                        type="text"
-                        value={previewColor}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          updateConfig({ buttonColor: value });
-                          setPreviewColor(value);
-                        }}
-                        className="flex-1"
-                        placeholder="#4F46E5"
-                      />
+                      <p className="text-xs text-slate-500">
+                        The background color for the button
+                      </p>
                     </div>
-                    <p className="text-xs text-slate-500">
-                      The background color for the button
-                    </p>
-                  </div>
-                  
-                  {/* Button Text Color */}
-                  <div className="space-y-2">
-                    <Label htmlFor="button-text-color">Button Text Color</Label>
-                    <div className="flex rounded-md overflow-hidden">
-                      <div className="flex items-center justify-center">
+                    
+                    {/* Button Text Color */}
+                    <div className="space-y-2">
+                      <Label htmlFor="button-text-color">Button Text Color</Label>
+                      <div className="flex rounded-md overflow-hidden">
+                        <div className="flex items-center justify-center">
+                          <Input 
+                            id="button-text-color-picker"
+                            type="color"
+                            value={previewTextColor}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              updateConfig({ buttonTextColor: value });
+                              setPreviewTextColor(value);
+                            }}
+                            className="w-10 h-8 p-0 m-0 cursor-pointer border-slate-300"
+                          />
+                        </div>
                         <Input 
-                          id="button-text-color-picker"
-                          type="color"
+                          id="button-text-color"
+                          type="text"
                           value={previewTextColor}
                           onChange={(e) => {
                             const value = e.target.value;
                             updateConfig({ buttonTextColor: value });
                             setPreviewTextColor(value);
                           }}
-                          className="w-16 h-10 p-0 m-0 cursor-pointer border-slate-300"
+                          className="flex-1"
+                          placeholder="#FFFFFF"
                         />
                       </div>
-                      <Input 
-                        id="button-text-color"
-                        type="text"
-                        value={previewTextColor}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          updateConfig({ buttonTextColor: value });
-                          setPreviewTextColor(value);
-                        }}
-                        className="flex-1"
-                        placeholder="#FFFFFF"
-                      />
+                      <p className="text-xs text-slate-500">
+                        The text color for the button
+                      </p>
                     </div>
-                    <p className="text-xs text-slate-500">
-                      The text color for the button
-                    </p>
                   </div>
 
                   {/* Custom CSS */}
