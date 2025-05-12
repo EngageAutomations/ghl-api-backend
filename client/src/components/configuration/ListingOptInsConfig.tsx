@@ -421,42 +421,70 @@ export default function ListingOptInsConfig() {
                   </div>
                 )}
 
-                {/* Popup Size Configuration */}
+                {/* Popup Close Button Configuration */}
                 {buttonType === "popup" && (
-                  <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                  <div className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="popup-width">Popup Width</Label>
-                      <div className="flex rounded-md">
-                        <Input 
-                          id="popup-width"
-                          type="number"
-                          min="300"
-                          max="1200"
-                          value={config.popupWidth ?? 600}
-                          onChange={(e) => updateConfig({ popupWidth: parseInt(e.target.value) || 600 })}
-                          className="flex-1"
-                        />
-                        <div className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-slate-300 bg-slate-50 text-slate-500 text-sm">
-                          px
-                        </div>
-                      </div>
+                      <Label htmlFor="close-button-type">Close Button Type</Label>
+                      <Select 
+                        value={config.closeButtonType ?? "x"}
+                        onValueChange={(value) => updateConfig({ closeButtonType: value })}
+                      >
+                        <SelectTrigger id="close-button-type">
+                          <SelectValue placeholder="Select button type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="x">X Symbol</SelectItem>
+                          <SelectItem value="text">Text Button</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-slate-500">
+                        Choose between an X symbol or a text button to close the popup
+                      </p>
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="popup-height">Popup Height</Label>
-                      <div className="flex rounded-md">
+                    {config.closeButtonType === "text" && (
+                      <div className="space-y-2">
+                        <Label htmlFor="close-button-text">Close Button Text</Label>
                         <Input 
-                          id="popup-height"
-                          type="number"
-                          min="300"
-                          max="1000"
-                          value={config.popupHeight ?? 500}
-                          onChange={(e) => updateConfig({ popupHeight: parseInt(e.target.value) || 500 })}
-                          className="flex-1"
+                          id="close-button-text"
+                          value={config.closeButtonText ?? "Close"}
+                          onChange={(e) => updateConfig({ closeButtonText: e.target.value })}
+                          placeholder="e.g., Close"
                         />
-                        <div className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-slate-300 bg-slate-50 text-slate-500 text-sm">
-                          px
-                        </div>
+                        <p className="text-xs text-slate-500">
+                          Text to display on the close button
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="close-button-position">Position</Label>
+                      <Select 
+                        value={config.closeButtonPosition ?? "top-right"}
+                        onValueChange={(value) => updateConfig({ closeButtonPosition: value })}
+                      >
+                        <SelectTrigger id="close-button-position">
+                          <SelectValue placeholder="Select position" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="top-right">Top Right</SelectItem>
+                          <SelectItem value="top-left">Top Left</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-slate-500">
+                        Where to position the close button on the popup
+                      </p>
+                    </div>
+                    
+                    <div className="p-4 bg-amber-50 rounded-md border border-amber-200">
+                      <div className="flex items-start">
+                        <InfoCircledIcon className="h-5 w-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
+                        <p className="text-xs text-amber-800">
+                          The popup will automatically size to match the iframe content exactly, 
+                          with just enough margin to fit the close button. No need to set 
+                          specific dimensions.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -635,7 +663,10 @@ export default function ListingOptInsConfig() {
                           buttonLabel: previewButtonText,
                           buttonColor: previewColor,
                           buttonTextColor: previewTextColor,
-                          buttonBorderRadius: previewBorderRadius
+                          buttonBorderRadius: previewBorderRadius,
+                          closeButtonType: config.closeButtonType || "x",
+                          closeButtonText: config.closeButtonText || "Close",
+                          closeButtonPosition: config.closeButtonPosition || "top-right"
                         };
                         
                         // Directly trigger CSS update with the new config

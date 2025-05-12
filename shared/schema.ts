@@ -57,8 +57,9 @@ export const designerConfigs = pgTable("designer_configs", {
   buttonType: text("button_type").default("popup"), // popup, link, download
   buttonLabel: text("button_label").default("Contact Us"),
   buttonUrl: text("button_url"),
-  popupWidth: integer("popup_width").default(600),
-  popupHeight: integer("popup_height").default(500),
+  closeButtonType: text("close_button_type").default("x"), // "x" or "text"
+  closeButtonText: text("close_button_text").default("Close"),
+  closeButtonPosition: text("close_button_position").default("top-right"), // "top-right", "top-left"
   buttonStyle: text("button_style").default("primary"), // primary, secondary, outline, custom
   buttonBorderRadius: integer("button_border_radius").default(4), // border radius in pixels
   buttonColor: text("button_color").default("#4F46E5"), // hexadecimal color code
