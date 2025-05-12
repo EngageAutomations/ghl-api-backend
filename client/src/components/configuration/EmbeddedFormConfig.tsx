@@ -175,7 +175,7 @@ export default function EmbeddedFormConfig() {
 
         {/* Go HighLevel Form Field Configuration */}
         <div className="mt-8 pt-4 border-t border-slate-200">
-          <h3 className="text-base font-medium text-slate-800 mb-4">Go HighLevel Custom Field Configuration</h3>
+          <h3 className="text-base font-medium text-slate-800 mb-4">Go HighLevel Custom Field Configuration <span className="text-sm font-normal text-green-600">(Recommended)</span></h3>
           <p className="text-sm text-slate-500 mb-4">
             Configure how the listing information is passed to Go HighLevel forms.
           </p>
@@ -247,7 +247,7 @@ export default function EmbeddedFormConfig() {
           <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-medium text-slate-800">Create Field in GHL</h4>
+                <h4 className="text-sm font-medium text-slate-800">Create Field in GHL <span className="text-xs font-normal text-green-600">(Recommended)</span></h4>
                 <p className="text-xs text-slate-500">Automatically create this custom field in Go HighLevel</p>
               </div>
               <Switch 
