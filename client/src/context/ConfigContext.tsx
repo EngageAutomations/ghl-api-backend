@@ -15,6 +15,8 @@ const defaultConfig: DesignerConfig = {
   closeButtonType: "x",
   closeButtonText: "Close",
   closeButtonPosition: "top-right",
+  closeButtonBgColor: "#333333",
+  closeButtonTextColor: "#FFFFFF",
   buttonStyle: "primary",
   buttonBorderRadius: 4,
   buttonColor: "#4F46E5",

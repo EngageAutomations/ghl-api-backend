@@ -477,6 +477,88 @@ export default function ListingOptInsConfig() {
                       </p>
                     </div>
                     
+                    {/* Close Button Background Color */}
+                    <div className="space-y-2">
+                      <Label htmlFor="close-button-bg-color">Background Color</Label>
+                      <div className="flex rounded-md overflow-hidden">
+                        <div className="flex items-center justify-center">
+                          <Input 
+                            id="close-button-bg-color-picker"
+                            type="color"
+                            value={config.closeButtonBgColor ?? "#333333"}
+                            onChange={(e) => updateConfig({ closeButtonBgColor: e.target.value })}
+                            className="w-16 h-10 p-0 m-0 cursor-pointer border-slate-300"
+                          />
+                        </div>
+                        <Input 
+                          id="close-button-bg-color"
+                          type="text"
+                          value={config.closeButtonBgColor ?? "#333333"}
+                          onChange={(e) => updateConfig({ closeButtonBgColor: e.target.value })}
+                          className="flex-1"
+                          placeholder="#333333"
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        {config.closeButtonType === "x" ? "Circle background color for the X" : "Background color for the close button"}
+                      </p>
+                    </div>
+                    
+                    {/* Close Button Text Color */}
+                    <div className="space-y-2">
+                      <Label htmlFor="close-button-text-color">Text Color</Label>
+                      <div className="flex rounded-md overflow-hidden">
+                        <div className="flex items-center justify-center">
+                          <Input 
+                            id="close-button-text-color-picker"
+                            type="color"
+                            value={config.closeButtonTextColor ?? "#FFFFFF"}
+                            onChange={(e) => updateConfig({ closeButtonTextColor: e.target.value })}
+                            className="w-16 h-10 p-0 m-0 cursor-pointer border-slate-300"
+                          />
+                        </div>
+                        <Input 
+                          id="close-button-text-color"
+                          type="text"
+                          value={config.closeButtonTextColor ?? "#FFFFFF"}
+                          onChange={(e) => updateConfig({ closeButtonTextColor: e.target.value })}
+                          className="flex-1"
+                          placeholder="#FFFFFF"
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        {config.closeButtonType === "x" ? "Color of the X symbol" : "Text color for the close button"}
+                      </p>
+                    </div>
+                    
+                    {/* Close Button Preview */}
+                    <div className="space-y-2 pb-2">
+                      <Label>Close Button Preview</Label>
+                      <div className="border border-slate-200 rounded-md p-4 bg-slate-50 flex justify-center">
+                        {config.closeButtonType === "x" ? (
+                          <div 
+                            className="h-8 w-8 rounded-full flex items-center justify-center text-sm"
+                            style={{ 
+                              backgroundColor: config.closeButtonBgColor || "#333333",
+                              color: config.closeButtonTextColor || "#FFFFFF"
+                            }}
+                          >
+                            ×
+                          </div>
+                        ) : (
+                          <div 
+                            className="py-1.5 px-3 rounded-md inline-flex items-center justify-center text-sm"
+                            style={{ 
+                              backgroundColor: config.closeButtonBgColor || "#333333",
+                              color: config.closeButtonTextColor || "#FFFFFF"
+                            }}
+                          >
+                            {config.closeButtonText || "Close"}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
                     <div className="p-4 bg-amber-50 rounded-md border border-amber-200">
                       <div className="flex items-start">
                         <InfoCircledIcon className="h-5 w-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
@@ -666,7 +748,9 @@ export default function ListingOptInsConfig() {
                           buttonBorderRadius: previewBorderRadius,
                           closeButtonType: config.closeButtonType || "x",
                           closeButtonText: config.closeButtonText || "Close",
-                          closeButtonPosition: config.closeButtonPosition || "top-right"
+                          closeButtonPosition: config.closeButtonPosition || "top-right",
+                          closeButtonBgColor: config.closeButtonBgColor || "#333333",
+                          closeButtonTextColor: config.closeButtonTextColor || "#FFFFFF"
                         };
                         
                         // Directly trigger CSS update with the new config

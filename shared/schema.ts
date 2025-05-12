@@ -60,6 +60,8 @@ export const designerConfigs = pgTable("designer_configs", {
   closeButtonType: text("close_button_type").default("x"), // "x" or "text"
   closeButtonText: text("close_button_text").default("Close"),
   closeButtonPosition: text("close_button_position").default("top-right"), // "top-right", "top-left"
+  closeButtonBgColor: text("close_button_bg_color").default("#333333"),
+  closeButtonTextColor: text("close_button_text_color").default("#FFFFFF"),
   buttonStyle: text("button_style").default("primary"), // primary, secondary, outline, custom
   buttonBorderRadius: integer("button_border_radius").default(4), // border radius in pixels
   buttonColor: text("button_color").default("#4F46E5"), // hexadecimal color code
