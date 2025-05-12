@@ -4,6 +4,69 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom styles for range slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Styles for Webkit browsers (Chrome, Safari, newer versions of Opera) */
+input[type="range"]::-webkit-slider-runnable-track {
+  background: #e2e8f0;
+  border-radius: 0.25rem;
+  height: 0.5rem;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -0.25rem;
+  background-color: #4f46e5;
+  border-radius: 50%;
+  height: 1rem;
+  width: 1rem;
+}
+
+/* Styles for Firefox */
+input[type="range"]::-moz-range-track {
+  background: #e2e8f0;
+  border-radius: 0.25rem;
+  height: 0.5rem;
+}
+
+input[type="range"]::-moz-range-thumb {
+  background-color: #4f46e5;
+  border: none;
+  border-radius: 50%;
+  height: 1rem;
+  width: 1rem;
+}
+
+/* Hover styles */
+input[type="range"]:hover::-webkit-slider-thumb {
+  background-color: #4338ca;
+}
+
+input[type="range"]:hover::-moz-range-thumb {
+  background-color: #4338ca;
+}
+
+/* Focus styles */
+input[type="range"]:focus {
+  outline: none;
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+}
+
+input[type="range"]:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+}
+
 :root {
   --background: 210 40% 98%;
   --foreground: 222 47% 11%;

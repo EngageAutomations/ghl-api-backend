@@ -596,54 +596,48 @@ export default function ListingOptInsConfig() {
                     Action Opt-In Button Settings
                   </h4>
 
-                  {/* Button Preview and Border Radius in one row */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-2">
-                    {/* Preview takes 2/3 of the width */}
-                    <div className="sm:col-span-2 space-y-2">
-                      <Label>Button Preview</Label>
-                      <div className="border border-slate-200 rounded-md p-4 bg-slate-50 flex justify-center h-20">
-                        <div 
-                          className="py-2 px-4 inline-flex items-center justify-center text-sm font-medium"
-                          style={{ 
-                            backgroundColor: previewColor,
-                            color: previewTextColor,
-                            borderRadius: `${previewBorderRadius}px`,
-                            transitionProperty: "all",
-                            transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-                            transitionDuration: "150ms",
-                          }}
-                        >
-                          {previewButtonText || "Contact Us"}
-                        </div>
+                  {/* Button Preview in its own row */}
+                  <div className="space-y-2 pb-2">
+                    <Label>Button Preview</Label>
+                    <div className="border border-slate-200 rounded-md p-6 bg-slate-50 flex justify-center">
+                      <div 
+                        className="py-2 px-4 inline-flex items-center justify-center text-sm font-medium"
+                        style={{ 
+                          backgroundColor: previewColor,
+                          color: previewTextColor,
+                          borderRadius: `${previewBorderRadius}px`,
+                          transitionProperty: "all",
+                          transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+                          transitionDuration: "150ms",
+                        }}
+                      >
+                        {previewButtonText || "Contact Us"}
                       </div>
                     </div>
+                  </div>
 
-                    {/* Border Radius takes 1/3 of the width */}
-                    <div className="space-y-2">
+                  {/* Border Radius with slider */}
+                  <div className="space-y-2 pb-2">
+                    <div className="flex justify-between items-center">
                       <Label htmlFor="button-border-radius">Border Radius</Label>
-                      <div className="flex items-center h-20 justify-center">
-                        <div className="w-20 relative">
-                          <Input 
-                            id="button-border-radius"
-                            type="number"
-                            min="0"
-                            max="20"
-                            value={previewBorderRadius}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value) || 0;
-                              updateConfig({ buttonBorderRadius: value });
-                              setPreviewBorderRadius(value);
-                            }}
-                            className="pr-8 text-center"
-                          />
-                          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-slate-500 text-xs">
-                            px
-                          </div>
-                        </div>
+                      <span className="text-sm text-slate-500">{previewBorderRadius}px</span>
+                    </div>
+                    <div className="flex gap-4 items-center">
+                      <div className="flex-1">
+                        <input
+                          id="button-border-radius-slider"
+                          type="range"
+                          min="0"
+                          max="20"
+                          value={previewBorderRadius}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            updateConfig({ buttonBorderRadius: value });
+                            setPreviewBorderRadius(value);
+                          }}
+                          className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                        />
                       </div>
-                      <p className="text-xs text-slate-500 text-center">
-                        Corner roundness
-                      </p>
                     </div>
                   </div>
 
