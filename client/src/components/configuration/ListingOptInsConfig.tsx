@@ -342,7 +342,7 @@ export default function ListingOptInsConfig() {
                           
                           {/* UTM Parameter Tracking for Popup Embed */}
                           <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
-                            <h4 className="text-sm font-medium text-slate-800">Popup UTM Parameter Tracking <span className="text-xs font-normal text-green-600">(Recommended)</span></h4>
+                            <h4 className="text-sm font-medium text-slate-800">Popup UTM Parameter Tracking</h4>
                             <p className="text-xs text-slate-500">
                               Configure how listing data is tracked in your popup iframe source URL
                             </p>
