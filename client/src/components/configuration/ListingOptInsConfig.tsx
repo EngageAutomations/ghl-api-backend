@@ -868,7 +868,7 @@ export default function ListingOptInsConfig() {
 
                 {/* Form Tracking Configuration */}
                 <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
-                  <h4 className="text-sm font-medium text-slate-800">Form Tracking Configuration</h4>
+                  <h4 className="text-sm font-medium text-slate-800">Form Tracking Configuration <span className="text-xs font-normal text-green-600">(Recommended)</span></h4>
                   <p className="text-xs text-slate-500">
                     Configure tracking for both form fields and iframe parameters
                   </p>
@@ -876,7 +876,7 @@ export default function ListingOptInsConfig() {
                   {/* Custom Field Name */}
                   <div className="space-y-2">
                     <Label htmlFor="custom-field-name" className="flex items-center gap-2">
-                      Form Field Name
+                      Form Field Name <span className="text-xs font-normal text-green-600">(Recommended)</span>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger>
@@ -904,7 +904,7 @@ export default function ListingOptInsConfig() {
                   {/* Iframe Parameter Name */}
                   <div className="space-y-2 mt-4">
                     <Label htmlFor="form-param-name" className="flex items-center gap-2">
-                      Iframe URL Parameter
+                      Iframe URL Parameter <span className="text-xs font-normal text-green-600">(Recommended)</span>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger>
