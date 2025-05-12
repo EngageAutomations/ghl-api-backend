@@ -71,6 +71,12 @@ export const designerConfigs = pgTable("designer_configs", {
   formFallback: text("form_fallback"),
   formPosition: text("form_position").default("Below Product Description"),
   
+  // Custom Form Field Configuration for Go HighLevel
+  customFormFieldName: text("custom_form_field_name").default("product_slug"),
+  customFormFieldLabel: text("custom_form_field_label").default("Source Listing"),
+  customFormFieldType: text("custom_form_field_type").default("hidden"), // hidden, text, select, etc.
+  createCustomFieldInGHL: boolean("create_custom_field_in_ghl").default(true),
+  
   // Styling Configuration
   hidePrice: boolean("hide_price").default(false),
   hideCartIcon: boolean("hide_cart_icon").default(false),
