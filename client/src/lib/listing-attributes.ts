@@ -52,6 +52,22 @@ export function addHiddenFieldsToForms(slug: string, config?: DesignerConfig): v
       
       // Add data attribute for easier debugging/tracking
       form.setAttribute('data-listing-source', slug);
+      
+      // Add timestamp for when the form was accessed
+      const timestampField = document.createElement('input');
+      timestampField.type = 'hidden';
+      timestampField.name = 'access_timestamp';
+      timestampField.value = new Date().toISOString();
+      form.appendChild(timestampField);
+      
+      // Add the full URL as a reference
+      const urlField = document.createElement('input');
+      urlField.type = 'hidden';
+      urlField.name = 'listing_url';
+      urlField.value = window.location.href;
+      form.appendChild(urlField);
+      
+      console.log('Enhanced form tracking with timestamps and URL data');
     }
   });
   
@@ -111,6 +127,17 @@ export function applySlugBasedFunctionality(): void {
   // Try to get config from localStorage
   const config = getStoredConfig();
   
+  console.log('---- UTM Parameter & Form Tracking Setup ----');
+  console.log(`Detected listing slug: ${slug}`);
+  
+  if (config) {
+    console.log('Configuration found:');
+    console.log(`- Custom field name: ${config.customFormFieldName || 'Not set (using default: product_slug)'}`);
+    console.log(`- Form position: ${config.formPosition || 'Default position'}`);
+  } else {
+    console.log('No configuration found, using default settings');
+  }
+  
   // Apply all slug-based functionality with config if available
   applyUtmParametersToLinks(slug);
   addHiddenFieldsToForms(slug, config);
@@ -123,8 +150,10 @@ export function applySlugBasedFunctionality(): void {
   const fieldName = config?.customFormFieldName || 'product_slug';
   sessionStorage.setItem('listing_field_name', fieldName);
   
-  console.log('Applied all slug-based functionality for:', slug);
-  if (config) {
-    console.log('Using custom field name from config:', fieldName);
-  }
+  // Track page visit in console
+  console.log('----------------------------------------');
+  console.log(`Listing Page Tracking Active | Slug: ${slug}`);
+  console.log(`Custom Field Name: ${fieldName}`);
+  console.log(`Timestamp: ${new Date().toISOString()}`);
+  console.log('----------------------------------------');
 }
