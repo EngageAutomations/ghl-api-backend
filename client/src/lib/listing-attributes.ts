@@ -141,22 +141,40 @@ export function addParamsToIframes(slug: string, config?: DesignerConfig): void 
         const isInPopup = iframe.closest('[data-popup]') !== null;
         const isInEmbeddedForm = iframe.closest('[data-embedded-form]') !== null;
         
+        // For Go HighLevel iframes, we need to check for common patterns in the src URL
+        const isGHLForm = iframe.src.includes('app.gohighlevel.com') || 
+                          iframe.src.includes('forms.gohighlevel.com') ||
+                          iframe.src.includes('marketplace.gohighlevel.com');
+        
         // Choose the appropriate parameter name based on context
         const paramName = isInPopup ? popupParamName : 
                           isInEmbeddedForm ? formParamName : 
+                          isGHLForm ? formParamName :  // Default to form parameter for GHL
                           'listing_id'; // default if can't determine
+        
+        console.log('Processing iframe:', {
+          src: iframe.src,
+          isPopup: isInPopup,
+          isEmbedded: isInEmbeddedForm,
+          isGHL: isGHLForm,
+          paramName: paramName
+        });
         
         // Only add if not already present
         if (!srcUrl.searchParams.has(paramName)) {
           srcUrl.searchParams.set(paramName, slug);
           iframe.src = srcUrl.toString();
-          console.log(`Added parameter ${paramName}=${slug} to iframe src`);
+          console.log(`Added parameter ${paramName}=${slug} to iframe src`, {
+            oldSrc: iframe.src,
+            newSrc: srcUrl.toString()
+          });
         }
         
         // Also add a timestamp for tracking purposes
         if (!srcUrl.searchParams.has('timestamp')) {
           srcUrl.searchParams.set('timestamp', new Date().toISOString());
           iframe.src = srcUrl.toString();
+          console.log('Added timestamp parameter to iframe');
         }
         
         // Add data attributes for debugging
