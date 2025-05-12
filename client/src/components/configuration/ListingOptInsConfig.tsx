@@ -428,6 +428,17 @@ export default function ListingOptInsConfig() {
                       Pop Up Close Button Settings
                     </h4>
                     
+                    {/* Info box - moved to the top */}
+                    <div className="p-3 bg-amber-50 rounded-md border border-amber-200 mb-4">
+                      <div className="flex items-start">
+                        <InfoCircledIcon className="h-4 w-4 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
+                        <p className="text-xs text-amber-800">
+                          The popup will automatically size to match the iframe content exactly, 
+                          with just enough margin to fit the close button.
+                        </p>
+                      </div>
+                    </div>
+                    
                     <div className="space-y-4">
                       {/* Button Type and Preview section */}
                       <div className="space-y-2">
@@ -574,17 +585,6 @@ export default function ListingOptInsConfig() {
                             </p>
                           </div>
                         )}
-                      </div>
-                      
-                      {/* Info box */}
-                      <div className="p-3 bg-amber-50 rounded-md border border-amber-200">
-                        <div className="flex items-start">
-                          <InfoCircledIcon className="h-4 w-4 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
-                          <p className="text-xs text-amber-800">
-                            The popup will automatically size to match the iframe content exactly, 
-                            with just enough margin to fit the close button.
-                          </p>
-                        </div>
                       </div>
                     </div>
                   </div>
