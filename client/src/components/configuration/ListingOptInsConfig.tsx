@@ -728,24 +728,6 @@ export default function ListingOptInsConfig() {
                   </p>
                 </div>
 
-                {/* Form Position Configuration */}
-                <div className="space-y-2">
-                  <Label htmlFor="form-position">Form Position</Label>
-                  <Select 
-                    value={getConfigValue(config.formPosition, "Below Business Description")}
-                    onValueChange={(value) => updateConfig({ formPosition: value })}
-                  >
-                    <SelectTrigger id="form-position">
-                      <SelectValue placeholder="Select form position" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Below Business Description">Below Business Description</SelectItem>
-                      <SelectItem value="Above Business Description">Above Business Description</SelectItem>
-                      <SelectItem value="Bottom of Page">Bottom of Page</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {/* Form Tracking Configuration */}
                 <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
                   <h4 className="text-sm font-medium text-slate-800">Form Tracking Configuration</h4>
@@ -844,8 +826,7 @@ export default function ListingOptInsConfig() {
                         ...config,
                         enableEmbeddedForm: true,
                         enableActionButton: false,
-                        formEmbedUrl: config.formEmbedUrl || "",
-                        formHeight: config.formHeight || 500
+                        formEmbedUrl: config.formEmbedUrl || ""
                       };
                       
                       // Directly trigger CSS update with the new config
