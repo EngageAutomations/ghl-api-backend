@@ -328,16 +328,54 @@ export default function ListingOptInsConfig() {
                     {/* Input for popup/URL configuration */}
                     <div className={buttonType === "popup" ? "flex flex-col" : "rounded-md"}>
                       {buttonType === "popup" ? (
-                        <Textarea 
-                          id="popup-url"
-                          value={localUrlValue}
-                          onChange={(e) => {
-                            const newValue = e.target.value;
-                            setLocalUrlValue(newValue);
-                          }}
-                          placeholder="Paste your embed code here (HTML, iFrame, etc.)"
-                          className="flex-1 min-h-[120px] font-mono text-xs"
-                        />
+                        <>
+                          <Textarea 
+                            id="popup-url"
+                            value={localUrlValue}
+                            onChange={(e) => {
+                              const newValue = e.target.value;
+                              setLocalUrlValue(newValue);
+                            }}
+                            placeholder="Paste your embed code here (HTML, iFrame, etc.)"
+                            className="flex-1 min-h-[120px] font-mono text-xs"
+                          />
+                          
+                          {/* UTM Parameter Tracking for Popup Embed */}
+                          <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
+                            <h4 className="text-sm font-medium text-slate-800">Popup UTM Parameter Tracking</h4>
+                            <p className="text-xs text-slate-500">
+                              Configure how listing data is tracked in your popup iframe source URL
+                            </p>
+                            
+                            {/* Custom Field Name */}
+                            <div className="space-y-2">
+                              <Label htmlFor="popup-param-name">Parameter Name</Label>
+                              <Input 
+                                id="popup-param-name"
+                                value={config.popupParamName ?? ""}
+                                onChange={(e) => updateConfig({ popupParamName: e.target.value })}
+                                placeholder="e.g., listing_id"
+                              />
+                              <p className="text-xs text-slate-500">
+                                Enter the URL parameter name that will be added to your popup iframe src
+                              </p>
+                            </div>
+                            
+                            <div className="p-4 bg-slate-50 rounded-md border border-slate-200 mt-2">
+                              <h5 className="text-sm font-medium flex items-center gap-1.5 text-slate-800">
+                                <InfoCircledIcon className="h-4 w-4 text-blue-500" />
+                                How popup iframe tracking works
+                              </h5>
+                              <ol className="text-xs text-slate-600 space-y-1.5 mt-2 list-decimal pl-4">
+                                <li>The system will look for an iframe in your embed code</li>
+                                <li>It will automatically add the listing slug as a parameter to the iframe src URL</li>
+                                <li>Example: If your iframe src is "https://example.com/form" and parameter name is "listing_id"</li>
+                                <li>The result will be "https://example.com/form?listing_id=your-listing-slug"</li>
+                                <li>This allows your form to capture which listing the submission came from</li>
+                              </ol>
+                            </div>
+                          </div>
+                        </>
                       ) : (
                         <Input 
                           id="popup-url"

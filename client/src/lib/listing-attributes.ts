@@ -113,6 +113,45 @@ function getStoredConfig(): DesignerConfig | undefined {
 }
 
 /**
+ * Adds UTM parameters to iframes in popup embeds
+ * Uses configured parameter name from config if provided
+ */
+export function addParamsToIframes(slug: string, config?: DesignerConfig): void {
+  if (!slug) return;
+  
+  // Get all iframes on the page
+  const iframes = document.querySelectorAll('iframe');
+  if (!iframes || iframes.length === 0) {
+    console.log('No iframes found for parameter tracking');
+    return;
+  }
+  
+  // Get the custom parameter name from config, or use default
+  const paramName = config?.popupParamName || 'listing_id';
+  
+  // Process each iframe to add the parameter to the src URL
+  iframes.forEach(iframe => {
+    if (iframe.src) {
+      const srcUrl = new URL(iframe.src);
+      // Only add if not already present
+      if (!srcUrl.searchParams.has(paramName)) {
+        srcUrl.searchParams.set(paramName, slug);
+        iframe.src = srcUrl.toString();
+        console.log(`Added parameter ${paramName}=${slug} to iframe src`);
+      }
+      
+      // Also add a timestamp for tracking purposes
+      if (!srcUrl.searchParams.has('timestamp')) {
+        srcUrl.searchParams.set('timestamp', new Date().toISOString());
+        iframe.src = srcUrl.toString();
+      }
+    }
+  });
+  
+  console.log(`Added parameters to iframes with slug:`, slug);
+}
+
+/**
  * Master function that applies all slug-based functionality
  * Fetches configuration if available to use custom field names
  */
@@ -133,6 +172,7 @@ export function applySlugBasedFunctionality(): void {
   if (config) {
     console.log('Configuration found:');
     console.log(`- Custom field name: ${config.customFormFieldName || 'Not set (using default: product_slug)'}`);
+    console.log(`- Popup parameter name: ${config.popupParamName || 'Not set (using default: listing_id)'}`);
     console.log(`- Form position: ${config.formPosition || 'Default position'}`);
   } else {
     console.log('No configuration found, using default settings');
@@ -141,19 +181,23 @@ export function applySlugBasedFunctionality(): void {
   // Apply all slug-based functionality with config if available
   applyUtmParametersToLinks(slug);
   addHiddenFieldsToForms(slug, config);
+  addParamsToIframes(slug, config);
   setupDownloadButtons(slug);
   
   // Store in sessionStorage for access by other scripts
   sessionStorage.setItem('current_listing_slug', slug);
   
-  // Store the field name used for easier access by other scripts
+  // Store the field names used for easier access by other scripts
   const fieldName = config?.customFormFieldName || 'product_slug';
   sessionStorage.setItem('listing_field_name', fieldName);
+  const paramName = config?.popupParamName || 'listing_id';
+  sessionStorage.setItem('popup_param_name', paramName);
   
   // Track page visit in console
   console.log('----------------------------------------');
   console.log(`Listing Page Tracking Active | Slug: ${slug}`);
   console.log(`Custom Field Name: ${fieldName}`);
+  console.log(`Popup Parameter Name: ${paramName}`);
   console.log(`Timestamp: ${new Date().toISOString()}`);
   console.log('----------------------------------------');
 }
