@@ -428,56 +428,112 @@ export default function ListingOptInsConfig() {
                       Pop Up Close Button Settings
                     </h4>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                      {/* Left Column - Button Type and Preview */}
-                      <div className="space-y-4">
-                        {/* Button Type and Preview in one section */}
-                        <div className="flex flex-col">
-                          <Label htmlFor="close-button-type" className="mb-2">Close Button Type</Label>
-                          <div className="flex gap-4 items-center">
-                            <Select 
-                              value={config.closeButtonType ?? "x"}
-                              onValueChange={(value) => updateConfig({ closeButtonType: value })}
-                            >
-                              <SelectTrigger id="close-button-type">
-                                <SelectValue placeholder="Select button type" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="x">X Symbol</SelectItem>
-                                <SelectItem value="text">Text Button</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            
-                            {/* Preview inline with dropdown */}
-                            <div className="w-16 h-10 flex items-center justify-center border border-slate-200 rounded-md bg-slate-50">
-                              {config.closeButtonType === "x" ? (
-                                <div 
-                                  className="h-6 w-6 rounded-full flex items-center justify-center text-sm"
-                                  style={{ 
-                                    backgroundColor: config.closeButtonBgColor || "#333333",
-                                    color: config.closeButtonTextColor || "#FFFFFF"
-                                  }}
-                                >
-                                  ×
-                                </div>
-                              ) : (
-                                <div 
-                                  className="py-0.5 px-1.5 rounded-md inline-flex items-center justify-center text-xs"
-                                  style={{ 
-                                    backgroundColor: config.closeButtonBgColor || "#333333",
-                                    color: config.closeButtonTextColor || "#FFFFFF"
-                                  }}
-                                >
-                                  {config.closeButtonText || "Close"}
-                                </div>
-                              )}
-                            </div>
+                    <div className="space-y-4">
+                      {/* Button Type and Preview section */}
+                      <div className="space-y-2">
+                        <Label htmlFor="close-button-type" className="mb-1">Close Button Type</Label>
+                        <div className="flex gap-4 items-center">
+                          <Select 
+                            value={config.closeButtonType ?? "x"}
+                            onValueChange={(value) => updateConfig({ closeButtonType: value })}
+                          >
+                            <SelectTrigger id="close-button-type">
+                              <SelectValue placeholder="Select button type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="x">X Symbol</SelectItem>
+                              <SelectItem value="text">Text Button</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          
+                          {/* Preview inline with dropdown */}
+                          <div className="w-16 h-10 flex items-center justify-center border border-slate-200 rounded-md bg-slate-50">
+                            {config.closeButtonType === "x" ? (
+                              <div 
+                                className="h-6 w-6 rounded-full flex items-center justify-center text-sm"
+                                style={{ 
+                                  backgroundColor: config.closeButtonBgColor || "#333333",
+                                  color: config.closeButtonTextColor || "#FFFFFF"
+                                }}
+                              >
+                                ×
+                              </div>
+                            ) : (
+                              <div 
+                                className="py-0.5 px-1.5 rounded-md inline-flex items-center justify-center text-xs"
+                                style={{ 
+                                  backgroundColor: config.closeButtonBgColor || "#333333",
+                                  color: config.closeButtonTextColor || "#FFFFFF"
+                                }}
+                              >
+                                {config.closeButtonText || "Close"}
+                              </div>
+                            )}
                           </div>
-                          <p className="text-xs text-slate-500 mt-1">
-                            Choose between an X symbol or a text button
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Choose between an X symbol or a text button
+                        </p>
+                      </div>
+                      
+                      {/* Color options section - placed directly under button type and side by side */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Background Color */}
+                        <div className="space-y-2">
+                          <Label htmlFor="close-button-bg-color">Background Color</Label>
+                          <div className="flex rounded-md overflow-hidden">
+                            <div className="flex items-center justify-center">
+                              <Input 
+                                id="close-button-bg-color-picker"
+                                type="color"
+                                value={config.closeButtonBgColor ?? "#333333"}
+                                onChange={(e) => updateConfig({ closeButtonBgColor: e.target.value })}
+                                className="w-10 h-8 p-0 m-0 cursor-pointer border-slate-300"
+                              />
+                            </div>
+                            <Input 
+                              id="close-button-bg-color"
+                              type="text"
+                              value={config.closeButtonBgColor ?? "#333333"}
+                              onChange={(e) => updateConfig({ closeButtonBgColor: e.target.value })}
+                              className="flex-1"
+                              placeholder="#333333"
+                            />
+                          </div>
+                          <p className="text-xs text-slate-500">
+                            {config.closeButtonType === "x" ? "Circle background" : "Button background"}
                           </p>
                         </div>
                         
+                        {/* Text Color */}
+                        <div className="space-y-2">
+                          <Label htmlFor="close-button-text-color">Text Color</Label>
+                          <div className="flex rounded-md overflow-hidden">
+                            <div className="flex items-center justify-center">
+                              <Input 
+                                id="close-button-text-color-picker"
+                                type="color"
+                                value={config.closeButtonTextColor ?? "#FFFFFF"}
+                                onChange={(e) => updateConfig({ closeButtonTextColor: e.target.value })}
+                                className="w-10 h-8 p-0 m-0 cursor-pointer border-slate-300"
+                              />
+                            </div>
+                            <Input 
+                              id="close-button-text-color"
+                              type="text"
+                              value={config.closeButtonTextColor ?? "#FFFFFF"}
+                              onChange={(e) => updateConfig({ closeButtonTextColor: e.target.value })}
+                              className="flex-1"
+                              placeholder="#FFFFFF"
+                            />
+                          </div>
+                          <p className="text-xs text-slate-500">
+                            {config.closeButtonType === "x" ? "X symbol color" : "Button text color"}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {/* Position */}
                         <div className="space-y-2">
                           <Label htmlFor="close-button-position">Position</Label>
@@ -515,70 +571,14 @@ export default function ListingOptInsConfig() {
                         )}
                       </div>
                       
-                      {/* Right Column - Colors */}
-                      <div className="space-y-4">
-                        {/* Colors section */}
-                        <div className="space-y-2">
-                          <Label>Colors</Label>
-                          
-                          {/* Background Color */}
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-24 shrink-0 text-xs text-slate-600">Background:</div>
-                            <div className="flex-1 flex rounded-md overflow-hidden">
-                              <div className="flex items-center justify-center">
-                                <Input 
-                                  id="close-button-bg-color-picker"
-                                  type="color"
-                                  value={config.closeButtonBgColor ?? "#333333"}
-                                  onChange={(e) => updateConfig({ closeButtonBgColor: e.target.value })}
-                                  className="w-10 h-8 p-0 m-0 cursor-pointer border-slate-300"
-                                />
-                              </div>
-                              <Input 
-                                id="close-button-bg-color"
-                                type="text"
-                                value={config.closeButtonBgColor ?? "#333333"}
-                                onChange={(e) => updateConfig({ closeButtonBgColor: e.target.value })}
-                                className="flex-1"
-                                placeholder="#333333"
-                              />
-                            </div>
-                          </div>
-                          
-                          {/* Text Color */}
-                          <div className="flex items-center gap-2">
-                            <div className="w-24 shrink-0 text-xs text-slate-600">Text:</div>
-                            <div className="flex-1 flex rounded-md overflow-hidden">
-                              <div className="flex items-center justify-center">
-                                <Input 
-                                  id="close-button-text-color-picker"
-                                  type="color"
-                                  value={config.closeButtonTextColor ?? "#FFFFFF"}
-                                  onChange={(e) => updateConfig({ closeButtonTextColor: e.target.value })}
-                                  className="w-10 h-8 p-0 m-0 cursor-pointer border-slate-300"
-                                />
-                              </div>
-                              <Input 
-                                id="close-button-text-color"
-                                type="text"
-                                value={config.closeButtonTextColor ?? "#FFFFFF"}
-                                onChange={(e) => updateConfig({ closeButtonTextColor: e.target.value })}
-                                className="flex-1"
-                                placeholder="#FFFFFF"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Info box */}
-                        <div className="p-3 bg-amber-50 rounded-md border border-amber-200">
-                          <div className="flex items-start">
-                            <InfoCircledIcon className="h-4 w-4 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
-                            <p className="text-xs text-amber-800">
-                              The popup will automatically size to match the iframe content exactly, 
-                              with just enough margin to fit the close button.
-                            </p>
-                          </div>
+                      {/* Info box */}
+                      <div className="p-3 bg-amber-50 rounded-md border border-amber-200">
+                        <div className="flex items-start">
+                          <InfoCircledIcon className="h-4 w-4 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
+                          <p className="text-xs text-amber-800">
+                            The popup will automatically size to match the iframe content exactly, 
+                            with just enough margin to fit the close button.
+                          </p>
                         </div>
                       </div>
                     </div>
