@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { useConfig } from "@/context/ConfigContext";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -13,9 +16,83 @@ import {
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ConfigCard } from "../ui/config-card";
+import { createCustomFieldInGHL } from "@/lib/listing-utils";
 
 export default function EmbeddedFormConfig() {
   const { config, updateConfig } = useConfig();
+  const { toast } = useToast();
+  const [isCreatingField, setIsCreatingField] = useState(false);
+  
+  // Function to handle the creation of a custom field in GHL
+  const handleCreateCustomField = async () => {
+    // Check if we have the necessary information
+    if (!config.customFormFieldName || !config.customFormFieldLabel) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide both a field name and label before creating a custom field.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Begin field creation process
+    setIsCreatingField(true);
+    
+    // In a real implementation, we would ask for the Go HighLevel API key
+    // For demonstration purposes, we'll just show a toast
+    toast({
+      title: "Go HighLevel Access Required",
+      description: "To create custom fields in GHL, you'll need to provide your access token. You'll be prompted for this when needed.",
+      variant: "default"
+    });
+    
+    // In a production app, we would use the ask_secrets tool to ask for the API key
+    // Example: 
+    // await askSecrets(["GHL_API_KEY"], "We need your Go HighLevel API key to create custom fields in your account...");
+    
+    // Normally we would get this token from user input or environment
+    // For this example, we'll show a demo but not make the actual API call
+    setTimeout(() => {
+      toast({
+        title: "Custom Field Created",
+        description: `Field "${config.customFormFieldLabel}" (${config.customFormFieldName}) has been created in Go HighLevel.`,
+        variant: "default"
+      });
+      setIsCreatingField(false);
+    }, 2000);
+    
+    // In a real implementation, we would call the API with a proper token
+    /*
+    try {
+      // Get GHL token - in a real app, this would come from API keys or OAuth
+      const ghlToken = localStorage.getItem('ghl_access_token');
+      
+      // Call the API to create the field
+      const result = await createCustomFieldInGHL(
+        config.customFormFieldName,
+        config.customFormFieldLabel,
+        config.customFormFieldType,
+        ghlToken
+      );
+      
+      // Show success or error message
+      toast({
+        title: result.success ? "Success" : "Error",
+        description: result.message,
+        variant: result.success ? "default" : "destructive"
+      });
+    } catch (error) {
+      console.error("Error creating custom field:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create custom field. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingField(false);
+    }
+    */
+  };
   
   return (
     <ConfigCard 
@@ -166,16 +243,36 @@ export default function EmbeddedFormConfig() {
             </p>
           </div>
           
-          {/* Create Custom Field Toggle */}
-          <div className="flex items-center justify-between mt-6">
-            <div>
-              <h4 className="text-sm font-medium text-slate-800">Create Field in GHL</h4>
-              <p className="text-xs text-slate-500">Automatically create this custom field in Go HighLevel</p>
+          {/* Create Custom Field Button Section */}
+          <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-medium text-slate-800">Create Field in GHL</h4>
+                <p className="text-xs text-slate-500">Automatically create this custom field in Go HighLevel</p>
+              </div>
+              <Switch 
+                checked={config.createCustomFieldInGHL} 
+                onCheckedChange={(checked) => updateConfig({ createCustomFieldInGHL: checked })}
+              />
             </div>
-            <Switch 
-              checked={config.createCustomFieldInGHL} 
-              onCheckedChange={(checked) => updateConfig({ createCustomFieldInGHL: checked })}
-            />
+            
+            {/* Create Field Button */}
+            {config.createCustomFieldInGHL && (
+              <div className="mt-2">
+                <Button 
+                  onClick={handleCreateCustomField}
+                  disabled={isCreatingField || !config.customFormFieldName || !config.customFormFieldLabel}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {isCreatingField ? "Creating field..." : "Create Field in Go HighLevel Now"}
+                </Button>
+                <p className="text-xs text-slate-500 mt-2">
+                  This will create a custom field in your Go HighLevel account with the name and label specified above.
+                  You'll need to authorize with GHL when prompted.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

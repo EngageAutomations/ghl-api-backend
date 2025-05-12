@@ -2,10 +2,14 @@
  * Helper functions for URL slug-based listing association
  * These functions manage the extraction and application of URL slugs
  * for tracking parameters, form fields, and download links
+ * 
+ * Go HighLevel integration: Uses configuration to apply custom field names
+ * for proper tracking in Go HighLevel forms
  */
 
 import { ListingData } from './listing-utils';
 import { getSlugFromUrl } from './listing-utils';
+import { DesignerConfig } from '@shared/schema';
 
 /**
  * Applies UTM parameters to all links on the page based on current listing slug
@@ -27,24 +31,31 @@ export function applyUtmParametersToLinks(slug: string): void {
 
 /**
  * Adds hidden fields to forms for tracking submissions by listing
+ * Uses custom field name from config if provided, otherwise defaults to 'product_slug'
  */
-export function addHiddenFieldsToForms(slug: string): void {
+export function addHiddenFieldsToForms(slug: string, config?: DesignerConfig): void {
   if (!slug) return;
+  
+  // Get the custom field name from config, or use default
+  const fieldName = config?.customFormFieldName || 'product_slug';
   
   // Handle form submissions
   document.querySelectorAll('form').forEach(form => {
-    // Check if field already exists
-    if (!form.querySelector('input[name="product_slug"]')) {
+    // Check if field already exists (using the configured field name)
+    if (!form.querySelector(`input[name="${fieldName}"]`)) {
       // Add hidden field for product tracking
       const hiddenField = document.createElement('input');
       hiddenField.type = 'hidden';
-      hiddenField.name = 'product_slug';
+      hiddenField.name = fieldName;
       hiddenField.value = slug;
       form.appendChild(hiddenField);
+      
+      // Add data attribute for easier debugging/tracking
+      form.setAttribute('data-listing-source', slug);
     }
   });
   
-  console.log('Added hidden fields to forms with slug:', slug);
+  console.log(`Added hidden fields (${fieldName}) to forms with slug:`, slug);
 }
 
 /**
@@ -70,7 +81,24 @@ export function setupDownloadButtons(slug: string): void {
 }
 
 /**
+ * Fetches the current configuration
+ * Attempts to get it from localStorage if available
+ */
+function getStoredConfig(): DesignerConfig | undefined {
+  try {
+    const configStr = localStorage.getItem('designer_config');
+    if (configStr) {
+      return JSON.parse(configStr);
+    }
+  } catch (error) {
+    console.warn('Error parsing stored config:', error);
+  }
+  return undefined;
+}
+
+/**
  * Master function that applies all slug-based functionality
+ * Fetches configuration if available to use custom field names
  */
 export function applySlugBasedFunctionality(): void {
   const slug = getSlugFromUrl();
@@ -80,12 +108,23 @@ export function applySlugBasedFunctionality(): void {
     return;
   }
   
+  // Try to get config from localStorage
+  const config = getStoredConfig();
+  
+  // Apply all slug-based functionality with config if available
   applyUtmParametersToLinks(slug);
-  addHiddenFieldsToForms(slug);
+  addHiddenFieldsToForms(slug, config);
   setupDownloadButtons(slug);
   
   // Store in sessionStorage for access by other scripts
   sessionStorage.setItem('current_listing_slug', slug);
   
+  // Store the field name used for easier access by other scripts
+  const fieldName = config?.customFormFieldName || 'product_slug';
+  sessionStorage.setItem('listing_field_name', fieldName);
+  
   console.log('Applied all slug-based functionality for:', slug);
+  if (config) {
+    console.log('Using custom field name from config:', fieldName);
+  }
 }

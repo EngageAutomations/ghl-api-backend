@@ -190,18 +190,39 @@ export async function trackOptInInteraction(
 }
 
 /**
+ * Gets stored configuration from localStorage
+ */
+function getStoredConfig(): any {
+  try {
+    const configStr = localStorage.getItem('designer_config');
+    if (configStr) {
+      return JSON.parse(configStr);
+    }
+  } catch (error) {
+    console.warn('Error parsing stored config:', error);
+  }
+  return undefined;
+}
+
+/**
  * Initializes an embedded form with listing data
  * Populates hidden fields with listing information
+ * Uses custom field name from config if available
  */
 export function initializeForm(formElement: HTMLElement, listing: ListingData): void {
   if (!formElement) return;
+  
+  // Try to get config for custom field name
+  const config = getStoredConfig();
+  const customFieldName = config?.customFormFieldName || 'product_slug';
   
   // Common field names to look for in different form systems
   const fieldMappings = {
     listingId: ['listing_id', 'listingId', 'source_id', 'sourceId', 'item_id', 'itemId'],
     listingTitle: ['listing_title', 'listingTitle', 'source_name', 'sourceName', 'item_name', 'itemName'],
     listingCategory: ['listing_category', 'listingCategory', 'category', 'product_category'],
-    listingSlug: ['listing_slug', 'listingSlug', 'slug', 'product_slug']
+    // Add the custom field name to the listingSlug field options
+    listingSlug: ['listing_slug', 'listingSlug', 'slug', 'product_slug', customFieldName]
   };
   
   // Find and populate all possible field names for each data type
@@ -240,10 +261,21 @@ export function initializeForm(formElement: HTMLElement, listing: ListingData): 
     });
   });
   
+  // Ensure the custom field name is always added if it doesn't exist
+  if (!formElement.querySelector(`input[name="${customFieldName}"]`)) {
+    const hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = customFieldName;
+    hiddenField.value = listing.slug;
+    formElement.appendChild(hiddenField);
+    console.log(`Added custom field '${customFieldName}' to form with value:`, listing.slug);
+  }
+  
   // Add data attributes to the form for easier identification
   formElement.dataset.listingId = listing.id.toString();
   formElement.dataset.listingTitle = listing.title;
   formElement.dataset.listingSlug = listing.slug;
+  formElement.dataset.fieldNameUsed = customFieldName;
 }
 
 /**
@@ -274,5 +306,66 @@ export function getListingFromSession(): ListingData | null {
   } catch (error) {
     console.error('Error retrieving listing from session:', error);
     return null;
+  }
+}
+
+/**
+ * Creates a custom field in Go HighLevel via the API
+ * This is called when the user enables the "Create Field in GHL" option
+ */
+export async function createCustomFieldInGHL(
+  fieldName: string, 
+  fieldLabel: string, 
+  fieldType: string = 'text',
+  accessToken?: string
+): Promise<{ success: boolean; message: string }> {
+  if (!accessToken) {
+    console.warn('No Go HighLevel access token provided for API call');
+    return { 
+      success: false, 
+      message: 'No Go HighLevel access token provided. Please connect your GHL account in settings.'
+    };
+  }
+  
+  try {
+    // Prepare the request to Go HighLevel API
+    const response = await fetch('https://api.gohighlevel.com/oauth/customFields', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({
+        name: fieldName,
+        displayName: fieldLabel,
+        dataType: fieldType.toUpperCase(),
+        fieldType: fieldType === 'hidden' ? 'HIDDEN' : 'STANDARD',
+        required: false,
+        active: true,
+        showOnForms: fieldType !== 'hidden'
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error creating custom field in GHL:', errorData);
+      return {
+        success: false,
+        message: `Failed to create custom field: ${errorData.message || response.statusText}`
+      };
+    }
+    
+    const data = await response.json();
+    console.log('Successfully created custom field in GHL:', data);
+    return {
+      success: true,
+      message: `Successfully created custom field "${fieldLabel}" in Go HighLevel`
+    };
+  } catch (error) {
+    console.error('Exception creating custom field in GHL:', error);
+    return {
+      success: false,
+      message: `Error creating custom field: ${error.message || 'Unknown error'}`
+    };
   }
 }
