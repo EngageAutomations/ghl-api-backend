@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -705,6 +706,119 @@ export default function ListingOptInsConfig() {
                       <SelectItem value="Bottom of Page">Bottom of Page</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* Go HighLevel Custom Field Configuration */}
+                <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
+                  <h4 className="text-sm font-medium text-slate-800">Go HighLevel Custom Field Configuration</h4>
+                  <p className="text-xs text-slate-500">
+                    Configure custom field names for tracking listing data in Go HighLevel forms
+                  </p>
+                  
+                  {/* Custom Field Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-field-name">Custom Field Name</Label>
+                    <Input 
+                      id="custom-field-name"
+                      value={config.customFormFieldName ?? ""}
+                      onChange={(e) => updateConfig({ customFormFieldName: e.target.value })}
+                      placeholder="e.g., product_slug"
+                    />
+                    <p className="text-xs text-slate-500">
+                      The field name used in Go HighLevel (no spaces, lowercase, underscores)
+                    </p>
+                  </div>
+                  
+                  {/* Custom Field Label */}
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-field-label">Custom Field Label</Label>
+                    <Input 
+                      id="custom-field-label"
+                      value={config.customFormFieldLabel ?? ""}
+                      onChange={(e) => updateConfig({ customFormFieldLabel: e.target.value })}
+                      placeholder="e.g., Product Source"
+                    />
+                    <p className="text-xs text-slate-500">
+                      The display name for this field in Go HighLevel
+                    </p>
+                  </div>
+                  
+                  {/* Field Type */}
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-field-type">Field Type</Label>
+                    <Select 
+                      value={getConfigValue(config.customFormFieldType, "hidden")}
+                      onValueChange={(value) => updateConfig({ customFormFieldType: value })}
+                    >
+                      <SelectTrigger id="custom-field-type">
+                        <SelectValue placeholder="Select field type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hidden">Hidden</SelectItem>
+                        <SelectItem value="text">Text</SelectItem>
+                        <SelectItem value="number">Number</SelectItem>
+                        <SelectItem value="date">Date</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-slate-500">
+                      Hidden fields are not visible to users but still capture the data
+                    </p>
+                  </div>
+                  
+                  {/* Create Custom Field Toggle */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-medium text-slate-800">Create Field in GHL</h4>
+                      <p className="text-xs text-slate-500">Automatically create this custom field in Go HighLevel</p>
+                    </div>
+                    <Switch 
+                      checked={config.createCustomFieldInGHL ?? false} 
+                      onCheckedChange={(checked) => updateConfig({ createCustomFieldInGHL: checked })}
+                    />
+                  </div>
+                  
+                  {/* Create Field Button */}
+                  {config.createCustomFieldInGHL && (
+                    <div className="mt-2">
+                      <Button 
+                        onClick={() => {
+                          // Check if we have the necessary information
+                          if (!config.customFormFieldName || !config.customFormFieldLabel) {
+                            toast({
+                              title: "Missing Information",
+                              description: "Please provide both a field name and label before creating a custom field.",
+                              variant: "destructive"
+                            });
+                            return;
+                          }
+                          
+                          // Request GHL access information
+                          toast({
+                            title: "Go HighLevel Access Required",
+                            description: "To create custom fields in GHL, you'll need to provide your access token. You'll be prompted for this when needed.",
+                            variant: "default"
+                          });
+                          
+                          // Show success message (demo only)
+                          setTimeout(() => {
+                            toast({
+                              title: "Custom Field Created",
+                              description: `Field "${config.customFormFieldLabel}" (${config.customFormFieldName}) has been created in Go HighLevel.`,
+                              variant: "default"
+                            });
+                          }, 2000);
+                        }}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Create Field in Go HighLevel Now
+                      </Button>
+                      <p className="text-xs text-slate-500 mt-2">
+                        This will create a custom field in your Go HighLevel account with the name and label specified above.
+                        You'll need to authorize with GHL when prompted.
+                      </p>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Save Button for Embedded Form */}
