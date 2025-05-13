@@ -416,71 +416,7 @@ export default function AdvancedStylingConfig() {
         </div>
         
         {/* Divider */}
-        <div className="border-t border-slate-200"></div>
-        
-        {/* URL Slug Information */}
-        <div className="space-y-4">
-          <h3 className="text-base font-medium text-slate-800">URL Slug-Based Listing Association</h3>
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-700">
-            <p className="font-medium mb-1">Automatic Listing Association Based on Product URL</p>
-            <p className="mb-2">
-              The script we've generated <strong>extracts the product slug from the URL</strong> and uses it for the following purposes:
-            </p>
-            <ol className="list-decimal pl-5 mt-2 mb-2 space-y-1">
-              <li>Adding UTM parameters to all links to track the source listing</li>
-              <li>Adding the correct direct download link to download buttons</li>
-              <li>Inserting hidden fields into forms to associate submissions with the listing</li>
-            </ol>
-            <p className="mb-2">
-              To make this work, add this small JavaScript snippet to your site:
-            </p>
-            <div className="bg-white p-2 rounded">
-              <pre className="font-mono text-xs overflow-auto">
-{`<script>
-  // Extract product slug from URL
-  function getProductSlug() {
-    const path = window.location.pathname;
-    const match = path.match(/\\/product-details\\/product\\/([^\\/]+)/);
-    return match ? match[1] : '';
-  }
-
-  // Apply UTM parameters and handle forms/downloads
-  function applyProductTrackingParameters() {
-    const slug = getProductSlug();
-    if (!slug) return;
-    
-    // Apply to links, forms, and download buttons
-    document.querySelectorAll('a').forEach(link => {
-      if (!link.href.includes('utm_')) {
-        const separator = link.href.includes('?') ? '&' : '?';
-        link.href = link.href + separator + 'utm_source=directory&utm_medium=product&utm_campaign=' + slug;
-      }
-    });
-    
-    // Add hidden fields to forms
-    document.querySelectorAll('form').forEach(form => {
-      const hiddenField = document.createElement('input');
-      hiddenField.type = 'hidden';
-      hiddenField.name = 'product_slug';
-      hiddenField.value = slug;
-      form.appendChild(hiddenField);
-    });
-  }
-  
-  // Run when DOM is ready
-  document.addEventListener('DOMContentLoaded', applyProductTrackingParameters);
-</script>`}
-              </pre>
-            </div>
-            <p className="mt-2">
-              <strong>How it works:</strong> When a user visits a product page, this script automatically adds tracking parameters to links and forms, 
-              ensuring that all interactions are associated with the specific listing.
-            </p>
-          </div>
-        </div>
-        
-        {/* Divider */}
-        <div className="border-t border-slate-200 mt-4 pt-4"></div>
+        <div className="border-t border-slate-200 mb-4"></div>
         
         {/* CSS Code Display */}
         <div className="space-y-4">
