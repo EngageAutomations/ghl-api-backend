@@ -13,20 +13,43 @@ import { DesignerConfig } from '@shared/schema';
 
 /**
  * Applies UTM parameters to all links on the page based on current listing slug
+ * Also adds the GHL custom field name parameter for consistent tracking
  */
-export function applyUtmParametersToLinks(slug: string): void {
+export function applyUtmParametersToLinks(slug: string, config?: DesignerConfig): void {
   if (!slug) return;
+  
+  // Get the custom field name from config, or use default
+  const customFieldName = config?.customFormFieldName || 'listing_id';
   
   // Apply to all links on the page
   document.querySelectorAll('a').forEach(link => {
     if (!link.href.includes('utm_')) {
-      // Add UTM parameters based on current product
-      const separator = link.href.includes('?') ? '&' : '?';
-      link.href = link.href + separator + 'utm_source=directory&utm_medium=product&utm_campaign=' + slug;
+      try {
+        // Create URL object for proper parameter handling
+        const url = new URL(link.href, window.location.origin);
+        
+        // Add standard UTM parameters
+        url.searchParams.set('utm_source', 'directory');
+        url.searchParams.set('utm_medium', 'product');
+        url.searchParams.set('utm_campaign', slug);
+        
+        // Also add the custom field parameter for consistent tracking
+        url.searchParams.set(customFieldName, slug);
+        
+        // Update the link href
+        link.href = url.toString();
+      } catch (error) {
+        console.error('Error processing link:', link.href, error);
+        
+        // Fallback to basic string concatenation if URL parsing fails
+        const separator = link.href.includes('?') ? '&' : '?';
+        link.href = link.href + separator + 'utm_source=directory&utm_medium=product&utm_campaign=' + slug + 
+                   '&' + customFieldName + '=' + slug;
+      }
     }
   });
   
-  console.log('Applied UTM parameters to links with slug:', slug);
+  console.log(`Applied UTM parameters and ${customFieldName} parameter to links with slug:`, slug);
 }
 
 /**
@@ -214,7 +237,7 @@ export function applySlugBasedFunctionality(): void {
   }
   
   // Apply all slug-based functionality with config if available
-  applyUtmParametersToLinks(slug);
+  applyUtmParametersToLinks(slug, config);
   addHiddenFieldsToForms(slug, config);
   addParamsToIframes(slug, config);
   setupDownloadButtons(slug);

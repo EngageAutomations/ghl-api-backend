@@ -113,8 +113,8 @@ export function addUtmParams(url: string, params: Record<string, string> = {}, c
     }
     
     return urlObj.toString();
-  } catch (error) {
-    console.error('Error adding UTM parameters to URL:', error);
+  } catch (error: unknown) {
+    console.error('Error adding UTM parameters to URL:', error instanceof Error ? error.message : String(error));
     return url; // Return original URL if there's an error
   }
 }
@@ -190,8 +190,8 @@ export async function trackOptInInteraction(
     if (!response.ok) {
       throw new Error(`Tracking request failed: ${response.statusText}`);
     }
-  } catch (error) {
-    console.error('Error tracking opt-in interaction:', error);
+  } catch (error: unknown) {
+    console.error('Error tracking opt-in interaction:', error instanceof Error ? error.message : String(error));
     // Don't throw - tracking errors shouldn't break user experience
   }
 }
@@ -368,11 +368,11 @@ export async function createCustomFieldInGHL(
       success: true,
       message: `Successfully created custom field "${fieldLabel}" in Go HighLevel`
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Exception creating custom field in GHL:', error);
     return {
       success: false,
-      message: `Error creating custom field: ${error.message || 'Unknown error'}`
+      message: `Error creating custom field: ${error instanceof Error ? error.message : 'Unknown error'}`
     };
   }
 }
