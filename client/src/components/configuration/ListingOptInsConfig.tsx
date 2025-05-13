@@ -593,7 +593,7 @@ export default function ListingOptInsConfig() {
                 {/* Button Style Configuration */}
                 <div className="space-y-6 pt-4">
                   <h4 className="text-base font-medium text-slate-800 py-2 border-b border-slate-200">
-                    Action Opt-In Button Settings <span className="text-sm font-normal text-green-600">(Recommended)</span>
+                    Action Opt-In Button Settings
                   </h4>
 
                   {/* Button Preview in its own row */}
