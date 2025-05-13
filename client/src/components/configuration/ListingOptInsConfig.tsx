@@ -424,7 +424,8 @@ export default function ListingOptInsConfig() {
                       {buttonType === "popup" 
                         ? "This embed code will be shown in a popup window when the button is clicked." 
                         : "This URL will open in a new window when the button is clicked."}
-                      {" Use {\"business_name\"} to insert the business name for tracking."}
+                      {buttonType === "url" && 
+                        " You can use tokens like {listing_title}, {listing_category}, {slug}, {listing_id} which will be replaced with actual listing data in the URL. These tokens plus the tracking parameter help with accurate analytics."}
                     </p>
                   </div>
                 )}
@@ -448,7 +449,8 @@ export default function ListingOptInsConfig() {
                             </TooltipTrigger>
                             <TooltipContent>
                               <p className="max-w-xs">
-                                Uses the same value as the GHL Custom Field Name for consistency
+                                Uses the same value as the GHL Custom Field Name for consistency across all tracking methods.
+                                This helps with analytics and ensures consistent tracking between buttons, forms, and downloads.
                               </p>
                             </TooltipContent>
                           </Tooltip>
@@ -462,7 +464,8 @@ export default function ListingOptInsConfig() {
                         placeholder="Set this value in the Embedded Form section"
                       />
                       <p className="text-xs text-slate-500">
-                        This parameter will be added to your destination URL (e.g., your-url.com?{config.customFormFieldName || "listing_id"}=listing-slug)
+                        This parameter will be added to your destination URL (e.g., your-url.com?{config.customFormFieldName || "listing_id"}=listing-slug). 
+                        It tracks which listing the visitor came from and maintains consistency with your form tracking.
                       </p>
                     </div>
                   </div>
