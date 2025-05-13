@@ -340,20 +340,49 @@ export default function ListingOptInsConfig() {
                             className="flex-1 min-h-[120px] font-mono text-xs"
                           />
                           
-                          {/* GHL Form Configuration Note for Popup */}
+                          {/* GHL Form Configuration for Popup */}
                           <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
-                            <h4 className="text-sm font-medium text-slate-800">Popup Form Configuration <span className="text-xs font-normal text-green-600">(Recommended)</span></h4>
+                            <h4 className="text-sm font-medium text-slate-800">Popup Form Tracking <span className="text-xs font-normal text-green-600">(Recommended)</span></h4>
                             <p className="text-xs text-slate-500">
-                              Your popup form will use the same GHL Custom Field Name configured in the Embedded Form section
+                              Configure how listing data is tracked in your popup form iframe
                             </p>
                             
+                            {/* GHL Custom Field Name Reference */}
+                            <div className="space-y-2">
+                              <Label htmlFor="popup-param-name" className="flex items-center gap-2">
+                                GHL Custom Field Name
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <InfoCircledIcon className="h-4 w-4 text-slate-500" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="max-w-xs">
+                                        Uses the same value as the GHL Custom Field Name in the Embedded Form section
+                                      </p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </Label>
+                              <Input 
+                                id="popup-param-name"
+                                value={config.customFormFieldName ?? ""}
+                                readOnly
+                                className="bg-slate-50"
+                                placeholder="Set this value in the Embedded Form section"
+                              />
+                              <p className="text-xs text-slate-500">
+                                This is the URL parameter that will be added to your Go HighLevel popup form iframe src
+                              </p>
+                            </div>
+                            
                             {/* Info Card */}
-                            <div className="p-3 bg-blue-50 rounded-md border border-blue-100">
+                            <div className="p-3 bg-blue-50 rounded-md border border-blue-100 mt-2">
                               <div className="flex items-start">
                                 <InfoCircledIcon className="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
                                 <p className="text-xs text-blue-800">
-                                  The GHL Custom Field Name you set in the form tracking section will automatically be used 
-                                  for all popup forms as well. This ensures consistency across all your GHL forms.
+                                  To keep your configuration consistent, we use the same GHL Custom Field Name for both 
+                                  embedded forms and popup forms. Configure this value in the Embedded Form section.
                                 </p>
                               </div>
                             </div>
@@ -397,6 +426,45 @@ export default function ListingOptInsConfig() {
                         : "This URL will open in a new window when the button is clicked."}
                       {" Use {\"business_name\"} to insert the business name for tracking."}
                     </p>
+                  </div>
+                )}
+                
+                {/* UTM Parameter for URL Button Type */}
+                {buttonType === "url" && (
+                  <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
+                    <h4 className="text-sm font-medium text-slate-800">URL Tracking Parameters</h4>
+                    <p className="text-xs text-slate-500">
+                      Configure how listing data is tracked with your URL destination
+                    </p>
+                    
+                    {/* UTM Parameter Field for URL */}
+                    <div className="space-y-2">
+                      <Label htmlFor="url-param-name" className="flex items-center gap-2">
+                        URL Parameter Name
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <InfoCircledIcon className="h-4 w-4 text-slate-500" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="max-w-xs">
+                                Uses the same value as the GHL Custom Field Name for consistency
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </Label>
+                      <Input 
+                        id="url-param-name"
+                        value={config.customFormFieldName ?? ""}
+                        readOnly
+                        className="bg-slate-50"
+                        placeholder="Set this value in the Embedded Form section"
+                      />
+                      <p className="text-xs text-slate-500">
+                        This parameter will be added to your destination URL (e.g., your-url.com?{config.customFormFieldName || "listing_id"}=listing-slug)
+                      </p>
+                    </div>
                   </div>
                 )}
                 

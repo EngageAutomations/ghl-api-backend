@@ -87,8 +87,9 @@ export function replaceListingTokens(template: string, listing: ListingData): st
 
 /**
  * Adds UTM parameters to a URL for tracking purposes
+ * If a customFieldName is provided, it will be added as a URL parameter with the slug value
  */
-export function addUtmParams(url: string, params: Record<string, string> = {}): string {
+export function addUtmParams(url: string, params: Record<string, string> = {}, customFieldName?: string, slug?: string): string {
   try {
     const urlObj = new URL(url);
     
@@ -104,6 +105,12 @@ export function addUtmParams(url: string, params: Record<string, string> = {}): 
     Object.entries(defaultUtmParams).forEach(([key, value]) => {
       urlObj.searchParams.set(key, value);
     });
+    
+    // If a custom field name and slug are provided, add them as a parameter
+    if (customFieldName && slug) {
+      urlObj.searchParams.set(customFieldName, slug);
+      console.log(`Added custom field parameter ${customFieldName}=${slug} to URL`);
+    }
     
     return urlObj.toString();
   } catch (error) {
