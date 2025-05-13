@@ -848,14 +848,23 @@ export default function ListingOptInsConfig() {
                         console.log("Emitting CSS update event from Action Button save with:", updatedConfig);
                         cssUpdateEmitter.emit(updatedConfig);
                         
-                        toast({
-                          title: "Action Button configuration saved!",
-                          description: "Your changes have been applied and CSS code has been updated"
-                        });
+                        // Add notice about URL slug functionality
+                        if (buttonType === "url") {
+                          toast({
+                            title: "URL Button configuration saved!",
+                            description: "Your URL button will automatically receive tracking parameters based on listing data"
+                          });
+                        } else {
+                          toast({
+                            title: "Action Button configuration saved!",
+                            description: "Your changes have been applied and CSS code has been updated"
+                          });
+                        }
                         
                         // Reset any error messages
                         setShowConversionError(false);
                       }}
+                    
                     >
                       Save
                     </Button>
