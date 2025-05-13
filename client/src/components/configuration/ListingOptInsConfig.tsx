@@ -340,41 +340,38 @@ export default function ListingOptInsConfig() {
                             className="flex-1 min-h-[120px] font-mono text-xs"
                           />
                           
-                          {/* UTM Parameter Tracking for Popup Embed */}
+                          {/* GHL Form Configuration Note for Popup */}
                           <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
-                            <h4 className="text-sm font-medium text-slate-800">Popup UTM Parameter Tracking <span className="text-xs font-normal text-green-600">(Recommended)</span></h4>
+                            <h4 className="text-sm font-medium text-slate-800">Popup Form Configuration <span className="text-xs font-normal text-green-600">(Recommended)</span></h4>
                             <p className="text-xs text-slate-500">
-                              Configure how listing data is tracked in your popup iframe source URL
+                              Your popup form will use the same GHL Custom Field Name configured in the Embedded Form section
                             </p>
                             
-                            {/* Custom Field Name */}
-                            <div className="space-y-2">
-                              <Label htmlFor="popup-param-name">GHL Popup Parameter Name</Label>
-                              <Input 
-                                id="popup-param-name"
-                                value={config.popupParamName ?? ""}
-                                onChange={(e) => updateConfig({ popupParamName: e.target.value })}
-                                placeholder="e.g., listing_id"
-                              />
-                              <p className="text-xs text-slate-500">
-                                Enter the URL parameter name that will be added to your Go HighLevel popup form iframe src
-                              </p>
+                            {/* Info Card */}
+                            <div className="p-3 bg-blue-50 rounded-md border border-blue-100">
+                              <div className="flex items-start">
+                                <InfoCircledIcon className="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+                                <p className="text-xs text-blue-800">
+                                  The GHL Custom Field Name you set in the form tracking section will automatically be used 
+                                  for all popup forms as well. This ensures consistency across all your GHL forms.
+                                </p>
+                              </div>
                             </div>
                             
                             <div className="p-4 bg-slate-50 rounded-md border border-slate-200 mt-2">
                               <h5 className="text-sm font-medium flex items-center gap-1.5 text-slate-800">
                                 <InfoCircledIcon className="h-4 w-4 text-blue-500" />
-                                How Go HighLevel Popup Tracking Works
+                                How Go HighLevel Popup Forms Work
                               </h5>
                               <ol className="text-xs text-slate-600 space-y-1.5 mt-2 list-decimal pl-4">
                                 <li>The system detects Go HighLevel form iframes in your popup embed code</li>
-                                <li>It automatically adds your configured parameter to the iframe src URL</li>
-                                <li>Example: If your iframe src is "https://forms.gohighlevel.com/form" and parameter name is "listing_id"</li>
+                                <li>It automatically adds the GHL Custom Field Name as a parameter to the iframe src URL</li>
+                                <li>Example: If your iframe src is "https://forms.gohighlevel.com/form" and your GHL Custom Field Name is "listing_id"</li>
                                 <li>The result will be "https://forms.gohighlevel.com/form?listing_id=your-listing-slug"</li>
                                 <li>Go HighLevel captures this parameter in your form submissions</li>
                               </ol>
-                              <p className="text-xs mt-3 text-slate-600">
-                                Remember to enable "Capture URL Parameters" in your Go HighLevel form settings and create a custom field with the same name as your parameter.
+                              <p className="text-xs mt-3 text-slate-600 font-medium">
+                                Important: Remember to enable "Capture URL Parameters" in your Go HighLevel form settings and create a custom field with the same name as your GHL Custom Field Name.
                               </p>
                             </div>
                           </div>
@@ -871,15 +868,15 @@ export default function ListingOptInsConfig() {
 
                 {/* Form Tracking Configuration */}
                 <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
-                  <h4 className="text-sm font-medium text-slate-800">Form Tracking Configuration <span className="text-xs font-normal text-green-600">(Recommended)</span></h4>
+                  <h4 className="text-sm font-medium text-slate-800">Go HighLevel Form Tracking <span className="text-xs font-normal text-green-600">(Recommended)</span></h4>
                   <p className="text-xs text-slate-500">
-                    Configure tracking for both form fields and iframe parameters
+                    Configure the custom field name for Go HighLevel form tracking
                   </p>
                   
-                  {/* Custom Field Name */}
+                  {/* GHL Custom Field Name */}
                   <div className="space-y-2">
                     <Label htmlFor="custom-field-name" className="flex items-center gap-2">
-                      Form Field Name <span className="text-xs font-normal text-green-600">(Recommended)</span>
+                      GHL Custom Field Name <span className="text-xs font-normal text-green-600">(Recommended)</span>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger>
@@ -887,7 +884,7 @@ export default function ListingOptInsConfig() {
                           </TooltipTrigger>
                           <TooltipContent>
                             <p className="max-w-xs">
-                              Used for hidden fields and also for GHL custom field creation
+                              Used as the URL parameter name for all GHL forms and popups
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -896,39 +893,16 @@ export default function ListingOptInsConfig() {
                     <Input 
                       id="custom-field-name"
                       value={config.customFormFieldName ?? ""}
-                      onChange={(e) => updateConfig({ customFormFieldName: e.target.value })}
-                      placeholder="e.g., product_slug"
-                    />
-                    <p className="text-xs text-slate-500">
-                      Enter the field name for the GHL custom field that will store the listing ID
-                    </p>
-                  </div>
-                  
-                  {/* Iframe Parameter Name */}
-                  <div className="space-y-2 mt-4">
-                    <Label htmlFor="form-param-name" className="flex items-center gap-2">
-                      GHL Form URL Parameter <span className="text-xs font-normal text-green-600">(Recommended)</span>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <InfoCircledIcon className="h-4 w-4 text-slate-500" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">
-                              Used for URL parameters in Go HighLevel iframe src URLs
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </Label>
-                    <Input 
-                      id="form-param-name"
-                      value={config.formParamName ?? ""}
-                      onChange={(e) => updateConfig({ formParamName: e.target.value })}
+                      onChange={(e) => updateConfig({ 
+                        customFormFieldName: e.target.value,
+                        // Also set both parameter names to maintain backward compatibility
+                        formParamName: e.target.value,
+                        popupParamName: e.target.value
+                      })}
                       placeholder="e.g., listing_id"
                     />
                     <p className="text-xs text-slate-500">
-                      Parameter name that will be added to Go HighLevel form URLs to track listing data
+                      Enter the field name for the GHL custom field that will store the listing ID
                     </p>
                   </div>
                   
@@ -938,16 +912,20 @@ export default function ListingOptInsConfig() {
                       How Go HighLevel Form Tracking Works
                     </h5>
                     <ol className="text-xs text-slate-600 space-y-1.5 mt-2 list-decimal pl-4">
-                      <li>The system detects Go HighLevel form iframes in your embed codes</li>
-                      <li>It automatically adds your configured parameter to the iframe src URL</li>
-                      <li>Example: If your iframe src is "https://forms.gohighlevel.com/form" and parameter name is "listing_id"</li>
+                      <li>The system detects Go HighLevel form iframes in your embedded forms and popups</li>
+                      <li>It automatically adds your GHL Custom Field Name as a parameter to all iframe src URLs</li>
+                      <li>Example: If your iframe src is "https://forms.gohighlevel.com/form" and your GHL Custom Field Name is "listing_id"</li>
                       <li>The result will be "https://forms.gohighlevel.com/form?listing_id=your-listing-slug"</li>
-                      <li>Go HighLevel can then capture this parameter as a custom field value</li>
+                      <li>Go HighLevel captures this parameter in your form submissions</li>
                     </ol>
-                    <p className="text-xs mt-3 text-slate-600">
-                      For this to work in Go HighLevel, you must create a custom field with the same name as your parameter
-                      and enable the "Capture URL Parameters" option in the GHL form settings.
+                    <p className="text-xs mt-3 text-slate-600 font-medium">
+                      Important: In Go HighLevel, you must:
                     </p>
+                    <ol className="text-xs text-slate-600 mt-1 list-decimal pl-4">
+                      <li>Create a custom field with the exact same name as your GHL Custom Field Name</li>
+                      <li>Enable the "Capture URL Parameters" option in the GHL form settings</li>
+                      <li>This setup works for both embedded forms and popup forms</li>
+                    </ol>
                   </div>
                 </div>
                 

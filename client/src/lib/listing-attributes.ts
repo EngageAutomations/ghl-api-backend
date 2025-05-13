@@ -126,9 +126,9 @@ export function addParamsToIframes(slug: string, config?: DesignerConfig): void 
     return;
   }
   
-  // Get the custom parameter names from config, or use defaults
-  const popupParamName = config?.popupParamName || 'listing_id';
-  const formParamName = config?.formParamName || 'listing_id';
+  // Get the GHL custom field name from config, or use default
+  // This will be used for all GHL forms (both popup and embedded)
+  const ghlFieldName = config?.customFormFieldName || 'listing_id';
   
   // Process each iframe to add the parameter to the src URL
   iframes.forEach(iframe => {
@@ -146,11 +146,8 @@ export function addParamsToIframes(slug: string, config?: DesignerConfig): void 
                           iframe.src.includes('forms.gohighlevel.com') ||
                           iframe.src.includes('marketplace.gohighlevel.com');
         
-        // Choose the appropriate parameter name based on context
-        const paramName = isInPopup ? popupParamName : 
-                          isInEmbeddedForm ? formParamName : 
-                          isGHLForm ? formParamName :  // Default to form parameter for GHL
-                          'listing_id'; // default if can't determine
+        // Use the same GHL field name for all contexts - consistency is key
+        const paramName = ghlFieldName; // Use the custom field name set in the configuration
         
         console.log('Processing iframe:', {
           src: iframe.src,
@@ -205,14 +202,12 @@ export function applySlugBasedFunctionality(): void {
   // Try to get config from localStorage
   const config = getStoredConfig();
   
-  console.log('---- UTM Parameter & Form Tracking Setup ----');
+  console.log('---- Go HighLevel Form Tracking Setup ----');
   console.log(`Detected listing slug: ${slug}`);
   
   if (config) {
     console.log('Configuration found:');
-    console.log(`- Custom field name: ${config.customFormFieldName || 'Not set (using default: product_slug)'}`);
-    console.log(`- Popup parameter name: ${config.popupParamName || 'Not set (using default: listing_id)'}`);
-    console.log(`- Form parameter name: ${config.formParamName || 'Not set (using default: listing_id)'}`);
+    console.log(`- GHL Custom field name: ${config.customFormFieldName || 'Not set (using default: listing_id)'}`);
     console.log(`- Form position: ${config.formPosition || 'Default position'}`);
   } else {
     console.log('No configuration found, using default settings');
@@ -227,22 +222,14 @@ export function applySlugBasedFunctionality(): void {
   // Store in sessionStorage for access by other scripts
   sessionStorage.setItem('current_listing_slug', slug);
   
-  // Store the field names used for easier access by other scripts
-  const fieldName = config?.customFormFieldName || 'product_slug';
-  sessionStorage.setItem('listing_field_name', fieldName);
-  
-  const popupParamName = config?.popupParamName || 'listing_id';
-  sessionStorage.setItem('popup_param_name', popupParamName);
-  
-  const formParamName = config?.formParamName || 'listing_id';
-  sessionStorage.setItem('form_param_name', formParamName);
+  // Store the GHL field name for easier access by other scripts
+  const ghlFieldName = config?.customFormFieldName || 'listing_id';
+  sessionStorage.setItem('ghl_field_name', ghlFieldName);
   
   // Track page visit in console
   console.log('----------------------------------------');
   console.log(`Listing Page Tracking Active | Slug: ${slug}`);
-  console.log(`Custom Field Name: ${fieldName}`);
-  console.log(`Popup Parameter Name: ${popupParamName}`);
-  console.log(`Form Parameter Name: ${formParamName}`);
+  console.log(`GHL Custom Field Name: ${ghlFieldName}`);
   console.log(`Timestamp: ${new Date().toISOString()}`);
   console.log('----------------------------------------');
 }
