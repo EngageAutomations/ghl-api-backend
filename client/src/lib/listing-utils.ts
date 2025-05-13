@@ -205,8 +205,8 @@ function getStoredConfig(): any {
     if (configStr) {
       return JSON.parse(configStr);
     }
-  } catch (error) {
-    console.warn('Error parsing stored config:', error);
+  } catch (error: unknown) {
+    console.warn('Error parsing stored config:', error instanceof Error ? error.message : String(error));
   }
   return undefined;
 }
@@ -298,8 +298,8 @@ export function storeListingInSession(listing: ListingData): void {
       location: listing.location,
       timestamp: Date.now()
     }));
-  } catch (error) {
-    console.error('Error storing listing in session:', error);
+  } catch (error: unknown) {
+    console.error('Error storing listing in session:', error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -310,8 +310,8 @@ export function getListingFromSession(): ListingData | null {
   try {
     const storedListing = sessionStorage.getItem('current_listing');
     return storedListing ? JSON.parse(storedListing) : null;
-  } catch (error) {
-    console.error('Error retrieving listing from session:', error);
+  } catch (error: unknown) {
+    console.error('Error retrieving listing from session:', error instanceof Error ? error.message : String(error));
     return null;
   }
 }

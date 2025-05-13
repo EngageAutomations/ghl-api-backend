@@ -99,9 +99,13 @@ export function addHiddenFieldsToForms(slug: string, config?: DesignerConfig): v
 
 /**
  * Configures download buttons with proper download URLs
+ * Uses the custom field name for tracking downloads
  */
-export function setupDownloadButtons(slug: string): void {
+export function setupDownloadButtons(slug: string, config?: DesignerConfig): void {
   if (!slug) return;
+  
+  // Get the custom field name for consistency across all tracking methods
+  const customFieldName = config?.customFormFieldName || 'listing_id';
   
   // Handle download buttons if present
   document.querySelectorAll('.download-button, [data-action="download"]').forEach(button => {
@@ -110,13 +114,23 @@ export function setupDownloadButtons(slug: string): void {
       e.preventDefault();
       const baseDownloadUrl = button.getAttribute('data-download-url') || '';
       if (baseDownloadUrl) {
-        // Redirect to the download with product tracking
-        window.location.href = baseDownloadUrl + '?product=' + slug;
+        // Redirect to the download with product tracking using the custom field name
+        try {
+          const url = new URL(baseDownloadUrl, window.location.origin);
+          url.searchParams.set(customFieldName, slug);
+          url.searchParams.set('timestamp', Date.now().toString());
+          window.location.href = url.toString();
+        } catch (error: unknown) {
+          // Fallback to simple string concatenation if URL parsing fails
+          console.warn('Error parsing download URL:', error instanceof Error ? error.message : String(error));
+          const separator = baseDownloadUrl.includes('?') ? '&' : '?';
+          window.location.href = baseDownloadUrl + separator + customFieldName + '=' + slug;
+        }
       }
     });
   });
   
-  console.log('Setup download buttons with slug:', slug);
+  console.log(`Setup download buttons with slug ${slug} using parameter ${customFieldName}`);
 }
 
 /**
