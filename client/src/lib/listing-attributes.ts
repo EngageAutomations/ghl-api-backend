@@ -21,8 +21,49 @@ export function applyUtmParametersToLinks(slug: string, config?: DesignerConfig)
   // Get the custom field name from config, or use default
   const customFieldName = config?.customFormFieldName || 'listing_id';
   
-  // Apply to all links on the page
+  // Create a minimal listing object from the slug for token replacement
+  const listing = {
+    id: 0,
+    slug: slug,
+    title: 'Product',
+    category: '',
+    userId: 0,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  
+  // Process action buttons with data attributes (these are our custom action buttons)
+  document.querySelectorAll('.directory-action-button').forEach(button => {
+    // Check if this is a link button
+    if (button instanceof HTMLAnchorElement) {
+      const urlTemplate = button.getAttribute('href') || '';
+      if (urlTemplate && !urlTemplate.startsWith('#')) {
+        try {
+          // Use the listing data from the URL slug to process the button URL
+          // Apply full URL processing with tokens and parameters
+          const url = new URL(urlTemplate, window.location.origin);
+          
+          // Add our tracking parameters
+          url.searchParams.set('utm_source', 'directory');
+          url.searchParams.set('utm_medium', 'action_button');
+          url.searchParams.set('utm_campaign', slug);
+          url.searchParams.set(customFieldName, slug);
+          
+          button.href = url.toString();
+          
+          console.log('Updated action button URL with tracking parameters:', button.href);
+        } catch (error) {
+          console.error('Error processing action button URL:', error);
+        }
+      }
+    }
+  });
+  
+  // Apply to all regular links on the page
   document.querySelectorAll('a').forEach(link => {
+    // Skip action buttons, as we've already processed them
+    if (link.classList.contains('directory-action-button')) return;
+    
     if (!link.href.includes('utm_')) {
       try {
         // Create URL object for proper parameter handling
@@ -38,8 +79,8 @@ export function applyUtmParametersToLinks(slug: string, config?: DesignerConfig)
         
         // Update the link href
         link.href = url.toString();
-      } catch (error) {
-        console.error('Error processing link:', link.href, error);
+      } catch (error: unknown) {
+        console.error('Error processing link:', link.href, error instanceof Error ? error.message : String(error));
         
         // Fallback to basic string concatenation if URL parsing fails
         const separator = link.href.includes('?') ? '&' : '?';
@@ -229,6 +270,16 @@ export function addParamsToIframes(slug: string, config?: DesignerConfig): void 
  * Fetches configuration if available to use custom field names
  */
 export function applySlugBasedFunctionality(): void {
+  // First, expose our utility functions to the window object
+  // so they can be used by GHL or other external scripts
+  import('./listing-utils').then(utils => {
+    if (typeof utils.exposeListingFunctionsToWindow === 'function') {
+      utils.exposeListingFunctionsToWindow();
+    }
+  }).catch(error => {
+    console.error('Failed to import listing utility functions:', error);
+  });
+  
   const slug = getSlugFromUrl();
   
   if (!slug) {
@@ -254,7 +305,7 @@ export function applySlugBasedFunctionality(): void {
   applyUtmParametersToLinks(slug, config);
   addHiddenFieldsToForms(slug, config);
   addParamsToIframes(slug, config);
-  setupDownloadButtons(slug);
+  setupDownloadButtons(slug, config);
   
   // Store in sessionStorage for access by other scripts
   sessionStorage.setItem('current_listing_slug', slug);

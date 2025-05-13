@@ -120,6 +120,61 @@ export function addUtmParams(url: string, params: Record<string, string> = {}, c
 }
 
 /**
+ * Processes a URL for a listing action button
+ * Replaces tokens, adds UTM parameters, and adds the custom field parameter
+ * 
+ * @param urlTemplate The URL template with potential tokens to replace
+ * @param listing The listing data to use for token replacement
+ * @param config The designer configuration for tracking parameters
+ * @returns The final processed URL
+ */
+export function processListingButtonUrl(urlTemplate: string, listing: ListingData, config?: any): string {
+  if (!urlTemplate) return '';
+  
+  try {
+    // Step 1: Replace tokens in the URL template with listing data
+    const urlWithTokens = replaceListingTokens(urlTemplate, listing);
+    
+    // Step 2: Get the GHL custom field name for tracking
+    const customFieldName = config?.customFormFieldName || 'listing_id';
+    
+    // Step 3: Add UTM parameters and the custom field
+    return addUtmParams(
+      urlWithTokens, 
+      {
+        utm_source: 'directory',
+        utm_medium: 'action_button',
+        utm_campaign: listing.category || 'marketplace',
+        utm_content: listing.slug
+      },
+      customFieldName,
+      listing.slug
+    );
+  } catch (error: unknown) {
+    console.error('Error processing listing button URL:', error instanceof Error ? error.message : String(error));
+    return urlTemplate; // Return original URL template if there's an error
+  }
+}
+
+// Expose this function to the window object so it can be called from external code
+// This is particularly useful for GHL embedded JavaScript
+export function exposeListingFunctionsToWindow(): void {
+  try {
+    // Add our functions to the window object
+    if (typeof window !== 'undefined') {
+      (window as any).processListingButtonUrl = processListingButtonUrl;
+      (window as any).replaceListingTokens = replaceListingTokens;
+      (window as any).addUtmParams = addUtmParams;
+      (window as any).getSlugFromUrl = getSlugFromUrl;
+      
+      console.log('Successfully exposed listing functions to window object');
+    }
+  } catch (error: unknown) {
+    console.error('Error exposing listing functions to window:', error instanceof Error ? error.message : String(error));
+  }
+}
+
+/**
  * Converts Google Drive and other cloud storage links to direct download URLs
  */
 export function convertToDirectDownloadLink(url: string): { convertedUrl: string; isConverted: boolean } {
