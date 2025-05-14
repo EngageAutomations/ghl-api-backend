@@ -266,7 +266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get a specific listing by slug
-  app.get("/api/listings/:slug", async (req, res) => {
+  app.get("/api/listings/by-slug/:slug", async (req, res) => {
     try {
       const { slug } = req.params;
       

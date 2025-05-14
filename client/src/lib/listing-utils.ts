@@ -1,5 +1,6 @@
 import { apiRequest } from './queryClient';
 import type { Listing } from '@shared/schema';
+import { convertToDirectDownloadLink } from './utils';
 
 /**
  * Interface representing listing data structure
@@ -33,14 +34,17 @@ export function getSlugFromUrl(): string {
  */
 export async function getListingBySlug(slug: string): Promise<ListingData> {
   try {
-    const response = await apiRequest({
-      url: `/api/listings/by-slug/${slug}`,
-      method: 'GET'
-    });
+    const response = await apiRequest(
+      'GET',
+      `/api/listings/by-slug/${slug}`
+    );
+    
+    // We need to get the JSON data from the response
+    const data = await response.json();
     
     // Check if we got a valid listing response
-    if (response && typeof response === 'object' && 'id' in response) {
-      return response as ListingData;
+    if (data && typeof data === 'object' && 'id' in data) {
+      return data as ListingData;
     } else {
       console.warn('No valid listing data found, using safe fallback');
       return getSafeListing({ slug });
@@ -198,48 +202,7 @@ export function exposeListingFunctionsToWindow(): void {
   }
 }
 
-/**
- * Converts Google Drive and other cloud storage links to direct download URLs
- */
-export function convertToDirectDownloadLink(url: string): { convertedUrl: string; isConverted: boolean } {
-  if (!url) {
-    return { convertedUrl: '', isConverted: false };
-  }
-  
-  // Handle Google Drive links
-  if (url.includes('drive.google.com/file/d/')) {
-    // Convert from https://drive.google.com/file/d/FILE_ID/view?usp=sharing
-    // to https://drive.google.com/uc?export=download&id=FILE_ID
-    const fileIdMatch = url.match(/\/file\/d\/([^\/]+)/);
-    if (fileIdMatch && fileIdMatch[1]) {
-      const fileId = fileIdMatch[1];
-      return {
-        convertedUrl: `https://drive.google.com/uc?export=download&id=${fileId}`,
-        isConverted: true
-      };
-    }
-  }
-  
-  // Handle Dropbox links
-  if (url.includes('dropbox.com') && !url.includes('dl=1')) {
-    // Convert standard share links to direct download links
-    const separator = url.includes('?') ? '&' : '?';
-    return {
-      convertedUrl: `${url}${separator}dl=1`,
-      isConverted: true
-    };
-  }
-  
-  // Handle OneDrive links (simplified approach)
-  if (url.includes('1drv.ms') || url.includes('onedrive.live.com')) {
-    // For OneDrive, we'd need to implement more complex logic
-    // This is a placeholder for future implementation
-    console.log('OneDrive link detected - using original URL');
-  }
-  
-  // Return original URL if no conversion was applied
-  return { convertedUrl: url, isConverted: false };
-}
+// Note: convertToDirectDownloadLink is now imported from utils.ts
 
 /**
  * Tracks listing interactions (button clicks, form submissions, downloads)

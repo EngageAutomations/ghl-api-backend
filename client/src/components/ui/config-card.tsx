@@ -1,38 +1,23 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ReactNode } from "react";
+import * as React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ConfigCardProps {
   title: string;
   description?: string;
-  titleRight?: ReactNode;
-  children: ReactNode;
+  children: React.ReactNode;
+  className?: string;
 }
 
-export function ConfigCard({ title, description, titleRight, children }: ConfigCardProps) {
+export function ConfigCard({ title, description, children, className }: ConfigCardProps) {
   return (
-    <Card className="mb-6 shadow-sm">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="text-lg font-heading font-semibold text-slate-800">
-              {title}
-            </CardTitle>
-            {description && (
-              <CardDescription className="text-sm text-slate-600 mt-1">
-                {description}
-              </CardDescription>
-            )}
-          </div>
-          {titleRight && (
-            <div>
-              {titleRight}
-            </div>
-          )}
-        </div>
+    <Card className={`shadow-md ${className || ""}`}>
+      <CardHeader className="border-b border-gray-100 bg-gray-50/50">
+        <CardTitle className="text-lg font-semibold text-slate-800">{title}</CardTitle>
+        {description && (
+          <CardDescription className="text-sm text-slate-500">{description}</CardDescription>
+        )}
       </CardHeader>
-      <CardContent>
-        {children}
-      </CardContent>
+      <CardContent className="p-6">{children}</CardContent>
     </Card>
   );
 }

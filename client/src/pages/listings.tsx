@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Listing } from "@shared/schema";
+import { formatDate } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -23,59 +26,41 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Mock data for listings
-const mockListings = [
-  {
-    id: 1,
-    name: "Riverside Dental Care",
-    category: "Healthcare",
-    views: 1245,
-    optIns: 97,
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Green Earth Landscaping",
-    category: "Home & Garden",
-    views: 876,
-    optIns: 43,
-    status: "Active",
-  },
-  {
-    id: 3,
-    name: "TechSolutions IT Services",
-    category: "Technology",
-    views: 2103,
-    optIns: 152,
-    status: "Active",
-  },
-  {
-    id: 4,
-    name: "Urban Fitness Center",
-    category: "Health & Fitness",
-    views: 1567,
-    optIns: 128,
-    status: "Inactive",
-  },
-  {
-    id: 5,
-    name: "Gourmet Delights Catering",
-    category: "Food & Beverage",
-    views: 945,
-    optIns: 56,
-    status: "Active",
-  }
-];
+// Enhanced listing type with status and analytics
+type EnhancedListing = Listing & {
+  status: string;
+  views: number;
+  optIns: number;
+};
 
 export default function Listings() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [, navigate] = useLocation();
+
+  // Fetch listings data
+  const { isLoading, error, data: fetchedListings } = useQuery({
+    queryKey: ['/api/listings/user/1'], // Default to user ID 1 for now
+  });
+  
+  // Convert fetched listings to enhanced listings with status and analytics data
+  const listings: EnhancedListing[] = Array.isArray(fetchedListings) 
+    ? fetchedListings.map((listing: Listing) => {
+        // In a real app, these would come from actual analytics data
+        return {
+          ...listing,
+          status: Math.random() > 0.2 ? "Active" : "Inactive", // Just for demo
+          views: Math.floor(Math.random() * 2000) + 100, // Random view count
+          optIns: Math.floor(Math.random() * 200) + 10, // Random opt-in count
+        };
+      })
+    : [];
   
   // Filter listings based on search term and active tab
-  const filteredListings = mockListings.filter(listing => {
-    const matchesSearch = listing.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         listing.category.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredListings = listings.filter(listing => {
+    const matchesSearch = 
+      listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (listing.category?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     
     if (activeTab === "all") return matchesSearch;
     if (activeTab === "active") return matchesSearch && listing.status === "Active";
@@ -136,11 +121,25 @@ export default function Listings() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredListings.length > 0 ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      <div className="flex justify-center">
+                        <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center text-red-500">
+                      Error loading listings. Please try again.
+                    </TableCell>
+                  </TableRow>
+                ) : filteredListings.length > 0 ? (
                   filteredListings.map((listing) => (
                     <TableRow key={listing.id}>
-                      <TableCell className="font-medium">{listing.name}</TableCell>
-                      <TableCell>{listing.category}</TableCell>
+                      <TableCell className="font-medium">{listing.title}</TableCell>
+                      <TableCell>{listing.category || 'Uncategorized'}</TableCell>
                       <TableCell className="text-right">{listing.views.toLocaleString()}</TableCell>
                       <TableCell className="text-right">{listing.optIns.toLocaleString()}</TableCell>
                       <TableCell>
@@ -163,10 +162,10 @@ export default function Listings() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate(`/edit-listing/${listing.id}`)}>
                               <Edit className="mr-2 h-4 w-4" /> Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">
                               <Trash className="mr-2 h-4 w-4" /> Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -177,7 +176,7 @@ export default function Listings() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={6} className="h-24 text-center">
-                      No results found.
+                      No listings found. {searchTerm ? 'Try a different search term.' : 'Create your first listing!'}
                     </TableCell>
                   </TableRow>
                 )}

@@ -11,6 +11,7 @@ import Configuration from "@/pages/configuration";
 import Listings from "@/pages/listings";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
+import EditListing from "@/components/listings/EditListing";
 
 // Simple protected route component that checks for user in localStorage
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -86,6 +87,14 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <CreateListing />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/edit-listing/:id">
+        <ProtectedRoute>
+          <AppLayout>
+            <EditListing />
           </AppLayout>
         </ProtectedRoute>
       </Route>
