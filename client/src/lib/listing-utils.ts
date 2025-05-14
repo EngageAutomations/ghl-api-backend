@@ -35,7 +35,6 @@ export function getSlugFromUrl(): string {
 export async function getListingBySlug(slug: string): Promise<ListingData> {
   try {
     const response = await apiRequest(
-      'GET',
       `/api/listings/by-slug/${slug}`
     );
     
