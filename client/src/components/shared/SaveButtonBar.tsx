@@ -20,7 +20,10 @@ export default function SaveButtonBar({ title, subtitle }: SaveButtonBarProps) {
     
     try {
       // Save configuration to the server
-      const response = await apiRequest("POST", "/api/config", config);
+      const response = await apiRequest("/api/config", {
+        method: "POST", 
+        data: config
+      });
       
       if (response.ok) {
         toast({
