@@ -311,7 +311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update a listing
-  app.patch("/api/listings/:id", async (req, res) => {
+  app.patch("/api/listings/id/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
@@ -344,7 +344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete a listing
-  app.delete("/api/listings/:id", async (req, res) => {
+  app.delete("/api/listings/id/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
