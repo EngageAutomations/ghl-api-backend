@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { InsertListing } from "@shared/schema";
 
 // Categories for business listings
@@ -69,7 +69,7 @@ interface ListingFormProps {
 export default function ListingForm({ initialData, onSuccess, isEditing = false }: ListingFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   
   // Initialize form with default values or provided data
   const form = useForm<FormValues>({
@@ -109,16 +109,18 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
     try {
       // Determine if this is a create or update operation
       const method = isEditing ? "PATCH" : "POST";
-      const url = isEditing 
-        ? `/api/listings/${initialData?.id}` 
+      // If editing and we have an id in initialData, append it to the URL
+      const listingId = (initialData as any)?.id;
+      const url = isEditing && listingId
+        ? `/api/listings/${listingId}` 
         : "/api/listings";
       
       // Make API request to create/update listing
-      const response = await apiRequest({
-        url,
+      const response = await apiRequest(
         method,
-        data: values
-      });
+        url,
+        values
+      );
       
       toast({
         title: isEditing ? "Listing updated!" : "Listing created!",
