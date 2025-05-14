@@ -103,8 +103,15 @@ export function applyUtmParametersToLinks(
 /**
  * Adds hidden fields to forms for tracking submissions by listing
  * Uses custom field name from config if provided, otherwise defaults to 'product_slug'
+ * @param slug The listing slug
+ * @param config Optional designer configuration
+ * @param listingData Optional full listing data (if available)
  */
-export function addHiddenFieldsToForms(slug: string, config?: DesignerConfig): void {
+export function addHiddenFieldsToForms(
+  slug: string, 
+  config?: DesignerConfig, 
+  listingData?: ListingData
+): void {
   if (!slug) return;
   
   // Get the custom field name from config, or use default
@@ -148,8 +155,15 @@ export function addHiddenFieldsToForms(slug: string, config?: DesignerConfig): v
 /**
  * Configures download buttons with proper download URLs
  * Uses the custom field name for tracking downloads
+ * @param slug The listing slug
+ * @param config Optional designer configuration
+ * @param listingData Optional full listing data (if available)
  */
-export function setupDownloadButtons(slug: string, config?: DesignerConfig): void {
+export function setupDownloadButtons(
+  slug: string, 
+  config?: DesignerConfig, 
+  listingData?: ListingData
+): void {
   if (!slug) return;
   
   // Get the custom field name for consistency across all tracking methods
@@ -200,8 +214,15 @@ function getStoredConfig(): DesignerConfig | undefined {
 /**
  * Adds UTM parameters to iframes in popup embeds and embedded forms
  * Uses configured parameter names from config
+ * @param slug The listing slug
+ * @param config Optional designer configuration
+ * @param listingData Optional full listing data (if available)
  */
-export function addParamsToIframes(slug: string, config?: DesignerConfig): void {
+export function addParamsToIframes(
+  slug: string, 
+  config?: DesignerConfig, 
+  listingData?: ListingData
+): void {
   if (!slug) return;
   
   // Get all iframes on the page

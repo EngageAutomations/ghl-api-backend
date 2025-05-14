@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useLocation } from "wouter";
 import {
   Table,
   TableBody,
@@ -69,6 +70,7 @@ const mockListings = [
 export default function Listings() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [, navigate] = useLocation();
   
   // Filter listings based on search term and active tab
   const filteredListings = mockListings.filter(listing => {
@@ -89,7 +91,7 @@ export default function Listings() {
           <h1 className="text-2xl font-bold text-slate-800">Business Listings</h1>
           <p className="text-slate-500">Manage your business directory listings</p>
         </div>
-        <Button className="flex items-center gap-1">
+        <Button className="flex items-center gap-1" onClick={() => navigate("/create-listing")}>
           <Plus className="h-4 w-4" />
           <span>Add New Listing</span>
         </Button>
