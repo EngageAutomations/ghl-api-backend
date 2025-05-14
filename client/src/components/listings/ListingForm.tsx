@@ -23,7 +23,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
-import { InsertListing } from "@shared/schema";
+import { queryClient } from "@/lib/queryClient";
+import { Listing } from "@shared/schema";
 
 // Categories for business listings
 const BUSINESS_CATEGORIES = [
@@ -88,310 +89,305 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
     }
   });
   
-  // Auto-generate slug from title
-  const handleTitleChange = (title: string) => {
-    // Only auto-generate slug if it's empty or matches the previous auto-generated value
-    if (!form.getValues("slug") || isEditing === false) {
-      const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, "") // Remove invalid chars
-        .replace(/\s+/g, "-") // Replace spaces with -
-        .replace(/-+/g, "-"); // Replace multiple - with single -
-      
-      form.setValue("slug", slug);
-    }
-  };
-  
   // Handle form submission
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     
     try {
-      // Determine if this is a create or update operation
-      const method = isEditing ? "PATCH" : "POST";
-      // If editing and we have an id in initialData, append it to the URL
-      const listingId = (initialData as any)?.id;
-      const url = isEditing && listingId
-        ? `/api/listings/${listingId}` 
-        : "/api/listings";
+      // If we're editing, send PATCH request with the listing ID
+      if (isEditing && initialData && 'id' in initialData) {
+        const listingId = (initialData as Listing).id;
+        await apiRequest(`/api/listings/id/${listingId}`, {
+          method: 'PATCH',
+          data
+        });
+        
+        toast({
+          title: "Success!",
+          description: "Listing updated successfully.",
+        });
+        
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ['/api/listings/user/1'] });
+        queryClient.invalidateQueries({ queryKey: [`/api/listings/id/${listingId}`] });
+      } else {
+        // Otherwise, create a new listing
+        await apiRequest('/api/listings', {
+          method: 'POST',
+          data: {
+            ...data,
+            userId: 1 // Using a default user ID for now
+          }
+        });
+        
+        toast({
+          title: "Success!",
+          description: "New listing created successfully.",
+        });
+        
+        // Invalidate queries to refresh listings data
+        queryClient.invalidateQueries({ queryKey: ['/api/listings/user/1'] });
+      }
       
-      // Make API request to create/update listing
-      const response = await apiRequest(
-        method,
-        url,
-        values
-      );
-      
-      toast({
-        title: isEditing ? "Listing updated!" : "Listing created!",
-        description: isEditing 
-          ? "Your listing has been successfully updated." 
-          : "Your new listing has been successfully created."
-      });
-      
-      // Navigate or callback
+      // Call success callback if provided
       if (onSuccess) {
         onSuccess();
       } else {
+        // Default behavior is to navigate back to listings
         navigate("/listings");
       }
     } catch (error) {
-      console.error("Error submitting listing:", error);
+      console.error("Error saving listing:", error);
       toast({
         title: "Error",
-        description: "There was a problem saving your listing. Please try again.",
-        variant: "destructive"
+        description: `Failed to ${isEditing ? 'update' : 'create'} listing. Please try again.`,
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
   
+  // Auto-generate a slug from the title
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    form.setValue("title", value);
+    
+    // Only auto-generate slug if it's a new listing or slug field is empty
+    if (!isEditing || !form.getValues("slug")) {
+      const slug = value
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .trim();
+      
+      form.setValue("slug", slug);
+    }
+  };
+  
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Basic Information */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Basic Information</h3>
-          
-          {/* Business Name */}
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Business Name</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Enter business name" 
-                    {...field}
-                    onChange={(e) => {
-                      field.onChange(e);
-                      handleTitleChange(e.target.value);
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Slug */}
-          <FormField
-            control={form.control}
-            name="slug"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>URL Slug</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="business-name" 
-                    {...field}
-                  />
-                </FormControl>
-                <p className="text-sm text-slate-500">
-                  This will be used in the URL: directory.com/listings/{field.value || "business-name"}
-                </p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Category */}
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            {/* Title */}
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Business Name <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
+                    <Input 
+                      placeholder="Enter business name" 
+                      {...field} 
+                      onChange={handleTitleChange}
+                    />
                   </FormControl>
-                  <SelectContent>
-                    {BUSINESS_CATEGORIES.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Slug */}
+            <FormField
+              control={form.control}
+              name="slug"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Slug <span className="text-red-500">*</span></FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="unique-identifier" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Category */}
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category <span className="text-red-500">*</span></FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {BUSINESS_CATEGORIES.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Location */}
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="City, State or Country" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Price */}
+            <FormField
+              control={form.control}
+              name="price"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Price</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="e.g. $99, Free, etc." 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           
-          {/* Location */}
-          <FormField
-            control={form.control}
-            name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Location</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="City, State (optional)" 
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Description */}
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Business Description</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Describe the business..." 
-                    className="min-h-[120px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Price Info */}
-          <FormField
-            control={form.control}
-            name="price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Price Information</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Starting at $99, Free consultation, etc. (optional)" 
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="space-y-6">
+            {/* Description */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description <span className="text-red-500">*</span></FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Enter a detailed description" 
+                      className="h-24"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Image URL */}
+            <FormField
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image URL</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="https://example.com/image.jpg" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Download URL */}
+            <FormField
+              control={form.control}
+              name="downloadUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Download URL</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="https://example.com/download" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Popup URL */}
+            <FormField
+              control={form.control}
+              name="popupUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Popup Form URL</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="https://example.com/popup-form" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Embed Form URL */}
+            <FormField
+              control={form.control}
+              name="embedFormUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Embedded Form URL</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="https://example.com/embed-form" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
         
-        {/* Contact & Opt-in Links */}
-        <div className="space-y-4 pt-6 border-t border-gray-200">
-          <h3 className="text-lg font-medium">Opt-in Links & URLs</h3>
-          <p className="text-sm text-slate-500">
-            These URLs will be used for your listing's action buttons and opt-in forms
-          </p>
-          
-          {/* Download URL */}
-          <FormField
-            control={form.control}
-            name="downloadUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Download URL</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="https://example.com/download.pdf (optional)" 
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <p className="text-xs text-slate-500">
-                  Direct link to a downloadable file (PDF, brochure, etc.)
-                </p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Popup Form URL */}
-          <FormField
-            control={form.control}
-            name="popupUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Popup Form URL</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="https://forms.gohighlevel.com/yourform (optional)" 
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <p className="text-xs text-slate-500">
-                  URL to a Go HighLevel form that will open in a popup when clicked
-                </p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Embedded Form URL */}
-          <FormField
-            control={form.control}
-            name="embedFormUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Embedded Form URL</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="https://forms.gohighlevel.com/yourform (optional)" 
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <p className="text-xs text-slate-500">
-                  URL to a Go HighLevel form that will be embedded on the listing page
-                </p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Image URL */}
-          <FormField
-            control={form.control}
-            name="imageUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Image URL</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="https://example.com/image.jpg (optional)" 
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <p className="text-xs text-slate-500">
-                  URL to a business logo or image
-                </p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        {/* Form Actions */}
-        <div className="pt-4 flex justify-end">
+        <div className="flex justify-end space-x-2">
           <Button 
-            variant="outline" 
             type="button" 
-            className="mr-2"
+            variant="outline" 
             onClick={() => navigate("/listings")}
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : isEditing ? "Update Listing" : "Create Listing"}
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <span className="mr-2 h-4 w-4 border-2 border-t-transparent border-white rounded-full animate-spin"></span>
+                {isEditing ? "Updating..." : "Creating..."}
+              </>
+            ) : (
+              isEditing ? "Update Listing" : "Create Listing"
+            )}
           </Button>
         </div>
       </form>

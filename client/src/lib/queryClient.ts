@@ -18,10 +18,15 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest(
-  method: string,
   url: string,
-  data?: unknown | undefined,
+  options?: { 
+    method?: string;
+    data?: unknown;
+  }
 ): Promise<Response> {
+  const method = options?.method || 'GET';
+  const data = options?.data;
+  
   console.log(`Making ${method} request to ${url}`, data);
   try {
     const res = await fetch(url, {

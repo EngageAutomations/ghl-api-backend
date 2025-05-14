@@ -29,7 +29,10 @@ export const registerUser = async (userData: {
   displayName?: string;
   email?: string;
 }) => {
-  const response = await apiRequest("POST", "/api/auth/register", userData);
+  const response = await apiRequest("/api/auth/register", {
+    method: "POST",
+    data: userData
+  });
   return response.json();
 };
 
@@ -38,6 +41,9 @@ export const loginUser = async (credentials: {
   username: string;
   password: string;
 }) => {
-  const response = await apiRequest("POST", "/api/auth/login", credentials);
+  const response = await apiRequest("/api/auth/login", {
+    method: "POST",
+    data: credentials
+  });
   return response.json();
 };
