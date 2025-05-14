@@ -14,15 +14,22 @@ import { DesignerConfig } from '@shared/schema';
 /**
  * Applies UTM parameters to all links on the page based on current listing slug
  * Also adds the GHL custom field name parameter for consistent tracking
+ * @param slug The listing slug
+ * @param config Optional designer configuration
+ * @param listingData Optional full listing data (if available)
  */
-export function applyUtmParametersToLinks(slug: string, config?: DesignerConfig): void {
+export function applyUtmParametersToLinks(
+  slug: string, 
+  config?: DesignerConfig, 
+  listingData?: ListingData
+): void {
   if (!slug) return;
   
   // Get the custom field name from config, or use default
   const customFieldName = config?.customFormFieldName || 'listing_id';
   
-  // Create a minimal listing object from the slug for token replacement
-  const listing = {
+  // Use provided listing data or create a minimal listing object from the slug
+  const listing = listingData || {
     id: 0,
     slug: slug,
     title: 'Product',
@@ -267,7 +274,7 @@ export function addParamsToIframes(slug: string, config?: DesignerConfig): void 
 
 /**
  * Master function that applies all slug-based functionality
- * Fetches configuration if available to use custom field names
+ * Fetches configuration and listing data to use for URL tracking
  */
 export function applySlugBasedFunctionality(): void {
   // First, expose our utility functions to the window object
@@ -301,23 +308,48 @@ export function applySlugBasedFunctionality(): void {
     console.log('No configuration found, using default settings');
   }
   
-  // Apply all slug-based functionality with config if available
-  applyUtmParametersToLinks(slug, config);
-  addHiddenFieldsToForms(slug, config);
-  addParamsToIframes(slug, config);
-  setupDownloadButtons(slug, config);
-  
-  // Store in sessionStorage for access by other scripts
-  sessionStorage.setItem('current_listing_slug', slug);
-  
-  // Store the GHL field name for easier access by other scripts
-  const ghlFieldName = config?.customFormFieldName || 'listing_id';
-  sessionStorage.setItem('ghl_field_name', ghlFieldName);
-  
-  // Track page visit in console
-  console.log('----------------------------------------');
-  console.log(`Listing Page Tracking Active | Slug: ${slug}`);
-  console.log(`GHL Custom Field Name: ${ghlFieldName}`);
-  console.log(`Timestamp: ${new Date().toISOString()}`);
-  console.log('----------------------------------------');
+  // Fetch actual listing data by slug - this is the key change
+  import('./listing-utils').then(async utils => {
+    try {
+      const listingData = await utils.getListingBySlug(slug);
+      console.log('Fetched listing data:', listingData);
+      
+      // Now use the actual listing data for all functionality
+      applyUtmParametersToLinks(slug, config, listingData);
+      addHiddenFieldsToForms(slug, config, listingData);
+      addParamsToIframes(slug, config, listingData);
+      setupDownloadButtons(slug, config, listingData);
+      
+      // Store full listing data in sessionStorage for access by other scripts
+      sessionStorage.setItem('current_listing_data', JSON.stringify(listingData));
+      sessionStorage.setItem('current_listing_slug', slug);
+      
+      // Store the GHL field name for easier access by other scripts
+      const ghlFieldName = config?.customFormFieldName || 'listing_id';
+      sessionStorage.setItem('ghl_field_name', ghlFieldName);
+      
+      // Track page visit in console with listing info
+      console.log('----------------------------------------');
+      console.log(`Listing Page Tracking Active | Slug: ${slug}`);
+      console.log(`Listing Title: ${listingData.title}`);
+      console.log(`GHL Custom Field Name: ${ghlFieldName}`);
+      console.log(`Timestamp: ${new Date().toISOString()}`);
+      console.log('----------------------------------------');
+    } catch (error) {
+      console.error('Error applying slug-based functionality with listing data:', error);
+      
+      // Fallback to old behavior without listing data
+      applyUtmParametersToLinks(slug, config);
+      addHiddenFieldsToForms(slug, config);
+      addParamsToIframes(slug, config);
+      setupDownloadButtons(slug, config);
+      
+      // Still store the slug and config
+      sessionStorage.setItem('current_listing_slug', slug);
+      const ghlFieldName = config?.customFormFieldName || 'listing_id';
+      sessionStorage.setItem('ghl_field_name', ghlFieldName);
+    }
+  }).catch(error => {
+    console.error('Error importing listing utilities:', error);
+  });
 }

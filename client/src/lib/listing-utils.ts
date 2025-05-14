@@ -28,6 +28,30 @@ export function getSlugFromUrl(): string {
 }
 
 /**
+ * Fetches listing data by slug from the API
+ * If the API request fails, returns a safe listing object with the slug
+ */
+export async function getListingBySlug(slug: string): Promise<ListingData> {
+  try {
+    const response = await apiRequest({
+      url: `/api/listings/by-slug/${slug}`,
+      method: 'GET'
+    });
+    
+    // Check if we got a valid listing response
+    if (response && typeof response === 'object' && 'id' in response) {
+      return response as ListingData;
+    } else {
+      console.warn('No valid listing data found, using safe fallback');
+      return getSafeListing({ slug });
+    }
+  } catch (error) {
+    console.error('Error fetching listing by slug:', error);
+    return getSafeListing({ slug });
+  }
+}
+
+/**
  * Master function to apply all slug-based functionality
  * Calls the individual functions from listing-attributes.ts
  */
