@@ -43,13 +43,26 @@ export default function ListingOptInsConfig() {
   const [previewBorderRadius, setPreviewBorderRadius] = useState(config.buttonBorderRadius ?? 4);
   const [previewButtonText, setPreviewButtonText] = useState(config.buttonLabel ?? "Contact Us");
   
+  // Close button preview state
+  const [previewCloseBgColor, setPreviewCloseBgColor] = useState(config.closeButtonBgColor ?? "#333333");
+  const [previewCloseTextColor, setPreviewCloseTextColor] = useState(config.closeButtonTextColor ?? "#FFFFFF");
+  
   // Keep preview in sync with config changes
   useEffect(() => {
     setPreviewColor(config.buttonColor ?? "#4F46E5");
     setPreviewTextColor(config.buttonTextColor ?? "#FFFFFF");
     setPreviewBorderRadius(config.buttonBorderRadius ?? 4);
     setPreviewButtonText(config.buttonLabel ?? "Contact Us");
-  }, [config.buttonColor, config.buttonTextColor, config.buttonBorderRadius, config.buttonLabel]);
+    setPreviewCloseBgColor(config.closeButtonBgColor ?? "#333333");
+    setPreviewCloseTextColor(config.closeButtonTextColor ?? "#FFFFFF");
+  }, [
+    config.buttonColor, 
+    config.buttonTextColor, 
+    config.buttonBorderRadius, 
+    config.buttonLabel,
+    config.closeButtonBgColor,
+    config.closeButtonTextColor
+  ]);
   
   // Type assertion helper for form elements
   const getConfigValue = <T extends string>(value: T | string | null | undefined, defaultValue: T): T => {
@@ -573,16 +586,24 @@ export default function ListingOptInsConfig() {
                               <Input 
                                 id="close-button-bg-color-picker"
                                 type="color"
-                                value={config.closeButtonBgColor ?? "#333333"}
-                                onChange={(e) => updateConfig({ closeButtonBgColor: e.target.value })}
+                                value={previewCloseBgColor}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  updateConfig({ closeButtonBgColor: value });
+                                  setPreviewCloseBgColor(value);
+                                }}
                                 className="w-10 h-8 p-0 m-0 cursor-pointer border-slate-300"
                               />
                             </div>
                             <Input 
                               id="close-button-bg-color"
                               type="text"
-                              value={config.closeButtonBgColor ?? "#333333"}
-                              onChange={(e) => updateConfig({ closeButtonBgColor: e.target.value })}
+                              value={previewCloseBgColor}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                updateConfig({ closeButtonBgColor: value });
+                                setPreviewCloseBgColor(value);
+                              }}
                               className="flex-1"
                               placeholder="#333333"
                             />
@@ -600,16 +621,24 @@ export default function ListingOptInsConfig() {
                               <Input 
                                 id="close-button-text-color-picker"
                                 type="color"
-                                value={config.closeButtonTextColor ?? "#FFFFFF"}
-                                onChange={(e) => updateConfig({ closeButtonTextColor: e.target.value })}
+                                value={previewCloseTextColor}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  updateConfig({ closeButtonTextColor: value });
+                                  setPreviewCloseTextColor(value);
+                                }}
                                 className="w-10 h-8 p-0 m-0 cursor-pointer border-slate-300"
                               />
                             </div>
                             <Input 
                               id="close-button-text-color"
                               type="text"
-                              value={config.closeButtonTextColor ?? "#FFFFFF"}
-                              onChange={(e) => updateConfig({ closeButtonTextColor: e.target.value })}
+                              value={previewCloseTextColor}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                updateConfig({ closeButtonTextColor: value });
+                                setPreviewCloseTextColor(value);
+                              }}
                               className="flex-1"
                               placeholder="#FFFFFF"
                             />
