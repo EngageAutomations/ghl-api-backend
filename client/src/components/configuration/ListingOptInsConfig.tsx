@@ -551,8 +551,8 @@ export default function ListingOptInsConfig() {
                                 <div 
                                   className="h-6 w-6 rounded-full flex items-center justify-center text-sm"
                                   style={{ 
-                                    backgroundColor: config.closeButtonBgColor || "#333333",
-                                    color: config.closeButtonTextColor || "#FFFFFF"
+                                    backgroundColor: previewCloseBgColor,
+                                    color: previewCloseTextColor
                                   }}
                                 >
                                   ×
@@ -561,8 +561,8 @@ export default function ListingOptInsConfig() {
                                 <div 
                                   className="py-0.5 px-1.5 rounded-md inline-flex items-center justify-center text-xs"
                                   style={{ 
-                                    backgroundColor: config.closeButtonBgColor || "#333333",
-                                    color: config.closeButtonTextColor || "#FFFFFF"
+                                    backgroundColor: previewCloseBgColor,
+                                    color: previewCloseTextColor
                                   }}
                                 >
                                   {config.closeButtonText || "Close"}
