@@ -2,7 +2,8 @@ import {
   users, User, InsertUser, 
   designerConfigs, DesignerConfig, InsertDesignerConfig,
   portalDomains, PortalDomain, InsertPortalDomain,
-  listings, Listing, InsertListing
+  listings, Listing, InsertListing,
+  listingAddons, ListingAddon, InsertListingAddon
 } from "@shared/schema";
 
 // Storage interface with all CRUD methods
@@ -60,11 +61,13 @@ export class MemStorage implements IStorage {
     this.designerConfigs = new Map();
     this.portalDomains = new Map();
     this.listings = new Map();
+    this.listingAddons = new Map();
     
     this.currentUserId = 1;
     this.currentConfigId = 1;
     this.currentDomainId = 1;
     this.currentListingId = 1;
+    this.currentListingAddonId = 1;
   }
 
   // User methods
@@ -213,6 +216,66 @@ export class MemStorage implements IStorage {
     const exists = this.listings.has(id);
     if (exists) {
       this.listings.delete(id);
+      return true;
+    }
+    return false;
+  }
+
+  // Listing Addon methods
+  async getListingAddon(id: number): Promise<ListingAddon | undefined> {
+    return this.listingAddons.get(id);
+  }
+
+  async getListingAddonsByListing(listingId: number): Promise<ListingAddon[]> {
+    return Array.from(this.listingAddons.values())
+      .filter(addon => addon.listingId === listingId)
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  async getListingAddonsByType(listingId: number, type: string): Promise<ListingAddon[]> {
+    return Array.from(this.listingAddons.values())
+      .filter(addon => addon.listingId === listingId && addon.type === type)
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  async createListingAddon(insertAddon: InsertListingAddon): Promise<ListingAddon> {
+    const id = this.currentListingAddonId++;
+    
+    // Set timestamps
+    const now = new Date();
+    
+    const addon: ListingAddon = { 
+      ...insertAddon, 
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.listingAddons.set(id, addon);
+    return addon;
+  }
+
+  async updateListingAddon(id: number, partialAddon: Partial<InsertListingAddon>): Promise<ListingAddon | undefined> {
+    const existingAddon = this.listingAddons.get(id);
+    
+    if (!existingAddon) {
+      return undefined;
+    }
+    
+    const updatedAddon: ListingAddon = { 
+      ...existingAddon, 
+      ...partialAddon,
+      updatedAt: new Date()
+    };
+    
+    this.listingAddons.set(id, updatedAddon);
+    return updatedAddon;
+  }
+
+  async deleteListingAddon(id: number): Promise<boolean> {
+    const exists = this.listingAddons.has(id);
+    if (exists) {
+      this.listingAddons.delete(id);
       return true;
     }
     return false;
