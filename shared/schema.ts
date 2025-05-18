@@ -26,6 +26,7 @@ export const listings = pgTable("listings", {
   userId: integer("user_id").notNull(),
   title: text("title").notNull(),
   slug: text("slug").notNull().unique(),
+  directoryName: text("directory_name"), // New field for directory code reference
   category: text("category"),
   location: text("location"),
   description: text("description"),

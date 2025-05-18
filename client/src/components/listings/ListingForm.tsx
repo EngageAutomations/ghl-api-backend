@@ -49,6 +49,7 @@ const BUSINESS_CATEGORIES = [
 const formSchema = z.object({
   title: z.string().min(3, "Business name must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters").regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
+  directoryName: z.string().min(1, "Directory name is required").optional().or(z.literal("")),
   category: z.string().nonempty("Please select a category"),
   location: z.string().optional(),
   description: z.string().min(10, "Description must be at least 10 characters"),
@@ -78,6 +79,7 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
     defaultValues: {
       title: initialData?.title || "",
       slug: initialData?.slug || "",
+      directoryName: initialData?.directoryName || "",
       category: initialData?.category || "",
       location: initialData?.location || "",
       description: initialData?.description || "",
@@ -203,6 +205,27 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
                       {...field} 
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Directory Name */}
+            <FormField
+              control={form.control}
+              name="directoryName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Directory Name</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter directory name for code storage" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormDescription className="text-xs text-slate-500">
+                    This field is used to identify the directory where this listing's code will be stored
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
