@@ -366,6 +366,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Listing Addons Routes
+  // Get all addons for a listing
+  app.get("/api/listing-addons/listing/:listingId", async (req, res) => {
+    try {
+      const listingId = parseInt(req.params.listingId);
+      
+      if (isNaN(listingId)) {
+        return res.status(400).json({ message: "Invalid listing ID" });
+      }
+      
+      const addons = await storage.getListingAddonsByListing(listingId);
+      res.status(200).json(addons);
+    } catch (error) {
+      console.error("Error fetching listing addons:", error);
+      res.status(500).json({ message: "Failed to fetch listing addons" });
+    }
+  });
+  
+  // Get addons by type for a listing
+  app.get("/api/listing-addons/listing/:listingId/type/:type", async (req, res) => {
+    try {
+      const listingId = parseInt(req.params.listingId);
+      const type = req.params.type;
+      
+      if (isNaN(listingId)) {
+        return res.status(400).json({ message: "Invalid listing ID" });
+      }
+      
+      const addons = await storage.getListingAddonsByType(listingId, type);
+      res.status(200).json(addons);
+    } catch (error) {
+      console.error("Error fetching listing addons by type:", error);
+      res.status(500).json({ message: "Failed to fetch listing addons" });
+    }
+  });
+  
+  // Get a specific addon
+  app.get("/api/listing-addons/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid addon ID" });
+      }
+      
+      const addon = await storage.getListingAddon(id);
+      
+      if (!addon) {
+        return res.status(404).json({ message: "Addon not found" });
+      }
+      
+      res.status(200).json(addon);
+    } catch (error) {
+      console.error("Error fetching listing addon:", error);
+      res.status(500).json({ message: "Failed to fetch listing addon" });
+    }
+  });
+  
+  // Create a new addon
+  app.post("/api/listing-addons", async (req, res) => {
+    try {
+      const addonData = insertListingAddonSchema.parse(req.body);
+      const addon = await storage.createListingAddon(addonData);
+      res.status(201).json(addon);
+    } catch (error) {
+      console.error("Error creating listing addon:", error);
+      res.status(500).json({ message: "Failed to create listing addon" });
+    }
+  });
+  
+  // Update an addon
+  app.patch("/api/listing-addons/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid addon ID" });
+      }
+      
+      const addonData = req.body;
+      const updatedAddon = await storage.updateListingAddon(id, addonData);
+      
+      if (!updatedAddon) {
+        return res.status(404).json({ message: "Addon not found" });
+      }
+      
+      res.status(200).json(updatedAddon);
+    } catch (error) {
+      console.error("Error updating listing addon:", error);
+      res.status(500).json({ message: "Failed to update listing addon" });
+    }
+  });
+  
+  // Delete an addon
+  app.delete("/api/listing-addons/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid addon ID" });
+      }
+      
+      const success = await storage.deleteListingAddon(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Addon not found" });
+      }
+      
+      res.status(200).json({ message: "Addon deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting listing addon:", error);
+      res.status(500).json({ message: "Failed to delete listing addon" });
+    }
+  });
+
   // Tracking endpoint for opt-in interactions
   app.post("/api/tracking/opt-in", async (req, res) => {
     try {

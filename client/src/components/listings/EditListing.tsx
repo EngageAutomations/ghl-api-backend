@@ -1,7 +1,9 @@
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { ConfigCard } from "@/components/ui/config-card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ListingForm from "./ListingForm";
+import ListingAddons from "./ListingAddons";
 import { Listing } from "@shared/schema";
 
 export default function EditListing() {
@@ -61,30 +63,43 @@ export default function EditListing() {
     <div className="container mx-auto py-6 space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Edit Listing</h1>
-        <p className="text-slate-500">Update your listing information</p>
+        <p className="text-slate-500">Update your listing information and manage addons</p>
       </div>
       
       <ConfigCard 
         title={`Edit: ${(listing as Listing)?.title || 'Listing'}`} 
-        description="Update the listing details below"
+        description="Manage details, content and addons for this listing"
       >
-        <ListingForm 
-          initialData={{
-            title: (listing as Listing).title,
-            slug: (listing as Listing).slug,
-            directoryName: (listing as Listing).directoryName || undefined,
-            category: (listing as Listing).category || "",
-            description: (listing as Listing).description || "",
-            location: (listing as Listing).location || undefined,
-            price: (listing as Listing).price || undefined,
-            downloadUrl: (listing as Listing).downloadUrl || undefined,
-            popupUrl: (listing as Listing).popupUrl || undefined,
-            embedFormUrl: (listing as Listing).embedFormUrl || undefined,
-            imageUrl: (listing as Listing).imageUrl || undefined,
-          }} 
-          onSuccess={handleSuccess} 
-          isEditing={true} 
-        />
+        <Tabs defaultValue="details" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="details">Listing Details</TabsTrigger>
+            <TabsTrigger value="addons">Listing Addons</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="details">
+            <ListingForm 
+              initialData={{
+                title: (listing as Listing).title,
+                slug: (listing as Listing).slug,
+                directoryName: (listing as Listing).directoryName || undefined,
+                category: (listing as Listing).category || "",
+                description: (listing as Listing).description || "",
+                location: (listing as Listing).location || undefined,
+                price: (listing as Listing).price || undefined,
+                downloadUrl: (listing as Listing).downloadUrl || undefined,
+                popupUrl: (listing as Listing).popupUrl || undefined,
+                embedFormUrl: (listing as Listing).embedFormUrl || undefined,
+                imageUrl: (listing as Listing).imageUrl || undefined,
+              }} 
+              onSuccess={handleSuccess} 
+              isEditing={true} 
+            />
+          </TabsContent>
+          
+          <TabsContent value="addons">
+            {listingId && <ListingAddons listingId={listingId} />}
+          </TabsContent>
+        </Tabs>
       </ConfigCard>
     </div>
   );
