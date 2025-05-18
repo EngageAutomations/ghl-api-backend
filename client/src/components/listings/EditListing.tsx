@@ -72,6 +72,7 @@ export default function EditListing() {
           initialData={{
             title: (listing as Listing).title,
             slug: (listing as Listing).slug,
+            directoryName: (listing as Listing).directoryName || undefined,
             category: (listing as Listing).category || "",
             description: (listing as Listing).description || "",
             location: (listing as Listing).location || undefined,

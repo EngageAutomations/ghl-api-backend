@@ -32,6 +32,14 @@ export interface IStorage {
   createListing(listing: InsertListing): Promise<Listing>;
   updateListing(id: number, listing: Partial<InsertListing>): Promise<Listing | undefined>;
   deleteListing(id: number): Promise<boolean>;
+  
+  // Listing Addon methods
+  getListingAddon(id: number): Promise<ListingAddon | undefined>;
+  getListingAddonsByListing(listingId: number): Promise<ListingAddon[]>;
+  getListingAddonsByType(listingId: number, type: string): Promise<ListingAddon[]>;
+  createListingAddon(addon: InsertListingAddon): Promise<ListingAddon>;
+  updateListingAddon(id: number, addon: Partial<InsertListingAddon>): Promise<ListingAddon | undefined>;
+  deleteListingAddon(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -39,11 +47,13 @@ export class MemStorage implements IStorage {
   private designerConfigs: Map<number, DesignerConfig>;
   private portalDomains: Map<number, PortalDomain>;
   private listings: Map<number, Listing>;
+  private listingAddons: Map<number, ListingAddon>;
   
   currentUserId: number;
   currentConfigId: number;
   currentDomainId: number;
   currentListingId: number;
+  currentListingAddonId: number;
 
   constructor() {
     this.users = new Map();

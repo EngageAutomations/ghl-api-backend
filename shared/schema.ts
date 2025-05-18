@@ -120,3 +120,25 @@ export const insertPortalDomainSchema = createInsertSchema(portalDomains).omit({
 
 export type InsertPortalDomain = z.infer<typeof insertPortalDomainSchema>;
 export type PortalDomain = typeof portalDomains.$inferSelect;
+
+// Schema for listing addons - expanded metadata, maps, etc.
+export const listingAddons = pgTable("listing_addons", {
+  id: serial("id").primaryKey(),
+  listingId: integer("listing_id").notNull(),
+  type: text("type").notNull(), // e.g., "expanded_description", "map", "product_specs", etc.
+  title: text("title"),
+  content: text("content"), // Can contain HTML, JSON, or formatted text
+  enabled: boolean("enabled").default(true),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertListingAddonSchema = createInsertSchema(listingAddons).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertListingAddon = z.infer<typeof insertListingAddonSchema>;
+export type ListingAddon = typeof listingAddons.$inferSelect;

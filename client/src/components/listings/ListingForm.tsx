@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -223,9 +224,9 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
                       {...field} 
                     />
                   </FormControl>
-                  <FormDescription className="text-xs text-slate-500">
+                  <div className="text-xs text-slate-500 mt-1">
                     This field is used to identify the directory where this listing's code will be stored
-                  </FormDescription>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
