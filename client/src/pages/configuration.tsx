@@ -4,6 +4,7 @@ import TabNavigation from "@/components/configuration/TabNavigation";
 import ListingOptInsConfig from "@/components/configuration/ListingOptInsConfig";
 import AdvancedStylingConfig from "@/components/configuration/AdvancedStylingConfig";
 import PortalDomainConfig from "@/components/configuration/PortalDomainConfig";
+import DirectoryNameConfig from "@/components/configuration/DirectoryNameConfig";
 import SaveButtonBar from "@/components/shared/SaveButtonBar";
 import { useConfig } from "@/context/ConfigContext";
 

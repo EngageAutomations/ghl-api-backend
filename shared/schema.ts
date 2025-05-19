@@ -53,6 +53,9 @@ export const designerConfigs = pgTable("designer_configs", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   
+  // Directory Configuration
+  directoryName: text("directory_name"),
+  
   // Action Button Configuration
   enableActionButton: boolean("enable_action_button").default(false),
   buttonType: text("button_type").default("popup"), // popup, link, download

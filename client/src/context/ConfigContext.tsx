@@ -8,6 +8,7 @@ import { apiRequest } from "@/lib/queryClient";
 const defaultConfig: DesignerConfig = {
   id: 0,
   userId: 0,
+  directoryName: "",
   enableActionButton: false,
   buttonType: "popup",
   buttonLabel: "Contact Us",
