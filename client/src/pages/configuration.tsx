@@ -61,6 +61,13 @@ export default function Configuration() {
         </>
       )}
       
+      {activeTab === "directory-settings" && (
+        <div className="space-y-8">
+          <h2 className="text-lg font-semibold text-slate-800 mb-4">Directory Configuration</h2>
+          <DirectoryNameConfig />
+        </div>
+      )}
+      
       {activeTab === "portal-domains" && (
         <PortalDomainConfig />
       )}
