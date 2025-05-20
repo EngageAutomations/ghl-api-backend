@@ -17,8 +17,7 @@ interface DirectoryNameConfigProps {
 export default function DirectoryNameConfig({ directoryName, onChange }: DirectoryNameConfigProps) {
   return (
     <ConfigCard 
-      title="Directory Name Configuration" 
-      description="Give your directory a name"
+      title="Directory Name Configuration"
     >
       <div className="space-y-4">
         <div className="space-y-2">
