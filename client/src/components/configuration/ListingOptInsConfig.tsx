@@ -343,6 +343,45 @@ export default function ListingOptInsConfig() {
                   </div>
                 )}
                 
+                {/* UTM Parameter for Popup Button Type */}
+                {buttonType === "popup" && (
+                  <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
+                    <h4 className="text-sm font-medium text-slate-800">Popup Form Tracking Parameters</h4>
+                    <p className="text-xs text-slate-500">
+                      Configure how listing data is tracked with your popup forms
+                    </p>
+                    
+                    {/* UTM Parameter Field for Popup */}
+                    <div className="space-y-2">
+                      <Label htmlFor="popup-param-name" className="flex items-center gap-2">
+                        UTM Parameter Name
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <InfoCircledIcon className="h-4 w-4 text-slate-500" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="max-w-xs">
+                                Define the parameter name that will be added to all popup form URLs for tracking engagement
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </Label>
+                      <Input 
+                        id="popup-param-name"
+                        value={config.popupParamName ?? "listing_id"}
+                        onChange={(e) => updateConfig({ popupParamName: e.target.value })}
+                        placeholder="e.g., listing_id"
+                      />
+                      <p className="text-xs text-slate-500">
+                        This parameter will be added to your popup form URLs (e.g., form-url.com?{config.popupParamName || "listing_id"}=listing-slug). 
+                        It tracks which listing the visitor came from and maintains consistency with other tracking methods.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
                 {/* URL Link Information - shown only for link */}
                 {buttonType === "url" && (
                   <div className="space-y-4 p-4 bg-slate-50 rounded-md border border-slate-200">
