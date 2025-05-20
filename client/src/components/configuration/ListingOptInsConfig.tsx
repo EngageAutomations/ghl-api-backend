@@ -417,17 +417,19 @@ export default function ListingOptInsConfig() {
                     </h4>
                     
                     <p className="text-xs text-slate-600">
-                      Download links are now configured directly in each listing. When creating or editing a listing, you'll be able to set:
+                      Download links are now configured directly in each listing. When creating or editing a listing, you'll be able to set the direct download file URL for each specific listing.
                     </p>
                     
+                    <p className="text-xs text-slate-600 mt-2">
+                      The integration is compatible with:
+                    </p>
                     <ul className="list-disc pl-5 text-xs space-y-1 text-slate-600">
-                      <li>The download file URL for each specific listing</li>
-                      <li>Use Google Drive or Dropbox links for easy direct download integration</li>
-                      <li>Tracking parameters that will be automatically added to the download URL</li>
+                      <li>Google Drive links</li>
+                      <li>Dropbox links</li>
                     </ul>
                     
                     <p className="text-xs text-slate-600 mt-2">
-                      This approach allows for unique downloadable content per listing while maintaining consistent tracking of engagement.
+                      You can still place your own custom download link as long as it is preconfigured to download upon clicking.
                     </p>
                   </div>
                 )}
