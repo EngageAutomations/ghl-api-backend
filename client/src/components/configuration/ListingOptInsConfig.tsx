@@ -410,21 +410,24 @@ export default function ListingOptInsConfig() {
                 
                 {/* Download Link Information - shown for download type */}
                 {buttonType === "download" && (
-                  <div className="space-y-2">
-                    <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-800 border border-blue-100">
-                      <div className="flex items-start gap-2">
-                        <InfoCircledIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="font-medium mb-1">Download links moved to listing form</p>
-                          <p className="text-xs text-blue-700">
-                            Download links are now configured directly in each listing's form. This allows for unique download files per listing with automatic link conversion.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="space-y-4 p-4 bg-slate-50 rounded-md border border-slate-200">
+                    <h4 className="text-sm font-medium text-slate-800 flex items-center gap-2">
+                      <InfoCircledIcon className="h-4 w-4 text-blue-500" />
+                      Download Links from Listings
+                    </h4>
                     
-                    <p className="text-xs text-slate-500">
-                      When you select "download" as the button type, each listing can have its own download file. Configure this when editing individual listings.
+                    <p className="text-xs text-slate-600">
+                      Download links are now configured directly in each listing. When creating or editing a listing, you'll be able to set:
+                    </p>
+                    
+                    <ul className="list-disc pl-5 text-xs space-y-1 text-slate-600">
+                      <li>The download file URL for each specific listing</li>
+                      <li>Use Google Drive or Dropbox links for easy direct download integration</li>
+                      <li>Tracking parameters that will be automatically added to the download URL</li>
+                    </ul>
+                    
+                    <p className="text-xs text-slate-600 mt-2">
+                      This approach allows for unique downloadable content per listing while maintaining consistent tracking of engagement.
                     </p>
                   </div>
                 )}
