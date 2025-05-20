@@ -162,11 +162,29 @@
       }
     }
     
-    // Create iframe for the form
+    // Get the form ID for GHL specific attributes
+    const formId = formUrl.split("/").pop();
+    
+    // Create iframe for the form with better GHL attributes
     const iframe = document.createElement("iframe");
     iframe.src = formUrl;
-    iframe.style = "width:100%;height:600px;border:none;border-radius:4px;";
-    iframe.title = "Contact Form";
+    iframe.id = `inline-${formId}`;
+    iframe.title = "Listing Contact Form";
+    iframe.style = "width:100%;height:100%;border:none;border-radius:3px";
+    
+    // Add GHL specific attributes for better rendering
+    iframe.setAttribute("data-layout", "{'id':'INLINE'}");
+    iframe.setAttribute("data-trigger-type", "alwaysShow");
+    iframe.setAttribute("data-trigger-value", "");
+    iframe.setAttribute("data-activation-type", "alwaysActivated");
+    iframe.setAttribute("data-activation-value", "");
+    iframe.setAttribute("data-deactivation-type", "neverDeactivate");
+    iframe.setAttribute("data-deactivation-value", "");
+    // Use listing title from the listing data if available
+    iframe.setAttribute("data-form-name", listing.title || "Dynamic Listing Form");
+    iframe.setAttribute("data-height", "1124");
+    iframe.setAttribute("data-layout-iframe-id", `inline-${formId}`);
+    iframe.setAttribute("data-form-id", formId);
     
     // Clear the container and add the iframe
     container.innerHTML = "";

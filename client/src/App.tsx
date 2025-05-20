@@ -10,6 +10,7 @@ import NotFound from "@/pages/not-found";
 import Configuration from "@/pages/configuration";
 import Listings from "@/pages/listings";
 import GhlIntegrationDemo from "@/pages/GhlIntegrationDemo";
+import GhlFormTest from "@/pages/GhlFormTest";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
@@ -105,6 +106,15 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <GhlIntegrationDemo />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+
+      {/* GHL Form Test */}
+      <Route path="/ghl-form-test">
+        <ProtectedRoute>
+          <AppLayout>
+            <GhlFormTest />
           </AppLayout>
         </ProtectedRoute>
       </Route>
