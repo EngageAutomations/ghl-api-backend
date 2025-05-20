@@ -87,6 +87,7 @@ export default function TopNavbar() {
     { href: "/configuration", icon: <Settings className="h-4 w-4" />, label: "Configuration" },
     { href: "/domains", icon: <Globe className="h-4 w-4" />, label: "Domain Settings" },
     { href: "/analytics", icon: <BarChart className="h-4 w-4" />, label: "Analytics" },
+    { href: "/ghl-integration", icon: <HelpCircle className="h-4 w-4" />, label: "GHL Integration" },
   ];
 
   return (
