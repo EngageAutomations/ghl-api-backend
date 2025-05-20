@@ -18,7 +18,7 @@ export default function DirectoryNameConfig({ directoryName, onChange }: Directo
   return (
     <ConfigCard 
       title="Directory Name Configuration" 
-      description="Set the directory name that will be used across all listings in this directory"
+      description="Give your directory a name"
     >
       <div className="space-y-4">
         <div className="space-y-2">
