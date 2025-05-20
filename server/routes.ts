@@ -504,6 +504,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Serve GHL embed code
+  app.get("/ghl-embed-code.js", (req, res) => {
+    try {
+      // Read the embed code file
+      const fs = require('fs');
+      const path = require('path');
+      const filePath = path.join(process.cwd(), "client", "src", "lib", "ghl-embed-code.js");
+      let embedCode = fs.readFileSync(filePath, "utf8");
+      
+      // Replace placeholders with dynamic values
+      const apiBaseUrl = `${req.protocol}://${req.get("host")}`;
+      embedCode = embedCode.replace("{{YOUR_REPLIT_API_URL}}", apiBaseUrl);
+      
+      // Default form URL - can be overridden in config
+      embedCode = embedCode.replace("{{YOUR_DEFAULT_GHL_FORM_URL}}", "https://forms.gohighlevel.com/");
+      
+      // Set appropriate content type and cache headers
+      res.set("Content-Type", "application/javascript");
+      res.set("Cache-Control", "max-age=3600"); // Cache for 1 hour
+      
+      // Send the processed embed code
+      res.send(embedCode);
+    } catch (error) {
+      console.error("Error serving embed code:", error);
+      res.status(500).send("// Error loading embed code");
+    }
+  });
+  
+  // Serve documentation for GHL integration
+  app.get("/docs/ghl-integration", (req, res) => {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const filePath = path.join(process.cwd(), "docs", "ghl-integration-guide.md");
+      const markdown = fs.readFileSync(filePath, "utf8");
+      
+      // Simple HTML wrapping for the markdown
+      const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Go HighLevel Integration Guide</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+          }
+          pre {
+            background-color: #f5f5f5;
+            padding: 16px;
+            border-radius: 4px;
+            overflow: auto;
+          }
+          code {
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 2px 4px;
+            border-radius: 3px;
+          }
+          pre > code {
+            background-color: transparent;
+            padding: 0;
+          }
+          h1, h2, h3 {
+            color: #111;
+          }
+          h2 {
+            margin-top: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+          }
+          a {
+            color: #0366d6;
+            text-decoration: none;
+          }
+          a:hover {
+            text-decoration: underline;
+          }
+        </style>
+      </head>
+      <body>
+        <div id="content">
+          ${markdown.replace(/```(.+?)```/gs, (match, p1) => {
+            // Simple code block handling
+            const code = p1.trim();
+            const isHtml = code.startsWith('html');
+            const language = isHtml ? 'html' : (code.startsWith('css') ? 'css' : 'javascript');
+            const displayCode = isHtml || code.startsWith('css') || code.startsWith('javascript') 
+              ? code.replace(/^(html|css|javascript)\n/, '') 
+              : code;
+            
+            return `<pre><code class="language-${language}">${displayCode}</code></pre>`;
+          }).replace(/\n/g, '<br>').replace(/^# (.+)$/gm, '<h1>$1</h1>')
+          .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+          .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.+?)\*/g, '<em>$1</em>')
+          .replace(/`(.+?)`/g, '<code>$1</code>')
+          .replace(/- (.+)/g, '<ul><li>$1</li></ul>').replace(/<\/ul><ul>/g, '')}
+        </div>
+      </body>
+      </html>
+      `;
+      
+      res.set("Content-Type", "text/html");
+      res.send(html);
+    } catch (error) {
+      console.error("Error serving documentation:", error);
+      res.status(500).send("Error loading documentation");
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

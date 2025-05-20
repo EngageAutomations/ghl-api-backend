@@ -9,6 +9,7 @@ import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import Configuration from "@/pages/configuration";
 import Listings from "@/pages/listings";
+import GhlIntegrationDemo from "@/pages/GhlIntegrationDemo";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
@@ -95,6 +96,15 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <EditListing />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+
+      {/* GHL Integration Demo */}
+      <Route path="/ghl-integration">
+        <ProtectedRoute>
+          <AppLayout>
+            <GhlIntegrationDemo />
           </AppLayout>
         </ProtectedRoute>
       </Route>
