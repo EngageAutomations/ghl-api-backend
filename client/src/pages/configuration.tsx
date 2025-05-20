@@ -52,20 +52,16 @@ export default function Configuration() {
       {activeTab === "action-buttons" && (
         <>
           <div className="space-y-8">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">Step 1: Choose your opt in type</h2>
+            <h2 className="text-lg font-semibold text-slate-800 mb-4">Step 1: Configure your directory</h2>
+            <DirectoryNameConfig />
+            
+            <h2 className="text-lg font-semibold text-slate-800 mt-8 mb-4">Step 2: Choose your opt-in type</h2>
             <ListingOptInsConfig />
             
-            <h2 className="text-lg font-semibold text-slate-800 mt-8 mb-4">Step 2: Add our code to the site builder's styling section</h2>
+            <h2 className="text-lg font-semibold text-slate-800 mt-8 mb-4">Step 3: Add our code to the site builder's styling section</h2>
             <AdvancedStylingConfig />
           </div>
         </>
-      )}
-      
-      {activeTab === "directory-settings" && (
-        <div className="space-y-8">
-          <h2 className="text-lg font-semibold text-slate-800 mb-4">Directory Configuration</h2>
-          <DirectoryNameConfig />
-        </div>
       )}
       
       {activeTab === "portal-domains" && (
