@@ -1,0 +1,117 @@
+<!-- 
+  GHL Directory Integration - Browser-Ready Code
+  Copy and paste this entire block into your GoHighLevel page's HTML 
+-->
+<script>
+(async () => {
+  // Configuration (customize these values)
+  const API_URL = "https://your-replit-app.replit.app"; // Replace with your actual Replit app URL
+  const DEFAULT_FORM_URL = "https://app.makerexpress3d.com/widget/form/yZsYJQfelidUiq28ij5v"; // Your GHL form URL
+  const FORM_CONTAINER_ID = "ghl-directory-form"; // ID for the form container element
+  
+  // Extract the slug from the URL
+  const getSlugFromUrl = () => {
+    const url = new URL(window.location.href);
+    
+    // First check if slug is provided as a query parameter
+    const slugParam = url.searchParams.get("slug");
+    if (slugParam) return slugParam;
+    
+    // Then check for URL path formats
+    const path = window.location.pathname;
+    
+    // Check for /product-details/product/[slug] format
+    const productDetailsMatch = path.match(/\/product-details\/product\/([^\/\?#]+)/);
+    if (productDetailsMatch && productDetailsMatch[1]) {
+      return productDetailsMatch[1];
+    }
+    
+    // Fallback: get the last segment of the URL path
+    const segments = path.split('/').filter(segment => segment.length > 0);
+    return segments.length > 0 ? segments[segments.length - 1] : '';
+  };
+
+  // Get the slug and prepare listing data
+  const slug = getSlugFromUrl();
+  if (!slug) {
+    console.warn("No slug found in URL");
+    return;
+  }
+  
+  console.log(`Detected listing slug: ${slug}`);
+  
+  // Prepare parameters for GHL tracking
+  const params = {
+    "listing_id": slug,
+    "utm_source": "directory",
+    "utm_medium": "marketplace",
+    "utm_campaign": "listing",
+    "utm_content": slug,
+    "listing_title": slug.replace(/-/g, ' ') // Basic conversion from slug to title
+  };
+  
+  // Update URL parameters for GHL form scraping
+  const searchParams = new URLSearchParams(window.location.search);
+  for (const [key, value] of Object.entries(params)) {
+    if (value) searchParams.set(key, value);
+  }
+  window.history.replaceState({}, "", window.location.pathname + "?" + searchParams.toString());
+  
+  // Create container for the form if it doesn't exist
+  let container = document.getElementById(FORM_CONTAINER_ID);
+  if (!container) {
+    container = document.createElement("div");
+    container.id = FORM_CONTAINER_ID;
+    container.className = "directory-embedded-form";
+    container.style.cssText = "margin:2rem 0;padding:0;border-radius:4px;overflow:hidden;";
+    
+    // Find a suitable place to insert the form
+    const contentArea = document.querySelector(".content-area") || 
+                       document.querySelector("main") || 
+                       document.querySelector("body");
+    
+    if (contentArea) {
+      contentArea.appendChild(container);
+    } else {
+      document.body.appendChild(container);
+    }
+  }
+  
+  // Generate formId from the form URL
+  const formId = DEFAULT_FORM_URL.split("/").pop();
+  
+  // Create and add the iframe
+  const iframe = document.createElement("iframe");
+  iframe.src = DEFAULT_FORM_URL;
+  iframe.id = `inline-${formId}`;
+  iframe.style.cssText = "width:100%;height:100%;border:none;";
+  iframe.title = "Listing Contact Form";
+  
+  // Add GHL specific attributes
+  iframe.setAttribute("data-layout", "{'id':'INLINE'}");
+  iframe.setAttribute("data-trigger-type", "alwaysShow");
+  iframe.setAttribute("data-trigger-value", "");
+  iframe.setAttribute("data-activation-type", "alwaysActivated");
+  iframe.setAttribute("data-activation-value", "");
+  iframe.setAttribute("data-deactivation-type", "neverDeactivate");
+  iframe.setAttribute("data-deactivation-value", "");
+  iframe.setAttribute("data-form-name", params.listing_title || "Contact Form");
+  iframe.setAttribute("data-height", "1124");
+  iframe.setAttribute("data-layout-iframe-id", `inline-${formId}`);
+  iframe.setAttribute("data-form-id", formId);
+  
+  // Clear the container and add the iframe
+  container.innerHTML = "";
+  container.appendChild(iframe);
+  
+  // Load GHL embed script
+  const script = document.createElement("script");
+  script.src = "https://app.makerexpress3d.com/js/form_embed.js";
+  document.body.appendChild(script);
+  
+  console.log("Directory integration script loaded successfully");
+})();
+</script>
+
+<!-- Optional: Empty div target for form insertion -->
+<div id="ghl-directory-form" style="min-height:600px;"></div>
