@@ -319,126 +319,50 @@ export default function ListingOptInsConfig() {
                   </div>
                 </div>
 
-                {/* URL Configuration for Popup/Link - only shown for popup and URL types */}
-                {buttonType !== "download" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="popup-url" className="flex items-center gap-2">
-                      {buttonType === "popup" ? "Embed Code" : "URL"}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <InfoCircledIcon className="h-4 w-4 text-slate-500" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">
-                              Supports {"{business_name}"} token that will be replaced with actual business name for tracking.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </Label>
+                {/* Popup Form Information - shown only for popup */}
+                {buttonType === "popup" && (
+                  <div className="space-y-4 p-4 bg-slate-50 rounded-md border border-slate-200">
+                    <h4 className="text-sm font-medium text-slate-800 flex items-center gap-2">
+                      <InfoCircledIcon className="h-4 w-4 text-blue-500" />
+                      Popup Form from Listings
+                    </h4>
                     
-                    {/* Input for popup/URL configuration */}
-                    <div className={buttonType === "popup" ? "flex flex-col" : "rounded-md"}>
-                      {buttonType === "popup" ? (
-                        <>
-                          <Textarea 
-                            id="popup-url"
-                            value={localUrlValue}
-                            onChange={(e) => {
-                              const newValue = e.target.value;
-                              setLocalUrlValue(newValue);
-                            }}
-                            placeholder="Paste your embed code here (HTML, iFrame, etc.)"
-                            className="flex-1 min-h-[120px] font-mono text-xs"
-                          />
-                          
-                          {/* GHL Form Configuration for Popup */}
-                          <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
-                            <h4 className="text-sm font-medium text-slate-800">Popup Form Tracking <span className="text-xs font-normal text-green-600">(Recommended)</span></h4>
-                            <p className="text-xs text-slate-500">
-                              Configure how listing data is tracked in your popup form iframe
-                            </p>
-                            
-                            {/* GHL Custom Field Name Reference */}
-                            <div className="space-y-2">
-                              <Label htmlFor="popup-param-name" className="flex items-center gap-2">
-                                GHL Custom Field Name
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <InfoCircledIcon className="h-4 w-4 text-slate-500" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p className="max-w-xs">
-                                        Uses the same value as the GHL Custom Field Name in the Embedded Form section
-                                      </p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </Label>
-                              <Input 
-                                id="popup-param-name"
-                                value={config.customFormFieldName ?? ""}
-                                readOnly
-                                className="bg-slate-50"
-                                placeholder="Set this value in the Embedded Form section"
-                              />
-                              <p className="text-xs text-slate-500">
-                                This is the URL parameter that will be added to your Go HighLevel popup form iframe src
-                              </p>
-                            </div>
-                            
-                            {/* Info Card */}
-                            <div className="p-3 bg-blue-50 rounded-md border border-blue-100 mt-2">
-                              <div className="flex items-start">
-                                <InfoCircledIcon className="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
-                                <p className="text-xs text-blue-800">
-                                  To keep your configuration consistent, we use the same GHL Custom Field Name for both 
-                                  embedded forms and popup forms. Configure this value in the Embedded Form section.
-                                </p>
-                              </div>
-                            </div>
-                            
-                            <div className="p-4 bg-slate-50 rounded-md border border-slate-200 mt-2">
-                              <h5 className="text-sm font-medium flex items-center gap-1.5 text-slate-800">
-                                <InfoCircledIcon className="h-4 w-4 text-blue-500" />
-                                How Go HighLevel Popup Forms Work
-                              </h5>
-                              <ol className="text-xs text-slate-600 space-y-1.5 mt-2 list-decimal pl-4">
-                                <li>The system detects Go HighLevel form iframes in your popup embed code</li>
-                                <li>It automatically adds the GHL Custom Field Name as a parameter to the iframe src URL</li>
-                                <li>Example: If your iframe src is "https://forms.gohighlevel.com/form" and your GHL Custom Field Name is "listing_id"</li>
-                                <li>The result will be "https://forms.gohighlevel.com/form?listing_id=your-listing-slug"</li>
-                                <li>Go HighLevel captures this parameter in your form submissions</li>
-                              </ol>
-                              <p className="text-xs mt-3 text-slate-600 font-medium">
-                                Important: Remember to enable "Capture URL Parameters" in your Go HighLevel form settings and create a custom field with the same name as your GHL Custom Field Name.
-                              </p>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <Input 
-                          id="popup-url"
-                          value={localUrlValue}
-                          onChange={(e) => {
-                            const newValue = e.target.value;
-                            console.log("URL changed to:", newValue);
-                            setLocalUrlValue(newValue);
-                          }}
-                          placeholder="Enter URL here"
-                          className="flex-1"
-                        />
-                      )}
-                    </div>
+                    <p className="text-xs text-slate-600">
+                      Popup forms are now configured directly in each listing. When creating or editing a listing, you'll be able to set:
+                    </p>
                     
-                    <p className="text-xs text-slate-500">
-                      {buttonType === "popup" 
-                        ? "This embed code will be shown in a popup window when the button is clicked." 
-                        : "This URL will open in a new window when the button is clicked."}
-                      {buttonType === "url" && 
-                        " You can use tokens like {listing_title}, {listing_category}, {slug}, {listing_id} which will be replaced with actual listing data in the URL. These tokens plus the tracking parameter help with accurate analytics."}
+                    <ul className="list-disc pl-5 text-xs space-y-1 text-slate-600">
+                      <li>The popup form embed code for each specific listing</li>
+                      <li>Custom form fields and tokens that will be replaced with listing data</li>
+                      <li>Tracking parameters that will be automatically added to the popup URL</li>
+                    </ul>
+                    
+                    <p className="text-xs text-slate-600 mt-2">
+                      This approach allows for more customized forms per listing while maintaining consistent tracking.
+                    </p>
+                  </div>
+                )}
+                
+                {/* URL Link Information - shown only for link */}
+                {buttonType === "url" && (
+                  <div className="space-y-4 p-4 bg-slate-50 rounded-md border border-slate-200">
+                    <h4 className="text-sm font-medium text-slate-800 flex items-center gap-2">
+                      <InfoCircledIcon className="h-4 w-4 text-blue-500" />
+                      URL Links from Listings
+                    </h4>
+                    
+                    <p className="text-xs text-slate-600">
+                      URL links are now configured individually in each listing. When creating or editing a listing, you'll be able to set:
+                    </p>
+                    
+                    <ul className="list-disc pl-5 text-xs space-y-1 text-slate-600">
+                      <li>The destination URL for each specific listing</li>
+                      <li>Custom tokens that will be replaced with listing data</li>
+                      <li>Tracking parameters that will be automatically added to the URL</li>
+                    </ul>
+                    
+                    <p className="text-xs text-slate-600 mt-2">
+                      URL buttons support tokens like <code>{"{listing_title}"}</code>, <code>{"{listing_category}"}</code>, <code>{"{slug}"}</code> which will be replaced with actual listing data.
                     </p>
                   </div>
                 )}
