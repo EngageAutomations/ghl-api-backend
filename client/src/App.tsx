@@ -119,6 +119,15 @@ function Router() {
           </AppLayout>
         </ProtectedRoute>
       </Route>
+
+      {/* Config Wizard Demo */}
+      <Route path="/config-wizard">
+        <ProtectedRoute>
+          <AppLayout>
+            <ConfigWizardDemo />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
       
       {/* 404 route - catch all unmatched routes */}
       <Route>

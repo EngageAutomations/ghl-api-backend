@@ -85,6 +85,7 @@ export default function TopNavbar() {
     { href: "/", icon: <Home className="h-4 w-4" />, label: "Dashboard" },
     { href: "/listings", icon: <GanttChart className="h-4 w-4" />, label: "Listings" },
     { href: "/configuration", icon: <Settings className="h-4 w-4" />, label: "Configuration" },
+    { href: "/config-wizard", icon: <Settings className="h-4 w-4" />, label: "Config Wizard" },
     { href: "/domains", icon: <Globe className="h-4 w-4" />, label: "Domain Settings" },
     { href: "/analytics", icon: <BarChart className="h-4 w-4" />, label: "Analytics" },
     { href: "/ghl-integration", icon: <HelpCircle className="h-4 w-4" />, label: "GHL Integration" },
