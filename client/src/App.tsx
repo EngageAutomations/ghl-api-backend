@@ -11,6 +11,7 @@ import Configuration from "@/pages/configuration";
 import Listings from "@/pages/listings";
 import GhlIntegrationDemo from "@/pages/GhlIntegrationDemo";
 import GhlFormTest from "@/pages/GhlFormTest";
+import ConfigWizardDemo from "@/pages/ConfigWizardDemo";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
