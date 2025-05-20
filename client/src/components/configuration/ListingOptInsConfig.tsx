@@ -321,25 +321,46 @@ export default function ListingOptInsConfig() {
 
                 {/* Popup Form Information - shown only for popup */}
                 {buttonType === "popup" && (
-                  <div className="space-y-4 p-4 bg-slate-50 rounded-md border border-slate-200">
-                    <h4 className="text-sm font-medium text-slate-800 flex items-center gap-2">
-                      <InfoCircledIcon className="h-4 w-4 text-blue-500" />
-                      Popup Form from Listings
-                    </h4>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="popup-url" className="flex items-center gap-2">
+                        Popup Form Embed Code
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <InfoCircledIcon className="h-4 w-4 text-slate-500" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="max-w-xs">
+                                Paste your iframe or embed code here. URL parameters will be added automatically.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </Label>
+                      <Textarea 
+                        id="popup-url"
+                        value={localUrlValue}
+                        onChange={(e) => {
+                          const newValue = e.target.value;
+                          setLocalUrlValue(newValue);
+                        }}
+                        placeholder="Paste your embed code here (HTML, iframe, etc.)"
+                        className="flex-1 min-h-[120px] font-mono text-xs"
+                      />
+                      <p className="text-xs text-slate-500">
+                        This embed code will be shown in a popup window when the button is clicked. The system will automatically add tracking parameters to iframe URLs.
+                      </p>
+                    </div>
                     
-                    <p className="text-xs text-slate-600">
-                      Popup forms are now configured directly in each listing. When creating or editing a listing, you'll be able to set:
-                    </p>
-                    
-                    <ul className="list-disc pl-5 text-xs space-y-1 text-slate-600">
-                      <li>The popup form embed code for each specific listing</li>
-                      <li>Custom form fields and tokens that will be replaced with listing data</li>
-                      <li>Tracking parameters that will be automatically added to the popup URL</li>
-                    </ul>
-                    
-                    <p className="text-xs text-slate-600 mt-2">
-                      This approach allows for more customized forms per listing while maintaining consistent tracking.
-                    </p>
+                    <div className="p-3 bg-blue-50 rounded-md border border-blue-100 mt-2">
+                      <div className="flex items-start">
+                        <InfoCircledIcon className="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+                        <p className="text-xs text-blue-800">
+                          If you're using Go HighLevel forms, make sure to enable "Capture URL Parameters" in your form settings and create a custom field with the same name as your UTM Parameter.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
                 
