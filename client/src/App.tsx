@@ -7,10 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
-import Configuration from "@/pages/configuration";
 import Listings from "@/pages/listings";
-import GhlIntegrationDemo from "@/pages/GhlIntegrationDemo";
-import GhlFormTest from "@/pages/GhlFormTest";
 import ConfigWizardDemo from "@/pages/ConfigWizardDemo";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
@@ -68,15 +65,6 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-      {/* Configuration route */}
-      <Route path="/configuration">
-        <ProtectedRoute>
-          <AppLayout>
-            <Configuration />
-          </AppLayout>
-        </ProtectedRoute>
-      </Route>
-      
       {/* Listings routes */}
       <Route path="/listings">
         <ProtectedRoute>
@@ -98,24 +86,6 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <EditListing />
-          </AppLayout>
-        </ProtectedRoute>
-      </Route>
-
-      {/* GHL Integration Demo */}
-      <Route path="/ghl-integration">
-        <ProtectedRoute>
-          <AppLayout>
-            <GhlIntegrationDemo />
-          </AppLayout>
-        </ProtectedRoute>
-      </Route>
-
-      {/* GHL Form Test */}
-      <Route path="/ghl-form-test">
-        <ProtectedRoute>
-          <AppLayout>
-            <GhlFormTest />
           </AppLayout>
         </ProtectedRoute>
       </Route>
