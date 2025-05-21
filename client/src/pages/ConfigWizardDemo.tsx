@@ -879,6 +879,39 @@ ${showMaps ? `.ghl-maps-container {
             </div>
           </div>
         </WizardStep>
+        
+        {/* Congratulations Slide */}
+        <WizardStep 
+          title="Setup Complete!" 
+          description="Your directory integration is ready to go"
+        >
+          <div className="space-y-6 py-10 text-center">
+            <div className="text-6xl mb-6">🎊</div>
+            
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">Congratulations!</h2>
+            <p className="text-slate-600 max-w-lg mx-auto mb-8">
+              You've successfully set up your Go HighLevel directory integration. Your marketplace is now ready to capture and track leads from your listings.
+            </p>
+            
+            <div className="bg-amber-50 border border-amber-100 rounded-lg p-6 max-w-lg mx-auto text-left">
+              <h3 className="text-lg font-medium text-amber-800 mb-2">Important Reminder</h3>
+              <p className="text-sm text-amber-700 mb-4">
+                For proper tracking, all listings must be created with the following attributes:
+              </p>
+              <ul className="list-disc pl-5 text-sm text-amber-700 space-y-2">
+                <li>A unique <strong>slug</strong> in the URL (e.g., /listings/product-name)</li>
+                <li>Consistent metadata for proper filtering and categorization</li>
+                <li>The tracking field <strong>listing</strong> must be set up in your Go HighLevel forms</li>
+              </ul>
+            </div>
+            
+            <div className="mt-10">
+              <Button size="lg" className="px-8 py-2 text-base">
+                Finish Setup
+              </Button>
+            </div>
+          </div>
+        </WizardStep>
       </ConfigWizard>
     </div>
   );
