@@ -18,7 +18,7 @@ interface WizardStepProps {
 
 export function WizardStep({ title, description, children }: WizardStepProps) {
   return (
-    <div className="w-full bg-white p-8 rounded-lg border border-slate-100 shadow-sm overflow-y-auto" style={{ minHeight: "500px" }}>
+    <div className="w-full bg-white p-8 rounded-lg border border-slate-100 shadow-sm">
       {children}
     </div>
   );
@@ -69,73 +69,69 @@ export function ConfigWizard({ title, description, children }: ConfigWizardProps
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <AnimatePresence initial={false} custom={currentStep}>
-        {currentStep === -1 ? (
-          <motion.div
-            key="welcome"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 50 }}
-            transition={{ 
-              x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.3 }
-            }}
-            className="text-center py-16 px-4"
-          >
-            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            </div>
-            <h1 className="text-3xl font-bold text-slate-800 mb-4">{title}</h1>
-            {description && (
-              <p className="text-slate-500 mb-8 max-w-2xl mx-auto leading-relaxed">{description}</p>
-            )}
-            <Button 
-              size="lg" 
-              onClick={() => setCurrentStep(0)}
-              className="px-8 py-6 text-base"
+      {/* Fixed height container to prevent jumping */}
+      <div className="relative" style={{ height: '640px' }}>
+        <AnimatePresence initial={false} mode="wait">
+          {currentStep === -1 ? (
+            <motion.div 
+              key="welcome"
+              initial={{ opacity: 0, x: -100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 100 }}
+              transition={{ type: "tween", duration: 0.4, ease: "easeInOut" }}
+              className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center text-center px-4"
             >
-              Get Started
-            </Button>
-            <p className="text-xs text-slate-400 mt-8">This will guide you through the setup process step by step</p>
-          </motion.div>
-        ) : (
-          <motion.div
-            key={`step-${currentStep}`}
-            custom={currentStep}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.3 },
-              y: { duration: 0 } // Ensure vertical position remains fixed during transitions
-            }}
-            className="w-full"
-          >
-            {steps[currentStep]}
-            
-            <div className="flex justify-between mt-6">
-              <Button
-                variant="outline"
-                onClick={goToPrevious}
-                disabled={currentStep === -1}
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              </div>
+              <h1 className="text-3xl font-bold text-slate-800 mb-4">{title}</h1>
+              {description && (
+                <p className="text-slate-500 mb-8 max-w-2xl mx-auto leading-relaxed">{description}</p>
+              )}
+              <Button 
+                size="lg" 
+                onClick={() => setCurrentStep(0)}
+                className="px-8 py-6 text-base"
               >
-                <ChevronLeft className="w-4 h-4 mr-2" />
-                Back
+                Get Started
               </Button>
+              <p className="text-xs text-slate-400 mt-8">This will guide you through the setup process step by step</p>
+            </motion.div>
+          ) : (
+            <motion.div 
+              key={`step-${currentStep}`}
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -100 }}
+              transition={{ type: "tween", duration: 0.4, ease: "easeInOut" }}
+              className="absolute top-0 left-0 w-full h-full"
+            >
+              <div className="h-full overflow-auto px-1 pb-20">
+                {steps[currentStep]}
+              </div>
               
-              <Button
-                onClick={goToNext}
-                disabled={currentStep === steps.length - 1}
-              >
-                Next
-                <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <div className="flex justify-between mt-6 absolute bottom-0 left-0 w-full">
+                <Button
+                  variant="outline"
+                  onClick={goToPrevious}
+                  disabled={currentStep === -1}
+                >
+                  <ChevronLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+                
+                <Button
+                  onClick={goToNext}
+                  disabled={currentStep === steps.length - 1}
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
       
       {/* Step indicator dots */}
       {currentStep >= 0 && (
