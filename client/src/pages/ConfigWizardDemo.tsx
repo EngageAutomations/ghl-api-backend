@@ -597,7 +597,15 @@ export default function ConfigWizardDemo() {
               We'll generate the integration code for your Go HighLevel site based on your settings.
             </p>
             
-            <Button size="lg" className="px-8 py-6 text-base" onClick={goToNext}>
+            <Button 
+              size="lg" 
+              className="px-8 py-6 text-base" 
+              onClick={() => {
+                // Find the next step button and click it
+                const nextButton = document.querySelector('button:has(.w-4.h-4.ml-2)') as HTMLButtonElement;
+                if (nextButton) nextButton.click();
+              }}
+            >
               Generate Code
             </Button>
           </div>
