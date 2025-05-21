@@ -218,8 +218,8 @@ export default function ConfigWizardDemo() {
                         {/* Unified Style Controls */}
                         <div className="border border-slate-200 rounded-lg p-4">
                           <div className="grid grid-cols-5 gap-0">
-                            {/* Color Options - Takes up 25% of the space */}
-                            <div className="col-span-1 space-y-4 pr-3">
+                            {/* Color Options - Takes up more space now */}
+                            <div className="col-span-3 space-y-4 pr-6">
                               {/* Removed Colors title as requested */}
                               {/* Button Color */}
                               <div>
@@ -262,12 +262,12 @@ export default function ConfigWizardDemo() {
                               </div>
                             </div>
                             
-                            {/* Divider - Closer to color options */}
-                            <div className="w-px bg-slate-200 h-full"></div>
+                            {/* Divider positioned near border radius title */}
+                            <div className="w-px bg-slate-200 h-full relative right-5"></div>
                             
                             {/* Border Radius Slider - Takes up remaining space */}
-                            <div className="col-span-3 flex flex-col justify-center">
-                              <div className="w-full px-6">
+                            <div className="col-span-1 flex flex-col justify-center">
+                              <div className="w-full pl-10">
                                 {/* Removed Shape title as requested */}
                                 <div className="flex items-center space-x-3">
                                   <Label htmlFor="border-radius" className="text-sm whitespace-nowrap">Border Radius</Label>
