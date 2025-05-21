@@ -219,10 +219,10 @@ export default function ConfigWizardDemo() {
                               </div>
                               <Input
                                 id="button-color"
-                                type="text"
+                                type="color"
                                 value={previewColor}
                                 onChange={(e) => setPreviewColor(e.target.value)}
-                                className="flex-1 rounded-l-none"
+                                className="flex-1 rounded-l-none h-10"
                               />
                             </div>
                           </div>
@@ -236,10 +236,10 @@ export default function ConfigWizardDemo() {
                               </div>
                               <Input
                                 id="text-color"
-                                type="text"
+                                type="color"
                                 value={previewTextColor}
                                 onChange={(e) => setPreviewTextColor(e.target.value)}
-                                className="flex-1 rounded-l-none"
+                                className="flex-1 rounded-l-none h-10"
                               />
                             </div>
                           </div>
