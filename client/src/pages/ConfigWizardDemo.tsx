@@ -991,18 +991,119 @@ ${buttonType === "download" ? `/* -------------------------------------
     
     // Create global namespace
     window.GHLDirectory = {
+      // Get the listing slug from URL
       getSlug: function() {
         const url = new URL(window.location.href);
         const pathSegments = url.pathname.split('/').filter(Boolean);
-        return pathSegments[pathSegments.length - 1];
+        return pathSegments[pathSegments.length - 1] || url.searchParams.get('listing') || '';
       },
       
+      // Helper to add parameters to URLs
       addParameter: function(formUrl, key, value) {
         const url = new URL(formUrl);
         url.searchParams.set(key, value);
         return url.toString();
+      },
+      
+      // Add tracking to forms
+      addTrackingToForms: function(slug) {
+        const fieldName = window.GHL_DIRECTORY.customField;
+        document.querySelectorAll('form').forEach(form => {
+          if (!form.querySelector('input[name="' + fieldName + '"]')) {
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = fieldName;
+            hiddenField.value = slug;
+            form.appendChild(hiddenField);
+            
+            // Add data attribute for easier debugging
+            form.setAttribute('data-listing', slug);
+            
+            // Add timestamp for tracking
+            const timestampField = document.createElement('input');
+            timestampField.type = 'hidden';
+            timestampField.name = 'access_timestamp';
+            timestampField.value = new Date().toISOString();
+            form.appendChild(timestampField);
+          }
+        });
+      },
+      
+      // Setup action buttons with tracking
+      setupActionButtons: function(slug) {
+        const fieldName = window.GHL_DIRECTORY.customField;
+        document.querySelectorAll('.ghl-action-button').forEach(button => {
+          // Mark the button with the listing data
+          button.setAttribute('data-listing', slug);
+          
+          // If button is a link, add tracking parameters
+          if (button instanceof HTMLAnchorElement) {
+            const urlTemplate = button.getAttribute('href') || '';
+            if (urlTemplate && !urlTemplate.startsWith('#')) {
+              try {
+                const url = new URL(urlTemplate);
+                
+                // Add tracking parameters
+                url.searchParams.set('utm_source', 'directory');
+                url.searchParams.set('utm_medium', 'action_button');
+                url.searchParams.set('utm_campaign', slug);
+                url.searchParams.set(fieldName, slug);
+                
+                button.href = url.toString();
+              } catch (error) {
+                console.error('Error processing action button URL:', error);
+              }
+            }
+          }
+        });
+      },
+      
+      // Setup download buttons with tracking
+      setupDownloadButtons: function(slug) {
+        const fieldName = window.GHL_DIRECTORY.customField;
+        document.querySelectorAll('.ghl-download-button').forEach(button => {
+          // Mark the button with the listing data
+          button.setAttribute('data-listing', slug);
+          
+          // Add click handler for downloads
+          button.addEventListener('click', function(e) {
+            if (button.hasAttribute('data-download-url')) {
+              e.preventDefault();
+              
+              const downloadUrl = button.getAttribute('data-download-url');
+              if (downloadUrl) {
+                try {
+                  const url = new URL(downloadUrl);
+                  url.searchParams.set(fieldName, slug);
+                  url.searchParams.set('timestamp', Date.now().toString());
+                  window.location.href = url.toString();
+                } catch (error) {
+                  console.error('Error processing download URL:', error);
+                  // Fallback handling
+                  const separator = downloadUrl.includes('?') ? '&' : '?';
+                  window.location.href = downloadUrl + separator + fieldName + '=' + slug;
+                }
+              }
+            }
+          });
+        });
       }
     };
+    
+    // Initialize tracking when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+      const slug = window.GHLDirectory.getSlug();
+      if (slug) {
+        console.log('Listing slug detected:', slug);
+        window.GHLDirectory.addTrackingToForms(slug);
+        window.GHLDirectory.setupActionButtons(slug);
+        window.GHLDirectory.setupDownloadButtons(slug);
+        
+        // Store listing info in sessionStorage for other scripts
+        sessionStorage.setItem('current_listing_slug', slug);
+        sessionStorage.setItem('ghl_field_name', window.GHL_DIRECTORY.customField);
+      }
+    });
   })();
 </script>`}
               </div>
