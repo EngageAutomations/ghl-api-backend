@@ -18,7 +18,7 @@ interface WizardStepProps {
 
 export function WizardStep({ title, description, children }: WizardStepProps) {
   return (
-    <div className="w-full bg-white p-8 rounded-lg border border-slate-100 shadow-sm">
+    <div className="w-full bg-white p-8 rounded-lg border border-slate-100 shadow-sm mb-6">
       {children}
     </div>
   );
@@ -106,27 +106,27 @@ export function ConfigWizard({ title, description, children }: ConfigWizardProps
               transition={{ type: "tween", duration: 0.4, ease: "easeInOut" }}
               className="absolute top-0 left-0 w-full h-full"
             >
-              <div className="px-1 pb-24">
+              <div className="px-1">
                 {steps[currentStep]}
-              </div>
-              
-              <div className="flex justify-between mt-6 absolute bottom-0 left-0 w-full">
-                <Button
-                  variant="outline"
-                  onClick={goToPrevious}
-                  disabled={currentStep === -1}
-                >
-                  <ChevronLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
                 
-                <Button
-                  onClick={goToNext}
-                  disabled={currentStep === steps.length - 1}
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4 ml-2" />
-                </Button>
+                <div className="flex justify-between mt-6 mb-8">
+                  <Button
+                    variant="outline"
+                    onClick={goToPrevious}
+                    disabled={currentStep === -1}
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    Back
+                  </Button>
+                  
+                  <Button
+                    onClick={goToNext}
+                    disabled={currentStep === steps.length - 1}
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
               </div>
             </motion.div>
           )}
