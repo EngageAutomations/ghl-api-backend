@@ -79,12 +79,12 @@ export default function ConfigWizardDemo() {
               <Accordion 
                 type="single" 
                 collapsible 
-                className="w-full border rounded-md"
+                className="w-full border rounded-md space-y-5"
                 value={expandedSection}
                 onValueChange={setExpandedSection}
               >
                 {/* Action Button Accordion Item */}
-                <AccordionItem value="action-button" className="px-4">
+                <AccordionItem value="action-button" className="px-4 mb-5 border rounded-md">
                   <div className="flex items-center justify-between py-4">
                     {/* Left section: clickable header */}
                     <div className="flex-1 cursor-pointer" onClick={() => setExpandedSection(expandedSection === "action-button" ? undefined : "action-button")}>
@@ -191,7 +191,7 @@ export default function ConfigWizardDemo() {
                 </AccordionItem>
                 
                 {/* Embedded Form Accordion Item */}
-                <AccordionItem value="embedded-form" className="px-4">
+                <AccordionItem value="embedded-form" className="px-4 border rounded-md">
                   <div className="flex items-center justify-between py-4">
                     {/* Left section: clickable header */}
                     <div className="flex-1 cursor-pointer" onClick={() => setExpandedSection(expandedSection === "embedded-form" ? undefined : "embedded-form")}>
