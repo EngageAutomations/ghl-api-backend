@@ -886,7 +886,7 @@ ${showMaps ? `.ghl-maps-container {
           description="Your directory integration is ready to go"
         >
           <div className="space-y-6 py-10 text-center">
-            <div className="text-6xl mb-6">🎊</div>
+            <div className="text-6xl mb-6">🎉</div>
             
             <h2 className="text-2xl font-bold text-slate-800 mb-4">Congratulations!</h2>
             <p className="text-slate-600 max-w-lg mx-auto mb-8">
