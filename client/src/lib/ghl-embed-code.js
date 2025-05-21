@@ -61,7 +61,7 @@
     
     // Default configuration if none found
     return {
-      customFormFieldName: "listing_id",
+      customFormFieldName: "listing",
       customFormFieldLabel: "Source Listing"
     };
   }
@@ -217,7 +217,7 @@
     console.log("Listing data:", listing);
     
     // Prepare parameters for GHL tracking
-    const customFieldName = config.customFormFieldName || "listing_id";
+    const customFieldName = config.customFormFieldName || "listing";
     
     const params = {
       [customFieldName]: slug,

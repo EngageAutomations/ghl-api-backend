@@ -16,17 +16,14 @@ export default function ConfigWizardDemo() {
           title="Directory Settings" 
           description="Name your directory to get started"
         >
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-8">
+            <h2 className="text-lg font-bold text-center mb-8">Name your Directory to get started</h2>
             <div className="space-y-3">
-              <Label htmlFor="directory-name" className="text-base font-medium">Directory Name</Label>
               <Input 
                 id="directory-name" 
                 placeholder="My Marketplace Directory"
                 className="text-base py-6"
               />
-              <p className="text-sm text-muted-foreground mt-2">
-                This name will be used in tracking parameters and reporting to identify your directory
-              </p>
             </div>
           </div>
         </WizardStep>
@@ -35,11 +32,11 @@ export default function ConfigWizardDemo() {
           title="Action Button" 
           description="Would you like to add an action button to your listings?"
         >
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-8">
+            <h2 className="text-lg font-bold text-center mb-8">Would you like to add an action button?</h2>
             <div className="flex items-center justify-between border-b pb-6">
               <div className="space-y-1">
-                <Label htmlFor="enable-action-button" className="text-base font-medium">Enable Action Button</Label>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-base">
                   Show a call-to-action button on your listing pages
                 </p>
               </div>
@@ -52,11 +49,11 @@ export default function ConfigWizardDemo() {
           title="Embedded Form" 
           description="Would you like to embed a form on your listings?"
         >
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-8">
+            <h2 className="text-lg font-bold text-center mb-8">Would you like to embed a form?</h2>
             <div className="flex items-center justify-between border-b pb-6">
               <div className="space-y-1">
-                <Label htmlFor="enable-embedded-form" className="text-base font-medium">Enable Embedded Form</Label>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-base">
                   Show a form directly on your listing pages
                 </p>
               </div>
@@ -69,18 +66,15 @@ export default function ConfigWizardDemo() {
           title="Tracking Field" 
           description="Enter the name of your tracking field in Go HighLevel"
         >
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-8">
+            <h2 className="text-lg font-bold text-center mb-8">Name your tracking field</h2>
             <div className="space-y-3">
-              <Label htmlFor="custom-field-name" className="text-base font-medium">Custom Field Name</Label>
               <Input 
                 id="custom-field-name" 
                 placeholder="listing"
                 defaultValue="listing"
                 className="text-base py-6"
               />
-              <p className="text-sm text-muted-foreground mt-2">
-                This name must match the custom field you create in Go HighLevel
-              </p>
             </div>
           </div>
         </WizardStep>

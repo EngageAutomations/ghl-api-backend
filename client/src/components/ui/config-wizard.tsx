@@ -19,13 +19,7 @@ interface WizardStepProps {
 export function WizardStep({ title, description, children }: WizardStepProps) {
   return (
     <Card className="w-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold text-slate-800">{title}</CardTitle>
-        {description && (
-          <CardDescription className="text-sm text-slate-500">{description}</CardDescription>
-        )}
-      </CardHeader>
-      <CardContent className="p-6">{children}</CardContent>
+      <CardContent className="p-8">{children}</CardContent>
     </Card>
   );
 }
