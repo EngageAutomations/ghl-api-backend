@@ -25,6 +25,12 @@ export default function ConfigWizardDemo() {
   const [expandedSection, setExpandedSection] = useState<string | undefined>(undefined);
   const [buttonType, setButtonType] = useState<string>("popup");
   
+  // Button preview state
+  const [previewColor, setPreviewColor] = useState("#4F46E5");
+  const [previewTextColor, setPreviewTextColor] = useState("#FFFFFF");
+  const [previewBorderRadius, setPreviewBorderRadius] = useState(4);
+  const [previewButtonText, setPreviewButtonText] = useState("Contact Us");
+  
   // Toggle handlers
   const handleToggleActionButton = (checked: boolean) => {
     if (checked) {
@@ -174,16 +180,86 @@ export default function ConfigWizardDemo() {
                           <div 
                             className="py-2 px-4 inline-flex items-center justify-center text-sm font-medium"
                             style={{ 
-                              backgroundColor: "#4F46E5",
-                              color: "#FFFFFF",
-                              borderRadius: "4px",
+                              backgroundColor: previewColor,
+                              color: previewTextColor,
+                              borderRadius: `${previewBorderRadius}px`,
                               transitionProperty: "all",
                               transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
                               transitionDuration: "150ms",
                             }}
                           >
-                            Contact Us
+                            {previewButtonText || "Contact Us"}
                           </div>
+                        </div>
+                      </div>
+                      
+                      {/* Button Styling Options */}
+                      <div className="space-y-4 mt-6 pt-4 border-t border-slate-200">
+                        <h4 className="text-base font-medium text-slate-800">Button Styling</h4>
+                        
+                        {/* Button Text */}
+                        <div className="space-y-2">
+                          <Label htmlFor="button-text-2">Button Text</Label>
+                          <Input
+                            id="button-text-2"
+                            value={previewButtonText}
+                            onChange={(e) => setPreviewButtonText(e.target.value)}
+                            placeholder="Contact Us"
+                          />
+                        </div>
+                        
+                        {/* Color pickers grid */}
+                        <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                          {/* Button Color */}
+                          <div className="space-y-2">
+                            <Label htmlFor="button-color">Button Color</Label>
+                            <div className="flex rounded-md">
+                              <div className="w-8 h-8 rounded-l-md border border-r-0 border-slate-300 flex items-center justify-center overflow-hidden">
+                                <div className="w-full h-full" style={{ backgroundColor: previewColor }}></div>
+                              </div>
+                              <Input
+                                id="button-color"
+                                type="text"
+                                value={previewColor}
+                                onChange={(e) => setPreviewColor(e.target.value)}
+                                className="flex-1 rounded-l-none"
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Text Color */}
+                          <div className="space-y-2">
+                            <Label htmlFor="text-color">Text Color</Label>
+                            <div className="flex rounded-md">
+                              <div className="w-8 h-8 rounded-l-md border border-r-0 border-slate-300 flex items-center justify-center overflow-hidden">
+                                <div className="w-full h-full" style={{ backgroundColor: previewTextColor }}></div>
+                              </div>
+                              <Input
+                                id="text-color"
+                                type="text"
+                                value={previewTextColor}
+                                onChange={(e) => setPreviewTextColor(e.target.value)}
+                                className="flex-1 rounded-l-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Border Radius Slider */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <Label htmlFor="border-radius">Border Radius</Label>
+                            <span className="text-xs text-slate-500">{previewBorderRadius}px</span>
+                          </div>
+                          <input
+                            id="border-radius"
+                            type="range"
+                            min="0"
+                            max="24"
+                            value={previewBorderRadius}
+                            onChange={(e) => setPreviewBorderRadius(parseInt(e.target.value))}
+                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                          />
                         </div>
                       </div>
                     </div>
