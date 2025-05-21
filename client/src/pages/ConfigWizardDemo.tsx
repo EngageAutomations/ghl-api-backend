@@ -217,9 +217,9 @@ export default function ConfigWizardDemo() {
                         
                         {/* Unified Style Controls */}
                         <div className="border border-slate-200 rounded-lg p-4">
-                          <div className="grid grid-cols-5 gap-3">
-                            {/* Color Options - Takes up less space */}
-                            <div className="col-span-2 space-y-4 pr-3">
+                          <div className="grid grid-cols-4 gap-3">
+                            {/* Color Options - Takes up 25% of the space */}
+                            <div className="col-span-1 space-y-4 pr-3">
                               <h4 className="text-xs font-medium text-slate-500 uppercase mb-2">Colors</h4>
                               {/* Button Color */}
                               <div>
