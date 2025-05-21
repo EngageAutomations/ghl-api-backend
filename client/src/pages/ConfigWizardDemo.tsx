@@ -351,43 +351,26 @@ export default function ConfigWizardDemo() {
                         </p>
                       </div>
                       
-                      {/* Form Position */}
-                      <div className="space-y-2">
-                        <Label htmlFor="form-position">Form Position</Label>
-                        <Select defaultValue="below">
-                          <SelectTrigger id="form-position">
-                            <SelectValue placeholder="Select position" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="below">Below Product Description</SelectItem>
-                            <SelectItem value="aside">Alongside Product Details</SelectItem>
-                            <SelectItem value="bottom">Bottom of Page</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      {/* Tracking Field Name */}
+                      <div className="space-y-2 pt-2 border-t border-slate-100">
+                        <Label htmlFor="custom-field-name-embed">Tracking Field Name</Label>
+                        <Input 
+                          id="custom-field-name-embed" 
+                          placeholder="listing"
+                          defaultValue="listing"
+                          className="flex-1"
+                        />
                         <p className="text-xs text-slate-500">
-                          Where to position the form on listing pages
+                          Create this custom field in Go HighLevel to track which listing generated the lead
                         </p>
-                      </div>
-                      
-                      {/* Form Height */}
-                      <div className="space-y-2">
-                        <Label htmlFor="form-height">Form Height</Label>
-                        <div className="flex rounded-md">
-                          <Input
-                            id="form-height"
-                            type="number"
-                            defaultValue="600"
-                            min="300"
-                            max="1200"
-                            className="flex-1"
-                          />
-                          <div className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-slate-300 bg-slate-50 text-slate-500 text-sm">
-                            px
-                          </div>
+                        
+                        <div className="mt-3 p-3 bg-blue-50 rounded-md border border-blue-100">
+                          <p className="text-xs text-blue-800">
+                            <span className="font-medium">Important:</span> You must create this field in your Go HighLevel account 
+                            and enable "Capture URL Parameters" in your form settings. The field will automatically 
+                            be populated with listing data when visitors submit the form.
+                          </p>
                         </div>
-                        <p className="text-xs text-slate-500">
-                          Height of the embedded form iframe
-                        </p>
                       </div>
                       
                       {/* Form Preview */}
