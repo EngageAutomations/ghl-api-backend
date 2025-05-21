@@ -266,8 +266,8 @@ export default function ConfigWizardDemo() {
                             <div className="w-px bg-slate-200 h-full"></div>
                             
                             {/* Border Radius Slider - Takes up remaining space */}
-                            <div className="col-span-2 pl-0 flex flex-col justify-center">
-                              <div className="max-w-xs mx-auto w-full -ml-4">
+                            <div className="col-span-2 flex flex-col justify-center">
+                              <div className="max-w-xs mx-auto w-full ml-2.5">
                                 {/* Removed Shape title as requested */}
                                 <div className="flex justify-between items-center mb-1.5">
                                   <Label htmlFor="border-radius" className="text-sm">Border Radius</Label>
