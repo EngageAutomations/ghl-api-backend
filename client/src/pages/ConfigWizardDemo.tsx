@@ -825,7 +825,7 @@ ${showMaps ? `/* -------------------------------------
   overflow: hidden;
 }` : '/* Maps widget disabled */'}
 
-${showActionButton ? `/* -------------------------------------
+${selectedOptIn === "action-button" ? `/* -------------------------------------
    ▶️ ACTION BUTTON CONFIGURATION
 -------------------------------------- */
 .ghl-action-button {
@@ -860,7 +860,7 @@ ${showActionButton ? `/* -------------------------------------
   transform: translateX(3px);
 }` : '/* Action button disabled */'}
 
-${showDownloadOption ? `/* -------------------------------------
+${buttonType === "download" ? `/* -------------------------------------
    ⬇️ DOWNLOAD OPTION STYLING
 -------------------------------------- */
 .ghl-download-container {
