@@ -262,8 +262,8 @@ export default function ConfigWizardDemo() {
                               </div>
                             </div>
                             
-                            {/* Divider - Closer to color options */}
-                            <div className="w-px bg-slate-200 h-full"></div>
+                            {/* Divider - Moved 15px to the right */}
+                            <div className="w-px bg-slate-200 h-full ml-4"></div>
                             
                             {/* Border Radius Slider - Takes up remaining space */}
                             <div className="col-span-3 flex flex-col justify-center">
