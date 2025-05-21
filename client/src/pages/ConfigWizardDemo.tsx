@@ -594,12 +594,281 @@ export default function ConfigWizardDemo() {
             
             <h3 className="text-xl font-medium text-slate-800">Your directory is ready!</h3>
             <p className="text-slate-500 max-w-md mx-auto mb-6">
-              We'll generate the code to integrate with your Go HighLevel site based on your settings.
+              We'll generate the integration code for your Go HighLevel site based on your settings.
             </p>
             
-            <Button size="lg" className="px-8 py-6 text-base">
+            <Button size="lg" className="px-8 py-6 text-base" onClick={goToNext}>
               Generate Code
             </Button>
+          </div>
+        </WizardStep>
+
+        {/* CSS Selector Code */}
+        <WizardStep 
+          title="CSS Selector Code" 
+          description="Styling instructions for your website"
+        >
+          <div className="space-y-6 py-8">
+            <h2 className="text-lg font-bold text-center mb-4">CSS Selector Code</h2>
+            <p className="text-sm text-slate-600 text-center mb-6">
+              Add this code to your website's CSS file or custom CSS section in your theme settings.
+            </p>
+            
+            <div className="border border-slate-200 rounded-md overflow-hidden">
+              <div className="bg-slate-800 px-4 py-2 flex justify-between items-center">
+                <span className="text-slate-300 text-sm">CSS Selectors</span>
+                <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                  <span className="ml-1">Copy</span>
+                </Button>
+              </div>
+              <div className="bg-slate-900 p-4 text-slate-300 font-mono text-sm overflow-x-auto whitespace-pre">
+{`.ghl-directory-listing {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.ghl-listing-button {
+  background-color: ${previewColor};
+  color: ${previewTextColor};
+  border-radius: ${previewBorderRadius}px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ghl-listing-button:hover {
+  opacity: 0.9;
+}
+
+${showMetadata ? `.ghl-metadata-bar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.5rem;
+  background-color: #f8fafc;
+  border-radius: 0.25rem;
+}
+
+.ghl-metadata-item {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: #e0e7ff;
+  color: #4338ca;
+}` : '/* Metadata bar disabled */'}
+
+${showPrice ? `.ghl-listing-price {
+  font-weight: 600;
+  color: #047857;
+  background-color: #ecfdf5;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}` : '/* Price display disabled */'}
+
+${showDescription ? `.ghl-listing-description {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #475569;
+}` : '/* Extended description disabled */'}
+
+${showMaps ? `.ghl-maps-container {
+  margin-top: 1.5rem;
+  width: 100%;
+  height: 300px;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}` : '/* Maps widget disabled */'}`}
+              </div>
+            </div>
+          </div>
+        </WizardStep>
+        
+        {/* Footer Code */}
+        <WizardStep 
+          title="Footer Code" 
+          description="JavaScript to add to your site footer"
+        >
+          <div className="space-y-6 py-8">
+            <h2 className="text-lg font-bold text-center mb-4">Footer JavaScript Code</h2>
+            <p className="text-sm text-slate-600 text-center mb-6">
+              Add this code before the closing &lt;/body&gt; tag of your website.
+            </p>
+            
+            <div className="border border-slate-200 rounded-md overflow-hidden">
+              <div className="bg-slate-800 px-4 py-2 flex justify-between items-center">
+                <span className="text-slate-300 text-sm">Footer Code</span>
+                <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                  <span className="ml-1">Copy</span>
+                </Button>
+              </div>
+              <div className="bg-slate-900 p-4 text-slate-300 font-mono text-sm overflow-x-auto whitespace-pre">
+{`<script>
+  // GHL Directory Integration - Footer Script
+  document.addEventListener('DOMContentLoaded', function() {
+    // Extract slug from URL
+    const url = new URL(window.location.href);
+    const pathSegments = url.pathname.split('/').filter(Boolean);
+    const slug = pathSegments[pathSegments.length - 1];
+    
+    if (!slug) return;
+    
+    // Add listing slug as hidden field to all forms
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+      const hiddenField = document.createElement('input');
+      hiddenField.type = 'hidden';
+      hiddenField.name = 'listing';
+      hiddenField.value = slug;
+      form.appendChild(hiddenField);
+    });
+    
+    // Add UTM parameters to links
+    const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.href.includes('gohighlevel.com')) {
+        const linkUrl = new URL(link.href);
+        linkUrl.searchParams.set('listing', slug);
+        linkUrl.searchParams.set('utm_source', 'directory');
+        linkUrl.searchParams.set('utm_medium', 'listing');
+        linkUrl.searchParams.set('utm_campaign', slug);
+        link.href = linkUrl.toString();
+      }
+    });
+  });
+</script>`}
+              </div>
+            </div>
+          </div>
+        </WizardStep>
+        
+        {/* Header Code */}
+        <WizardStep 
+          title="Header Code" 
+          description="JavaScript to add to your site header"
+        >
+          <div className="space-y-6 py-8">
+            <h2 className="text-lg font-bold text-center mb-4">Header JavaScript Code</h2>
+            <p className="text-sm text-slate-600 text-center mb-6">
+              Add this code in the &lt;head&gt; section of your website.
+            </p>
+            
+            <div className="border border-slate-200 rounded-md overflow-hidden">
+              <div className="bg-slate-800 px-4 py-2 flex justify-between items-center">
+                <span className="text-slate-300 text-sm">Header Code</span>
+                <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                  <span className="ml-1">Copy</span>
+                </Button>
+              </div>
+              <div className="bg-slate-900 p-4 text-slate-300 font-mono text-sm overflow-x-auto whitespace-pre">
+{`<script>
+  // GHL Directory Integration - Header Script
+  (function() {
+    // Configuration
+    window.GHL_DIRECTORY = {
+      customField: 'listing',
+      tracking: true,
+      autoEmbed: ${selectedOptIn === "embedded-form" ? 'true' : 'false'}
+    };
+    
+    // Create global namespace
+    window.GHLDirectory = {
+      getSlug: function() {
+        const url = new URL(window.location.href);
+        const pathSegments = url.pathname.split('/').filter(Boolean);
+        return pathSegments[pathSegments.length - 1];
+      },
+      
+      addParameter: function(formUrl, key, value) {
+        const url = new URL(formUrl);
+        url.searchParams.set(key, value);
+        return url.toString();
+      }
+    };
+  })();
+</script>`}
+              </div>
+            </div>
+          </div>
+        </WizardStep>
+        
+        {/* Listing Form Embed Code */}
+        <WizardStep 
+          title="Listing Form Embed Code" 
+          description="HTML code for embedding forms"
+        >
+          <div className="space-y-6 py-8">
+            <h2 className="text-lg font-bold text-center mb-4">Listing Form Embed Code</h2>
+            <p className="text-sm text-slate-600 text-center mb-6">
+              Add this code where you want your form to appear on listing pages.
+            </p>
+            
+            <div className="border border-slate-200 rounded-md overflow-hidden">
+              <div className="bg-slate-800 px-4 py-2 flex justify-between items-center">
+                <span className="text-slate-300 text-sm">Form Embed HTML</span>
+                <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                  <span className="ml-1">Copy</span>
+                </Button>
+              </div>
+              <div className="bg-slate-900 p-4 text-slate-300 font-mono text-sm overflow-x-auto whitespace-pre">
+{`<!-- GHL Directory Form Embed -->
+<div class="ghl-form-container">
+  <div class="ghl-form-wrapper" data-form-type="${selectedOptIn === "embedded-form" ? 'embed' : 'popup'}">
+    ${selectedOptIn === "embedded-form" ?
+      `<iframe
+      id="ghl-form-iframe"
+      src=""
+      width="100%"
+      height="600px"
+      frameborder="0"
+      allowfullscreen
+    ></iframe>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const slug = window.GHLDirectory.getSlug();
+        const iframe = document.getElementById('ghl-form-iframe');
+        let formUrl = 'https://forms.gohighlevel.com/your-form-url';
+        
+        if (slug) {
+          formUrl = window.GHLDirectory.addParameter(formUrl, 'listing', slug);
+          formUrl = window.GHLDirectory.addParameter(formUrl, 'utm_source', 'directory');
+          iframe.src = formUrl;
+        }
+      });
+    </script>` :
+      `<button class="ghl-listing-button" onclick="openGhlForm()">
+      ${previewButtonText}
+    </button>
+    <script>
+      function openGhlForm() {
+        const slug = window.GHLDirectory.getSlug();
+        let formUrl = 'https://forms.gohighlevel.com/your-form-url';
+        
+        if (slug) {
+          formUrl = window.GHLDirectory.addParameter(formUrl, 'listing', slug);
+          formUrl = window.GHLDirectory.addParameter(formUrl, 'utm_source', 'directory');
+        }
+        
+        window.open(formUrl, '_blank');
+      }
+    </script>`
+    }
+  </div>
+</div>`}
+              </div>
+            </div>
+            
+            <div className="text-center mt-8">
+              <Button size="lg" className="px-8 py-2 text-base">
+                Download All Code
+              </Button>
+            </div>
           </div>
         </WizardStep>
       </ConfigWizard>
