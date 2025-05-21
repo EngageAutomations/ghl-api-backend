@@ -71,14 +71,46 @@ export default function ConfigWizardDemo() {
           title="Directory Settings" 
           description="Name your directory to get started"
         >
-          <div className="space-y-6 py-8">
+          <div className="space-y-8 py-8">
             <h2 className="text-lg font-bold text-center mb-8">Name your Directory to get started</h2>
-            <div className="space-y-3">
+            
+            {/* Directory Name Input */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="directory-name">Directory Name</Label>
               <Input 
                 id="directory-name" 
                 placeholder="My Marketplace Directory"
                 className="text-base py-6"
               />
+              <p className="text-xs text-slate-500">
+                This name will appear in your directory header and browser title
+              </p>
+            </div>
+            
+            {/* Logo Upload Section */}
+            <div className="border-t border-slate-100 pt-8 mt-8">
+              <h3 className="font-medium text-base mb-4">Upload Your Logo</h3>
+              
+              <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-lg p-8 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
+                <div className="mb-4 text-slate-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" x2="22" y1="5" y2="5"/><path d="M19 2v6"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                </div>
+                <p className="text-sm text-slate-600 text-center mb-2">
+                  Drag and drop your logo here, or click to browse
+                </p>
+                <p className="text-xs text-slate-500 text-center">
+                  Supports: PNG, JPG, SVG (Max size: 2MB)
+                </p>
+                <input type="file" className="hidden" id="logo-upload" accept="image/png,image/jpeg,image/svg+xml" />
+                <Button variant="outline" size="sm" onClick={() => document.getElementById('logo-upload')?.click()} className="mt-4">
+                  Select File
+                </Button>
+              </div>
+              
+              <div className="flex items-center space-x-2 mt-4">
+                <Switch id="use-logo" />
+                <Label htmlFor="use-logo" className="text-sm">Display logo in directory header</Label>
+              </div>
             </div>
           </div>
         </WizardStep>
