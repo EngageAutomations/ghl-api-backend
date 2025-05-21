@@ -31,6 +31,13 @@ export default function ConfigWizardDemo() {
   const [previewBorderRadius, setPreviewBorderRadius] = useState(4);
   const [previewButtonText, setPreviewButtonText] = useState("Contact Us");
   
+  // Debug handler for color changes
+  const handleTextColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newColor = e.target.value;
+    console.log("Setting text color to:", newColor);
+    setPreviewTextColor(newColor);
+  };
+  
   // Toggle handlers
   const handleToggleActionButton = (checked: boolean) => {
     if (checked) {
@@ -238,7 +245,7 @@ export default function ConfigWizardDemo() {
                                 id="text-color"
                                 type="color"
                                 value={previewTextColor}
-                                onChange={(e) => setPreviewTextColor(e.target.value)}
+                                onChange={handleTextColorChange}
                                 className="flex-1 rounded-l-none h-10"
                               />
                             </div>
