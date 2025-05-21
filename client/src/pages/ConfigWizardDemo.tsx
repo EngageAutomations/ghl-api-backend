@@ -107,10 +107,7 @@ export default function ConfigWizardDemo() {
                 </Button>
               </div>
               
-              <div className="flex items-center space-x-2 mt-4">
-                <Switch id="use-logo" />
-                <Label htmlFor="use-logo" className="text-sm">Display logo in directory header</Label>
-              </div>
+
             </div>
           </div>
         </WizardStep>
