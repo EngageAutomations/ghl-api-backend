@@ -394,6 +394,119 @@ export default function ConfigWizardDemo() {
         </WizardStep>
         
         <WizardStep 
+          title="Listing Components" 
+          description="Configure which components to display on listing pages"
+        >
+          <div className="space-y-6 py-8">
+            <h2 className="text-lg font-bold text-center mb-8">Configure Listing Components</h2>
+            
+            <div className="space-y-6 max-w-2xl mx-auto">
+              <p className="text-sm text-slate-600 text-center mb-6">
+                Choose which components to display on your listing pages
+              </p>
+              
+              {/* Component Toggle Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Listing Price */}
+                <div className="border border-slate-200 rounded-lg p-4 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-blue-50 p-2 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium">Listing Price</h3>
+                        <p className="text-xs text-slate-500">Display product pricing information</p>
+                      </div>
+                    </div>
+                    <Switch defaultChecked id="show-price" />
+                  </div>
+                </div>
+                
+                {/* Expanded Description */}
+                <div className="border border-slate-200 rounded-lg p-4 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-indigo-50 p-2 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><line x1="21" x2="3" y1="6" y2="6" /><line x1="15" x2="3" y1="12" y2="12" /><line x1="17" x2="3" y1="18" y2="18" /></svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium">Expanded Description</h3>
+                        <p className="text-xs text-slate-500">Show detailed product descriptions</p>
+                      </div>
+                    </div>
+                    <Switch defaultChecked id="show-expanded-description" />
+                  </div>
+                </div>
+                
+                {/* Google Maps Widget */}
+                <div className="border border-slate-200 rounded-lg p-4 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-green-50 p-2 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium">Google Maps Widget</h3>
+                        <p className="text-xs text-slate-500">Display location on an interactive map</p>
+                      </div>
+                    </div>
+                    <Switch defaultChecked id="show-google-maps" />
+                  </div>
+                </div>
+                
+                {/* Metadata Bar */}
+                <div className="border border-slate-200 rounded-lg p-4 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-amber-50 p-2 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><path d="M3 9h18" /><path d="M9 21V9" /></svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium">Metadata Bar</h3>
+                        <p className="text-xs text-slate-500">Show listing categories and tags</p>
+                      </div>
+                    </div>
+                    <Switch defaultChecked id="show-metadata" />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Component Preview */}
+              <div className="border border-slate-200 rounded-md p-6 bg-slate-50 mt-8">
+                <h3 className="text-sm font-medium mb-4">Component Preview</h3>
+                <div className="border border-dashed border-slate-300 p-4 rounded bg-white">
+                  <div className="space-y-4">
+                    {/* Metadata Bar Preview */}
+                    <div className="bg-slate-100 px-3 py-2 rounded-sm flex gap-2 flex-wrap">
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Software</span>
+                      <span className="text-xs bg-slate-200 text-slate-800 px-2 py-0.5 rounded">Premium</span>
+                      <span className="text-xs bg-slate-200 text-slate-800 px-2 py-0.5 rounded">Cloud-based</span>
+                    </div>
+                    
+                    {/* Product Title & Price */}
+                    <div className="flex justify-between items-start">
+                      <h4 className="text-base font-medium">Product Name Example</h4>
+                      <div className="bg-green-50 text-green-700 px-2 py-1 rounded text-sm font-medium">$99.00</div>
+                    </div>
+                    
+                    {/* Expanded Description Preview */}
+                    <div className="text-sm text-slate-600">
+                      <p>This is where the expanded product description would appear, providing detailed information about features, benefits, and specifications.</p>
+                    </div>
+                    
+                    {/* Google Maps Widget Preview */}
+                    <div className="bg-slate-200 rounded w-full h-20 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </WizardStep>
+        
+        <WizardStep 
           title="Tracking Field" 
           description="Enter the name of your tracking field in Go HighLevel"
         >
