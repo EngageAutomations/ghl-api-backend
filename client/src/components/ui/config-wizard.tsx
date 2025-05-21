@@ -18,9 +18,9 @@ interface WizardStepProps {
 
 export function WizardStep({ title, description, children }: WizardStepProps) {
   return (
-    <Card className="w-full">
-      <CardContent className="p-8">{children}</CardContent>
-    </Card>
+    <div className="w-full bg-white p-8 rounded-lg border border-slate-100 shadow-sm">
+      {children}
+    </div>
   );
 }
 
