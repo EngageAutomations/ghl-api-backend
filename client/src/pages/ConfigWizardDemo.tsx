@@ -581,53 +581,7 @@ export default function ConfigWizardDemo() {
           </div>
         </WizardStep>
         
-        <WizardStep 
-          title="Tracking Field" 
-          description="Enter the name of your tracking field in Go HighLevel"
-        >
-          <div className="space-y-6 py-8">
-            <h2 className="text-lg font-bold text-center mb-8">Set up Go HighLevel tracking</h2>
-            
-            <div className="space-y-8">
-              {/* GHL Tracking Field */}
-              <div className="space-y-2">
-                <Label htmlFor="custom-field-name">Custom Field Name</Label>
-                <Input 
-                  id="custom-field-name" 
-                  placeholder="listing"
-                  defaultValue="listing"
-                  className="flex-1"
-                />
-                <p className="text-xs text-slate-500">
-                  This must match exactly the custom field name in your Go HighLevel account
-                </p>
-              </div>
-              
-              {/* Integration Instructions */}
-              <div className="border border-slate-200 rounded-md p-6 bg-amber-50/30">
-                <h3 className="text-sm font-medium mb-2">Important Integration Steps:</h3>
-                <ol className="text-sm space-y-2 ml-5 list-decimal text-slate-700">
-                  <li>Create a custom field in Go HighLevel with the name <span className="font-mono bg-slate-100 px-1 rounded">listing</span></li>
-                  <li>Enable "Capture URL Parameters" in GHL form settings</li>
-                  <li>The parameter will automatically be passed to your form</li>
-                </ol>
-              </div>
-              
-              {/* Parameter Preview */}
-              <div className="border border-slate-200 rounded-md p-6 bg-slate-50">
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium">Parameter Preview:</h3>
-                  <div className="bg-slate-100 p-3 rounded font-mono text-xs overflow-x-auto">
-                    <div className="text-slate-600">https://forms.gohighlevel.com/your-form?<span className="text-green-600 font-bold">listing</span>=product-slug&utm_source=directory</div>
-                  </div>
-                  <p className="text-xs text-slate-500">
-                    This is how parameters will appear in your form URLs
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </WizardStep>
+        {/* Tracking Field step removed as requested */}
         
         <WizardStep 
           title="Generate Code" 
