@@ -18,7 +18,7 @@ interface WizardStepProps {
 
 export function WizardStep({ title, description, children }: WizardStepProps) {
   return (
-    <div className="w-full bg-white p-8 rounded-lg border border-slate-100 shadow-sm">
+    <div className="w-full bg-white p-8 rounded-lg border border-slate-100 shadow-sm overflow-y-auto" style={{ minHeight: "500px" }}>
       {children}
     </div>
   );
