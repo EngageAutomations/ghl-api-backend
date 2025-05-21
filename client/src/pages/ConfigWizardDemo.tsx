@@ -215,64 +215,66 @@ export default function ConfigWizardDemo() {
                           />
                         </div>
                         
-                        {/* Color pickers grid */}
-                        <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-                          {/* Button Color */}
-                          <div className="space-y-2">
-                            <Label htmlFor="button-color">Button Color</Label>
-                            <div className="flex rounded-md">
-                              <div 
-                                className="w-8 h-8 rounded-l-md border border-r-0 border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer"
-                                onClick={() => document.getElementById('button-color')?.click()}
-                              >
-                                <div className="w-full h-full" style={{ backgroundColor: previewColor }}></div>
+                        {/* Unified Style Controls */}
+                        <div className="grid grid-cols-3 gap-6">
+                          <div className="col-span-1 space-y-4">
+                            {/* Button Color */}
+                            <div>
+                              <div className="flex items-center mb-1.5">
+                                <div 
+                                  className="w-5 h-5 rounded border border-slate-300 mr-2 cursor-pointer overflow-hidden"
+                                  onClick={() => document.getElementById('button-color')?.click()}
+                                >
+                                  <div className="w-full h-full" style={{ backgroundColor: previewColor }}></div>
+                                </div>
+                                <Label htmlFor="button-color" className="text-sm">Button Color</Label>
+                                <Input
+                                  id="button-color"
+                                  type="color"
+                                  value={previewColor}
+                                  onChange={(e) => setPreviewColor(e.target.value)}
+                                  className="w-0 h-0 opacity-0 absolute"
+                                />
                               </div>
-                              <Input
-                                id="button-color"
-                                type="color"
-                                value={previewColor}
-                                onChange={(e) => setPreviewColor(e.target.value)}
-                                className="flex-1 rounded-l-none h-10"
-                              />
+                            </div>
+                            
+                            {/* Text Color */}
+                            <div>
+                              <div className="flex items-center mb-1.5">
+                                <div 
+                                  className="w-5 h-5 rounded border border-slate-300 mr-2 cursor-pointer overflow-hidden"
+                                  onClick={() => document.getElementById('text-color')?.click()}
+                                >
+                                  <div className="w-full h-full" style={{ backgroundColor: previewTextColor }}></div>
+                                </div>
+                                <Label htmlFor="text-color" className="text-sm">Text Color</Label>
+                                <Input
+                                  id="text-color"
+                                  type="color"
+                                  value={previewTextColor}
+                                  onChange={handleTextColorChange}
+                                  className="w-0 h-0 opacity-0 absolute"
+                                />
+                              </div>
                             </div>
                           </div>
                           
-                          {/* Text Color */}
-                          <div className="space-y-2">
-                            <Label htmlFor="text-color">Text Color</Label>
-                            <div className="flex rounded-md">
-                              <div 
-                                className="w-8 h-8 rounded-l-md border border-r-0 border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer"
-                                onClick={() => document.getElementById('text-color')?.click()}
-                              >
-                                <div className="w-full h-full" style={{ backgroundColor: previewTextColor }}></div>
-                              </div>
-                              <Input
-                                id="text-color"
-                                type="color"
-                                value={previewTextColor}
-                                onChange={handleTextColorChange}
-                                className="flex-1 rounded-l-none h-10"
-                              />
+                          {/* Border Radius Slider */}
+                          <div className="col-span-2">
+                            <div className="flex justify-between items-center mb-1.5">
+                              <Label htmlFor="border-radius" className="text-sm">Border Radius</Label>
+                              <span className="text-xs text-slate-500">{previewBorderRadius}px</span>
                             </div>
+                            <input
+                              id="border-radius"
+                              type="range"
+                              min="0"
+                              max="24"
+                              value={previewBorderRadius}
+                              onChange={(e) => setPreviewBorderRadius(parseInt(e.target.value))}
+                              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                            />
                           </div>
-                        </div>
-                        
-                        {/* Border Radius Slider */}
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <Label htmlFor="border-radius">Border Radius</Label>
-                            <span className="text-xs text-slate-500">{previewBorderRadius}px</span>
-                          </div>
-                          <input
-                            id="border-radius"
-                            type="range"
-                            min="0"
-                            max="24"
-                            value={previewBorderRadius}
-                            onChange={(e) => setPreviewBorderRadius(parseInt(e.target.value))}
-                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-                          />
                         </div>
                       </div>
                     </div>
