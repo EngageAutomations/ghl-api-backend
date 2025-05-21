@@ -220,7 +220,7 @@ export default function ConfigWizardDemo() {
                           <div className="grid grid-cols-4 gap-3">
                             {/* Color Options - Takes up 25% of the space */}
                             <div className="col-span-1 space-y-4 pr-3">
-                              <h4 className="text-xs font-medium text-slate-500 uppercase mb-2">Colors</h4>
+                              {/* Removed Colors title as requested */}
                               {/* Button Color */}
                               <div>
                                 <div className="flex items-center justify-between mb-1.5">
@@ -268,7 +268,7 @@ export default function ConfigWizardDemo() {
                             {/* Border Radius Slider - Takes up remaining space */}
                             <div className="col-span-2 pl-0 flex flex-col justify-center">
                               <div className="max-w-xs mx-auto w-full -ml-4">
-                                <h4 className="text-xs font-medium text-slate-500 uppercase mb-2 text-center">Shape</h4>
+                                {/* Removed Shape title as requested */}
                                 <div className="flex justify-between items-center mb-1.5">
                                   <Label htmlFor="border-radius" className="text-sm">Border Radius</Label>
                                   <span className="text-xs text-slate-500">{previewBorderRadius}px</span>
