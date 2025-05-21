@@ -79,7 +79,7 @@ export default function ConfigWizardDemo() {
               <Accordion 
                 type="single" 
                 collapsible 
-                className="w-full border rounded-md space-y-5"
+                className="w-full space-y-5"
                 value={expandedSection}
                 onValueChange={setExpandedSection}
               >
