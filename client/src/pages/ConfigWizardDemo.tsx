@@ -39,6 +39,7 @@ export default function ConfigWizardDemo() {
   const [previewTextColor, setPreviewTextColor] = useState("#FFFFFF");
   const [previewBorderRadius, setPreviewBorderRadius] = useState(4);
   const [previewButtonText, setPreviewButtonText] = useState("Contact Us");
+  const [buttonUrl, setButtonUrl] = useState("https://forms.gohighlevel.com/form?product={product_name}");
   
   // Debug handler for color changes
   const handleTextColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,7 +179,12 @@ export default function ConfigWizardDemo() {
                         
                         <div className="space-y-2">
                           <Label htmlFor="button-text">Button Text</Label>
-                          <Input id="button-text" placeholder="Contact Us" defaultValue="Contact Us" />
+                          <Input 
+                            id="button-text" 
+                            placeholder="Contact Us" 
+                            value={previewButtonText}
+                            onChange={(e) => setPreviewButtonText(e.target.value)}
+                          />
                           <p className="text-xs text-slate-500">
                             Text displayed on the button
                           </p>
@@ -196,6 +202,8 @@ export default function ConfigWizardDemo() {
                               <Input 
                                 id="popup-url"
                                 placeholder="https://forms.gohighlevel.com/form?product={product_name}"
+                                value={buttonUrl}
+                                onChange={(e) => setButtonUrl(e.target.value)}
                                 className="flex-1"
                               />
                             </div>
@@ -249,7 +257,7 @@ export default function ConfigWizardDemo() {
                         <Label>Button Preview</Label>
                         <div className="border border-slate-200 rounded-md p-6 bg-slate-50 flex justify-center">
                           <div 
-                            className="py-2 px-4 inline-flex items-center justify-center text-sm font-medium"
+                            className="py-2 px-4 inline-flex items-center justify-center text-sm font-medium ghl-action-button"
                             style={{ 
                               backgroundColor: previewColor,
                               color: previewTextColor,
