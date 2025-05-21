@@ -223,14 +223,14 @@ export default function ConfigWizardDemo() {
                               <h4 className="text-xs font-medium text-slate-500 uppercase mb-2">Colors</h4>
                               {/* Button Color */}
                               <div>
-                                <div className="flex items-center mb-1.5">
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <Label htmlFor="button-color" className="text-sm">Button Color</Label>
                                   <div 
-                                    className="w-5 h-5 rounded border border-slate-300 mr-2 cursor-pointer overflow-hidden"
+                                    className="w-5 h-5 rounded border border-slate-300 cursor-pointer overflow-hidden"
                                     onClick={() => document.getElementById('button-color')?.click()}
                                   >
                                     <div className="w-full h-full" style={{ backgroundColor: previewColor }}></div>
                                   </div>
-                                  <Label htmlFor="button-color" className="text-sm">Button Color</Label>
                                   <Input
                                     id="button-color"
                                     type="color"
@@ -243,14 +243,14 @@ export default function ConfigWizardDemo() {
                               
                               {/* Text Color */}
                               <div>
-                                <div className="flex items-center mb-1.5">
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <Label htmlFor="text-color" className="text-sm">Text Color</Label>
                                   <div 
-                                    className="w-5 h-5 rounded border border-slate-300 mr-2 cursor-pointer overflow-hidden"
+                                    className="w-5 h-5 rounded border border-slate-300 cursor-pointer overflow-hidden"
                                     onClick={() => document.getElementById('text-color')?.click()}
                                   >
                                     <div className="w-full h-full" style={{ backgroundColor: previewTextColor }}></div>
                                   </div>
-                                  <Label htmlFor="text-color" className="text-sm">Text Color</Label>
                                   <Input
                                     id="text-color"
                                     type="color"
@@ -265,7 +265,7 @@ export default function ConfigWizardDemo() {
                             {/* Divider - Closer to color options */}
                             <div className="w-px bg-slate-200 h-full"></div>
                             
-                            {/* Border Radius Slider - Takes up more space */}
+                            {/* Border Radius Slider - Takes up remaining space */}
                             <div className="col-span-2 pl-3">
                               <h4 className="text-xs font-medium text-slate-500 uppercase mb-2">Shape</h4>
                               <div className="flex justify-between items-center mb-1.5">
