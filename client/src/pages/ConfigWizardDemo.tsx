@@ -576,36 +576,7 @@ export default function ConfigWizardDemo() {
                 </div>
               )}
               
-              {/* Component Preview */}
-              <div className="border border-slate-200 rounded-md p-6 bg-slate-50 mt-8">
-                <h3 className="text-sm font-medium mb-4">Component Preview</h3>
-                <div className="border border-dashed border-slate-300 p-4 rounded bg-white">
-                  <div className="space-y-4">
-                    {/* Metadata Bar Preview */}
-                    <div className="bg-slate-100 px-3 py-2 rounded-sm flex gap-2 flex-wrap">
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Software</span>
-                      <span className="text-xs bg-slate-200 text-slate-800 px-2 py-0.5 rounded">Premium</span>
-                      <span className="text-xs bg-slate-200 text-slate-800 px-2 py-0.5 rounded">Cloud-based</span>
-                    </div>
-                    
-                    {/* Product Title & Price */}
-                    <div className="flex justify-between items-start">
-                      <h4 className="text-base font-medium">Product Name Example</h4>
-                      <div className="bg-green-50 text-green-700 px-2 py-1 rounded text-sm font-medium">$99.00</div>
-                    </div>
-                    
-                    {/* Expanded Description Preview */}
-                    <div className="text-sm text-slate-600">
-                      <p>This is where the expanded product description would appear, providing detailed information about features, benefits, and specifications.</p>
-                    </div>
-                    
-                    {/* Google Maps Widget Preview */}
-                    <div className="bg-slate-200 rounded w-full h-20 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Component Preview removed as requested */}
             </div>
           </div>
         </WizardStep>
