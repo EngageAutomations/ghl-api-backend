@@ -851,6 +851,7 @@ ${selectedOptIn === "action-button" ? `/* -------------------------------------
   text-decoration: none;
   margin-top: 1rem;
   transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 
 .ghl-action-button:hover {
@@ -871,6 +872,109 @@ ${selectedOptIn === "action-button" ? `/* -------------------------------------
 
 .ghl-action-button[data-listing]:hover::after {
   transform: translateX(3px);
+}
+
+/* Action Button JavaScript (via ::before pseudo content hack) - This runs onload */
+.ghl-action-button::before {
+  content: "";
+  display: none;
+}
+
+/* The script will add this attribute */
+.ghl-action-button[data-js-loaded]::before {
+  display: none;
+}
+
+@-webkit-keyframes actionButtonInit {
+  from { opacity: 0.01; }
+  to { opacity: 0.011; }  /* Tiny change to trigger rendering but remain invisible */
+}
+
+/* 
+JavaScript embedded in CSS for action buttons - using animation name hack:
+This attaches event handlers to all action buttons on the page.
+*/
+.ghl-action-button:not([data-js-loaded]) {
+  -webkit-animation-name: actionButtonInit;
+  -webkit-animation-duration: 0.001s;
+  -webkit-animation-iteration-count: 1;
+  -webkit-animation-timing-function: ease;
+  -webkit-animation-delay: 0s;
+  -webkit-animation-fill-mode: forwards;
+}
+
+/* Add script to head when animation fires */
+@-webkit-keyframes actionButtonInit {
+  from {
+    /* This is executed when animation starts */
+  }
+  to {
+    /* This is executed when animation ends, where we inject our code */
+    background-image: url("data:image/svg+xml;charset=utf8,<svg xmlns='http://www.w3.org/2000/svg' onload=\\"
+      (function() {
+        /* Mark all action buttons as having JS loaded */
+        document.querySelectorAll('.ghl-action-button').forEach(btn => {
+          btn.setAttribute('data-js-loaded', 'true');
+          
+          /* Extract the listing slug */
+          const getSlug = function() {
+            const url = new URL(window.location.href);
+            const pathSegments = url.pathname.split('/').filter(Boolean);
+            return pathSegments[pathSegments.length - 1] || url.searchParams.get('listing') || '';
+          };
+          
+          /* Get custom field name from global config or use default */
+          const getFieldName = function() {
+            return (window.GHL_DIRECTORY && window.GHL_DIRECTORY.customField) ? 
+              window.GHL_DIRECTORY.customField : '${customFieldName}';
+          };
+          
+          /* Get the slug and mark button */
+          const slug = getSlug();
+          const fieldName = getFieldName();
+          
+          if (slug) {
+            btn.setAttribute('data-listing', slug);
+            
+            /* Set up URL with tracking if it's a link */
+            if (btn.tagName === 'A' && btn.href) {
+              try {
+                const url = new URL(btn.href);
+                url.searchParams.set('utm_source', 'directory');
+                url.searchParams.set('utm_medium', 'action_button');
+                url.searchParams.set('utm_campaign', slug);
+                url.searchParams.set(fieldName, slug);
+                btn.href = url.toString();
+              } catch(e) { console.error('Error processing button URL', e); }
+            }
+            
+            /* Handle click for non-link buttons */
+            if (btn.tagName !== 'A') {
+              btn.addEventListener('click', function(e) {
+                /* Check for data-url attribute */
+                const targetUrl = btn.getAttribute('data-url');
+                if (targetUrl) {
+                  e.preventDefault();
+                  
+                  try {
+                    const url = new URL(targetUrl);
+                    url.searchParams.set(fieldName, slug);
+                    window.location.href = url.toString();
+                  } catch(e) {
+                    console.error('Error handling button click', e);
+                    /* Fallback */
+                    window.location.href = targetUrl + 
+                      (targetUrl.includes('?') ? '&' : '?') + 
+                      fieldName + '=' + slug;
+                  }
+                }
+              });
+            }
+          }
+        });
+      })()
+    \\" style='display:none'></svg>");
+  }
 }` : '/* Action button disabled */'}
 
 ${buttonType === "download" ? `/* -------------------------------------
