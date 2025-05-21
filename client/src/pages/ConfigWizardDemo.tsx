@@ -269,19 +269,21 @@ export default function ConfigWizardDemo() {
                             <div className="col-span-2 flex flex-col justify-center">
                               <div className="max-w-xs mx-auto w-full ml-2.5">
                                 {/* Removed Shape title as requested */}
-                                <div className="flex justify-between items-center mb-1.5">
-                                  <Label htmlFor="border-radius" className="text-sm">Border Radius</Label>
-                                  <span className="text-xs text-slate-500">{previewBorderRadius}px</span>
+                                <div className="flex items-center space-x-3">
+                                  <Label htmlFor="border-radius" className="text-sm whitespace-nowrap">Border Radius</Label>
+                                  <div className="flex-1">
+                                    <input
+                                      id="border-radius"
+                                      type="range"
+                                      min="0"
+                                      max="24"
+                                      value={previewBorderRadius}
+                                      onChange={(e) => setPreviewBorderRadius(parseInt(e.target.value))}
+                                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                  </div>
+                                  <span className="text-xs text-slate-500 whitespace-nowrap">{previewBorderRadius}px</span>
                                 </div>
-                                <input
-                                  id="border-radius"
-                                  type="range"
-                                  min="0"
-                                  max="24"
-                                  value={previewBorderRadius}
-                                  onChange={(e) => setPreviewBorderRadius(parseInt(e.target.value))}
-                                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-                                />
                               </div>
                             </div>
                           </div>
