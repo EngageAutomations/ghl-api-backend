@@ -266,21 +266,23 @@ export default function ConfigWizardDemo() {
                             <div className="w-px bg-slate-200 h-full"></div>
                             
                             {/* Border Radius Slider - Takes up remaining space */}
-                            <div className="col-span-2 pl-3">
-                              <h4 className="text-xs font-medium text-slate-500 uppercase mb-2">Shape</h4>
-                              <div className="flex justify-between items-center mb-1.5">
-                                <Label htmlFor="border-radius" className="text-sm">Border Radius</Label>
-                                <span className="text-xs text-slate-500">{previewBorderRadius}px</span>
+                            <div className="col-span-2 pl-3 flex flex-col justify-center">
+                              <div className="max-w-xs mx-auto w-full">
+                                <h4 className="text-xs font-medium text-slate-500 uppercase mb-2 text-center">Shape</h4>
+                                <div className="flex justify-between items-center mb-1.5">
+                                  <Label htmlFor="border-radius" className="text-sm">Border Radius</Label>
+                                  <span className="text-xs text-slate-500">{previewBorderRadius}px</span>
+                                </div>
+                                <input
+                                  id="border-radius"
+                                  type="range"
+                                  min="0"
+                                  max="24"
+                                  value={previewBorderRadius}
+                                  onChange={(e) => setPreviewBorderRadius(parseInt(e.target.value))}
+                                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                                />
                               </div>
-                              <input
-                                id="border-radius"
-                                type="range"
-                                min="0"
-                                max="24"
-                                value={previewBorderRadius}
-                                onChange={(e) => setPreviewBorderRadius(parseInt(e.target.value))}
-                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-                              />
                             </div>
                           </div>
                         </div>
