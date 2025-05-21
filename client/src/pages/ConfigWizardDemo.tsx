@@ -221,7 +221,10 @@ export default function ConfigWizardDemo() {
                           <div className="space-y-2">
                             <Label htmlFor="button-color">Button Color</Label>
                             <div className="flex rounded-md">
-                              <div className="w-8 h-8 rounded-l-md border border-r-0 border-slate-300 flex items-center justify-center overflow-hidden">
+                              <div 
+                                className="w-8 h-8 rounded-l-md border border-r-0 border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer"
+                                onClick={() => document.getElementById('button-color')?.click()}
+                              >
                                 <div className="w-full h-full" style={{ backgroundColor: previewColor }}></div>
                               </div>
                               <Input
@@ -238,7 +241,10 @@ export default function ConfigWizardDemo() {
                           <div className="space-y-2">
                             <Label htmlFor="text-color">Text Color</Label>
                             <div className="flex rounded-md">
-                              <div className="w-8 h-8 rounded-l-md border border-r-0 border-slate-300 flex items-center justify-center overflow-hidden">
+                              <div 
+                                className="w-8 h-8 rounded-l-md border border-r-0 border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer"
+                                onClick={() => document.getElementById('text-color')?.click()}
+                              >
                                 <div className="w-full h-full" style={{ backgroundColor: previewTextColor }}></div>
                               </div>
                               <Input
