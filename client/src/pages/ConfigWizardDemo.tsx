@@ -149,23 +149,48 @@ export default function ConfigWizardDemo() {
                       
                       {/* URL Configuration - conditional based on button type */}
                       {(buttonType === "popup" || buttonType === "url") && (
-                        <div className="space-y-2">
-                          <Label htmlFor="popup-url">
-                            {buttonType === "popup" ? "Popup URL" : "Link URL"}
-                          </Label>
-                          <div className="flex rounded-md">
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="popup-url">
+                              {buttonType === "popup" ? "Popup URL" : "Link URL"}
+                            </Label>
+                            <div className="flex rounded-md">
+                              <Input 
+                                id="popup-url"
+                                placeholder="https://forms.gohighlevel.com/form?product={product_name}"
+                                className="flex-1"
+                              />
+                            </div>
+                            <p className="text-xs text-slate-500">
+                              {buttonType === "popup" 
+                                ? "This URL will be loaded in a popup window." 
+                                : "This URL will open in a new tab."}
+                              {" "}Use {"{product_name}"} to insert the product name for tracking.
+                            </p>
+                          </div>
+                          
+                          {/* Custom Field for GHL Integration */}
+                          <div className="space-y-2 pt-2 border-t border-slate-100">
+                            <Label htmlFor="custom-field-name-url">Tracking Field Name</Label>
                             <Input 
-                              id="popup-url"
-                              placeholder="https://forms.gohighlevel.com/form?product={product_name}"
+                              id="custom-field-name-url" 
+                              placeholder="listing"
+                              defaultValue="listing"
                               className="flex-1"
                             />
+                            <p className="text-xs text-slate-500">
+                              Create this custom field in Go HighLevel and add it as a hidden field in your form. 
+                              This allows form submissions to have listing information attached.
+                            </p>
+                            
+                            <div className="mt-3 p-3 bg-blue-50 rounded-md border border-blue-100">
+                              <p className="text-xs text-blue-800">
+                                <span className="font-medium">Important:</span> This field must be created in your Go HighLevel account 
+                                before it can be used for tracking. The field will automatically be populated with the 
+                                listing slug when visitors submit the form.
+                              </p>
+                            </div>
                           </div>
-                          <p className="text-xs text-slate-500">
-                            {buttonType === "popup" 
-                              ? "This URL will be loaded in a popup window." 
-                              : "This URL will open in a new tab."}
-                            {" "}Use {"{product_name}"} to insert the product name for tracking.
-                          </p>
                         </div>
                       )}
                       
