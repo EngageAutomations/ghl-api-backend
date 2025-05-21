@@ -25,6 +25,12 @@ export default function ConfigWizardDemo() {
   const [expandedSection, setExpandedSection] = useState<string | undefined>(undefined);
   const [buttonType, setButtonType] = useState<string>("popup");
   
+  // Component visibility state
+  const [showPrice, setShowPrice] = useState(true);
+  const [showDescription, setShowDescription] = useState(true);
+  const [showMaps, setShowMaps] = useState(true);
+  const [showMetadata, setShowMetadata] = useState(true);
+  
   // Button preview state
   const [previewColor, setPreviewColor] = useState("#4F46E5");
   const [previewTextColor, setPreviewTextColor] = useState("#FFFFFF");
@@ -419,7 +425,11 @@ export default function ConfigWizardDemo() {
                         <p className="text-xs text-slate-500">Display product pricing information</p>
                       </div>
                     </div>
-                    <Switch defaultChecked id="show-price" />
+                    <Switch 
+                      checked={showPrice}
+                      onCheckedChange={setShowPrice}
+                      id="show-price" 
+                    />
                   </div>
                 </div>
                 
@@ -435,7 +445,11 @@ export default function ConfigWizardDemo() {
                         <p className="text-xs text-slate-500">Show detailed product descriptions</p>
                       </div>
                     </div>
-                    <Switch defaultChecked id="show-expanded-description" />
+                    <Switch 
+                      checked={showDescription}
+                      onCheckedChange={setShowDescription}
+                      id="show-expanded-description" 
+                    />
                   </div>
                 </div>
                 
@@ -451,7 +465,11 @@ export default function ConfigWizardDemo() {
                         <p className="text-xs text-slate-500">Display location on an interactive map</p>
                       </div>
                     </div>
-                    <Switch defaultChecked id="show-google-maps" />
+                    <Switch 
+                      checked={showMaps}
+                      onCheckedChange={setShowMaps}
+                      id="show-google-maps" 
+                    />
                   </div>
                 </div>
                 
@@ -467,90 +485,96 @@ export default function ConfigWizardDemo() {
                         <p className="text-xs text-slate-500">Show listing categories and tags</p>
                       </div>
                     </div>
-                    <Switch defaultChecked id="show-metadata" />
-                  </div>
-                  
-                  {/* Metadata Configuration (visible when toggled on) */}
-                  <div className="mt-4 pt-4 border-t border-slate-100">
-                    <div className="space-y-4">
-                      <h4 className="text-xs font-medium text-slate-600">Metadata Configuration</h4>
-                      <p className="text-xs text-slate-500">Add up to 5 metadata items to display for each listing</p>
-                      
-                      {/* Metadata Item 1 */}
-                      <div className="border border-slate-200 rounded p-3 bg-slate-50">
-                        <div className="grid grid-cols-8 gap-3">
-                          <div className="col-span-2">
-                            <Label htmlFor="meta-icon-1" className="text-xs block mb-1.5">Icon</Label>
-                            <div className="flex items-center justify-center h-10 bg-white border border-slate-200 rounded cursor-pointer">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7" /><line x1="16" x2="22" y1="5" y2="5" /><line x1="19" x2="19" y1="2" y2="8" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
-                              <Input 
-                                id="meta-icon-1" 
-                                type="file" 
-                                accept="image/png" 
-                                className="hidden"
-                              />
-                            </div>
-                          </div>
-                          <div className="col-span-5">
-                            <Label htmlFor="meta-name-1" className="text-xs block mb-1.5">Name</Label>
-                            <Input
-                              id="meta-name-1"
-                              placeholder="e.g. Category, Version, etc."
-                              className="h-10"
-                            />
-                          </div>
-                          <div className="col-span-1 flex items-end">
-                            <Button variant="ghost" size="sm" className="px-2 h-10 w-full">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Metadata Item 2 */}
-                      <div className="border border-slate-200 rounded p-3 bg-slate-50">
-                        <div className="grid grid-cols-8 gap-3">
-                          <div className="col-span-2">
-                            <Label htmlFor="meta-icon-2" className="text-xs block mb-1.5">Icon</Label>
-                            <div className="flex items-center justify-center h-10 bg-white border border-slate-200 rounded cursor-pointer">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7" /><line x1="16" x2="22" y1="5" y2="5" /><line x1="19" x2="19" y1="2" y2="8" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
-                              <Input 
-                                id="meta-icon-2" 
-                                type="file" 
-                                accept="image/png" 
-                                className="hidden"
-                              />
-                            </div>
-                          </div>
-                          <div className="col-span-5">
-                            <Label htmlFor="meta-name-2" className="text-xs block mb-1.5">Name</Label>
-                            <Input
-                              id="meta-name-2"
-                              placeholder="e.g. Category, Version, etc."
-                              className="h-10"
-                            />
-                          </div>
-                          <div className="col-span-1 flex items-end">
-                            <Button variant="ghost" size="sm" className="px-2 h-10 w-full">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Add More Metadata Button */}
-                      <Button variant="outline" size="sm" className="w-full mt-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
-                        Add More Metadata
-                      </Button>
-                      
-                      <p className="text-xs text-slate-500 mt-2">
-                        You can add up to 5 metadata items for your listings
-                      </p>
-                    </div>
+                    <Switch 
+                      checked={showMetadata}
+                      onCheckedChange={setShowMetadata}
+                      id="show-metadata" 
+                    />
                   </div>
                 </div>
               </div>
+              
+              {/* Metadata Configuration Section - Only visible when metadata toggle is on */}
+              {showMetadata && (
+                <div className="border border-slate-200 rounded-lg p-6 bg-white mt-6">
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium text-slate-700">Metadata Configuration</h4>
+                    <p className="text-xs text-slate-500">Add up to 5 metadata items to display for each listing</p>
+                    
+                    {/* Metadata Item 1 */}
+                    <div className="border border-slate-200 rounded p-3 bg-slate-50">
+                      <div className="grid grid-cols-8 gap-3">
+                        <div className="col-span-2">
+                          <Label htmlFor="meta-icon-1" className="text-xs block mb-1.5">Icon</Label>
+                          <div className="flex items-center justify-center h-10 bg-white border border-slate-200 rounded cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7" /><line x1="16" x2="22" y1="5" y2="5" /><line x1="19" x2="19" y1="2" y2="8" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
+                            <Input 
+                              id="meta-icon-1" 
+                              type="file" 
+                              accept="image/png" 
+                              className="hidden"
+                            />
+                          </div>
+                        </div>
+                        <div className="col-span-5">
+                          <Label htmlFor="meta-name-1" className="text-xs block mb-1.5">Name</Label>
+                          <Input
+                            id="meta-name-1"
+                            placeholder="e.g. Category, Version, etc."
+                            className="h-10"
+                          />
+                        </div>
+                        <div className="col-span-1 flex items-end">
+                          <Button variant="ghost" size="sm" className="px-2 h-10 w-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Metadata Item 2 */}
+                    <div className="border border-slate-200 rounded p-3 bg-slate-50">
+                      <div className="grid grid-cols-8 gap-3">
+                        <div className="col-span-2">
+                          <Label htmlFor="meta-icon-2" className="text-xs block mb-1.5">Icon</Label>
+                          <div className="flex items-center justify-center h-10 bg-white border border-slate-200 rounded cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7" /><line x1="16" x2="22" y1="5" y2="5" /><line x1="19" x2="19" y1="2" y2="8" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
+                            <Input 
+                              id="meta-icon-2" 
+                              type="file" 
+                              accept="image/png" 
+                              className="hidden"
+                            />
+                          </div>
+                        </div>
+                        <div className="col-span-5">
+                          <Label htmlFor="meta-name-2" className="text-xs block mb-1.5">Name</Label>
+                          <Input
+                            id="meta-name-2"
+                            placeholder="e.g. Category, Version, etc."
+                            className="h-10"
+                          />
+                        </div>
+                        <div className="col-span-1 flex items-end">
+                          <Button variant="ghost" size="sm" className="px-2 h-10 w-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Add More Metadata Button */}
+                    <Button variant="outline" size="sm" className="w-full mt-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+                      Add More Metadata
+                    </Button>
+                    
+                    <p className="text-xs text-slate-500 mt-2">
+                      You can add up to 5 metadata items for your listings
+                    </p>
+                  </div>
+                </div>
+              )}
               
               {/* Component Preview */}
               <div className="border border-slate-200 rounded-md p-6 bg-slate-50 mt-8">
