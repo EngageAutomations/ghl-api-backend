@@ -80,19 +80,23 @@ export function ConfigWizard({ title, description, children }: ConfigWizardProps
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="text-center py-12"
+            className="text-center py-16 px-4"
           >
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </div>
             <h1 className="text-3xl font-bold text-slate-800 mb-4">{title}</h1>
             {description && (
-              <p className="text-slate-500 mb-8 max-w-2xl mx-auto">{description}</p>
+              <p className="text-slate-500 mb-8 max-w-2xl mx-auto leading-relaxed">{description}</p>
             )}
             <Button 
               size="lg" 
               onClick={() => setCurrentStep(0)}
-              className="px-8"
+              className="px-8 py-6 text-base"
             >
               Get Started
             </Button>
+            <p className="text-xs text-slate-400 mt-8">This will guide you through the setup process step by step</p>
           </motion.div>
         ) : (
           <motion.div

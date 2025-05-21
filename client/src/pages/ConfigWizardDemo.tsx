@@ -10,45 +10,34 @@ export default function ConfigWizardDemo() {
     <div className="container mx-auto py-8">
       <ConfigWizard 
         title="Directory Integration Setup Wizard" 
-        description="Follow the steps to configure your Go HighLevel directory integration. This wizard will help you set up your marketplace listings with proper tracking and form integration."
+        description="Welcome to the Go HighLevel Directory Integration setup. This wizard will guide you through configuring your marketplace listings with tracking and form integration in just a few simple steps."
       >
         <WizardStep 
           title="Directory Settings" 
-          description="Configure your basic directory settings"
+          description="Name your directory to get started"
         >
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="directory-name">Directory Name</Label>
+          <div className="space-y-6 py-4">
+            <div className="space-y-3">
+              <Label htmlFor="directory-name" className="text-base font-medium">Directory Name</Label>
               <Input 
                 id="directory-name" 
                 placeholder="My Marketplace Directory"
+                className="text-base py-6"
               />
-              <p className="text-sm text-muted-foreground">
-                The name of your directory or marketplace
+              <p className="text-sm text-muted-foreground mt-2">
+                This name will be used in tracking parameters and reporting to identify your directory
               </p>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="directory-domain">Directory Domain</Label>
-              <Input 
-                id="directory-domain" 
-                placeholder="directory.example.com"
-              />
-              <p className="text-sm text-muted-foreground">
-                The domain name where your directory is hosted
+            <div className="bg-blue-50 p-4 rounded-md mt-8 border border-blue-100">
+              <h3 className="text-sm font-medium text-blue-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                Why is this important?
+              </h3>
+              <p className="mt-2 text-sm text-blue-700">
+                Your directory name helps identify traffic sources in Go HighLevel analytics and reports. 
+                It will be included in UTM parameters for accurate tracking of leads and conversions.
               </p>
-            </div>
-            
-            <Separator className="my-4" />
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="tracking-enabled">Enable Tracking</Label>
-                <p className="text-sm text-muted-foreground">
-                  Track visitor activity on your directory
-                </p>
-              </div>
-              <Switch id="tracking-enabled" />
             </div>
           </div>
         </WizardStep>
