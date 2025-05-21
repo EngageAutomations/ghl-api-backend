@@ -99,6 +99,75 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      {/* Redirects for removed pages */}
+      <Route path="/configuration">
+        <ProtectedRoute>
+          <AppLayout>
+            <div className="flex flex-col items-center justify-center py-16">
+              <h2 className="text-2xl font-bold text-slate-700 mb-4">Configuration Page Moved</h2>
+              <p className="text-slate-600 mb-6">The configuration page has been replaced with our new wizard interface.</p>
+              <button 
+                onClick={() => window.location.href = "/config-wizard"} 
+                className="inline-flex items-center px-5 py-2.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Go to Config Wizard
+              </button>
+            </div>
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/domains">
+        <ProtectedRoute>
+          <AppLayout>
+            <div className="flex flex-col items-center justify-center py-16">
+              <h2 className="text-2xl font-bold text-slate-700 mb-4">Domain Settings Integrated</h2>
+              <p className="text-slate-600 mb-6">Domain settings have been integrated into the main configuration wizard.</p>
+              <button 
+                onClick={() => window.location.href = "/config-wizard"} 
+                className="inline-flex items-center px-5 py-2.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Go to Config Wizard
+              </button>
+            </div>
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/analytics">
+        <ProtectedRoute>
+          <AppLayout>
+            <div className="flex flex-col items-center justify-center py-16">
+              <h2 className="text-2xl font-bold text-slate-700 mb-4">Analytics Coming Soon</h2>
+              <p className="text-slate-600 mb-6">Analytics features are currently being integrated into the dashboard.</p>
+              <button 
+                onClick={() => window.location.href = "/"} 
+                className="inline-flex items-center px-5 py-2.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/ghl-integration">
+        <ProtectedRoute>
+          <AppLayout>
+            <div className="flex flex-col items-center justify-center py-16">
+              <h2 className="text-2xl font-bold text-slate-700 mb-4">GHL Integration Settings Updated</h2>
+              <p className="text-slate-600 mb-6">GHL Integration settings are now configured through the wizard interface.</p>
+              <button 
+                onClick={() => window.location.href = "/config-wizard"} 
+                className="inline-flex items-center px-5 py-2.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Go to Config Wizard
+              </button>
+            </div>
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
       {/* 404 route - catch all unmatched routes */}
       <Route>
         <NotFound />
