@@ -823,7 +823,78 @@ ${showMaps ? `/* -------------------------------------
   height: 300px;
   border-radius: 0.375rem;
   overflow: hidden;
-}` : '/* Maps widget disabled */'}`}
+}` : '/* Maps widget disabled */'}
+
+${showActionButton ? `/* -------------------------------------
+   ▶️ ACTION BUTTON CONFIGURATION
+-------------------------------------- */
+.ghl-action-button {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: ${previewColor || '#4f46e5'};
+  color: ${previewTextColor || '#ffffff'};
+  border-radius: ${previewBorderRadius || 4}px;
+  font-weight: 500;
+  text-decoration: none;
+  margin-top: 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.ghl-action-button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Action button applies custom parameters from URL slug */
+.ghl-action-button[data-listing] {
+  position: relative;
+}
+
+.ghl-action-button[data-listing]::after {
+  content: "→";
+  margin-left: 6px;
+  transition: transform 0.2s ease;
+}
+
+.ghl-action-button[data-listing]:hover::after {
+  transform: translateX(3px);
+}` : '/* Action button disabled */'}
+
+${showDownloadOption ? `/* -------------------------------------
+   ⬇️ DOWNLOAD OPTION STYLING
+-------------------------------------- */
+.ghl-download-container {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px dashed #e2e8f0;
+  border-radius: 0.5rem;
+  background-color: #f8fafc;
+}
+
+.ghl-download-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: #4f46e5;
+  color: white;
+  border-radius: 4px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.ghl-download-button:hover {
+  background-color: #4338ca;
+}
+
+.ghl-download-button svg {
+  margin-right: 8px;
+}
+
+/* Ensure download tracking is enabled */
+.ghl-download-button[data-listing] {
+  position: relative;
+}` : '/* Download option disabled */'}`}
               </div>
             </div>
           </div>
