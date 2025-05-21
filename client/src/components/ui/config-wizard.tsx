@@ -70,7 +70,7 @@ export function ConfigWizard({ title, description, children }: ConfigWizardProps
   return (
     <div className="w-full max-w-4xl mx-auto">
       {/* Fixed height container to prevent jumping */}
-      <div className="relative" style={{ height: '640px' }}>
+      <div className="relative min-h-[600px]">
         <AnimatePresence initial={false} mode="wait">
           {currentStep === -1 ? (
             <motion.div 
@@ -106,7 +106,7 @@ export function ConfigWizard({ title, description, children }: ConfigWizardProps
               transition={{ type: "tween", duration: 0.4, ease: "easeInOut" }}
               className="absolute top-0 left-0 w-full h-full"
             >
-              <div className="h-full overflow-auto px-1 pb-20">
+              <div className="px-1 pb-24">
                 {steps[currentStep]}
               </div>
               
