@@ -25,6 +25,9 @@ export default function ConfigWizardDemo() {
   const [expandedSection, setExpandedSection] = useState<string | undefined>(undefined);
   const [buttonType, setButtonType] = useState<string>("popup");
   
+  // Custom field tracking name
+  const [customFieldName, setCustomFieldName] = useState("listing");
+  
   // Component visibility state
   const [showPrice, setShowPrice] = useState(true);
   const [showDescription, setShowDescription] = useState(true);
@@ -210,7 +213,8 @@ export default function ConfigWizardDemo() {
                             <Input 
                               id="custom-field-name-url" 
                               placeholder="listing"
-                              defaultValue="listing"
+                              value={customFieldName}
+                              onChange={(e) => setCustomFieldName(e.target.value)}
                               className="flex-1"
                             />
                             <p className="text-xs text-slate-500">
@@ -392,7 +396,8 @@ export default function ConfigWizardDemo() {
                         <Input 
                           id="custom-field-name-embed" 
                           placeholder="listing"
-                          defaultValue="listing"
+                          value={customFieldName}
+                          onChange={(e) => setCustomFieldName(e.target.value)}
                           className="flex-1"
                         />
                         <p className="text-xs text-slate-500">
@@ -984,7 +989,7 @@ ${buttonType === "download" ? `/* -------------------------------------
   (function() {
     // Configuration
     window.GHL_DIRECTORY = {
-      customField: 'listing',
+      customField: '${customFieldName}',
       tracking: true,
       autoEmbed: ${selectedOptIn === "embedded-form" ? 'true' : 'false'}
     };
