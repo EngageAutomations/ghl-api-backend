@@ -660,11 +660,17 @@ export default function ConfigWizardDemo() {
                 </Button>
               </div>
               <div className="bg-slate-900 p-4 text-slate-300 font-mono text-sm overflow-x-auto whitespace-pre">
-{`.ghl-directory-listing {
+{`/* -------------------------------------
+   🔍 DIRECTORY LISTING CUSTOMIZATIONS
+-------------------------------------- */
+.ghl-directory-listing {
   max-width: 1200px;
   margin: 0 auto;
 }
 
+/* -------------------------------------
+   🖱️ ACTION BUTTON STYLING
+-------------------------------------- */
 .ghl-listing-button {
   background-color: ${previewColor};
   color: ${previewTextColor};
@@ -680,7 +686,89 @@ export default function ConfigWizardDemo() {
   opacity: 0.9;
 }
 
-${showMetadata ? `.ghl-metadata-bar {
+/* -------------------------------------
+   📷 PRODUCT IMAGE GALLERY (2 ROW LIMIT)
+-------------------------------------- */
+.image-list {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-start;
+  gap: 10px;
+  max-height: 170px; /* Approx height of 2 rows */
+  overflow: hidden;
+  padding: 10px 0;
+}
+
+.image-list > div {
+  width: calc(14.28% - 10px); /* 7 images per row */
+  flex: 0 0 auto;
+}
+
+.image-list img {
+  width: 100% !important;
+  height: auto;
+  object-fit: cover;
+  border-radius: 6px;
+  transition: transform 0.2s ease;
+}
+
+.image-list img:hover {
+  transform: scale(1.05);
+  cursor: pointer;
+}
+
+/* -------------------------------------
+   🏷️ PRODUCT TITLE (UNTRUNCATE)
+-------------------------------------- */
+.hl-product-detail-product-name.truncate-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  display: block !important;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* -------------------------------------
+   ➖ REMOVE UNNEEDED UI ELEMENTS
+-------------------------------------- */
+.quantity-container,
+#add-to-cart-btn,
+#buy-now-btn,
+.show-more {
+  display: none !important;
+}
+
+/* -------------------------------------
+   🔄 UNSTICK + ALIGN IMAGE & DETAILS SECTION
+-------------------------------------- */
+.product-detail-container {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: flex-start !important;
+  gap: 40px;
+}
+
+.hl-product-image-container {
+  position: static !important;
+  top: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  display: block !important;
+  align-self: flex-start !important;
+  margin-top: 0 !important;
+}
+
+.c-product-details {
+  margin-top: 0 !important;
+  align-self: flex-start;
+  flex: 1;
+}
+
+${showMetadata ? `/* -------------------------------------
+   🔖 METADATA DISPLAY
+-------------------------------------- */
+.ghl-metadata-bar {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
@@ -697,22 +785,39 @@ ${showMetadata ? `.ghl-metadata-bar {
   color: #4338ca;
 }` : '/* Metadata bar disabled */'}
 
-${showPrice ? `.ghl-listing-price {
+${showPrice ? `/* -------------------------------------
+   💰 PRICE DISPLAY
+-------------------------------------- */
+.ghl-listing-price {
   font-weight: 600;
   color: #047857;
   background-color: #ecfdf5;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
+}
+
+/* Full product description if price is shown */
+#description.description {
+  max-height: none !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  display: block !important;
 }` : '/* Price display disabled */'}
 
-${showDescription ? `.ghl-listing-description {
+${showDescription ? `/* -------------------------------------
+   📄 EXTENDED DESCRIPTION
+-------------------------------------- */
+.ghl-listing-description {
   margin-top: 1rem;
   font-size: 0.875rem;
   line-height: 1.5;
   color: #475569;
 }` : '/* Extended description disabled */'}
 
-${showMaps ? `.ghl-maps-container {
+${showMaps ? `/* -------------------------------------
+   🗺️ GOOGLE MAPS WIDGET
+-------------------------------------- */
+.ghl-maps-container {
   margin-top: 1.5rem;
   width: 100%;
   height: 300px;
