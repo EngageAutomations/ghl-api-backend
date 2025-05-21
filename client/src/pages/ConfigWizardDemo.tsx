@@ -215,9 +215,9 @@ export default function ConfigWizardDemo() {
                             </p>
                             <div className="mt-3 p-3 bg-blue-50 rounded-md border border-blue-100">
                               <p className="text-xs text-blue-800">
-                                <span className="font-medium">Important:</span> For automatic tracking to work, add the CSS class <code className="bg-blue-100 px-1 py-0.5 rounded">ghl-action-button</code> to your HTML elements.
+                                <span className="font-medium">Important:</span> Standard HTML elements with common classes will be automatically styled and tracked. You can also add the <code className="bg-blue-100 px-1 py-0.5 rounded">directory-action-btn</code> class to any element you want to become a tracked button.
                                 <br/><br/>
-                                Example: <code className="bg-blue-100 px-1 py-0.5 rounded">&lt;a href="https://..." class="ghl-action-button"&gt;Contact Us&lt;/a&gt;</code>
+                                Example: <code className="bg-blue-100 px-1 py-0.5 rounded">&lt;a href="https://..." class="directory-action-btn"&gt;Contact Us&lt;/a&gt;</code>
                               </p>
                             </div>
                           </div>
@@ -848,7 +848,8 @@ ${showMaps ? `/* -------------------------------------
 ${selectedOptIn === "action-button" ? `/* -------------------------------------
    ▶️ ACTION BUTTON CONFIGURATION
 -------------------------------------- */
-.ghl-action-button {
+/* Primary styling for the action button */
+.directory-action-btn {
   display: inline-block;
   padding: 8px 16px;
   background-color: ${previewColor || '#4f46e5'};
@@ -861,48 +862,70 @@ ${selectedOptIn === "action-button" ? `/* -------------------------------------
   cursor: pointer;
 }
 
-.ghl-action-button:hover {
+/* Hover effects */
+.directory-action-btn:hover {
   opacity: 0.9;
   transform: translateY(-1px);
 }
 
-/* Action button applies custom parameters from URL slug */
-.ghl-action-button[data-listing] {
+/* When the listing data is attached */
+.directory-action-btn[data-listing] {
   position: relative;
 }
 
-.ghl-action-button[data-listing]::after {
+/* Arrow indicator for tracked buttons */
+.directory-action-btn[data-listing]::after {
   content: "→";
   margin-left: 6px;
   transition: transform 0.2s ease;
 }
 
-.ghl-action-button[data-listing]:hover::after {
+.directory-action-btn[data-listing]:hover::after {
   transform: translateX(3px);
 }
 
-/* Action Button JavaScript (via ::before pseudo content hack) - This runs onload */
-.ghl-action-button::before {
+/* Generate CSS to transform normal links to action buttons in certain containers */
+.product-item a.view-details,
+.listing-container a.action-link,
+.product-actions a:not(.secondary-action),
+a.primary-action {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: ${previewColor || '#4f46e5'};
+  color: ${previewTextColor || '#ffffff'} !important;
+  border-radius: ${previewBorderRadius || 4}px;
+  font-weight: 500;
+  text-decoration: none;
+  margin-top: 1rem;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+/* Make these links use the directory-action-btn styles */
+.product-item a.view-details:hover,
+.listing-container a.action-link:hover,
+.product-actions a:not(.secondary-action):hover,
+a.primary-action:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+/* Auto-tracking JavaScript (via ::before pseudo content hack) - This runs onload */
+.directory-tracking-init::before {
   content: "";
   display: none;
 }
 
-/* The script will add this attribute */
-.ghl-action-button[data-js-loaded]::before {
-  display: none;
-}
-
-@-webkit-keyframes actionButtonInit {
+/* Animation setup to execute JS once */
+@-webkit-keyframes dirTrackingInit {
   from { opacity: 0.01; }
   to { opacity: 0.011; }  /* Tiny change to trigger rendering but remain invisible */
 }
 
-/* 
-JavaScript embedded in CSS for action buttons - using animation name hack:
-This attaches event handlers to all action buttons on the page.
-*/
-.ghl-action-button:not([data-js-loaded]) {
-  -webkit-animation-name: actionButtonInit;
+/* Execute once per page */
+body:not([data-tracking-init]) {
+  -webkit-animation-name: dirTrackingInit;
   -webkit-animation-duration: 0.001s;
   -webkit-animation-iteration-count: 1;
   -webkit-animation-timing-function: ease;
@@ -911,7 +934,7 @@ This attaches event handlers to all action buttons on the page.
 }
 
 /* Add script to head when animation fires */
-@-webkit-keyframes actionButtonInit {
+@-webkit-keyframes dirTrackingInit {
   from {
     /* This is executed when animation starts */
   }
@@ -919,66 +942,65 @@ This attaches event handlers to all action buttons on the page.
     /* This is executed when animation ends, where we inject our code */
     background-image: url("data:image/svg+xml;charset=utf8,<svg xmlns='http://www.w3.org/2000/svg' onload=\\"
       (function() {
-        /* Mark all action buttons as having JS loaded */
-        document.querySelectorAll('.ghl-action-button').forEach(btn => {
-          btn.setAttribute('data-js-loaded', 'true');
-          
-          /* Extract the listing slug */
-          const getSlug = function() {
-            const url = new URL(window.location.href);
-            const pathSegments = url.pathname.split('/').filter(Boolean);
-            return pathSegments[pathSegments.length - 1] || url.searchParams.get('listing') || '';
-          };
-          
-          /* Get custom field name from global config or use default */
-          const getFieldName = function() {
-            return (window.GHL_DIRECTORY && window.GHL_DIRECTORY.customField) ? 
-              window.GHL_DIRECTORY.customField : '${customFieldName}';
-          };
-          
-          /* Get the slug and mark button */
-          const slug = getSlug();
-          const fieldName = getFieldName();
-          
-          if (slug) {
-            btn.setAttribute('data-listing', slug);
+        /* Mark body as initialized */
+        document.body.setAttribute('data-tracking-init', 'true');
+        
+        /* Extract the listing slug */
+        const getSlug = function() {
+          const url = new URL(window.location.href);
+          const pathSegments = url.pathname.split('/').filter(Boolean);
+          return pathSegments[pathSegments.length - 1] || url.searchParams.get('listing') || '';
+        };
+        
+        /* Get custom field name from global config or use default */
+        const getFieldName = function() {
+          return (window.GHL_DIRECTORY && window.GHL_DIRECTORY.customField) ? 
+            window.GHL_DIRECTORY.customField : '${customFieldName}';
+        };
+        
+        /* Get the slug */
+        const slug = getSlug();
+        const fieldName = getFieldName();
+        
+        if (!slug) return; // Exit if no slug found
+        
+        /* Auto-track all directory action buttons */
+        const buttonSelectors = [
+          '.directory-action-btn',
+          '.product-item a.view-details', 
+          '.listing-container a.action-link',
+          '.product-actions a:not(.secondary-action)',
+          'a.primary-action'
+        ];
+        
+        /* Select all elements matching our selectors */
+        buttonSelectors.forEach(selector => {
+          document.querySelectorAll(selector).forEach(btn => {
+            /* Skip if already processed */
+            if (btn.hasAttribute('data-listing')) return;
             
-            /* Set up URL with tracking if it's a link */
+            /* Mark with the listing slug */
+            btn.setAttribute('data-listing', slug);
+            btn.classList.add('directory-tracking-processed');
+            
+            /* Add tracking parameters to the URL */
             if (btn.tagName === 'A' && btn.href) {
               try {
                 const url = new URL(btn.href);
                 url.searchParams.set('utm_source', 'directory');
-                url.searchParams.set('utm_medium', 'action_button');
+                url.searchParams.set('utm_medium', 'listing_action');
                 url.searchParams.set('utm_campaign', slug);
                 url.searchParams.set(fieldName, slug);
                 btn.href = url.toString();
-              } catch(e) { console.error('Error processing button URL', e); }
+              } catch(e) { 
+                console.log('Non-URL href, skipping parameter addition');
+              }
             }
-            
-            /* Handle click for non-link buttons */
-            if (btn.tagName !== 'A') {
-              btn.addEventListener('click', function(e) {
-                /* Check for data-url attribute */
-                const targetUrl = btn.getAttribute('data-url');
-                if (targetUrl) {
-                  e.preventDefault();
-                  
-                  try {
-                    const url = new URL(targetUrl);
-                    url.searchParams.set(fieldName, slug);
-                    window.location.href = url.toString();
-                  } catch(e) {
-                    console.error('Error handling button click', e);
-                    /* Fallback */
-                    window.location.href = targetUrl + 
-                      (targetUrl.includes('?') ? '&' : '?') + 
-                      fieldName + '=' + slug;
-                  }
-                }
-              });
-            }
-          }
+          });
         });
+        
+        /* Report tracking status */
+        console.log('Directory tracking initialized with field: ' + fieldName + ' and slug: ' + slug);
       })()
     \\" style='display:none'></svg>");
   }
