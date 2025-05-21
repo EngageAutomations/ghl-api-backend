@@ -47,18 +47,21 @@ export function ConfigWizard({ title, description, children }: ConfigWizardProps
     enter: (direction: number) => {
       return {
         x: direction > 0 ? 1000 : -1000,
-        opacity: 0
+        opacity: 0,
+        y: 0 // Keep vertical position consistent
       };
     },
     center: {
       zIndex: 1,
       x: 0,
+      y: 0, // Keep vertical position consistent
       opacity: 1
     },
     exit: (direction: number) => {
       return {
         zIndex: 0,
         x: direction < 0 ? 1000 : -1000,
+        y: 0, // Keep vertical position consistent
         opacity: 0
       };
     }
@@ -70,10 +73,13 @@ export function ConfigWizard({ title, description, children }: ConfigWizardProps
         {currentStep === -1 ? (
           <motion.div
             key="welcome"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 50 }}
+            transition={{ 
+              x: { type: "spring", stiffness: 300, damping: 30 },
+              opacity: { duration: 0.3 }
+            }}
             className="text-center py-16 px-4"
           >
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
@@ -102,7 +108,8 @@ export function ConfigWizard({ title, description, children }: ConfigWizardProps
             exit="exit"
             transition={{
               x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.2 }
+              opacity: { duration: 0.3 },
+              y: { duration: 0 } // Ensure vertical position remains fixed during transitions
             }}
             className="w-full"
           >
