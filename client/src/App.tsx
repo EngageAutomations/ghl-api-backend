@@ -10,6 +10,7 @@ import NotFound from "@/pages/not-found";
 import Listings from "@/pages/listings";
 import ConfigWizardDemo from "@/pages/ConfigWizardDemo";
 import ConfigTester from "@/pages/ConfigTester";
+import ImageStorageDemo from "@/pages/ImageStorageDemo";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
