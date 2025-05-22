@@ -17,6 +17,84 @@ interface WizardStepProps {
 }
 
 export function WizardStep({ title, description, children }: WizardStepProps) {
+  // Check if this is the form listing step that needs preview
+  const isFormStep = title === "Listing Form Embed Code" || description?.includes("form");
+  
+  if (isFormStep) {
+    return (
+      <div className="w-full bg-white p-8 rounded-lg border border-slate-100 shadow-sm mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Configuration Controls */}
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-slate-800 mb-4">Form Configuration</h2>
+            {children}
+          </div>
+          
+          {/* Live Preview */}
+          <div className="border rounded-lg p-4 bg-slate-50">
+            <h3 className="text-sm font-medium text-slate-600 mb-3">Live Preview</h3>
+            <div className="bg-white border rounded-md shadow-sm p-4 h-[500px] overflow-auto">
+              <div className="form-preview">
+                <h4 className="text-lg font-medium mb-4">Listing Submission Form</h4>
+                
+                {/* Basic Fields Preview */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium">Business Name</label>
+                    <input 
+                      type="text" 
+                      className="w-full px-3 py-2 border rounded-md" 
+                      placeholder="Enter business name"
+                      disabled
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium">Category</label>
+                    <select className="w-full px-3 py-2 border rounded-md bg-white" disabled>
+                      <option>Select a category</option>
+                    </select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium">Description</label>
+                    <textarea 
+                      className="w-full px-3 py-2 border rounded-md h-20" 
+                      placeholder="Enter description"
+                      disabled
+                    ></textarea>
+                  </div>
+                  
+                  {/* Dynamically shown form fields based on config */}
+                  <div id="dynamic-fields-preview" className="space-y-4 border-t pt-4 mt-4">
+                    <div className="text-sm text-slate-500 italic">
+                      Additional fields will appear here based on your configuration
+                    </div>
+                    
+                    {/* Dynamic preview fields will be added here via JavaScript */}
+                  </div>
+                  
+                  <div className="pt-4">
+                    <button 
+                      className="px-4 py-2 bg-primary text-white rounded-md"
+                      disabled
+                    >
+                      Submit Listing
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-2 text-xs text-slate-500">
+              This preview shows how your form will appear to users. Fields shown depend on your configuration.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Regular step without preview
   return (
     <div className="w-full bg-white p-8 rounded-lg border border-slate-100 shadow-sm mb-6">
       {children}

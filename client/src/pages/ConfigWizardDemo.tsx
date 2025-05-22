@@ -434,9 +434,11 @@ export default function ConfigWizardDemo() {
                             <Checkbox 
                               id="field-name" 
                               checked={formFields.name}
-                              onCheckedChange={(checked: boolean) => 
-                                setFormFields({...formFields, name: checked})
-                              }
+                              onCheckedChange={(checked: boolean) => {
+                                setFormFields({...formFields, name: checked});
+                                // Update the preview after state changes
+                                setTimeout(updateFormPreview, 50);
+                              }}
                             />
                             <Label htmlFor="field-name" className="text-sm">Name</Label>
                           </div>
@@ -446,9 +448,10 @@ export default function ConfigWizardDemo() {
                             <Checkbox 
                               id="field-email" 
                               checked={formFields.email}
-                              onCheckedChange={(checked: boolean) => 
-                                setFormFields({...formFields, email: checked})
-                              }
+                              onCheckedChange={(checked: boolean) => {
+                                setFormFields({...formFields, email: checked});
+                                setTimeout(updateFormPreview, 50);
+                              }}
                             />
                             <Label htmlFor="field-email" className="text-sm">Email</Label>
                           </div>
@@ -458,9 +461,10 @@ export default function ConfigWizardDemo() {
                             <Checkbox 
                               id="field-phone" 
                               checked={formFields.phone}
-                              onCheckedChange={(checked: boolean) => 
-                                setFormFields({...formFields, phone: checked})
-                              }
+                              onCheckedChange={(checked: boolean) => {
+                                setFormFields({...formFields, phone: checked});
+                                setTimeout(updateFormPreview, 50);
+                              }}
                             />
                             <Label htmlFor="field-phone" className="text-sm">Phone</Label>
                           </div>
@@ -470,9 +474,10 @@ export default function ConfigWizardDemo() {
                             <Checkbox 
                               id="field-message" 
                               checked={formFields.message}
-                              onCheckedChange={(checked: boolean) => 
-                                setFormFields({...formFields, message: checked})
-                              }
+                              onCheckedChange={(checked: boolean) => {
+                                setFormFields({...formFields, message: checked});
+                                setTimeout(updateFormPreview, 50);
+                              }}
                             />
                             <Label htmlFor="field-message" className="text-sm">Message</Label>
                           </div>
@@ -482,9 +487,10 @@ export default function ConfigWizardDemo() {
                             <Checkbox 
                               id="field-company" 
                               checked={formFields.company}
-                              onCheckedChange={(checked: boolean) => 
-                                setFormFields({...formFields, company: checked})
-                              }
+                              onCheckedChange={(checked: boolean) => {
+                                setFormFields({...formFields, company: checked});
+                                setTimeout(updateFormPreview, 50);
+                              }}
                             />
                             <Label htmlFor="field-company" className="text-sm">Company</Label>
                           </div>
@@ -494,13 +500,110 @@ export default function ConfigWizardDemo() {
                             <Checkbox 
                               id="field-address" 
                               checked={formFields.address}
-                              onCheckedChange={(checked: boolean) => 
-                                setFormFields({...formFields, address: checked})
-                              }
+                              onCheckedChange={(checked: boolean) => {
+                                setFormFields({...formFields, address: checked});
+                                setTimeout(updateFormPreview, 50);
+                              }}
                             />
                             <Label htmlFor="field-address" className="text-sm">Address</Label>
                           </div>
                         </div>
+                        
+                        {/* Form Preview Update Function */}
+                        <script dangerouslySetInnerHTML={{ __html: `
+                          function updateFormPreview() {
+                            const previewContainer = document.getElementById('dynamic-fields-preview');
+                            if (!previewContainer) return;
+                            
+                            // Clear existing fields
+                            previewContainer.innerHTML = '';
+                            
+                            // Get current configuration
+                            const nameEnabled = ${formFields.name};
+                            const emailEnabled = ${formFields.email};
+                            const phoneEnabled = ${formFields.phone};
+                            const messageEnabled = ${formFields.message};
+                            const companyEnabled = ${formFields.company};
+                            const addressEnabled = ${formFields.address};
+                            
+                            // Update the preview with selected fields
+                            if (nameEnabled) {
+                              previewContainer.innerHTML += \`
+                                <div class="space-y-2">
+                                  <label class="block text-sm font-medium">Name</label>
+                                  <input type="text" class="w-full px-3 py-2 border rounded-md" placeholder="Enter name" disabled />
+                                </div>
+                              \`;
+                            }
+                            
+                            if (emailEnabled) {
+                              previewContainer.innerHTML += \`
+                                <div class="space-y-2">
+                                  <label class="block text-sm font-medium">Email</label>
+                                  <input type="email" class="w-full px-3 py-2 border rounded-md" placeholder="Enter email" disabled />
+                                </div>
+                              \`;
+                            }
+                            
+                            if (phoneEnabled) {
+                              previewContainer.innerHTML += \`
+                                <div class="space-y-2">
+                                  <label class="block text-sm font-medium">Phone</label>
+                                  <input type="tel" class="w-full px-3 py-2 border rounded-md" placeholder="Enter phone" disabled />
+                                </div>
+                              \`;
+                            }
+                            
+                            if (companyEnabled) {
+                              previewContainer.innerHTML += \`
+                                <div class="space-y-2">
+                                  <label class="block text-sm font-medium">Company</label>
+                                  <input type="text" class="w-full px-3 py-2 border rounded-md" placeholder="Enter company" disabled />
+                                </div>
+                              \`;
+                            }
+                            
+                            if (addressEnabled) {
+                              previewContainer.innerHTML += \`
+                                <div class="space-y-2">
+                                  <label class="block text-sm font-medium">Address</label>
+                                  <input type="text" class="w-full px-3 py-2 border rounded-md" placeholder="Enter address" disabled />
+                                </div>
+                              \`;
+                            }
+                            
+                            if (messageEnabled) {
+                              previewContainer.innerHTML += \`
+                                <div class="space-y-2">
+                                  <label class="block text-sm font-medium">Message</label>
+                                  <textarea class="w-full px-3 py-2 border rounded-md h-20" placeholder="Enter message" disabled></textarea>
+                                </div>
+                              \`;
+                            }
+                            
+                            // Add hidden tracking field
+                            previewContainer.innerHTML += \`
+                              <div class="space-y-2 border-t pt-3 mt-3">
+                                <label class="block text-xs text-slate-500 italic">Hidden Tracking Field</label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-md text-xs bg-slate-50" 
+                                  value="${customFieldName}: [listing-slug]" disabled />
+                              </div>
+                            \`;
+                            
+                            // Message if no fields selected
+                            if (!nameEnabled && !emailEnabled && !phoneEnabled && 
+                                !companyEnabled && !addressEnabled && !messageEnabled) {
+                              previewContainer.innerHTML = \`
+                                <div class="text-sm text-slate-500 italic py-4">
+                                  No form fields selected. Enable fields to see preview.
+                                </div>
+                              \`;
+                            }
+                          }
+                          
+                          // Call function on page load
+                          setTimeout(updateFormPreview, 100);
+                        `}} />
                       </div>
                       
                       {/* Tracking Field Name */}
