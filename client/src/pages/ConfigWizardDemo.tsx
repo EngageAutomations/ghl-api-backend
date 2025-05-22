@@ -88,12 +88,60 @@ export default function ConfigWizardDemo() {
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <label style="font-weight: 500; font-size: 14px; color: #374151;">
               Description ${showDescription ? '<span style="color: #ef4444;">*</span>' : ''}
-              <textarea name="description" ${showDescription ? 'required' : ''}
-                style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; min-height: 120px; font-size: 14px; resize: vertical;"
-                placeholder="Detailed description of the product or service"
-              ></textarea>
+              <div style="position: relative;">
+                <textarea name="description" ${showDescription ? 'required' : ''}
+                  style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; min-height: 120px; font-size: 14px; resize: vertical;"
+                  placeholder="Detailed description of the product or service"
+                ></textarea>
+                <button type="button" 
+                  style="position: absolute; top: 8px; right: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; padding: 6px 10px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                  onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
+                  onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';"
+                  onclick="alert('AI Summarizer: This feature will convert your description into clean bullet points using AI!')"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                  </svg>
+                  AI Bullets
+                </button>
+              </div>
             </label>
           </div>
+          
+          <!-- Rich Content Field (when expanded description is enabled) -->
+          ${showDescription ? `
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-weight: 500; font-size: 14px; color: #374151;">
+              Rich Content <span style="font-size: 12px; color: #6b7280;">(HTML, Images, Text)</span>
+              <div style="border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; background: white;">
+                <!-- Rich text editor toolbar -->
+                <div style="border-bottom: 1px solid #e5e7eb; padding: 8px; display: flex; gap: 4px; flex-wrap: wrap; background: #f9fafb;">
+                  <button type="button" style="padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 4px; background: white; font-size: 12px; cursor: pointer;" title="Bold">
+                    <strong>B</strong>
+                  </button>
+                  <button type="button" style="padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 4px; background: white; font-size: 12px; cursor: pointer;" title="Italic">
+                    <em>I</em>
+                  </button>
+                  <button type="button" style="padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 4px; background: white; font-size: 12px; cursor: pointer;" title="Add Image">
+                    🖼️
+                  </button>
+                  <button type="button" style="padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 4px; background: white; font-size: 12px; cursor: pointer;" title="Add Link">
+                    🔗
+                  </button>
+                  <button type="button" style="padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 4px; background: white; font-size: 12px; cursor: pointer;" title="HTML View">
+                    &lt;/&gt;
+                  </button>
+                </div>
+                <textarea name="rich_content"
+                  style="width: 100%; padding: 12px; border: none; min-height: 150px; font-size: 14px; resize: vertical; outline: none;"
+                  placeholder="Add rich content with HTML, embed images, or format text..."
+                ></textarea>
+              </div>
+            </label>
+          </div>
+          ` : ''}
           
           <!-- Company field -->
           ${formFields.company ? `
