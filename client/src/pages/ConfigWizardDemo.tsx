@@ -916,6 +916,12 @@ export default function ConfigWizardDemo() {
                             const result = event.target?.result;
                             if (typeof result === 'string') {
                               const config = JSON.parse(result);
+                              
+                              // Update collections state if present in the imported config
+                              if (config.collections && Array.isArray(config.collections)) {
+                                setCollections(config.collections);
+                              }
+                              
                               saveConfig(config);
                               toast({
                                 title: "Configuration Imported",

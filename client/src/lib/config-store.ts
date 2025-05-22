@@ -9,6 +9,16 @@ import { DesignerConfig } from "@shared/schema";
 export const defaultConfig: Partial<DesignerConfig> & {
   metadataLabels: string[];
   metadataCount: number;
+  collections: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    image: string;
+    seo: {
+      title: string;
+      description: string;
+    }
+  }>;
 } = {
   id: 0,
   userId: 0,
