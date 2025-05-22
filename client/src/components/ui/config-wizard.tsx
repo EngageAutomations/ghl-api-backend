@@ -1,8 +1,10 @@
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ListingFormPreview } from "@/components/listings/ListingFormPreview";
+import { getConfig, saveConfig } from "@/lib/config-store";
 
 interface ConfigWizardProps {
   title: string;
@@ -34,56 +36,9 @@ export function WizardStep({ title, description, children }: WizardStepProps) {
           <div className="border rounded-lg p-4 bg-slate-50">
             <h3 className="text-sm font-medium text-slate-600 mb-3">Live Preview</h3>
             <div className="bg-white border rounded-md shadow-sm p-4 h-[500px] overflow-auto">
-              <div className="form-preview">
-                <h4 className="text-lg font-medium mb-4">Listing Submission Form</h4>
-                
-                {/* Basic Fields Preview */}
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium">Business Name</label>
-                    <input 
-                      type="text" 
-                      className="w-full px-3 py-2 border rounded-md" 
-                      placeholder="Enter business name"
-                      disabled
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium">Category</label>
-                    <select className="w-full px-3 py-2 border rounded-md bg-white" disabled>
-                      <option>Select a category</option>
-                    </select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium">Description</label>
-                    <textarea 
-                      className="w-full px-3 py-2 border rounded-md h-20" 
-                      placeholder="Enter description"
-                      disabled
-                    ></textarea>
-                  </div>
-                  
-                  {/* Dynamically shown form fields based on config */}
-                  <div id="dynamic-fields-preview" className="space-y-4 border-t pt-4 mt-4">
-                    <div className="text-sm text-slate-500 italic">
-                      Additional fields will appear here based on your configuration
-                    </div>
-                    
-                    {/* Dynamic preview fields will be added here via JavaScript */}
-                  </div>
-                  
-                  <div className="pt-4">
-                    <button 
-                      className="px-4 py-2 bg-primary text-white rounded-md"
-                      disabled
-                    >
-                      Submit Listing
-                    </button>
-                  </div>
-                </div>
-              </div>
+              {/* Use our dynamic form preview component */}
+              <ListingFormPreview />
+              
             </div>
             <div className="mt-2 text-xs text-slate-500">
               This preview shows how your form will appear to users. Fields shown depend on your configuration.
