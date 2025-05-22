@@ -146,8 +146,9 @@ export default function ConfigWizardDemo() {
             <div className="border-t border-slate-100 pt-8 mt-8">
               <h3 className="font-medium text-base mb-4">Upload Your Logo</h3>
               
-              <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-lg p-8 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
-                <div className="mb-4 text-slate-400">
+              <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-lg p-8 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer" 
+                   onClick={() => document.getElementById('logo-upload')?.click()}>
+                <div id="logo-upload-container" className="mb-4 text-slate-400">
                   <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" x2="22" y1="5" y2="5"/><path d="M19 2v6"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                 </div>
                 <p className="text-sm text-slate-600 text-center mb-2">
@@ -156,8 +157,56 @@ export default function ConfigWizardDemo() {
                 <p className="text-xs text-slate-500 text-center">
                   Supports: PNG, JPG, SVG (Max size: 2MB)
                 </p>
-                <input type="file" className="hidden" id="logo-upload" accept="image/png,image/jpeg,image/svg+xml" />
-                <Button variant="outline" size="sm" onClick={() => document.getElementById('logo-upload')?.click()} className="mt-4">
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  id="logo-upload" 
+                  accept="image/png,image/jpeg,image/svg+xml" 
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      const container = document.getElementById('logo-upload-container');
+                      if (container) {
+                        // Clear container and show success message
+                        container.innerHTML = '';
+                        
+                        // Create success icon
+                        const successIcon = document.createElement('div');
+                        successIcon.className = 'flex flex-col items-center justify-center';
+                        
+                        // Add checkmark icon
+                        const iconEl = document.createElement('svg');
+                        iconEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                        iconEl.setAttribute('width', '40');
+                        iconEl.setAttribute('height', '40');
+                        iconEl.setAttribute('viewBox', '0 0 24 24');
+                        iconEl.setAttribute('fill', 'none');
+                        iconEl.setAttribute('stroke', 'currentColor');
+                        iconEl.setAttribute('stroke-width', '1.5');
+                        iconEl.setAttribute('stroke-linecap', 'round');
+                        iconEl.setAttribute('stroke-linejoin', 'round');
+                        iconEl.setAttribute('class', 'text-green-500 mx-auto');
+                        iconEl.innerHTML = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>';
+                        
+                        // Add filename text
+                        const textEl = document.createElement('div');
+                        textEl.className = 'text-sm text-green-600 font-medium mt-2';
+                        textEl.textContent = 'Logo uploaded successfully!';
+                        
+                        // Add filename
+                        const filenameEl = document.createElement('div');
+                        filenameEl.className = 'text-xs text-slate-500 mt-1';
+                        filenameEl.textContent = e.target.files[0].name;
+                        
+                        // Append elements
+                        successIcon.appendChild(iconEl);
+                        successIcon.appendChild(textEl);
+                        successIcon.appendChild(filenameEl);
+                        container.appendChild(successIcon);
+                      }
+                    }
+                  }}
+                />
+                <Button variant="outline" size="sm" className="mt-4">
                   Select File
                 </Button>
               </div>
@@ -642,13 +691,57 @@ export default function ConfigWizardDemo() {
                         <div className="grid grid-cols-8 gap-3">
                           <div className="col-span-2">
                             <Label htmlFor={`meta-icon-${field.id}`} className="text-xs block mb-1.5">Icon</Label>
-                            <div className="flex items-center justify-center h-10 bg-white border border-slate-200 rounded cursor-pointer">
+                            <div 
+                              className="flex items-center justify-center h-10 bg-white border border-slate-200 rounded cursor-pointer hover:bg-slate-50 transition-colors"
+                              onClick={() => document.getElementById(`meta-icon-${field.id}`)?.click()}
+                            >
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7" /><line x1="16" x2="22" y1="5" y2="5" /><line x1="19" x2="19" y1="2" y2="8" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
                               <Input 
                                 id={`meta-icon-${field.id}`}
                                 type="file" 
-                                accept="image/png" 
+                                accept="image/png,image/jpeg,image/svg+xml" 
                                 className="hidden"
+                                onChange={(e) => {
+                                  if (e.target.files && e.target.files[0]) {
+                                    // Get the file upload container
+                                    const container = e.target.parentElement;
+                                    if (container) {
+                                      // Clear previous content
+                                      container.innerHTML = '';
+                                      
+                                      // Add success indicator
+                                      const successEl = document.createElement('div');
+                                      successEl.className = 'flex items-center';
+                                      
+                                      // Add checkmark icon
+                                      const iconEl = document.createElement('svg');
+                                      iconEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                                      iconEl.setAttribute('width', '14');
+                                      iconEl.setAttribute('height', '14');
+                                      iconEl.setAttribute('viewBox', '0 0 24 24');
+                                      iconEl.setAttribute('fill', 'none');
+                                      iconEl.setAttribute('stroke', 'currentColor');
+                                      iconEl.setAttribute('stroke-width', '2');
+                                      iconEl.setAttribute('stroke-linecap', 'round');
+                                      iconEl.setAttribute('stroke-linejoin', 'round');
+                                      iconEl.setAttribute('class', 'text-green-500 mr-1');
+                                      iconEl.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+                                      
+                                      // Add filename text
+                                      const textEl = document.createElement('span');
+                                      textEl.className = 'text-xs text-slate-600 truncate max-w-[60px]';
+                                      textEl.textContent = e.target.files[0].name;
+                                      
+                                      // Append elements
+                                      successEl.appendChild(iconEl);
+                                      successEl.appendChild(textEl);
+                                      container.appendChild(successEl);
+                                      
+                                      // Re-append the input element
+                                      container.appendChild(e.target);
+                                    }
+                                  }
+                                }}
                               />
                             </div>
                           </div>
