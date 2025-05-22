@@ -341,8 +341,15 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
           }
         });
         
-        // Extract the listing ID from the response
-        listingId = response.data.id;
+        // Get the created listing data from the response
+        const responseData = await response.json();
+        
+        // Ensure we have a valid listing ID
+        if (!responseData || !responseData.id) {
+          throw new Error("Failed to get listing ID from API response");
+        }
+        
+        listingId = responseData.id;
         
         toast({
           title: "Success!",
@@ -686,6 +693,28 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
               />
             )}
             
+            {config.actionButtonType === "link" && (
+              <FormField
+                control={form.control}
+                name="popupUrl" // Reusing popupUrl field for external links
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>External Link URL <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="https://example.com/your-landing-page" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      External website URL that will open in a new browser tab
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
             {/* Embed Form URL - always shown as an option */}
             <FormField
               control={form.control}
@@ -813,6 +842,32 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
                 )}
               </div>
             )}
+          </div>
+        </div>
+        
+        {/* Configuration Summary */}
+        <div className="border rounded-md p-4 mb-6 bg-slate-50">
+          <h3 className="font-medium mb-2">Directory Configuration Summary</h3>
+          <div className="space-y-1 text-sm">
+            <div className="flex items-center">
+              <span className={`inline-block w-4 h-4 rounded-full mr-2 ${config.actionButtonType ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+              <span>Action Button: <strong>{config.actionButtonType === 'popup' ? 'Popup Form' : config.actionButtonType === 'link' ? 'External Link' : config.actionButtonType === 'download' ? 'Download File' : 'None'}</strong></span>
+            </div>
+            <div className="flex items-center">
+              <span className={`inline-block w-4 h-4 rounded-full mr-2 ${config.showExpandedDescription ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+              <span>Extended Description: <strong>{config.showExpandedDescription ? 'Enabled' : 'Disabled'}</strong></span>
+            </div>
+            <div className="flex items-center">
+              <span className={`inline-block w-4 h-4 rounded-full mr-2 ${config.showMap ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+              <span>Google Maps Integration: <strong>{config.showMap ? 'Enabled' : 'Disabled'}</strong></span>
+            </div>
+            <div className="flex items-center">
+              <span className={`inline-block w-4 h-4 rounded-full mr-2 ${config.enableMetadata ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+              <span>Metadata Fields: <strong>{config.enableMetadata ? `${config.metadataCount} fields enabled` : 'Disabled'}</strong></span>
+            </div>
+          </div>
+          <div className="mt-3 text-xs text-slate-500">
+            These options are configured in your directory settings. Form fields are displayed based on these settings.
           </div>
         </div>
         
