@@ -1078,12 +1078,12 @@ export default function ConfigWizardDemo() {
           title="Form Preview" 
           description="See how your form will appear to users"
         >
-          <div className="space-y-6 py-8">
+          <div className="space-y-6 py-8 flex flex-col items-center">
             <h2 className="text-lg font-bold text-center mb-8">Listing Form Preview</h2>
             
             {/* Form Preview */}
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-white rounded-lg border p-8 shadow-sm">
+            <div className="w-full max-w-4xl">
+              <div className="bg-white rounded-lg border p-8 shadow-sm mx-auto">
                 <div className="border-b pb-4 mb-6">
                   <h3 className="text-lg font-medium text-center">Form Appearance Preview</h3>
                   <p className="text-sm text-slate-500 mt-2 text-center">
@@ -1091,10 +1091,10 @@ export default function ConfigWizardDemo() {
                   </p>
                 </div>
                 
-                <div className="p-6 border rounded-md bg-white">
+                <div className="p-6 border rounded-md bg-white flex justify-center">
                   {/* Form Preview */}
                   <div
-                    className="form-preview"
+                    className="form-preview w-full max-w-2xl"
                     dangerouslySetInnerHTML={{ __html: generateFormPreview() }}
                   />
                 </div>
