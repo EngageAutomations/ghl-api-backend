@@ -97,7 +97,7 @@ export default function ConfigWizardDemo() {
                   style="position: absolute; top: 8px; right: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; padding: 6px 10px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                   onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
                   onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';"
-                  onclick="alert('AI Summarizer: This feature will convert your description into clean bullet points using AI!')"
+                  onclick="generateBulletPoints(this)"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2L2 7l10 5 10-5-10-5z"/>
@@ -2084,6 +2084,52 @@ ${buttonType === "download" ? `/* -------------------------------------
   </form>
   
   <script>
+    async function generateBulletPoints(button) {
+      const textarea = button.parentElement.querySelector('textarea[name="description"]');
+      const description = textarea.value.trim();
+      
+      if (!description) {
+        alert('Please enter a description first');
+        return;
+      }
+      
+      // Show loading state
+      const originalText = button.innerHTML;
+      button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> Processing...';
+      button.disabled = true;
+      
+      try {
+        const response = await fetch('/api/ai/generate-bullets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ description })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to generate bullet points');
+        }
+        
+        const data = await response.json();
+        const bulletPoints = data.bulletPoints;
+        
+        if (bulletPoints && bulletPoints.length > 0) {
+          const bulletText = bulletPoints.map(point => '• ' + point).join('\\n');
+          textarea.value = bulletText;
+          // Trigger change event to update any listeners
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      } catch (error) {
+        console.error('Error generating bullet points:', error);
+        alert('Failed to generate bullet points. Please try again.');
+      } finally {
+        // Restore button state
+        button.innerHTML = originalText;
+        button.disabled = false;
+      }
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
       // Get the current listing slug
       const slug = window.GHLDirectory.getSlug();

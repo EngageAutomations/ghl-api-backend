@@ -9,6 +9,7 @@ import {
   insertListingSchema,
   insertListingAddonSchema
 } from "@shared/schema";
+import { generateBulletPoints } from "./ai-summarizer";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
@@ -478,6 +479,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting listing addon:", error);
       res.status(500).json({ message: "Failed to delete listing addon" });
+    }
+  });
+
+  // AI Summarizer endpoint for generating bullet points
+  app.post("/api/ai/generate-bullets", async (req, res) => {
+    try {
+      const { description } = req.body;
+      
+      if (!description || typeof description !== 'string') {
+        return res.status(400).json({ message: "Description is required" });
+      }
+      
+      const bulletPoints = await generateBulletPoints(description);
+      res.status(200).json({ bulletPoints });
+    } catch (error) {
+      console.error("Error generating bullet points:", error);
+      res.status(500).json({ message: "Failed to generate bullet points" });
     }
   });
 
