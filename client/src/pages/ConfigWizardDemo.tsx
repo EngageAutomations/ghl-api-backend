@@ -411,199 +411,47 @@ export default function ConfigWizardDemo() {
                         <Label htmlFor="form-embed-url">Form Embed URL</Label>
                         <Input
                           id="form-embed-url"
-                          placeholder="https://forms.gohighlevel.com/form-embed"
+                          placeholder="https://forms.gohighlevel.com/your-form-id"
                           value={formEmbedUrl}
                           onChange={(e) => setFormEmbedUrl(e.target.value)}
                           className="flex-1"
                         />
                         <p className="text-xs text-slate-500">
-                          The URL of your Go HighLevel form to embed on listing pages
+                          The URL of your Go HighLevel form that will be embedded on listing pages
                         </p>
                       </div>
                       
-                      {/* Form Field Configuration */}
-                      <div className="space-y-4 pt-2 border-t border-slate-100">
-                        <h4 className="text-sm font-medium text-slate-800">Form Fields</h4>
-                        <p className="text-xs text-slate-500">
-                          Select which fields to include in your embedded form
-                        </p>
-                        
-                        <div className="grid grid-cols-2 gap-3">
-                          {/* Name Field */}
-                          <div className="flex items-center space-x-2">
-                            <Checkbox 
-                              id="field-name" 
-                              checked={formFields.name}
-                              onCheckedChange={(checked: boolean) => {
-                                setFormFields({...formFields, name: checked});
-                                // Update the preview after state changes
-                                setTimeout(updateFormPreview, 50);
-                              }}
-                            />
-                            <Label htmlFor="field-name" className="text-sm">Name</Label>
-                          </div>
-                          
-                          {/* Email Field */}
-                          <div className="flex items-center space-x-2">
-                            <Checkbox 
-                              id="field-email" 
-                              checked={formFields.email}
-                              onCheckedChange={(checked: boolean) => {
-                                setFormFields({...formFields, email: checked});
-                                setTimeout(updateFormPreview, 50);
-                              }}
-                            />
-                            <Label htmlFor="field-email" className="text-sm">Email</Label>
-                          </div>
-                          
-                          {/* Phone Field */}
-                          <div className="flex items-center space-x-2">
-                            <Checkbox 
-                              id="field-phone" 
-                              checked={formFields.phone}
-                              onCheckedChange={(checked: boolean) => {
-                                setFormFields({...formFields, phone: checked});
-                                setTimeout(updateFormPreview, 50);
-                              }}
-                            />
-                            <Label htmlFor="field-phone" className="text-sm">Phone</Label>
-                          </div>
-                          
-                          {/* Message Field */}
-                          <div className="flex items-center space-x-2">
-                            <Checkbox 
-                              id="field-message" 
-                              checked={formFields.message}
-                              onCheckedChange={(checked: boolean) => {
-                                setFormFields({...formFields, message: checked});
-                                setTimeout(updateFormPreview, 50);
-                              }}
-                            />
-                            <Label htmlFor="field-message" className="text-sm">Message</Label>
-                          </div>
-                          
-                          {/* Company Field */}
-                          <div className="flex items-center space-x-2">
-                            <Checkbox 
-                              id="field-company" 
-                              checked={formFields.company}
-                              onCheckedChange={(checked: boolean) => {
-                                setFormFields({...formFields, company: checked});
-                                setTimeout(updateFormPreview, 50);
-                              }}
-                            />
-                            <Label htmlFor="field-company" className="text-sm">Company</Label>
-                          </div>
-                          
-                          {/* Address Field */}
-                          <div className="flex items-center space-x-2">
-                            <Checkbox 
-                              id="field-address" 
-                              checked={formFields.address}
-                              onCheckedChange={(checked: boolean) => {
-                                setFormFields({...formFields, address: checked});
-                                setTimeout(updateFormPreview, 50);
-                              }}
-                            />
-                            <Label htmlFor="field-address" className="text-sm">Address</Label>
+                      {/* Form Field Configuration Note */}
+                      <div className="p-4 border border-blue-100 bg-blue-50 rounded-md">
+                        <div className="flex items-start">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 mt-0.5 mr-2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                          <div>
+                            <h4 className="text-sm font-medium text-blue-700">Embedded Form Information</h4>
+                            <p className="text-xs text-blue-600 mt-1">
+                              Form fields are configured directly in your Go HighLevel form builder. The system will automatically 
+                              pass the <strong>{customFieldName}</strong> parameter to your form, allowing you to track which 
+                              listing the submission came from.
+                            </p>
                           </div>
                         </div>
-                        
-                        {/* Form Preview Update Function */}
-                        <script dangerouslySetInnerHTML={{ __html: `
-                          function updateFormPreview() {
-                            const previewContainer = document.getElementById('dynamic-fields-preview');
-                            if (!previewContainer) return;
-                            
-                            // Clear existing fields
-                            previewContainer.innerHTML = '';
-                            
-                            // Get current configuration
-                            const nameEnabled = ${formFields.name};
-                            const emailEnabled = ${formFields.email};
-                            const phoneEnabled = ${formFields.phone};
-                            const messageEnabled = ${formFields.message};
-                            const companyEnabled = ${formFields.company};
-                            const addressEnabled = ${formFields.address};
-                            
-                            // Update the preview with selected fields
-                            if (nameEnabled) {
-                              previewContainer.innerHTML += \`
-                                <div class="space-y-2">
-                                  <label class="block text-sm font-medium">Name</label>
-                                  <input type="text" class="w-full px-3 py-2 border rounded-md" placeholder="Enter name" disabled />
-                                </div>
-                              \`;
-                            }
-                            
-                            if (emailEnabled) {
-                              previewContainer.innerHTML += \`
-                                <div class="space-y-2">
-                                  <label class="block text-sm font-medium">Email</label>
-                                  <input type="email" class="w-full px-3 py-2 border rounded-md" placeholder="Enter email" disabled />
-                                </div>
-                              \`;
-                            }
-                            
-                            if (phoneEnabled) {
-                              previewContainer.innerHTML += \`
-                                <div class="space-y-2">
-                                  <label class="block text-sm font-medium">Phone</label>
-                                  <input type="tel" class="w-full px-3 py-2 border rounded-md" placeholder="Enter phone" disabled />
-                                </div>
-                              \`;
-                            }
-                            
-                            if (companyEnabled) {
-                              previewContainer.innerHTML += \`
-                                <div class="space-y-2">
-                                  <label class="block text-sm font-medium">Company</label>
-                                  <input type="text" class="w-full px-3 py-2 border rounded-md" placeholder="Enter company" disabled />
-                                </div>
-                              \`;
-                            }
-                            
-                            if (addressEnabled) {
-                              previewContainer.innerHTML += \`
-                                <div class="space-y-2">
-                                  <label class="block text-sm font-medium">Address</label>
-                                  <input type="text" class="w-full px-3 py-2 border rounded-md" placeholder="Enter address" disabled />
-                                </div>
-                              \`;
-                            }
-                            
-                            if (messageEnabled) {
-                              previewContainer.innerHTML += \`
-                                <div class="space-y-2">
-                                  <label class="block text-sm font-medium">Message</label>
-                                  <textarea class="w-full px-3 py-2 border rounded-md h-20" placeholder="Enter message" disabled></textarea>
-                                </div>
-                              \`;
-                            }
-                            
-                            // Add hidden tracking field
-                            previewContainer.innerHTML += \`
-                              <div class="space-y-2 border-t pt-3 mt-3">
-                                <label class="block text-xs text-slate-500 italic">Hidden Tracking Field</label>
-                                <input type="text" class="w-full px-3 py-2 border rounded-md text-xs bg-slate-50" 
-                                  value="${customFieldName}: [listing-slug]" disabled />
+                      </div>
+                      
+                      {/* Preview of Embedded Form */}
+                      <div className="border rounded-md overflow-hidden">
+                        <div className="bg-slate-100 px-3 py-2 border-b">
+                          <span className="text-xs font-medium text-slate-600">Embedded Form Preview</span>
+                        </div>
+                        <div className="p-4 bg-white">
+                          <div className="border rounded-md p-3 text-center bg-slate-50">
+                            <div className="text-sm text-slate-400 mb-2">Form Iframe Container</div>
+                            <div className="text-xs text-slate-500">
+                              Your GoHighLevel form will be loaded here with automatic tracking parameter:
+                              <div className="inline-block px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded mt-1 font-mono">
+                                {customFieldName}=[listing-slug]
                               </div>
-                            \`;
-                            
-                            // Message if no fields selected
-                            if (!nameEnabled && !emailEnabled && !phoneEnabled && 
-                                !companyEnabled && !addressEnabled && !messageEnabled) {
-                              previewContainer.innerHTML = \`
-                                <div class="text-sm text-slate-500 italic py-4">
-                                  No form fields selected. Enable fields to see preview.
-                                </div>
-                              \`;
-                            }
-                          }
-                          
-                          // Call function on page load
-                          setTimeout(updateFormPreview, 100);
-                        `}} />
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       
                       {/* Tracking Field Name */}

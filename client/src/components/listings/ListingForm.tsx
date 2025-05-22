@@ -48,12 +48,13 @@ const BUSINESS_CATEGORIES = [
 
 // Extended validation schema based on InsertListing
 const formSchema = z.object({
-  title: z.string().min(3, "Business name must be at least 3 characters"),
+  title: z.string().min(3, "Listing name must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters").regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
   directoryName: z.string().min(1, "Directory name is required").optional().or(z.literal("")),
   category: z.string().nonempty("Please select a category"),
   location: z.string().optional(),
-  description: z.string().min(10, "Description must be at least 10 characters"),
+  shortDescription: z.string().min(10, "Short description must be at least 10 characters").max(120, "Short description should be concise (max 120 characters)"),
+  description: z.string().min(30, "Detailed description must be at least 30 characters"),
   price: z.string().optional(),
   // Action button URLs (configurable based on type)
   downloadUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
@@ -411,10 +412,10 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Business Name <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>Listing Name <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Enter business name" 
+                      placeholder="Enter listing name" 
                       {...field} 
                       onChange={handleTitleChange}
                     />
@@ -564,20 +565,44 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
               </p>
             </div>
             
-            {/* Description */}
+            {/* Short Description - Added based on test feedback */}
+            <FormField
+              control={form.control}
+              name="shortDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Short Description <span className="text-red-500">*</span></FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Brief summary for listing cards (1-2 sentences)" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    A brief summary that appears on listing cards and search results
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Detailed Description */}
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>Detailed Description <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Enter a detailed description" 
-                      className="h-24"
+                      placeholder="Enter a comprehensive description with all details" 
+                      className="h-32"
                       {...field} 
                     />
                   </FormControl>
+                  <FormDescription>
+                    Full details that appear on the listing page
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
