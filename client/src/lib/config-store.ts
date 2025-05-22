@@ -25,6 +25,8 @@ export const defaultConfig: Partial<DesignerConfig> & {
   enableExpandedDescription: true,
   enableLocationMap: true,
   enableMetadataDisplay: true,
+  // Collections for organizing listings
+  collections: [],
   // Additional fields not in the DB schema but needed for UI
   metadataLabels: ["Category", "Location", "Version", "Type", "Brand"],
   metadataCount: 2,

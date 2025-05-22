@@ -21,6 +21,7 @@ import {
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { getConfig, saveConfig } from "@/lib/config-store";
+import { CollectionManager, Collection } from "@/components/ui/collection-manager";
 
 export default function ConfigWizardDemo() {
   const { toast } = useToast();
@@ -50,6 +51,9 @@ export default function ConfigWizardDemo() {
   const [showDescription, setShowDescription] = useState(true);
   const [showMaps, setShowMaps] = useState(true);
   const [showMetadata, setShowMetadata] = useState(true);
+  
+  // Collections state for the collection manager
+  const [collections, setCollections] = useState<Collection[]>([]);
   
   // Metadata fields state
   const [metadataFields, setMetadataFields] = useState([
@@ -580,6 +584,26 @@ export default function ConfigWizardDemo() {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
+            </div>
+          </div>
+        </WizardStep>
+        
+        <WizardStep 
+          title="Collections" 
+          description="Organize your listings into collections"
+        >
+          <div className="space-y-6 py-8">
+            <h2 className="text-lg font-bold text-center mb-4">Manage Directory Collections</h2>
+            
+            <p className="text-center text-sm text-slate-600 mb-8">
+              Create collections to organize your listings into categories, featured groups, or special showcases
+            </p>
+            
+            <div className="max-w-4xl mx-auto bg-white rounded-lg border p-6 shadow-sm">
+              <CollectionManager 
+                collections={collections} 
+                onChange={setCollections}
+              />
             </div>
           </div>
         </WizardStep>

@@ -1,0 +1,120 @@
+Here’s a **clear and structured task brief for your Replit agent** to implement the **Card-Based Collection Manager with a dummy image upload button**. This sets up the full frontend logic and layout without yet connecting to actual storage.
+
+---
+
+## 🛠️ Replit Task: Card-Based Collection Manager (with Dummy Upload)
+
+### 📌 Purpose
+
+Create a responsive UI in the wizard that allows users to add, view, edit, and delete multiple collections using a **card layout**. Include a **dummy image upload** flow (placeholder image URL).
+
+---
+
+## ✅ Requirements
+
+### 1. **Core Functionality**
+
+* Allow user to **add multiple collections**
+* Use a **modal** or **drawer** to input collection data
+* Display added collections as **cards** in a grid layout
+* Each card should show:
+
+  * Image (thumbnail)
+  * Name
+  * Edit + Delete buttons
+* Include a **“+ Add Collection” card** at the end of the list
+* Use dummy image upload logic (just return a placeholder URL for now)
+
+---
+
+### 2. **Collection Data Fields**
+
+Each collection has:
+
+```js
+{
+  id: "random_id", // generated
+  name: "",
+  slug: "",
+  image: "", // placeholder for now
+  seo: {
+    title: "",
+    description: ""
+  }
+}
+```
+
+---
+
+### 3. **Form Behavior**
+
+* On clicking "+ Add Collection":
+
+  * Open a modal or drawer
+  * Allow input for:
+
+    * Collection Name (generates slug)
+    * Slug (editable)
+    * Dummy upload button → sets `image` to `https://via.placeholder.com/150`
+    * SEO title (defaulted to name)
+    * SEO description
+* Save button validates required fields and adds the collection to state
+* Cancel closes modal without saving
+
+---
+
+### 4. **Card Layout**
+
+* Use a grid or flex-wrap layout
+* Each card shows:
+
+  * Image (use `img src`)
+  * Name
+  * Buttons: `Edit`, `Delete`
+* Add Card at end with big "+" symbol
+
+---
+
+### 5. **Delete Behavior**
+
+* Clicking "Delete" shows a confirmation prompt
+* Removes the card from state
+
+---
+
+### 6. **Edit Behavior**
+
+* Clicking "Edit" opens the same modal, prefilled
+* Allows updating fields
+
+---
+
+### 🧪 Notes for Dummy Upload
+
+For now, clicking the image upload button should:
+
+* Trigger a file input (optional)
+* But **always return** a dummy placeholder image:
+
+```js
+image = "https://via.placeholder.com/150"
+```
+
+---
+
+### 📤 Final Output
+
+On submission of the full wizard step, return:
+
+```json
+{
+  "collections": [
+    { ...collection1 },
+    { ...collection2 }
+  ]
+}
+```
+
+---
+
+Let me know when you're ready for the actual API wiring — I can provide the full upload logic and image browser integration when the backend is ready.
