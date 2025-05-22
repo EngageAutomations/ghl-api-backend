@@ -83,17 +83,23 @@ export default function ConfigTester() {
       company: randomBool()
     };
     
+    // Determine if action button is enabled
+    const enableActionButton = randomBool();
+    
     // Create the random configuration
-    const newConfig = {
+    const newConfig: any = {
       directoryName: randomText("Directory", 8),
-      enableActionButton: randomBool(),
-      buttonType: ["popup", "url", "download"][randomNumber(0, 2)],
-      buttonLabel: ["Contact Us", "Learn More", "Get Started", "Download"][randomNumber(0, 3)],
-      buttonColor: randomColor(),
-      buttonTextColor: randomBool() ? "#FFFFFF" : "#000000",
-      buttonBorderRadius: randomNumber(0, 20),
-      formEmbedUrl: "https://forms.gohighlevel.com/" + randomText("form", 10),
-      customFormFieldName: ["listing", "product", "service"][randomNumber(0, 2)],
+      enableActionButton,
+      // Only include button options if action button is enabled
+      ...(enableActionButton ? {
+        buttonType: ["popup", "url", "download"][randomNumber(0, 2)],
+        buttonLabel: ["Contact Us", "Learn More", "Get Started", "Download"][randomNumber(0, 3)],
+        buttonColor: randomColor(),
+        buttonTextColor: randomBool() ? "#FFFFFF" : "#000000",
+        buttonBorderRadius: randomNumber(0, 20),
+        formEmbedUrl: "https://forms.gohighlevel.com/" + randomText("form", 10),
+        customFormFieldName: ["listing", "product", "service"][randomNumber(0, 2)],
+      } : {}),
       collections,
       enablePriceDisplay: randomBool(),
       enableExpandedDescription: randomBool(),
@@ -130,8 +136,14 @@ export default function ConfigTester() {
       enableLocationMap,
       enableMetadataDisplay,
       metadataLabels,
-      customFormFieldName
+      customFormFieldName,
+      collections
     } = config;
+    
+    // Get a random collection if available
+    const randomCollection = collections && collections.length > 0 
+      ? collections[Math.floor(Math.random() * collections.length)]
+      : { name: "Sample Collection", slug: "sample-collection" };
     
     // Sample listing data
     const sampleListing = {
@@ -141,58 +153,99 @@ export default function ConfigTester() {
       price: "$99.99",
       address: "123 Main Street, Anytown, USA",
       company: "Sample Company, Inc.",
+      image: "https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=Product+Image",
+      collection: randomCollection.name,
+      slug: "sample-product-listing",
       metadata: metadataLabels.map((label: string) => ({
         label,
         value: randomText(label + "-value", 5)
       }))
     };
     
-    // Build the HTML for the form preview
+    // Build the HTML for the listing card preview
     const html = `
-      <div class="listing-preview">
-        <h2 class="listing-title">${sampleListing.title}</h2>
-        <div class="listing-subtitle">${sampleListing.subtitle}</div>
+      <div class="listing-card" style="font-family: system-ui, -apple-system, sans-serif; max-width: 100%;">
+        <!-- Listing Image -->
+        <div style="width: 100%; height: 200px; overflow: hidden; border-radius: 8px; margin-bottom: 16px; position: relative;">
+          <img 
+            src="${sampleListing.image}" 
+            alt="${sampleListing.title}" 
+            style="width: 100%; height: 100%; object-fit: cover;"
+          />
+          ${collections && collections.length > 0 ? 
+            `<div style="position: absolute; top: 12px; left: 12px; background-color: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+              ${sampleListing.collection}
+            </div>` : ''
+          }
+        </div>
         
-        ${enablePriceDisplay ? 
-          `<div class="listing-price">${sampleListing.price}</div>` : 
-          ''}
-        
-        ${enableExpandedDescription ? 
-          `<div class="listing-description">${sampleListing.description}</div>` : 
-          `<div class="listing-description-short">${sampleListing.description.substring(0, 50)}...</div>`}
-        
-        <div class="listing-company">${sampleListing.company}</div>
-        
-        ${enableLocationMap ? 
-          `<div class="listing-address">
-            <div>Location: ${sampleListing.address}</div>
-            <div class="map-placeholder" style="background-color: #f0f0f0; height: 100px; margin: 10px 0; display: flex; align-items: center; justify-content: center;">
-              Map would appear here
-            </div>
-          </div>` : 
-          ''}
-        
-        ${enableMetadataDisplay && metadataLabels.length > 0 ? 
-          `<div class="listing-metadata">
-            <h4>Additional Information</h4>
-            <ul>
-              ${sampleListing.metadata.map((item: any) => 
-                `<li><strong>${item.label}:</strong> ${item.value}</li>`
-              ).join('')}
-            </ul>
-          </div>` : 
-          ''}
-        
-        <button 
-          class="listing-button" 
-          style="background-color: ${buttonColor}; color: ${buttonTextColor}; border-radius: ${buttonBorderRadius}px; padding: 8px 16px; border: none; cursor: pointer; margin-top: 15px;"
-        >
-          ${buttonLabel}
-        </button>
-        
-        <div class="listing-tracking-info" style="margin-top: 15px; font-size: 12px; color: #666;">
-          <div>Tracking Field: ${customFormFieldName}</div>
-          <div>Tracking Value: sample-product-slug-123</div>
+        <!-- Listing Content -->
+        <div style="padding: 0 4px;">
+          <h2 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600; color: #1f2937;">${sampleListing.title}</h2>
+          <div style="margin-bottom: 8px; font-size: 14px; color: #4b5563;">${sampleListing.subtitle}</div>
+          
+          ${enablePriceDisplay ? 
+            `<div style="margin-bottom: 12px; font-size: 18px; font-weight: 600; color: #4F46E5;">${sampleListing.price}</div>` : 
+            ''}
+          
+          ${enableExpandedDescription ? 
+            `<div style="margin-bottom: 16px; font-size: 14px; color: #6b7280; line-height: 1.5;">
+              ${sampleListing.description}
+            </div>` : 
+            `<div style="margin-bottom: 16px; font-size: 14px; color: #6b7280; line-height: 1.5;">
+              ${sampleListing.description.substring(0, 100)}... <a href="#" style="color: #4F46E5; text-decoration: none;">Read more</a>
+            </div>`
+          }
+          
+          <div style="margin-bottom: 12px; font-size: 14px; color: #374151; font-weight: 500;">
+            ${sampleListing.company}
+          </div>
+          
+          ${enableLocationMap ? 
+            `<div style="margin-bottom: 16px;">
+              <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">
+                <strong>Location:</strong> ${sampleListing.address}
+              </div>
+              <div style="background-color: #f3f4f6; height: 120px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 14px;">
+                Map would appear here
+              </div>
+            </div>` : 
+            ''}
+          
+          ${enableMetadataDisplay && metadataLabels.length > 0 ? 
+            `<div style="margin-bottom: 16px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
+              <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 500; color: #374151;">Additional Information</h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;">
+                ${sampleListing.metadata.map((item: any) => 
+                  `<div style="font-size: 13px;">
+                    <span style="font-weight: 500; color: #4b5563;">${item.label}:</span>
+                    <span style="color: #6b7280;"> ${item.value}</span>
+                  </div>`
+                ).join('')}
+              </div>
+            </div>` : 
+            ''}
+          
+          ${config.enableActionButton ? 
+            `<!-- Action Button -->
+            <button 
+              style="width: 100%; background-color: ${buttonColor}; color: ${buttonTextColor}; border-radius: ${buttonBorderRadius}px; padding: 10px 16px; border: none; cursor: pointer; font-size: 16px; font-weight: 500; margin-top: 8px; transition: opacity 0.2s;"
+              onmouseover="this.style.opacity='0.9'"
+              onmouseout="this.style.opacity='1'"
+            >
+              ${buttonLabel}
+            </button>` 
+            : ''
+          }
+          
+          ${config.enableActionButton ? 
+            `<!-- Tracking Information (Development Only) -->
+            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px dashed #e5e7eb; font-size: 12px; color: #9ca3af;">
+              <div><strong>Tracking Field:</strong> ${customFormFieldName || "listing"}</div>
+              <div><strong>Tracking Value:</strong> ${sampleListing.slug}</div>
+            </div>` 
+            : ''
+          }
         </div>
       </div>
     `;
@@ -276,12 +329,12 @@ export default function ConfigTester() {
             </div>
           </div>
           
-          {/* Form Preview */}
+          {/* Listing Preview */}
           <div>
-            <h2 className="text-xl font-bold mb-4">Form Preview</h2>
+            <h2 className="text-xl font-bold mb-4">Listing Preview</h2>
             <div className="border rounded-md p-6 bg-white">
               <div 
-                className="form-preview"
+                className="listing-preview"
                 dangerouslySetInnerHTML={{ __html: previewFormHtml }}
               />
             </div>
