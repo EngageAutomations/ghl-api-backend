@@ -48,12 +48,47 @@ export default function ConfigWizardDemo() {
   const [showMaps, setShowMaps] = useState(true);
   const [showMetadata, setShowMetadata] = useState(true);
   
+  // Metadata fields state
+  const [metadataFields, setMetadataFields] = useState([
+    { id: 1, label: "Category", enabled: true },
+    { id: 2, label: "Location", enabled: true }
+  ]);
+  
   // Button preview state
   const [previewColor, setPreviewColor] = useState("#4F46E5");
   const [previewTextColor, setPreviewTextColor] = useState("#FFFFFF");
   const [previewBorderRadius, setPreviewBorderRadius] = useState(4);
   const [previewButtonText, setPreviewButtonText] = useState("Contact Us");
   const [buttonUrl, setButtonUrl] = useState("https://forms.gohighlevel.com/form?product={product_name}");
+  
+  // Metadata field management functions
+  const addMetadataField = () => {
+    if (metadataFields.length >= 5) {
+      toast({
+        title: "Maximum fields reached",
+        description: "You can only add up to 5 metadata fields",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const newId = Math.max(0, ...metadataFields.map(field => field.id)) + 1;
+    setMetadataFields([...metadataFields, { 
+      id: newId, 
+      label: "", 
+      enabled: true 
+    }]);
+  };
+  
+  const removeMetadataField = (id: number) => {
+    setMetadataFields(metadataFields.filter(field => field.id !== id));
+  };
+  
+  const updateMetadataField = (id: number, label: string) => {
+    setMetadataFields(metadataFields.map(field => 
+      field.id === id ? { ...field, label } : field
+    ));
+  };
   
   // Debug handler for color changes
   const handleTextColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
