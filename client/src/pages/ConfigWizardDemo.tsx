@@ -1074,40 +1074,40 @@ export default function ConfigWizardDemo() {
         
         {/* Tracking Field step removed as requested */}
         
-        <WizardStep 
-          title="Form Preview" 
-          description="See how your form will appear to users"
-        >
-          <div className="space-y-6 py-8 flex flex-col items-center">
-            <h2 className="text-lg font-bold text-center mb-8">Listing Form Preview</h2>
+        {/* Custom Form Preview Step - Different Layout */}
+        <div className="w-full bg-white p-8 rounded-lg border border-slate-100 shadow-sm mb-6">
+          <div className="flex flex-col items-center justify-center min-h-[600px]">
+            <h2 className="text-2xl font-bold text-center mb-4 text-slate-800">Form Preview</h2>
+            <p className="text-slate-500 text-center mb-8">See how your form will appear to users</p>
             
-            {/* Form Preview */}
-            <div className="w-full max-w-4xl">
-              <div className="bg-white rounded-lg border p-8 shadow-sm mx-auto">
-                <div className="border-b pb-4 mb-6">
-                  <h3 className="text-lg font-medium text-center">Form Appearance Preview</h3>
-                  <p className="text-sm text-slate-500 mt-2 text-center">
+            {/* Centered Form Preview Container */}
+            <div className="w-full max-w-5xl flex justify-center">
+              <div className="bg-slate-50 rounded-xl border border-slate-200 p-8 shadow-lg w-full max-w-4xl">
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-semibold text-slate-700 mb-2">Listing Form Preview</h3>
+                  <p className="text-sm text-slate-500">
                     This is how your listing creation form will appear to users
                   </p>
                 </div>
                 
-                <div className="p-6 border rounded-md bg-white flex justify-center">
-                  {/* Form Preview */}
+                {/* Form Preview with Perfect Centering */}
+                <div className="bg-white rounded-lg border border-slate-300 p-6 flex justify-center items-start">
                   <div
-                    className="form-preview w-full max-w-2xl"
+                    className="form-preview w-full max-w-3xl"
+                    style={{ minHeight: '400px' }}
                     dangerouslySetInnerHTML={{ __html: generateFormPreview() }}
                   />
                 </div>
-              </div>
-              
-              <div className="mt-8 text-center">
-                <p className="text-sm text-slate-500 mb-4">
-                  This preview updates automatically based on your configuration settings
-                </p>
+                
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-slate-500">
+                    ✨ This preview updates automatically based on your configuration settings
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </WizardStep>
+        </div>
         
         <WizardStep 
           title="Generate Code" 
