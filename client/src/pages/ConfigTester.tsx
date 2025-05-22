@@ -123,7 +123,7 @@ export default function ConfigTester() {
     });
   };
   
-  // Generate HTML for form preview based on config
+  // Generate listing creation form HTML based on config
   const generateFormPreview = (config: any) => {
     // Extract values from config
     const {
@@ -137,116 +137,236 @@ export default function ConfigTester() {
       enableMetadataDisplay,
       metadataLabels,
       customFormFieldName,
-      collections
+      collections,
+      formFields
     } = config;
     
-    // Get a random collection if available
-    const randomCollection = collections && collections.length > 0 
-      ? collections[Math.floor(Math.random() * collections.length)]
-      : { name: "Sample Collection", slug: "sample-collection" };
-    
-    // Sample listing data
-    const sampleListing = {
-      title: "Sample Product Listing",
-      subtitle: "Premium quality product",
-      description: "This is a detailed description of the product highlighting all of its features and benefits. This text would be longer in a real listing.",
-      price: "$99.99",
-      address: "123 Main Street, Anytown, USA",
-      company: "Sample Company, Inc.",
-      image: "https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=Product+Image",
-      collection: randomCollection.name,
-      slug: "sample-product-listing",
-      metadata: metadataLabels.map((label: string) => ({
-        label,
-        value: randomText(label + "-value", 5)
-      }))
-    };
-    
-    // Build the HTML for the listing card preview
+    // Build the HTML for the listing creation form
     const html = `
-      <div class="listing-card" style="font-family: system-ui, -apple-system, sans-serif; max-width: 100%;">
-        <!-- Listing Image -->
-        <div style="width: 100%; height: 200px; overflow: hidden; border-radius: 8px; margin-bottom: 16px; position: relative;">
-          <img 
-            src="${sampleListing.image}" 
-            alt="${sampleListing.title}" 
-            style="width: 100%; height: 100%; object-fit: cover;"
-          />
-          ${collections && collections.length > 0 ? 
-            `<div style="position: absolute; top: 12px; left: 12px; background-color: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-              ${sampleListing.collection}
-            </div>` : ''
-          }
-        </div>
-        
-        <!-- Listing Content -->
-        <div style="padding: 0 4px;">
-          <h2 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600; color: #1f2937;">${sampleListing.title}</h2>
-          <div style="margin-bottom: 8px; font-size: 14px; color: #4b5563;">${sampleListing.subtitle}</div>
+      <div class="listing-form" style="font-family: system-ui, -apple-system, sans-serif; max-width: 100%;">
+        <form style="display: flex; flex-direction: column; gap: 16px;">
+          <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #1f2937; text-align: center;">Create New Listing</h2>
           
-          ${enablePriceDisplay ? 
-            `<div style="margin-bottom: 12px; font-size: 18px; font-weight: 600; color: #4F46E5;">${sampleListing.price}</div>` : 
-            ''}
-          
-          ${enableExpandedDescription ? 
-            `<div style="margin-bottom: 16px; font-size: 14px; color: #6b7280; line-height: 1.5;">
-              ${sampleListing.description}
-            </div>` : 
-            `<div style="margin-bottom: 16px; font-size: 14px; color: #6b7280; line-height: 1.5;">
-              ${sampleListing.description.substring(0, 100)}... <a href="#" style="color: #4F46E5; text-decoration: none;">Read more</a>
-            </div>`
-          }
-          
-          <div style="margin-bottom: 12px; font-size: 14px; color: #374151; font-weight: 500;">
-            ${sampleListing.company}
+          <!-- Main fields - always required -->
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-weight: 500; font-size: 14px; color: #374151;">
+              Title <span style="color: #ef4444;">*</span>
+              <input type="text" name="title" required 
+                style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; font-size: 14px;"
+                placeholder="Product or service title"
+              />
+            </label>
           </div>
           
-          ${enableLocationMap ? 
-            `<div style="margin-bottom: 16px;">
-              <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">
-                <strong>Location:</strong> ${sampleListing.address}
-              </div>
-              <div style="background-color: #f3f4f6; height: 120px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 14px;">
-                Map would appear here
-              </div>
-            </div>` : 
-            ''}
+          <!-- Subtitle field -->
+          ${formFields?.subtitle ? `
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-weight: 500; font-size: 14px; color: #374151;">
+              Subtitle
+              <input type="text" name="subtitle"
+                style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; font-size: 14px;"
+                placeholder="Brief description or tagline"
+              />
+            </label>
+          </div>
+          ` : ''}
           
-          ${enableMetadataDisplay && metadataLabels.length > 0 ? 
-            `<div style="margin-bottom: 16px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
-              <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 500; color: #374151;">Additional Information</h4>
-              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;">
-                ${sampleListing.metadata.map((item: any) => 
-                  `<div style="font-size: 13px;">
-                    <span style="font-weight: 500; color: #4b5563;">${item.label}:</span>
-                    <span style="color: #6b7280;"> ${item.value}</span>
-                  </div>`
-                ).join('')}
+          <!-- Price field - conditionally shown -->
+          ${enablePriceDisplay ? `
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-weight: 500; font-size: 14px; color: #374151;">
+              Price
+              <div style="display: flex; align-items: center; margin-top: 4px;">
+                <span style="padding: 8px; background-color: #f3f4f6; border: 1px solid #d1d5db; border-right: none; border-radius: 6px 0 0 6px; color: #6b7280;">$</span>
+                <input type="text" name="price"
+                  style="flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 0 6px 6px 0; font-size: 14px;"
+                  placeholder="99.99"
+                />
               </div>
-            </div>` : 
-            ''}
+            </label>
+          </div>
+          ` : ''}
           
-          ${config.enableActionButton ? 
-            `<!-- Action Button -->
-            <button 
-              style="width: 100%; background-color: ${buttonColor}; color: ${buttonTextColor}; border-radius: ${buttonBorderRadius}px; padding: 10px 16px; border: none; cursor: pointer; font-size: 16px; font-weight: 500; margin-top: 8px; transition: opacity 0.2s;"
+          <!-- Description field -->
+          ${formFields?.description ? `
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-weight: 500; font-size: 14px; color: #374151;">
+              Description ${enableExpandedDescription ? '<span style="color: #ef4444;">*</span>' : ''}
+              <textarea name="description" ${enableExpandedDescription ? 'required' : ''}
+                style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; min-height: 120px; font-size: 14px; resize: vertical;"
+                placeholder="Detailed description of the product or service"
+              ></textarea>
+            </label>
+          </div>
+          ` : ''}
+          
+          <!-- Company field -->
+          ${formFields?.company ? `
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-weight: 500; font-size: 14px; color: #374151;">
+              Company
+              <input type="text" name="company"
+                style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; font-size: 14px;"
+                placeholder="Company or business name"
+              />
+            </label>
+          </div>
+          ` : ''}
+          
+          <!-- Address/Location fields - conditionally shown -->
+          ${enableLocationMap && formFields?.address ? `
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-weight: 500; font-size: 14px; color: #374151;">
+              Address
+              <input type="text" name="address"
+                style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; font-size: 14px;"
+                placeholder="Street address"
+              />
+            </label>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <label style="font-weight: 500; font-size: 14px; color: #374151;">
+                City
+                <input type="text" name="city"
+                  style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; font-size: 14px;"
+                  placeholder="City"
+                />
+              </label>
+              
+              <label style="font-weight: 500; font-size: 14px; color: #374151;">
+                State/Province
+                <input type="text" name="state"
+                  style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; font-size: 14px;"
+                  placeholder="State"
+                />
+              </label>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <label style="font-weight: 500; font-size: 14px; color: #374151;">
+                ZIP/Postal Code
+                <input type="text" name="postal_code"
+                  style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; font-size: 14px;"
+                  placeholder="ZIP Code"
+                />
+              </label>
+              
+              <label style="font-weight: 500; font-size: 14px; color: #374151;">
+                Country
+                <input type="text" name="country"
+                  style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; font-size: 14px;"
+                  placeholder="Country"
+                />
+              </label>
+            </div>
+          </div>
+          ` : ''}
+          
+          <!-- Collection selection dropdown - if collections exist -->
+          ${collections && collections.length > 0 ? `
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-weight: 500; font-size: 14px; color: #374151;">
+              Collection
+              <select name="collection_id"
+                style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; font-size: 14px; background-color: white;"
+              >
+                <option value="">Select a collection</option>
+                ${collections.map((collection: any) => `
+                  <option value="${collection.id}">${collection.name}</option>
+                `).join('')}
+              </select>
+            </label>
+          </div>
+          ` : ''}
+          
+          <!-- Metadata fields - conditionally shown -->
+          ${enableMetadataDisplay && metadataLabels.length > 0 ? `
+          <div style="margin-top: 8px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+            <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 500; color: #374151;">Additional Information</h3>
+            
+            <div style="display: grid; gap: 12px;">
+              ${metadataLabels.map((label: string, index: number) => `
+                <label style="font-weight: 500; font-size: 14px; color: #374151;">
+                  ${label}
+                  <input type="text" name="metadata_${index}"
+                    style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; font-size: 14px;"
+                    placeholder="${label} value"
+                  />
+                </label>
+              `).join('')}
+            </div>
+          </div>
+          ` : ''}
+          
+          <!-- Image upload field -->
+          <div style="margin-top: 8px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+            <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 500; color: #374151;">Listing Images</h3>
+            
+            <div style="border: 2px dashed #d1d5db; border-radius: 6px; padding: 20px; text-align: center; background-color: #f9fafb;">
+              <div style="margin-bottom: 12px; color: #6b7280;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 8px auto;"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                <p style="margin: 0; font-size: 14px;">Drag and drop images here, or click to browse</p>
+                <p style="margin: 4px 0 0 0; font-size: 12px; color: #9ca3af;">Accepts JPG, PNG, WEBP (Max: 5MB each)</p>
+              </div>
+              
+              <button type="button"
+                style="padding: 6px 12px; background-color: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px; color: #374151; cursor: pointer;"
+              >
+                Select Files
+              </button>
+            </div>
+          </div>
+          
+          <!-- SEO fields -->
+          <div style="margin-top: 8px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+            <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 500; color: #374151;">SEO Settings</h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <label style="font-weight: 500; font-size: 14px; color: #374151;">
+                URL Slug
+                <input type="text" name="slug"
+                  style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; font-size: 14px;"
+                  placeholder="product-name"
+                />
+                <span style="font-size: 12px; color: #6b7280; margin-top: 4px; display: block;">
+                  Custom URL: yoursite.com/listings/<strong>product-name</strong> (Auto-generated if left blank)
+                </span>
+              </label>
+              
+              <label style="font-weight: 500; font-size: 14px; color: #374151;">
+                Meta Title
+                <input type="text" name="meta_title"
+                  style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; font-size: 14px;"
+                  placeholder="SEO title (defaults to listing title)"
+                />
+              </label>
+              
+              <label style="font-weight: 500; font-size: 14px; color: #374151;">
+                Meta Description
+                <textarea name="meta_description"
+                  style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; height: 80px; font-size: 14px; resize: vertical;"
+                  placeholder="Brief description for search engines"
+                ></textarea>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Hidden tracking field for GHL integration -->
+          ${config.enableActionButton ? `
+          <input type="hidden" name="${customFormFieldName || 'listing'}" value="auto-generated-on-save" />
+          ` : ''}
+          
+          <!-- Form submit button -->
+          <div style="margin-top: 16px;">
+            <button type="submit"
+              style="width: 100%; background-color: ${buttonColor || '#4F46E5'}; color: ${buttonTextColor || '#FFFFFF'}; border-radius: ${buttonBorderRadius || 4}px; padding: 12px 16px; border: none; cursor: pointer; font-size: 16px; font-weight: 500; transition: opacity 0.2s;"
               onmouseover="this.style.opacity='0.9'"
               onmouseout="this.style.opacity='1'"
             >
-              ${buttonLabel}
-            </button>` 
-            : ''
-          }
-          
-          ${config.enableActionButton ? 
-            `<!-- Tracking Information (Development Only) -->
-            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px dashed #e5e7eb; font-size: 12px; color: #9ca3af;">
-              <div><strong>Tracking Field:</strong> ${customFormFieldName || "listing"}</div>
-              <div><strong>Tracking Value:</strong> ${sampleListing.slug}</div>
-            </div>` 
-            : ''
-          }
-        </div>
+              Create Listing
+            </button>
+          </div>
+        </form>
       </div>
     `;
     
