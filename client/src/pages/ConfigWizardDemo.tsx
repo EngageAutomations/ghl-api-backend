@@ -397,6 +397,27 @@ export default function ConfigWizardDemo() {
         title="Directory Integration Setup Wizard" 
         description="Welcome to the Go HighLevel Directory Integration setup. This wizard will guide you through configuring your marketplace listings with tracking and form integration in just a few simple steps."
       >
+        {/* Google Drive Connection Step */}
+        <WizardStep 
+          title="Connect Storage" 
+          description="Connect your Google Drive for secure image storage"
+        >
+          <div className="space-y-6 py-8">
+            <GoogleDriveConnection 
+              onConnected={handleGoogleDriveConnection}
+              isConnected={isGoogleDriveConnected}
+            />
+            
+            {isGoogleDriveConnected && (
+              <div className="text-center mt-8">
+                <p className="text-sm text-gray-600 mb-4">
+                  🎉 Great! Your Google Drive is connected. You can now proceed to configure your directory settings.
+                </p>
+              </div>
+            )}
+          </div>
+        </WizardStep>
+
         <WizardStep 
           title="Directory Settings" 
           description="Name your directory to get started"
