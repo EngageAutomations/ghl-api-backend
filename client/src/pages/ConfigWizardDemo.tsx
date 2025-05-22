@@ -858,26 +858,6 @@ export default function ConfigWizardDemo() {
         </WizardStep>
         
         <WizardStep 
-          title="Collections" 
-          description="Organize your listings into collections"
-        >
-          <div className="space-y-6 py-8">
-            <h2 className="text-lg font-bold text-center mb-4">Manage Directory Collections</h2>
-            
-            <p className="text-center text-sm text-slate-600 mb-8">
-              Create collections to organize your listings into categories, featured groups, or special showcases
-            </p>
-            
-            <div className="max-w-4xl mx-auto bg-white rounded-lg border p-6 shadow-sm">
-              <CollectionManager 
-                collections={collections} 
-                onChange={setCollections}
-              />
-            </div>
-          </div>
-        </WizardStep>
-        
-        <WizardStep 
           title="Listing Components" 
           description="Configure which components to display on listing pages"
         >
