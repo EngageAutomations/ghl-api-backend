@@ -641,6 +641,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Google Drive OAuth routes
+  app.get("/auth/google", async (req, res) => {
+    try {
+      const authUrl = googleDriveService.getAuthUrl();
+      res.json({ authUrl });
+    } catch (error) {
+      console.error("Error generating Google auth URL:", error);
+      res.status(500).json({ error: "Failed to generate auth URL" });
+    }
+  });
+
+  app.get("/auth/google/callback", async (req, res) => {
+    try {
+      const { code } = req.query;
+      if (!code || typeof code !== 'string') {
+        return res.status(400).send("Missing authorization code");
+      }
+
+      const tokens = await googleDriveService.getTokens(code);
+      
+      // Send tokens back to the frontend via postMessage
+      res.send(`
+        <html>
+          <script>
+            window.opener.postMessage({
+              type: 'GOOGLE_AUTH_SUCCESS',
+              tokens: ${JSON.stringify(tokens)}
+            }, window.location.origin);
+            window.close();
+          </script>
+        </html>
+      `);
+    } catch (error) {
+      console.error("Error exchanging code for tokens:", error);
+      res.status(500).send("Authentication failed");
+    }
+  });
+
+  app.post("/api/google-drive/upload", async (req, res) => {
+    try {
+      const { tokens, fileName, fileData, mimeType } = req.body;
+      
+      if (!tokens || !fileName || !fileData) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Set credentials for this request
+      googleDriveService.setCredentials(tokens);
+      
+      // Convert base64 to buffer
+      const buffer = Buffer.from(fileData.split(',')[1], 'base64');
+      
+      const result = await googleDriveService.uploadImage(fileName, buffer, mimeType);
+      
+      res.json({
+        success: true,
+        fileId: result.fileId,
+        publicUrl: googleDriveService.getPublicImageUrl(result.fileId),
+        webViewLink: result.webViewLink
+      });
+    } catch (error) {
+      console.error("Error uploading to Google Drive:", error);
+      res.status(500).json({ error: "Failed to upload file" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
