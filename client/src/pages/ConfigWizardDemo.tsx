@@ -846,6 +846,40 @@ export default function ConfigWizardDemo() {
         {/* Tracking Field step removed as requested */}
         
         <WizardStep 
+          title="Form Preview" 
+          description="See how your form will appear to users"
+        >
+          <div className="space-y-6 py-8">
+            <h2 className="text-lg font-bold text-center mb-8">Listing Form Preview</h2>
+            
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-white rounded-lg border p-6 shadow-sm">
+                <div className="border-b pb-4 mb-4">
+                  <h3 className="text-lg font-medium">Form Appearance Preview</h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    This is how your listing creation form will appear to users
+                  </p>
+                </div>
+                
+                <div className="p-4 border rounded-md bg-white">
+                  {/* Form Preview */}
+                  <div
+                    className="form-preview"
+                    dangerouslySetInnerHTML={{ __html: generateFormPreview() }}
+                  />
+                </div>
+              </div>
+              
+              <div className="mt-8 text-center">
+                <p className="text-sm text-slate-500 mb-4">
+                  This preview updates automatically based on your configuration settings
+                </p>
+              </div>
+            </div>
+          </div>
+        </WizardStep>
+        
+        <WizardStep 
           title="Generate Code" 
           description="Your configuration is complete!"
         >
