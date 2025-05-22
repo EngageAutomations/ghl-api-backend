@@ -878,9 +878,46 @@ export default function ConfigWizardDemo() {
                   size="sm"
                   className="mr-2"
                   onClick={() => {
-                    // Export configuration to JSON file
-                    const config = getConfig();
-                    const configString = JSON.stringify(config, null, 2);
+                    // Export configuration to JSON file with all current settings
+                    const completeConfig = {
+                      // Include existing stored config
+                      ...getConfig(),
+                      
+                      // Directory settings
+                      directoryName: document.getElementById('directory-name')?.value || "My Directory",
+                      
+                      // Collections data
+                      collections: collections,
+                      
+                      // Button configuration
+                      enableActionButton: selectedOptIn === "action-button",
+                      buttonType: buttonType,
+                      buttonLabel: previewButtonText,
+                      buttonColor: previewColor,
+                      buttonTextColor: previewTextColor,
+                      buttonBorderRadius: previewBorderRadius,
+                      formEmbedUrl: formEmbedUrl,
+                      customFormFieldName: customFieldName,
+                      
+                      // Component visibility
+                      enablePriceDisplay: showPrice,
+                      enableExpandedDescription: showDescription,
+                      enableLocationMap: showMaps,
+                      enableMetadataDisplay: showMetadata,
+                      
+                      // Metadata fields
+                      metadataFields: metadataFields,
+                      metadataLabels: metadataFields.map(field => field.label),
+                      metadataCount: metadataFields.length,
+                      
+                      // Form fields configuration
+                      formFields: formFields,
+                      
+                      // Updated timestamp
+                      updatedAt: new Date().toISOString()
+                    };
+                    
+                    const configString = JSON.stringify(completeConfig, null, 2);
                     const blob = new Blob([configString], { type: "application/json" });
                     const url = URL.createObjectURL(blob);
                     
@@ -917,9 +954,39 @@ export default function ConfigWizardDemo() {
                             if (typeof result === 'string') {
                               const config = JSON.parse(result);
                               
-                              // Update collections state if present in the imported config
+                              // Update all state values from the imported config
                               if (config.collections && Array.isArray(config.collections)) {
                                 setCollections(config.collections);
+                              }
+                              
+                              // Update opt-in type
+                              if (config.enableActionButton !== undefined) {
+                                setSelectedOptIn(config.enableActionButton ? "action-button" : null);
+                              }
+                              
+                              // Update button settings
+                              if (config.buttonType) setButtonType(config.buttonType);
+                              if (config.buttonLabel) setPreviewButtonText(config.buttonLabel);
+                              if (config.buttonColor) setPreviewColor(config.buttonColor);
+                              if (config.buttonTextColor) setPreviewTextColor(config.buttonTextColor);
+                              if (config.buttonBorderRadius !== undefined) setPreviewBorderRadius(config.buttonBorderRadius);
+                              if (config.formEmbedUrl) setFormEmbedUrl(config.formEmbedUrl);
+                              if (config.customFormFieldName) setCustomFieldName(config.customFormFieldName);
+                              
+                              // Update component visibility
+                              if (config.enablePriceDisplay !== undefined) setShowPrice(config.enablePriceDisplay);
+                              if (config.enableExpandedDescription !== undefined) setShowDescription(config.enableExpandedDescription);
+                              if (config.enableLocationMap !== undefined) setShowMaps(config.enableLocationMap);
+                              if (config.enableMetadataDisplay !== undefined) setShowMetadata(config.enableMetadataDisplay);
+                              
+                              // Update metadata fields if available
+                              if (config.metadataLabels && Array.isArray(config.metadataLabels)) {
+                                const updatedFields = config.metadataLabels.map((label, index) => ({
+                                  id: index + 1,
+                                  label,
+                                  enabled: true
+                                }));
+                                setMetadataFields(updatedFields);
                               }
                               
                               saveConfig(config);
