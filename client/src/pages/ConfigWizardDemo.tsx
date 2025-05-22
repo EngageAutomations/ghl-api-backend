@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { ConfigWizard, WizardStep } from "@/components/ui/config-wizard";
 import {
@@ -418,6 +419,88 @@ export default function ConfigWizardDemo() {
                         <p className="text-xs text-slate-500">
                           The URL of your Go HighLevel form to embed on listing pages
                         </p>
+                      </div>
+                      
+                      {/* Form Field Configuration */}
+                      <div className="space-y-4 pt-2 border-t border-slate-100">
+                        <h4 className="text-sm font-medium text-slate-800">Form Fields</h4>
+                        <p className="text-xs text-slate-500">
+                          Select which fields to include in your embedded form
+                        </p>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          {/* Name Field */}
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="field-name" 
+                              checked={formFields.name}
+                              onCheckedChange={(checked: boolean) => 
+                                setFormFields({...formFields, name: checked})
+                              }
+                            />
+                            <Label htmlFor="field-name" className="text-sm">Name</Label>
+                          </div>
+                          
+                          {/* Email Field */}
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="field-email" 
+                              checked={formFields.email}
+                              onCheckedChange={(checked) => 
+                                setFormFields({...formFields, email: checked === true})
+                              }
+                            />
+                            <Label htmlFor="field-email" className="text-sm">Email</Label>
+                          </div>
+                          
+                          {/* Phone Field */}
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="field-phone" 
+                              checked={formFields.phone}
+                              onCheckedChange={(checked) => 
+                                setFormFields({...formFields, phone: checked === true})
+                              }
+                            />
+                            <Label htmlFor="field-phone" className="text-sm">Phone</Label>
+                          </div>
+                          
+                          {/* Message Field */}
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="field-message" 
+                              checked={formFields.message}
+                              onCheckedChange={(checked) => 
+                                setFormFields({...formFields, message: checked === true})
+                              }
+                            />
+                            <Label htmlFor="field-message" className="text-sm">Message</Label>
+                          </div>
+                          
+                          {/* Company Field */}
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="field-company" 
+                              checked={formFields.company}
+                              onCheckedChange={(checked) => 
+                                setFormFields({...formFields, company: checked === true})
+                              }
+                            />
+                            <Label htmlFor="field-company" className="text-sm">Company</Label>
+                          </div>
+                          
+                          {/* Address Field */}
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="field-address" 
+                              checked={formFields.address}
+                              onCheckedChange={(checked) => 
+                                setFormFields({...formFields, address: checked === true})
+                              }
+                            />
+                            <Label htmlFor="field-address" className="text-sm">Address</Label>
+                          </div>
+                        </div>
                       </div>
                       
                       {/* Tracking Field Name */}
@@ -1308,10 +1391,10 @@ ${buttonType === "download" ? `/* -------------------------------------
       document.addEventListener('DOMContentLoaded', function() {
         const slug = window.GHLDirectory.getSlug();
         const iframe = document.getElementById('ghl-form-iframe');
-        let formUrl = 'https://forms.gohighlevel.com/your-form-url';
+        let formUrl = '${formEmbedUrl}';
         
         if (slug) {
-          formUrl = window.GHLDirectory.addParameter(formUrl, 'listing', slug);
+          formUrl = window.GHLDirectory.addParameter(formUrl, '${customFieldName}', slug);
           formUrl = window.GHLDirectory.addParameter(formUrl, 'utm_source', 'directory');
           iframe.src = formUrl;
         }
