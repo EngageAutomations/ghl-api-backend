@@ -1067,7 +1067,7 @@ export default function ConfigWizardDemo() {
                               id={`meta-name-${field.id}`}
                               placeholder="e.g. Category, Version, etc."
                               className="h-10"
-                              value={field.label}
+                              value={field.label || ""}
                               onChange={(e) => updateMetadataField(field.id, e.target.value)}
                             />
                           </div>
