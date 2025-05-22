@@ -85,6 +85,7 @@ export default function TopNavbar() {
     { href: "/", icon: <Home className="h-4 w-4" />, label: "Dashboard" },
     { href: "/listings", icon: <GanttChart className="h-4 w-4" />, label: "Listings" },
     { href: "/config-wizard", icon: <Settings className="h-4 w-4" />, label: "Config Wizard" },
+    { href: "/config-tester", icon: <HelpCircle className="h-4 w-4" />, label: "Config Tester" },
   ];
 
   return (

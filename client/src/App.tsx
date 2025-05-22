@@ -9,6 +9,7 @@ import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import Listings from "@/pages/listings";
 import ConfigWizardDemo from "@/pages/ConfigWizardDemo";
+import ConfigTester from "@/pages/ConfigTester";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
@@ -95,6 +96,15 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <ConfigWizardDemo />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      {/* Config Tester Page */}
+      <Route path="/config-tester">
+        <ProtectedRoute>
+          <AppLayout>
+            <ConfigTester />
           </AppLayout>
         </ProtectedRoute>
       </Route>
