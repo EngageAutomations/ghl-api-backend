@@ -31,33 +31,7 @@ export function WizardStep({ title, description, children }: WizardStepProps) {
             {children}
           </div>
           
-          {/* Live Preview */}
-          <div className="border rounded-lg p-4 bg-slate-50">
-            <h3 className="text-sm font-medium text-slate-600 mb-3">Live Preview</h3>
-            <div className="bg-white border rounded-md shadow-sm p-4 h-[500px] overflow-auto">
-              {/* Simple form preview placeholder */}
-              <div className="text-center py-8">
-                <div className="inline-flex justify-center items-center h-12 w-36 bg-indigo-500 rounded mb-4">
-                  <span className="text-white font-semibold">Directory</span>
-                </div>
-                <p className="text-lg font-medium mb-6">Create New Listing</p>
-                <div className="space-y-4 text-left">
-                  <div className="border rounded p-3">
-                    <label className="block text-sm font-medium mb-1">Title</label>
-                    <input type="text" className="w-full p-2 border rounded" placeholder="Product title" />
-                  </div>
-                  <div className="border rounded p-3">
-                    <label className="block text-sm font-medium mb-1">Description</label>
-                    <textarea className="w-full p-2 border rounded h-20" placeholder="Description"></textarea>
-                  </div>
-                </div>
-              </div>
-              
-            </div>
-            <div className="mt-2 text-xs text-slate-500">
-              This preview shows how your form will appear to users. Fields shown depend on your configuration.
-            </div>
-          </div>
+
         </div>
       </div>
     );

@@ -1082,16 +1082,16 @@ export default function ConfigWizardDemo() {
             <h2 className="text-lg font-bold text-center mb-8">Listing Form Preview</h2>
             
             {/* Form Preview */}
-            <div className="max-w-2xl mx-auto">
-              <div className="bg-white rounded-lg border p-6 shadow-sm">
-                <div className="border-b pb-4 mb-4">
-                  <h3 className="text-lg font-medium">Form Appearance Preview</h3>
-                  <p className="text-sm text-slate-500 mt-1">
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-white rounded-lg border p-8 shadow-sm">
+                <div className="border-b pb-4 mb-6">
+                  <h3 className="text-lg font-medium text-center">Form Appearance Preview</h3>
+                  <p className="text-sm text-slate-500 mt-2 text-center">
                     This is how your listing creation form will appear to users
                   </p>
                 </div>
                 
-                <div className="p-4 border rounded-md bg-white">
+                <div className="p-6 border rounded-md bg-white">
                   {/* Form Preview */}
                   <div
                     className="form-preview"
