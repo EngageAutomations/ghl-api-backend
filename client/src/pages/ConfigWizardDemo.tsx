@@ -19,8 +19,10 @@ import {
   AccordionTrigger
 } from "@/components/ui/accordion";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ConfigWizardDemo() {
+  const { toast } = useToast();
   // State for the selected opt-in type (action button or embedded form)
   const [selectedOptIn, setSelectedOptIn] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | undefined>(undefined);
@@ -634,76 +636,65 @@ export default function ConfigWizardDemo() {
                     <h4 className="text-sm font-medium text-slate-700">Metadata Configuration</h4>
                     <p className="text-xs text-slate-500">Add up to 5 metadata items to display for each listing</p>
                     
-                    {/* Metadata Item 1 */}
-                    <div className="border border-slate-200 rounded p-3 bg-slate-50">
-                      <div className="grid grid-cols-8 gap-3">
-                        <div className="col-span-2">
-                          <Label htmlFor="meta-icon-1" className="text-xs block mb-1.5">Icon</Label>
-                          <div className="flex items-center justify-center h-10 bg-white border border-slate-200 rounded cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7" /><line x1="16" x2="22" y1="5" y2="5" /><line x1="19" x2="19" y1="2" y2="8" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
-                            <Input 
-                              id="meta-icon-1" 
-                              type="file" 
-                              accept="image/png" 
-                              className="hidden"
+                    {/* Dynamic Metadata Items */}
+                    {metadataFields.map((field) => (
+                      <div key={field.id} className="border border-slate-200 rounded p-3 bg-slate-50">
+                        <div className="grid grid-cols-8 gap-3">
+                          <div className="col-span-2">
+                            <Label htmlFor={`meta-icon-${field.id}`} className="text-xs block mb-1.5">Icon</Label>
+                            <div className="flex items-center justify-center h-10 bg-white border border-slate-200 rounded cursor-pointer">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7" /><line x1="16" x2="22" y1="5" y2="5" /><line x1="19" x2="19" y1="2" y2="8" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
+                              <Input 
+                                id={`meta-icon-${field.id}`}
+                                type="file" 
+                                accept="image/png" 
+                                className="hidden"
+                              />
+                            </div>
+                          </div>
+                          <div className="col-span-5">
+                            <Label htmlFor={`meta-name-${field.id}`} className="text-xs block mb-1.5">Name</Label>
+                            <Input
+                              id={`meta-name-${field.id}`}
+                              placeholder="e.g. Category, Version, etc."
+                              className="h-10"
+                              value={field.label}
+                              onChange={(e) => updateMetadataField(field.id, e.target.value)}
                             />
                           </div>
-                        </div>
-                        <div className="col-span-5">
-                          <Label htmlFor="meta-name-1" className="text-xs block mb-1.5">Name</Label>
-                          <Input
-                            id="meta-name-1"
-                            placeholder="e.g. Category, Version, etc."
-                            className="h-10"
-                          />
-                        </div>
-                        <div className="col-span-1 flex items-end">
-                          <Button variant="ghost" size="sm" className="px-2 h-10 w-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Metadata Item 2 */}
-                    <div className="border border-slate-200 rounded p-3 bg-slate-50">
-                      <div className="grid grid-cols-8 gap-3">
-                        <div className="col-span-2">
-                          <Label htmlFor="meta-icon-2" className="text-xs block mb-1.5">Icon</Label>
-                          <div className="flex items-center justify-center h-10 bg-white border border-slate-200 rounded cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7" /><line x1="16" x2="22" y1="5" y2="5" /><line x1="19" x2="19" y1="2" y2="8" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
-                            <Input 
-                              id="meta-icon-2" 
-                              type="file" 
-                              accept="image/png" 
-                              className="hidden"
-                            />
+                          <div className="col-span-1 flex items-end">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="px-2 h-10 w-full text-red-500 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => removeMetadataField(field.id)}
+                              disabled={metadataFields.length <= 1} // Prevent removing the last field
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
+                            </Button>
                           </div>
                         </div>
-                        <div className="col-span-5">
-                          <Label htmlFor="meta-name-2" className="text-xs block mb-1.5">Name</Label>
-                          <Input
-                            id="meta-name-2"
-                            placeholder="e.g. Category, Version, etc."
-                            className="h-10"
-                          />
-                        </div>
-                        <div className="col-span-1 flex items-end">
-                          <Button variant="ghost" size="sm" className="px-2 h-10 w-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
-                          </Button>
-                        </div>
                       </div>
-                    </div>
+                    ))}
                     
                     {/* Add More Metadata Button */}
-                    <Button variant="outline" size="sm" className="w-full mt-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-2"
+                      onClick={addMetadataField}
+                      disabled={metadataFields.length >= 5}
+                    >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
-                      Add More Metadata
+                      Add More Metadata {metadataFields.length >= 5 && "(Max 5)"}
                     </Button>
                     
                     <p className="text-xs text-slate-500 mt-2">
-                      You can add up to 5 metadata items for your listings
+                      {metadataFields.length === 0 ? (
+                        <span className="text-amber-500">You need at least one metadata field for the metadata bar to display</span>
+                      ) : (
+                        `Currently using ${metadataFields.length} of 5 available metadata fields`
+                      )}
                     </p>
                   </div>
                 </div>
