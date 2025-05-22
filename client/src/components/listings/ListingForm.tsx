@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -55,10 +55,31 @@ const formSchema = z.object({
   location: z.string().optional(),
   description: z.string().min(10, "Description must be at least 10 characters"),
   price: z.string().optional(),
+  // Action button URLs (configurable based on type)
   downloadUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   popupUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   embedFormUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-  imageUrl: z.string().url("Must be a valid URL").optional().or(z.literal(""))
+  imageUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  
+  // Extended description (rich text content)
+  extendedDescription: z.string().optional(),
+  
+  // Google Maps integration
+  address: z.string().optional(),
+  
+  // Metadata fields (up to 5)
+  metadataField1: z.string().optional(),
+  metadataField2: z.string().optional(),
+  metadataField3: z.string().optional(),
+  metadataField4: z.string().optional(),
+  metadataField5: z.string().optional(),
+  
+  // Additional configuration options from wizard
+  actionButtonType: z.string().optional(), // popup, link, download
+  showMap: z.boolean().optional(),
+  showExpandedDescription: z.boolean().optional(),
+  enableMetadata: z.boolean().optional(),
+  metadataCount: z.number().min(0).max(5).optional()
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -74,6 +95,55 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
   const { toast } = useToast();
   const [, navigate] = useLocation();
   
+  // Get default configuration for dynamic form fields
+  const [config, setConfig] = useState({
+    actionButtonType: initialData?.actionButtonType || "popup",
+    showMap: initialData?.showMap || false,
+    showExpandedDescription: initialData?.showExpandedDescription || false,
+    enableMetadata: initialData?.enableMetadata || false,
+    metadataCount: initialData?.metadataCount || 0,
+    metadataLabels: [
+      "Feature 1",
+      "Feature 2", 
+      "Feature 3",
+      "Feature 4",
+      "Feature 5"
+    ]
+  });
+  
+  // Custom hook to fetch config from the database
+  useEffect(() => {
+    // This would typically fetch from the API, but for now we'll use mock data
+    // In a real implementation, you would fetch the config based on the user's settings
+    const fetchConfig = async () => {
+      try {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // For demo purposes, we'll set some default values
+        // In reality, this would come from the database
+        setConfig({
+          actionButtonType: "popup", // popup, link, download
+          showMap: true,
+          showExpandedDescription: true,
+          enableMetadata: true,
+          metadataCount: 3,
+          metadataLabels: [
+            "Business Hours", 
+            "Contact Email",
+            "Phone Number",
+            "Website URL",
+            "Social Media"
+          ]
+        });
+      } catch (error) {
+        console.error("Error fetching config:", error);
+      }
+    };
+    
+    fetchConfig();
+  }, []);
+  
   // Initialize form with default values or provided data
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -88,21 +158,169 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
       downloadUrl: initialData?.downloadUrl || "",
       popupUrl: initialData?.popupUrl || "",
       embedFormUrl: initialData?.embedFormUrl || "",
-      imageUrl: initialData?.imageUrl || ""
+      imageUrl: initialData?.imageUrl || "",
+      
+      // New fields from dynamic config
+      extendedDescription: initialData?.extendedDescription || "",
+      address: initialData?.address || "",
+      metadataField1: initialData?.metadataField1 || "",
+      metadataField2: initialData?.metadataField2 || "",
+      metadataField3: initialData?.metadataField3 || "",
+      metadataField4: initialData?.metadataField4 || "",
+      metadataField5: initialData?.metadataField5 || "",
+      
+      // Configuration options
+      actionButtonType: initialData?.actionButtonType || config.actionButtonType,
+      showMap: initialData?.showMap || config.showMap,
+      showExpandedDescription: initialData?.showExpandedDescription || config.showExpandedDescription,
+      enableMetadata: initialData?.enableMetadata || config.enableMetadata,
+      metadataCount: initialData?.metadataCount || config.metadataCount
     }
   });
+  
+  // Toggle action button type
+  const handleActionButtonTypeChange = (type: string) => {
+    setConfig({
+      ...config,
+      actionButtonType: type
+    });
+    
+    form.setValue("actionButtonType", type);
+  };
+  
+  // Save metadata as addons to the listing
+  const saveMetadataAddons = async (listingId: number, data: FormValues) => {
+    if (!config.enableMetadata || config.metadataCount <= 0) return;
+    
+    try {
+      // Create array of metadata values to save
+      const metadataValues = [];
+      
+      if (config.metadataCount >= 1 && data.metadataField1) {
+        metadataValues.push({
+          listingId,
+          type: "metadata",
+          title: config.metadataLabels[0],
+          content: data.metadataField1,
+          displayOrder: 0
+        });
+      }
+      
+      if (config.metadataCount >= 2 && data.metadataField2) {
+        metadataValues.push({
+          listingId,
+          type: "metadata",
+          title: config.metadataLabels[1],
+          content: data.metadataField2,
+          displayOrder: 1
+        });
+      }
+      
+      if (config.metadataCount >= 3 && data.metadataField3) {
+        metadataValues.push({
+          listingId,
+          type: "metadata",
+          title: config.metadataLabels[2],
+          content: data.metadataField3,
+          displayOrder: 2
+        });
+      }
+      
+      if (config.metadataCount >= 4 && data.metadataField4) {
+        metadataValues.push({
+          listingId,
+          type: "metadata",
+          title: config.metadataLabels[3],
+          content: data.metadataField4,
+          displayOrder: 3
+        });
+      }
+      
+      if (config.metadataCount >= 5 && data.metadataField5) {
+        metadataValues.push({
+          listingId,
+          type: "metadata",
+          title: config.metadataLabels[4],
+          content: data.metadataField5,
+          displayOrder: 4
+        });
+      }
+      
+      // Save expanded description as an addon if provided
+      if (config.showExpandedDescription && data.extendedDescription) {
+        metadataValues.push({
+          listingId,
+          type: "expanded_description",
+          title: "Extended Description",
+          content: data.extendedDescription,
+          displayOrder: 10 // Lower priority than metadata
+        });
+      }
+      
+      // Save address as map addon if provided
+      if (config.showMap && data.address) {
+        metadataValues.push({
+          listingId,
+          type: "map",
+          title: "Location",
+          content: data.address,
+          displayOrder: 20 // Lower priority than extended description
+        });
+      }
+      
+      // No need to continue if no metadata to save
+      if (metadataValues.length === 0) return;
+      
+      // Save all metadata items in a batch
+      await apiRequest('/api/listing-addons/batch', {
+        method: 'POST',
+        data: {
+          addons: metadataValues
+        }
+      });
+      
+      console.log('Metadata saved successfully');
+    } catch (error) {
+      console.error('Error saving metadata:', error);
+      // Don't throw the error; we still want to complete the form submission
+      toast({
+        title: "Warning",
+        description: "Listing saved but there was an issue saving metadata.",
+        variant: "destructive",
+      });
+    }
+  };
   
   // Handle form submission
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     
     try {
+      // Prepare listing data (excluding metadata fields that aren't part of the listing schema)
+      const listingData = {
+        title: data.title,
+        slug: data.slug,
+        directoryName: data.directoryName,
+        category: data.category,
+        location: data.location,
+        description: data.description,
+        price: data.price,
+        imageUrl: data.imageUrl,
+        
+        // Only include the URL that matches the selected action button type
+        downloadUrl: config.actionButtonType === 'download' ? data.downloadUrl : '',
+        popupUrl: config.actionButtonType === 'popup' ? data.popupUrl : '',
+        embedFormUrl: data.embedFormUrl
+      };
+      
+      let listingId: number;
+      
       // If we're editing, send PATCH request with the listing ID
       if (isEditing && initialData && 'id' in initialData) {
-        const listingId = (initialData as Listing).id;
+        listingId = (initialData as Listing).id;
         await apiRequest(`/api/listings/id/${listingId}`, {
           method: 'PATCH',
-          data
+          data: listingData
         });
         
         toast({
@@ -115,13 +333,16 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
         queryClient.invalidateQueries({ queryKey: [`/api/listings/id/${listingId}`] });
       } else {
         // Otherwise, create a new listing
-        await apiRequest('/api/listings', {
+        const response = await apiRequest('/api/listings', {
           method: 'POST',
           data: {
-            ...data,
+            ...listingData,
             userId: 1 // Using a default user ID for now
           }
         });
+        
+        // Extract the listing ID from the response
+        listingId = response.data.id;
         
         toast({
           title: "Success!",
@@ -131,6 +352,9 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
         // Invalidate queries to refresh listings data
         queryClient.invalidateQueries({ queryKey: ['/api/listings/user/1'] });
       }
+      
+      // Save metadata and other addons
+      await saveMetadataAddons(listingId, data);
       
       // Call success callback if provided
       if (onSuccess) {
@@ -299,6 +523,40 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
           </div>
           
           <div className="space-y-6">
+            {/* Action Button Type Selector */}
+            <div className="p-4 border rounded-md bg-slate-50">
+              <h3 className="font-medium mb-3">Action Button Type</h3>
+              <div className="flex space-x-3">
+                <Button 
+                  type="button"
+                  variant={config.actionButtonType === "popup" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleActionButtonTypeChange("popup")}
+                >
+                  Popup Form
+                </Button>
+                <Button 
+                  type="button"
+                  variant={config.actionButtonType === "link" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => handleActionButtonTypeChange("link")}
+                >
+                  External Link
+                </Button>
+                <Button 
+                  type="button"
+                  variant={config.actionButtonType === "download" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => handleActionButtonTypeChange("download")}
+                >
+                  Download
+                </Button>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                Select which type of action this listing will use
+              </p>
+            </div>
+            
             {/* Description */}
             <FormField
               control={form.control}
@@ -336,43 +594,99 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
               )}
             />
             
-            {/* Download URL */}
-            <FormField
-              control={form.control}
-              name="downloadUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Download URL</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="https://example.com/download" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Dynamic field: Extended Description (Rich Text) */}
+            {config.showExpandedDescription && (
+              <FormField
+                control={form.control}
+                name="extendedDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Extended Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Enter an expanded description with additional details" 
+                        className="h-36"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      This rich text field supports basic HTML formatting for enhanced product descriptions
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             
-            {/* Popup URL */}
-            <FormField
-              control={form.control}
-              name="popupUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Popup Form URL</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="https://example.com/popup-form" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Dynamic field: Google Maps Address */}
+            {config.showMap && (
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Address (for Map)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="123 Main St, City, State, Zip" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Enter a full address to display on Google Maps
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             
-            {/* Embed Form URL */}
+            {/* Dynamic Action Button URLs - based on config.actionButtonType */}
+            {config.actionButtonType === "download" && (
+              <FormField
+                control={form.control}
+                name="downloadUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Download File URL <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="https://example.com/download" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Direct link to downloadable file (PDF, ZIP, etc.)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
+            {config.actionButtonType === "popup" && (
+              <FormField
+                control={form.control}
+                name="popupUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Popup Form URL <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="https://forms.gohighlevel.com/your-form" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      GoHighLevel form URL that will open in a popup window
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
+            {/* Embed Form URL - always shown as an option */}
             <FormField
               control={form.control}
               name="embedFormUrl"
@@ -381,14 +695,124 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
                   <FormLabel>Embedded Form URL</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="https://example.com/embed-form" 
+                      placeholder="https://forms.gohighlevel.com/embed-form" 
                       {...field} 
                     />
                   </FormControl>
+                  <FormDescription>
+                    URL for a GoHighLevel form that can be embedded directly in the listing page
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            
+            {/* Dynamic fields: Metadata Fields (based on config.enableMetadata and config.metadataCount) */}
+            {config.enableMetadata && config.metadataCount > 0 && (
+              <div className="space-y-4 border rounded-md p-4 bg-slate-50">
+                <h3 className="font-medium text-sm">Listing Metadata</h3>
+                
+                {/* Metadata Field 1 */}
+                {config.metadataCount >= 1 && (
+                  <FormField
+                    control={form.control}
+                    name="metadataField1"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{config.metadataLabels[0]}</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder={`Enter ${config.metadataLabels[0]}`} 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                
+                {/* Metadata Field 2 */}
+                {config.metadataCount >= 2 && (
+                  <FormField
+                    control={form.control}
+                    name="metadataField2"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{config.metadataLabels[1]}</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder={`Enter ${config.metadataLabels[1]}`} 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                
+                {/* Metadata Field 3 */}
+                {config.metadataCount >= 3 && (
+                  <FormField
+                    control={form.control}
+                    name="metadataField3"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{config.metadataLabels[2]}</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder={`Enter ${config.metadataLabels[2]}`} 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                
+                {/* Metadata Field 4 */}
+                {config.metadataCount >= 4 && (
+                  <FormField
+                    control={form.control}
+                    name="metadataField4"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{config.metadataLabels[3]}</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder={`Enter ${config.metadataLabels[3]}`} 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                
+                {/* Metadata Field 5 */}
+                {config.metadataCount >= 5 && (
+                  <FormField
+                    control={form.control}
+                    name="metadataField5"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{config.metadataLabels[4]}</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder={`Enter ${config.metadataLabels[4]}`} 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            )}
           </div>
         </div>
         
