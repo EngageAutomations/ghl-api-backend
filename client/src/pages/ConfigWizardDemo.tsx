@@ -35,7 +35,7 @@ export default function ConfigWizardDemo() {
       
     // Build the HTML for the listing creation form
     const html = `
-      <div class="listing-form" style="font-family: system-ui, -apple-system, sans-serif; max-width: 100%;">
+      <div class="listing-form" style="font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; text-align: left;">
         <form style="display: flex; flex-direction: column; gap: 16px;">
           <!-- Company Logo -->
           <div style="text-align: center; margin-bottom: 20px;">
