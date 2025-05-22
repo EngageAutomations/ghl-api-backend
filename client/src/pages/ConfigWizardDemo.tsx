@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/accordion";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { getConfig, saveConfig } from "@/lib/config-store";
 
 export default function ConfigWizardDemo() {
   const { toast } = useToast();
@@ -814,17 +815,94 @@ export default function ConfigWizardDemo() {
               We'll generate the integration code for your Go HighLevel site based on your settings.
             </p>
             
-            <Button 
-              size="lg" 
-              className="px-8 py-6 text-base" 
-              onClick={() => {
-                // Find the next step button and click it
-                const nextButton = document.querySelector('button:has(.w-4.h-4.ml-2)') as HTMLButtonElement;
-                if (nextButton) nextButton.click();
-              }}
-            >
-              Generate Code
-            </Button>
+            <div className="space-y-4">
+              <Button 
+                size="lg" 
+                className="px-8 py-6 text-base" 
+                onClick={() => {
+                  // Find the next step button and click it
+                  const nextButton = document.querySelector('button:has(.w-4.h-4.ml-2)') as HTMLButtonElement;
+                  if (nextButton) nextButton.click();
+                }}
+              >
+                Generate Code
+              </Button>
+              
+              <div className="flex items-center justify-center mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mr-2"
+                  onClick={() => {
+                    // Export configuration to JSON file
+                    const config = getConfig();
+                    const configString = JSON.stringify(config, null, 2);
+                    const blob = new Blob([configString], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "directory_config.json";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>
+                  Export Config
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // Create a file input element
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = "application/json";
+                    input.style.display = "none";
+                    
+                    input.onchange = (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          try {
+                            const result = event.target?.result;
+                            if (typeof result === 'string') {
+                              const config = JSON.parse(result);
+                              saveConfig(config);
+                              toast({
+                                title: "Configuration Imported",
+                                description: "Your configuration has been loaded successfully."
+                              });
+                              
+                              // Force refresh the page to reflect new config
+                              window.location.reload();
+                            }
+                          } catch (error) {
+                            toast({
+                              title: "Import Failed",
+                              description: "The configuration file could not be loaded.",
+                              variant: "destructive"
+                            });
+                          }
+                        };
+                        reader.readAsText(file);
+                      }
+                    };
+                    
+                    document.body.appendChild(input);
+                    input.click();
+                    document.body.removeChild(input);
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" x2="12" y1="3" y2="15" /></svg>
+                  Import Config
+                </Button>
+              </div>
+            </div>
           </div>
         </WizardStep>
 

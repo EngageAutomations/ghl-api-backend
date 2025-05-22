@@ -144,8 +144,8 @@ export function ListingFormPreview({ config: propConfig }: ListingFormPreviewPro
                 <button 
                   className="px-4 py-2 rounded-md text-white"
                   style={{
-                    backgroundColor: config.buttonColor || defaultConfig.buttonColor,
-                    color: config.buttonTextColor || defaultConfig.buttonTextColor,
+                    backgroundColor: (config.buttonColor || defaultConfig.buttonColor) as string,
+                    color: (config.buttonTextColor || defaultConfig.buttonTextColor) as string,
                     borderRadius: `${config.buttonBorderRadius || defaultConfig.buttonBorderRadius}px`
                   }}
                   disabled
@@ -162,8 +162,8 @@ export function ListingFormPreview({ config: propConfig }: ListingFormPreviewPro
           <button 
             className="px-4 py-2 bg-primary text-white rounded-md"
             style={{
-              backgroundColor: config.buttonColor || defaultConfig.buttonColor,
-              color: config.buttonTextColor || defaultConfig.buttonTextColor,
+              backgroundColor: (config.buttonColor || defaultConfig.buttonColor) as string,
+              color: (config.buttonTextColor || defaultConfig.buttonTextColor) as string,
               borderRadius: `${config.buttonBorderRadius || defaultConfig.buttonBorderRadius}px`
             }}
             disabled
