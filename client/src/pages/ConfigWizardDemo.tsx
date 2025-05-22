@@ -446,8 +446,8 @@ export default function ConfigWizardDemo() {
                             <Checkbox 
                               id="field-email" 
                               checked={formFields.email}
-                              onCheckedChange={(checked) => 
-                                setFormFields({...formFields, email: checked === true})
+                              onCheckedChange={(checked: boolean) => 
+                                setFormFields({...formFields, email: checked})
                               }
                             />
                             <Label htmlFor="field-email" className="text-sm">Email</Label>
@@ -458,8 +458,8 @@ export default function ConfigWizardDemo() {
                             <Checkbox 
                               id="field-phone" 
                               checked={formFields.phone}
-                              onCheckedChange={(checked) => 
-                                setFormFields({...formFields, phone: checked === true})
+                              onCheckedChange={(checked: boolean) => 
+                                setFormFields({...formFields, phone: checked})
                               }
                             />
                             <Label htmlFor="field-phone" className="text-sm">Phone</Label>
@@ -470,8 +470,8 @@ export default function ConfigWizardDemo() {
                             <Checkbox 
                               id="field-message" 
                               checked={formFields.message}
-                              onCheckedChange={(checked) => 
-                                setFormFields({...formFields, message: checked === true})
+                              onCheckedChange={(checked: boolean) => 
+                                setFormFields({...formFields, message: checked})
                               }
                             />
                             <Label htmlFor="field-message" className="text-sm">Message</Label>
@@ -482,8 +482,8 @@ export default function ConfigWizardDemo() {
                             <Checkbox 
                               id="field-company" 
                               checked={formFields.company}
-                              onCheckedChange={(checked) => 
-                                setFormFields({...formFields, company: checked === true})
+                              onCheckedChange={(checked: boolean) => 
+                                setFormFields({...formFields, company: checked})
                               }
                             />
                             <Label htmlFor="field-company" className="text-sm">Company</Label>
@@ -494,8 +494,8 @@ export default function ConfigWizardDemo() {
                             <Checkbox 
                               id="field-address" 
                               checked={formFields.address}
-                              onCheckedChange={(checked) => 
-                                setFormFields({...formFields, address: checked === true})
+                              onCheckedChange={(checked: boolean) => 
+                                setFormFields({...formFields, address: checked})
                               }
                             />
                             <Label htmlFor="field-address" className="text-sm">Address</Label>
@@ -1406,10 +1406,10 @@ ${buttonType === "download" ? `/* -------------------------------------
     <script>
       function openGhlForm() {
         const slug = window.GHLDirectory.getSlug();
-        let formUrl = 'https://forms.gohighlevel.com/your-form-url';
+        let formUrl = '${formEmbedUrl}';
         
         if (slug) {
-          formUrl = window.GHLDirectory.addParameter(formUrl, 'listing', slug);
+          formUrl = window.GHLDirectory.addParameter(formUrl, '${customFieldName}', slug);
           formUrl = window.GHLDirectory.addParameter(formUrl, 'utm_source', 'directory');
         }
         
