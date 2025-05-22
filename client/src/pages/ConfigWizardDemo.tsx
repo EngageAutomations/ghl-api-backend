@@ -28,6 +28,19 @@ export default function ConfigWizardDemo() {
   // Custom field tracking name
   const [customFieldName, setCustomFieldName] = useState("listing");
   
+  // Form URL state
+  const [formEmbedUrl, setFormEmbedUrl] = useState("https://forms.gohighlevel.com/your-form-url");
+  
+  // Form field configuration
+  const [formFields, setFormFields] = useState({
+    name: true,
+    email: true,
+    phone: true,
+    message: true,
+    company: false,
+    address: false
+  });
+  
   // Component visibility state
   const [showPrice, setShowPrice] = useState(true);
   const [showDescription, setShowDescription] = useState(true);
@@ -398,6 +411,8 @@ export default function ConfigWizardDemo() {
                         <Input
                           id="form-embed-url"
                           placeholder="https://forms.gohighlevel.com/form-embed"
+                          value={formEmbedUrl}
+                          onChange={(e) => setFormEmbedUrl(e.target.value)}
                           className="flex-1"
                         />
                         <p className="text-xs text-slate-500">
