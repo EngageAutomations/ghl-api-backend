@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Drive, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle2, HardDrive, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface GoogleDriveConnectionProps {
@@ -74,7 +74,7 @@ export function GoogleDriveConnection({ onConnected, isConnected }: GoogleDriveC
       <Card className="border-2">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
-            <Drive className="h-12 w-12 text-blue-600" />
+            <HardDrive className="h-12 w-12 text-blue-600" />
           </div>
           <CardTitle className="text-2xl">Connect Your Google Drive</CardTitle>
           <CardDescription className="text-lg">
@@ -150,7 +150,7 @@ export function GoogleDriveConnection({ onConnected, isConnected }: GoogleDriveC
                   </>
                 ) : (
                   <>
-                    <Drive className="mr-2 h-5 w-5" />
+                    <HardDrive className="mr-2 h-5 w-5" />
                     Connect Google Drive
                   </>
                 )}

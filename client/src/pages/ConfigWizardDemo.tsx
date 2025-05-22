@@ -22,9 +22,30 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { getConfig, saveConfig } from "@/lib/config-store";
 import { CollectionManager, Collection } from "@/components/ui/collection-manager";
+import { GoogleDriveConnection } from "@/components/google-drive/GoogleDriveConnection";
 
 export default function ConfigWizardDemo() {
   const { toast } = useToast();
+  
+  // Google Drive connection state
+  const [googleDriveTokens, setGoogleDriveTokens] = useState<any>(null);
+  const [isGoogleDriveConnected, setIsGoogleDriveConnected] = useState(false);
+
+  const handleGoogleDriveConnection = (tokens: any) => {
+    setGoogleDriveTokens(tokens);
+    setIsGoogleDriveConnected(true);
+    // Store tokens in localStorage for persistence
+    localStorage.setItem('googleDriveTokens', JSON.stringify(tokens));
+  };
+
+  // Check for existing tokens on load
+  useEffect(() => {
+    const savedTokens = localStorage.getItem('googleDriveTokens');
+    if (savedTokens) {
+      setGoogleDriveTokens(JSON.parse(savedTokens));
+      setIsGoogleDriveConnected(true);
+    }
+  }, []);
   
   // Function to generate the form preview HTML based on current configuration
   const generateFormPreview = () => {
