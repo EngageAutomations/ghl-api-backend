@@ -1369,7 +1369,67 @@ ${buttonType === "download" ? `/* -------------------------------------
             <div className="border border-slate-200 rounded-md overflow-hidden">
               <div className="bg-slate-800 px-4 py-2 flex justify-between items-center">
                 <span className="text-slate-300 text-sm">Form Embed HTML</span>
-                <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-slate-300 hover:text-white"
+                  onClick={() => {
+                    // Generate the form embed code
+                    const formCode = `<!-- GHL Directory Form Embed -->
+<div class="ghl-form-container">
+  <div class="ghl-form-wrapper" data-form-type="${selectedOptIn === "embedded-form" ? 'embed' : 'popup'}">
+    ${selectedOptIn === "embedded-form" ?
+      `<iframe
+      id="ghl-form-iframe"
+      src=""
+      width="100%"
+      height="600px"
+      frameborder="0"
+      allowfullscreen
+    ></iframe>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const slug = window.GHLDirectory.getSlug();
+        const iframe = document.getElementById('ghl-form-iframe');
+        let formUrl = '${formEmbedUrl}';
+        
+        if (slug) {
+          formUrl = window.GHLDirectory.addParameter(formUrl, '${customFieldName}', slug);
+          formUrl = window.GHLDirectory.addParameter(formUrl, 'utm_source', 'directory');
+          iframe.src = formUrl;
+        }
+      });
+    </script>` :
+      `<button class="ghl-listing-button" onclick="openGhlForm()">
+      ${previewButtonText}
+    </button>
+    <script>
+      function openGhlForm() {
+        const slug = window.GHLDirectory.getSlug();
+        let formUrl = '${formEmbedUrl}';
+        
+        if (slug) {
+          formUrl = window.GHLDirectory.addParameter(formUrl, '${customFieldName}', slug);
+          formUrl = window.GHLDirectory.addParameter(formUrl, 'utm_source', 'directory');
+          window.open(formUrl, '_blank');
+        }
+      }
+    </script>`
+    }
+  </div>
+</div>`;
+                    
+                    // Copy to clipboard
+                    navigator.clipboard.writeText(formCode)
+                      .then(() => {
+                        alert('Form embed code copied to clipboard!');
+                      })
+                      .catch(err => {
+                        console.error('Failed to copy code: ', err);
+                        alert('Failed to copy code. Please select and copy manually.');
+                      });
+                  }}
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                   <span className="ml-1">Copy</span>
                 </Button>
@@ -1411,19 +1471,495 @@ ${buttonType === "download" ? `/* -------------------------------------
         if (slug) {
           formUrl = window.GHLDirectory.addParameter(formUrl, '${customFieldName}', slug);
           formUrl = window.GHLDirectory.addParameter(formUrl, 'utm_source', 'directory');
+          window.open(formUrl, '_blank');
         }
-        
-        window.open(formUrl, '_blank');
       }
     </script>`
     }
   </div>
-</div>`}
+</div>
+
+<!-- Alternative: Custom HTML Form with selected fields -->
+<!-- 
+<div class="ghl-custom-form-container">
+  <form id="ghl-directory-form" class="ghl-directory-form" action="${formEmbedUrl}" method="POST">
+    <!-- Hidden tracking field for the product/listing slug -->
+    <input type="hidden" id="ghl-listing-field" name="${customFieldName}">
+    
+    ${formFields.name ? 
+    `<!-- Name field -->
+    <div class="ghl-form-group">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required>
+    </div>` : ''}
+    
+    ${formFields.email ? 
+    `<!-- Email field -->
+    <div class="ghl-form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required>
+    </div>` : ''}
+    
+    ${formFields.phone ? 
+    `<!-- Phone field -->
+    <div class="ghl-form-group">
+      <label for="phone">Phone</label>
+      <input type="tel" id="phone" name="phone">
+    </div>` : ''}
+    
+    ${formFields.company ? 
+    `<!-- Company field -->
+    <div class="ghl-form-group">
+      <label for="company">Company</label>
+      <input type="text" id="company" name="company">
+    </div>` : ''}
+    
+    ${formFields.address ? 
+    `<!-- Address field -->
+    <div class="ghl-form-group">
+      <label for="address">Address</label>
+      <input type="text" id="address" name="address">
+    </div>` : ''}
+    
+    ${formFields.message ? 
+    `<!-- Message field -->
+    <div class="ghl-form-group">
+      <label for="message">Message</label>
+      <textarea id="message" name="message" rows="4"></textarea>
+    </div>` : ''}
+    
+    <!-- Submit button -->
+    <div class="ghl-form-group">
+      <button type="submit" class="ghl-submit-button">${previewButtonText}</button>
+    </div>
+  </form>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get the current listing slug
+      const slug = window.GHLDirectory.getSlug();
+      
+      // Set the hidden field value
+      if (slug) {
+        document.getElementById('ghl-listing-field').value = slug;
+      }
+      
+      // Add form submission handler
+      const form = document.getElementById('ghl-directory-form');
+      form.addEventListener('submit', function(e) {
+        // Optional: add validation here
+        
+        // Add analytics tracking if needed
+        if (window.gtag) {
+          window.gtag('event', 'form_submission', {
+            'listing_slug': slug
+          });
+        }
+      });
+    });
+  </script>
+</div>
+
+<style>
+  /* Custom form styling */
+  .ghl-custom-form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  
+  .ghl-directory-form {
+    display: grid;
+    gap: 16px;
+  }
+  
+  .ghl-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .ghl-form-group label {
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .ghl-form-group input,
+  .ghl-form-group textarea {
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 16px;
+    line-height: 1.5;
+    width: 100%;
+    transition: border-color 0.2s ease;
+  }
+  
+  .ghl-form-group input:focus,
+  .ghl-form-group textarea:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  }
+  
+  .ghl-submit-button {
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 20px;
+    font-weight: 500;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .ghl-submit-button:hover {
+    background-color: #4338ca;
+  }
+  
+  .ghl-listing-button {
+    display: inline-block;
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 20px;
+    font-weight: 500;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+  }
+  
+  .ghl-listing-button:hover {
+    background-color: #4338ca;
+  }
+</style>
+-->
+`}
               </div>
             </div>
             
             <div className="text-center mt-8">
-              <Button size="lg" className="px-8 py-2 text-base">
+              <Button 
+                size="lg" 
+                className="px-8 py-2 text-base"
+                onClick={() => {
+                  // Generate all code snippets together
+                  const headerCode = `<!-- GHL Directory Header Script -->
+<script>
+  (function() {
+    window.GHLDirectory = window.GHLDirectory || {};
+    window.GHLDirectory.customField = "${customFieldName}";
+    
+    window.GHLDirectory.getSlug = function() {
+      const url = new URL(window.location.href);
+      const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
+      return pathSegments[pathSegments.length - 1] || null;
+    };
+    
+    window.GHLDirectory.addParameter = function(url, key, value) {
+      const separator = url.includes('?') ? '&' : '?';
+      return \`\${url}\${separator}\${key}=\${value}\`;
+    };
+    
+    window.GHLDirectory.addTrackingToForms = function(slug) {
+      document.querySelectorAll('form').forEach(form => {
+        const hiddenField = document.createElement('input');
+        hiddenField.type = 'hidden';
+        hiddenField.name = window.GHLDirectory.customField;
+        hiddenField.value = slug;
+        form.appendChild(hiddenField);
+      });
+    };
+    
+    window.GHLDirectory.setupActionButtons = function(slug) {
+      document.querySelectorAll('.action-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+          const targetUrl = this.getAttribute('data-url');
+          if (targetUrl) {
+            e.preventDefault();
+            const url = window.GHLDirectory.addParameter(targetUrl, window.GHLDirectory.customField, slug);
+            window.open(url, '_blank');
+          }
+        });
+      });
+    };
+    
+    window.GHLDirectory.setupDownloadButtons = function(slug) {
+      document.querySelectorAll('.download-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+          const downloadUrl = this.getAttribute('data-download-url');
+          if (downloadUrl) {
+            e.preventDefault();
+            const url = window.GHLDirectory.addParameter(downloadUrl, window.GHLDirectory.customField, slug);
+            window.location.href = url;
+          }
+        });
+      });
+    };
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      const slug = window.GHLDirectory.getSlug();
+      if (slug) {
+        console.log('Listing slug detected:', slug);
+        window.GHLDirectory.addTrackingToForms(slug);
+        window.GHLDirectory.setupActionButtons(slug);
+        window.GHLDirectory.setupDownloadButtons(slug);
+        
+        // Store listing info in sessionStorage for other scripts
+        sessionStorage.setItem('current_listing_slug', slug);
+        sessionStorage.setItem('ghl_field_name', window.GHLDirectory.customField);
+      }
+    });
+  })();
+</script>`;
+
+                  const cssCode = `/* GHL Directory Styling */
+.product-item {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.product-item:hover {
+  box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+  transform: translateY(-2px);
+}
+
+.product-item .product-image-container {
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  height: 0;
+}
+
+.product-item .product-image-container img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-item:hover .product-image-container img {
+  transform: scale(1.05);
+}
+
+.product-item .product-content {
+  padding: 16px;
+}
+
+.product-item .product-title {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.product-item .product-description {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 12px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+}
+
+.product-item .product-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #777;
+}
+
+.product-item .product-price {
+  font-weight: 700;
+  color: #333;
+  font-size: 16px;
+}
+
+.product-item .product-category {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: #f0f0f0;
+  color: #555;
+}
+
+.product-item a.view-details {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: ${previewColor};
+  color: ${previewTextColor};
+  text-decoration: none;
+  border-radius: ${previewBorderRadius}px;
+  font-weight: 500;
+  font-size: 14px;
+  margin-top: 12px;
+  transition: background-color 0.2s;
+}
+
+.product-item a.view-details:hover {
+  background-color: ${previewColor === '#4F46E5' ? '#4338ca' : previewColor};
+  opacity: 0.9;
+}
+
+/* Product gallery grid (2-row limit) */
+.product-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  max-height: calc(2 * (300px * 0.5625 + 200px)); /* Limit height to 2 rows */
+  overflow-y: auto;
+}
+
+/* Action buttons */
+.ghl-listing-button {
+  display: inline-block;
+  background-color: ${previewColor};
+  color: ${previewTextColor};
+  border: none;
+  border-radius: ${previewBorderRadius}px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.ghl-listing-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .product-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    max-height: none; /* Remove height limit on mobile */
+  }
+  
+  .product-item .product-title {
+    font-size: 16px;
+  }
+}`;
+
+                  const formCode = `<!-- GHL Directory Form Embed -->
+<div class="ghl-form-container">
+  <div class="ghl-form-wrapper" data-form-type="${selectedOptIn === "embedded-form" ? 'embed' : 'popup'}">
+    ${selectedOptIn === "embedded-form" ?
+      `<iframe
+      id="ghl-form-iframe"
+      src=""
+      width="100%"
+      height="600px"
+      frameborder="0"
+      allowfullscreen
+    ></iframe>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const slug = window.GHLDirectory.getSlug();
+        const iframe = document.getElementById('ghl-form-iframe');
+        let formUrl = '${formEmbedUrl}';
+        
+        if (slug) {
+          formUrl = window.GHLDirectory.addParameter(formUrl, '${customFieldName}', slug);
+          formUrl = window.GHLDirectory.addParameter(formUrl, 'utm_source', 'directory');
+          iframe.src = formUrl;
+        }
+      });
+    </script>` :
+      `<button class="ghl-listing-button" onclick="openGhlForm()">
+      ${previewButtonText}
+    </button>
+    <script>
+      function openGhlForm() {
+        const slug = window.GHLDirectory.getSlug();
+        let formUrl = '${formEmbedUrl}';
+        
+        if (slug) {
+          formUrl = window.GHLDirectory.addParameter(formUrl, '${customFieldName}', slug);
+          formUrl = window.GHLDirectory.addParameter(formUrl, 'utm_source', 'directory');
+          window.open(formUrl, '_blank');
+        }
+      }
+    </script>`
+    }
+  </div>
+</div>`;
+
+                  const footerCode = `<!-- GHL Directory Footer Script -->
+<script>
+  // Optional additional tracking code
+  (function() {
+    // Get the current listing slug from sessionStorage
+    const currentSlug = sessionStorage.getItem('current_listing_slug');
+    const fieldName = sessionStorage.getItem('ghl_field_name') || '${customFieldName}';
+    
+    // Track page views
+    if (currentSlug && typeof gtag === 'function') {
+      gtag('event', 'listing_view', {
+        'listing_slug': currentSlug
+      });
+    }
+    
+    // Track outbound links
+    document.querySelectorAll('a[href^="http"]').forEach(link => {
+      link.addEventListener('click', function() {
+        if (currentSlug && typeof gtag === 'function') {
+          gtag('event', 'outbound_link', {
+            'listing_slug': currentSlug,
+            'destination': this.href
+          });
+        }
+      });
+    });
+  })();
+</script>`;
+
+                  // Combine all code
+                  const allCode = 
+`/* ===== GHL DIRECTORY INTEGRATION COMPLETE CODE ===== */
+
+/* ===== 1. HEADER CODE - Add to <head> section ===== */
+${headerCode}
+
+/* ===== 2. CSS STYLES - Add to your stylesheet ===== */
+${cssCode}
+
+/* ===== 3. FORM EMBED CODE - Add where you want the form ===== */
+${formCode}
+
+/* ===== 4. FOOTER CODE - Add before closing </body> tag ===== */
+${footerCode}
+
+/* ===== END OF GHL DIRECTORY INTEGRATION CODE ===== */`;
+
+                  // Create a download link
+                  const element = document.createElement('a');
+                  const file = new Blob([allCode], {type: 'text/plain'});
+                  element.href = URL.createObjectURL(file);
+                  element.download = 'ghl-directory-integration.txt';
+                  document.body.appendChild(element);
+                  element.click();
+                  document.body.removeChild(element);
+                }}
+              >
                 Download All Code
               </Button>
             </div>
