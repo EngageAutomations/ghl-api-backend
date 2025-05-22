@@ -327,8 +327,8 @@ export default function ConfigWizardDemo() {
   
   // Metadata fields state
   const [metadataFields, setMetadataFields] = useState([
-    { id: 1, label: "Category", enabled: true },
-    { id: 2, label: "Location", enabled: true }
+    { id: 1, label: "", enabled: true },
+    { id: 2, label: "", enabled: true }
   ]);
   
   // Button preview state
