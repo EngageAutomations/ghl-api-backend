@@ -145,6 +145,14 @@ export default function ConfigTester() {
     const html = `
       <div class="listing-form" style="font-family: system-ui, -apple-system, sans-serif; max-width: 100%;">
         <form style="display: flex; flex-direction: column; gap: 16px;">
+          <!-- Company Logo -->
+          <div style="text-align: center; margin-bottom: 12px;">
+            <div style="display: inline-flex; justify-content: center; align-items: center; height: 60px; width: 60px; background-color: ${buttonColor || '#4F46E5'}; border-radius: 8px; margin: 0 auto 12px auto;">
+              <span style="color: white; font-weight: bold; font-size: 18px;">DE</span>
+            </div>
+            <div style="font-size: 14px; color: #6b7280;">Directory Engine</div>
+          </div>
+          
           <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #1f2937; text-align: center;">Create New Listing</h2>
           
           <!-- Main fields - always required -->
