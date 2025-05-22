@@ -1,69 +1,61 @@
 import React from 'react';
 import { Collection } from '@/components/ui/collection-manager';
 
-// Type for the form preview component props
-interface ListingFormPreviewProps {
-  config: {
-    directoryName: string;
-    logo?: string;
-    logoText?: string;
-    buttonColor: string;
-    buttonTextColor: string;
-    buttonBorderRadius: number;
-    buttonLabel: string;
-    enablePriceDisplay: boolean;
-    enableExpandedDescription: boolean;
-    enableLocationMap: boolean;
-    enableMetadataDisplay: boolean;
-    metadataLabels?: string[];
-    customFormFieldName?: string;
-    collections: Collection[];
-    formFields: {
-      title?: boolean;
-      subtitle?: boolean;
-      description?: boolean;
-      price?: boolean;
-      address?: boolean;
-      company?: boolean;
-    };
-  };
+// Type for the wizard form preview component props
+interface WizardFormPreviewProps {
+  directoryName: string;
+  buttonColor: string;
+  buttonTextColor: string;
+  buttonBorderRadius: number;
+  collections: Collection[];
+  showPrice: boolean;
+  showDescription: boolean;
+  showMaps: boolean;
+  showMetadata: boolean;
+  metadataFields: {label: string, enabled: boolean}[];
+  customFieldName: string;
+  logoText?: string;
+  logo?: string;
 }
 
 /**
- * Listing Form Preview Component
+ * Wizard Form Preview Component
  * 
- * Displays a preview of how the listing creation form will appear to users
- * based on the current configuration settings.
+ * Displays a preview of how the listing creation form will appear
+ * based on the current wizard configuration settings.
  */
-export default function ListingFormPreview({ config }: ListingFormPreviewProps) {
+export function WizardFormPreview({
+  directoryName,
+  buttonColor,
+  buttonTextColor,
+  buttonBorderRadius,
+  collections,
+  showPrice,
+  showDescription,
+  showMaps,
+  showMetadata,
+  metadataFields,
+  customFieldName,
+  logoText,
+  logo
+}: WizardFormPreviewProps) {
+  // Get enabled metadata labels
+  const metadataLabels = metadataFields
+    .filter(field => field.enabled)
+    .map(field => field.label);
+
   // Generate the HTML for the form preview
   const generateFormPreview = () => {
-    // Extract values from config
-    const {
-      buttonColor, 
-      buttonTextColor, 
-      buttonBorderRadius, 
-      buttonLabel,
-      enablePriceDisplay,
-      enableExpandedDescription,
-      enableLocationMap,
-      enableMetadataDisplay,
-      metadataLabels,
-      customFormFieldName,
-      collections,
-      formFields
-    } = config;
-    
     // Build the HTML for the listing creation form
     const html = `
       <div class="listing-form" style="font-family: system-ui, -apple-system, sans-serif; max-width: 100%;">
         <form style="display: flex; flex-direction: column; gap: 16px;">
           <!-- Company Logo from user configuration -->
           <div style="text-align: center; margin-bottom: 20px;">
-            ${config.logo ? 
-              `<img src="${config.logo}" alt="Company Logo" style="max-height: 60px; max-width: 200px; margin: 0 auto;">` : 
+            ${logo ? 
+              `<img src="${logo}" alt="Company Logo" style="max-height: 60px; max-width: 200px; margin: 0 auto;">` : 
               `<div style="display: inline-flex; justify-content: center; align-items: center; height: 60px; width: 180px; background-color: ${buttonColor || '#4F46E5'}; border-radius: 8px; margin: 0 auto;">
-                <span style="color: white; font-weight: bold; font-size: 18px;">${config.logoText || config.directoryName || 'Directory'}</span>
+                <span style="color: white; font-weight: bold; font-size: 18px;">${logoText || directoryName || 'Directory'}</span>
               </div>`
             }
           </div>
@@ -82,7 +74,6 @@ export default function ListingFormPreview({ config }: ListingFormPreviewProps) 
           </div>
           
           <!-- Subtitle field -->
-          ${formFields?.subtitle ? `
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <label style="font-weight: 500; font-size: 14px; color: #374151;">
               Subtitle
@@ -92,10 +83,9 @@ export default function ListingFormPreview({ config }: ListingFormPreviewProps) 
               />
             </label>
           </div>
-          ` : ''}
           
           <!-- Price field - conditionally shown -->
-          ${enablePriceDisplay ? `
+          ${showPrice ? `
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <label style="font-weight: 500; font-size: 14px; color: #374151;">
               Price
@@ -111,20 +101,17 @@ export default function ListingFormPreview({ config }: ListingFormPreviewProps) 
           ` : ''}
           
           <!-- Description field -->
-          ${formFields?.description ? `
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <label style="font-weight: 500; font-size: 14px; color: #374151;">
-              Description ${enableExpandedDescription ? '<span style="color: #ef4444;">*</span>' : ''}
-              <textarea name="description" ${enableExpandedDescription ? 'required' : ''}
+              Description ${showDescription ? '<span style="color: #ef4444;">*</span>' : ''}
+              <textarea name="description" ${showDescription ? 'required' : ''}
                 style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; min-height: 120px; font-size: 14px; resize: vertical;"
                 placeholder="Detailed description of the product or service"
               ></textarea>
             </label>
           </div>
-          ` : ''}
           
           <!-- Company field -->
-          ${formFields?.company ? `
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <label style="font-weight: 500; font-size: 14px; color: #374151;">
               Company
@@ -134,10 +121,9 @@ export default function ListingFormPreview({ config }: ListingFormPreviewProps) 
               />
             </label>
           </div>
-          ` : ''}
           
           <!-- Address/Location fields - conditionally shown -->
-          ${enableLocationMap && formFields?.address ? `
+          ${showMaps ? `
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <label style="font-weight: 500; font-size: 14px; color: #374151;">
               Address
@@ -203,7 +189,7 @@ export default function ListingFormPreview({ config }: ListingFormPreviewProps) 
           ` : ''}
           
           <!-- Metadata fields - conditionally shown -->
-          ${enableMetadataDisplay && metadataLabels && metadataLabels.length > 0 ? `
+          ${showMetadata && metadataLabels.length > 0 ? `
           <div style="margin-top: 8px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
             <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 500; color: #374151;">Additional Information</h3>
             

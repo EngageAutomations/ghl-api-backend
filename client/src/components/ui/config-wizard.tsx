@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { ListingFormPreview } from "@/components/listings/ListingFormPreview";
 import { getConfig, saveConfig } from "@/lib/config-store";
 
 interface ConfigWizardProps {
