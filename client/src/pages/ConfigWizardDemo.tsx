@@ -265,7 +265,7 @@ export default function ConfigWizardDemo() {
             <button type="submit"
               style="width: 100%; padding: 10px; background-color: ${previewColor}; color: ${previewTextColor}; border: none; border-radius: ${previewBorderRadius}px; font-size: 16px; font-weight: 500; cursor: pointer;"
             >
-              ${previewButtonText || 'Submit Listing'}
+              Save
             </button>
           </div>
         </form>
