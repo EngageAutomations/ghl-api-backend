@@ -1,0 +1,157 @@
+✅ POPUP INTEGRATION OVERVIEW FOR REPLIT AGENT
+🔹 HTML (inject in Footer Tracking Code)
+html
+Copy
+Edit
+<div id="customOptinBackdrop"></div>
+
+<div id="customOptinForm">
+  <span class="close-btn" onclick="closeOptinPopup()">×</span>
+  <iframe
+    id="popupFormFrame"
+    width="100%"
+    height="500"
+    style="border:none; border-radius: 6px;">
+  </iframe>
+</div>
+🔹 JavaScript Logic (included in same footer block)
+html
+Copy
+Edit
+<script>
+  const baseFormUrl = "https://app.makerexpress3d.com/widget/form/yZsYJQfelidUiq28ij5v";
+
+  function getSlugFromUrl() {
+    const path = window.location.pathname;
+    const match = path.match(/product\/([^\/\?]+)/i);
+    return match ? match[1] : "unknown";
+  }
+
+  function slugToTitle(slug) {
+    return slug
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  function openOptinPopup() {
+    const slug = getSlugFromUrl();
+    const productName = slugToTitle(slug);
+
+    const iframe = document.getElementById("popupFormFrame");
+    if (!iframe.src || !iframe.src.includes("listing=")) {
+      const separator = baseFormUrl.includes("?") ? "&" : "?";
+      iframe.src = `${baseFormUrl}${separator}listing=${encodeURIComponent(productName)}&slug=${encodeURIComponent(slug)}`;
+    }
+
+    document.getElementById("customOptinForm").style.display = "block";
+    document.getElementById("customOptinBackdrop").style.display = "block";
+  }
+
+  function closeOptinPopup() {
+    document.getElementById("customOptinForm").style.display = "none";
+    document.getElementById("customOptinBackdrop").style.display = "none";
+  }
+
+  function replaceAccessTag() {
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const targetText = "[Get Access]";
+
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (node.nodeValue.includes(targetText)) {
+        const span = document.createElement("span");
+        span.textContent = "Get Access";
+        span.className = "trigger-optin-btn";
+        span.style.cssText = `
+          display: inline-block;
+          background-color: #4CAF50;
+          color: white;
+          padding: 12px 20px;
+          border-radius: 6px;
+          font-weight: bold;
+          font-size: 16px;
+          cursor: pointer;
+          margin: 5px 0;
+        `;
+        span.addEventListener("click", openOptinPopup);
+
+        const parts = node.nodeValue.split(targetText);
+        const parent = node.parentNode;
+
+        parent.insertBefore(document.createTextNode(parts[0]), node);
+        parent.insertBefore(span, node);
+        parent.insertBefore(document.createTextNode(parts[1]), node);
+        parent.removeChild(node);
+        break;
+      }
+    }
+  }
+
+  const observer = new MutationObserver(() => {
+    replaceAccessTag();
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+  document.addEventListener("DOMContentLoaded", replaceAccessTag);
+</script>
+🔹 CSS (place in Header Tracking Code)
+html
+Copy
+Edit
+<style>
+  #customOptinBackdrop {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9998;
+  }
+
+  #customOptinForm {
+    display: none;
+    position: fixed;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 2rem;
+    z-index: 9999;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    border-radius: 10px;
+    max-width: 90%;
+    width: 500px;
+    min-height: 400px;
+  }
+
+  #customOptinForm .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #333;
+  }
+
+  #customOptinForm .close-btn:hover {
+    color: #ff4444;
+  }
+
+  .trigger-optin-btn {
+    display: inline-block;
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 5px 0;
+    text-align: center;
+  }
+
+  .trigger-optin-btn:hover {
+    background-color: #45a049;
+  }
+</style>

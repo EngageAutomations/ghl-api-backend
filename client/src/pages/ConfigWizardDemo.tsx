@@ -338,6 +338,13 @@ export default function ConfigWizardDemo() {
   const [previewButtonText, setPreviewButtonText] = useState("Contact Us");
   const [buttonUrl, setButtonUrl] = useState("https://forms.gohighlevel.com/form?product={product_name}");
   
+  // Popup customization state
+  const [popupBackgroundColor, setPopupBackgroundColor] = useState("#FFFFFF");
+  const [popupOverlayColor, setPopupOverlayColor] = useState("rgba(0, 0, 0, 0.6)");
+  const [popupBorderRadius, setPopupBorderRadius] = useState(10);
+  const [closeButtonColor, setCloseButtonColor] = useState("#333333");
+  const [closeButtonHoverColor, setCloseButtonHoverColor] = useState("#ff4444");
+  
   // Metadata field management functions
   const addMetadataField = () => {
     if (metadataFields.length >= 5) {
