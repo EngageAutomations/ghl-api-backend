@@ -384,6 +384,12 @@ export default function ConfigWizardDemo() {
   const [closeButtonColor, setCloseButtonColor] = useState("#333333");
   const [closeButtonHoverColor, setCloseButtonHoverColor] = useState("#ff4444");
   
+  // Embedded form state
+  const [embeddedFormUrl, setEmbeddedFormUrl] = useState("https://forms.gohighlevel.com/form?product={product_name}");
+  const [embeddedAnimationType, setEmbeddedAnimationType] = useState("fade-squeeze");
+  const [embeddedFormBorderRadius, setEmbeddedFormBorderRadius] = useState(8);
+  const [embeddedFormShadow, setEmbeddedFormShadow] = useState("rgba(0, 0, 0, 0.06) 0px 0px 12px");
+  
   // Metadata field management functions
   const addMetadataField = () => {
     if (metadataFields.length >= 5) {

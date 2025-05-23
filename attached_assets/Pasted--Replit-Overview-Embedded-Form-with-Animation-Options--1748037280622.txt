@@ -1,0 +1,114 @@
+📄 Replit Overview: Embedded Form with Animation Options
+--------------------------------------------------------
+This setup supports two animation types for injecting a form next to a product description:
+
+🅰️ Option 1 – Fade-In with Layout Squeeze (default)
+🅱️ Option 2 – Slide-In from Right
+
+The form is injected dynamically with the URL slug passed as a UTM parameter to populate the listing field.
+--> 
+
+<!-- 🔁 Footer Script (Universal for both options) -->
+<script>
+(function() {
+  const slug = window.location.pathname.split('/').pop();
+  const title = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+  const target = document.querySelector('#description');
+  if (!target) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'description-form-flexwrap';
+
+  const descriptionClone = target.cloneNode(true);
+  wrapper.appendChild(descriptionClone);
+
+  const iframe = document.createElement('iframe');
+  iframe.className = 'inline-listing-form';
+  iframe.src = `https://app.makerexpress3d.com/widget/form/yZsYJQfelidUiq28ij5v?listing=${encodeURIComponent(title)}&slug=${encodeURIComponent(slug)}`;
+  iframe.width = '100%';
+  iframe.height = '500';
+  iframe.style.border = 'none';
+  iframe.style.borderRadius = '8px';
+  iframe.style.boxShadow = 'rgba(0, 0, 0, 0.06) 0px 0px 12px';
+  wrapper.appendChild(iframe);
+
+  target.replaceWith(wrapper);
+  document.body.classList.add('form-injected', 'option-1'); // Change to 'option-2' as needed
+})();
+</script>
+
+<!-- 🅰️ Option 1: Fade-In with Layout Squeeze -->
+<style>
+.description-form-flexwrap > #description {
+  width: 100% !important;
+  transition: width 1.5s ease;
+}
+
+.description-form-flexwrap > .inline-listing-form {
+  width: 0 !important;
+  opacity: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: width 1.5s ease, opacity 0.8s ease 0.5s;
+}
+
+body.form-injected.option-1 .description-form-flexwrap > #description {
+  width: 52% !important;
+}
+
+body.form-injected.option-1 .description-form-flexwrap > .inline-listing-form {
+  width: 46% !important;
+  opacity: 1;
+}
+</style>
+
+<!-- 🅱️ Option 2: Slide-In from Right -->
+<style>
+body.option-2 .description-form-flexwrap > .inline-listing-form {
+  width: 46% !important;
+  transform: translateX(100%);
+  opacity: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: transform 0.8s ease, opacity 0.8s ease;
+}
+
+body.form-injected.option-2 .description-form-flexwrap > #description {
+  width: 52% !important;
+}
+
+body.form-injected.option-2 .description-form-flexwrap > .inline-listing-form {
+  transform: translateX(0);
+  opacity: 1;
+}
+</style>
+
+<!-- 👯 Flex Wrapper + Mobile Responsiveness -->
+<style>
+.description-form-flexwrap {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 30px;
+  column-gap: 1px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media screen and (max-width: 768px) {
+  .description-form-flexwrap {
+    flex-direction: column !important;
+  }
+
+  .description-form-flexwrap > #description,
+  .description-form-flexwrap > .inline-listing-form {
+    width: 100% !important;
+    max-width: 100% !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+</style>
