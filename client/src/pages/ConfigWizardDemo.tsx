@@ -1088,7 +1088,7 @@ export default function ConfigWizardDemo() {
                       
                       {/* Tracking Field Name */}
                       <div className="space-y-2 pt-2 border-t border-slate-100">
-                        <Label htmlFor="custom-field-name-embed">Tracking Field Name</Label>
+                        <Label htmlFor="custom-field-name-embed">Tracking Field Name (Track Which Listing a Form Was Submitted From)</Label>
                         <Input 
                           id="custom-field-name-embed" 
                           placeholder="listing"
@@ -1096,9 +1096,6 @@ export default function ConfigWizardDemo() {
                           onChange={(e) => setCustomFieldName(e.target.value)}
                           className="flex-1"
                         />
-                        <p className="text-xs text-slate-500">
-                          Create this custom field in Go HighLevel to track which listing generated the lead
-                        </p>
                         
                         <div className="mt-3 p-3 bg-blue-50 rounded-md border border-blue-100">
                           <p className="text-xs text-blue-800">
