@@ -696,13 +696,7 @@ export default function ConfigWizardDemo() {
                                 : "This URL will open in a new tab."}
                               {" "}Use {"{product_name}"} to insert the product name for tracking.
                             </p>
-                            <div className="mt-3 p-3 bg-blue-50 rounded-md border border-blue-100">
-                              <p className="text-xs text-blue-800">
-                                <span className="font-medium">Important:</span> Standard HTML elements with common classes will be automatically styled and tracked. You can also add the <code className="bg-blue-100 px-1 py-0.5 rounded">directory-action-btn</code> class to any element you want to become a tracked button.
-                                <br/><br/>
-                                Example: <code className="bg-blue-100 px-1 py-0.5 rounded">&lt;a href="https://..." class="directory-action-btn"&gt;Contact Us&lt;/a&gt;</code>
-                              </p>
-                            </div>
+
                           </div>
                           
                           {/* Custom Field for GHL Integration */}
