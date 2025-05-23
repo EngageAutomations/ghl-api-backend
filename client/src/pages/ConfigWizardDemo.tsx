@@ -19,6 +19,7 @@ import {
   AccordionTrigger
 } from "@/components/ui/accordion";
 import { useState, useEffect } from "react";
+import { generatePopupCode, generateCodePreview } from "@/lib/popup-code-generator";
 import { useToast } from "@/hooks/use-toast";
 import { getConfig, saveConfig } from "@/lib/config-store";
 import { CollectionManager, Collection } from "@/components/ui/collection-manager";
@@ -26,6 +27,43 @@ import { GoogleDriveConnection } from "@/components/google-drive/GoogleDriveConn
 
 export default function ConfigWizardDemo() {
   const { toast } = useToast();
+
+  // Generate popup code function
+  const generateFullPopupCode = () => {
+    const config = {
+      buttonColor: previewColor,
+      buttonTextColor: previewTextColor,
+      buttonBorderRadius: previewBorderRadius,
+      buttonText: previewButtonText,
+      popupBackgroundColor,
+      popupOverlayColor,
+      popupBorderRadius,
+      closeButtonColor,
+      closeButtonHoverColor,
+      formUrl: buttonUrl,
+      customFieldName: customFieldName || "listing",
+      metadataFields: metadataFields
+    };
+
+    return generatePopupCode(config);
+  };
+
+  // Copy code to clipboard
+  const copyCodeToClipboard = async (code: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      toast({
+        title: "✓ Code Copied!",
+        description: `${type} code copied to clipboard`,
+      });
+    } catch (err) {
+      toast({
+        title: "Copy Failed",
+        description: "Could not copy to clipboard. Please copy manually.",
+        variant: "destructive",
+      });
+    }
+  };
   
   // Google Drive connection state
   const [googleDriveTokens, setGoogleDriveTokens] = useState<any>(null);
@@ -899,6 +937,23 @@ export default function ConfigWizardDemo() {
                               />
                               <p className="text-xs text-blue-600">
                                 💡 Use rgba() for transparency: rgba(0, 0, 0, 0.6) = 60% black overlay
+                              </p>
+                            </div>
+
+                            {/* Generate Code Button */}
+                            <div className="mt-6 pt-4 border-t border-blue-200">
+                              <Button 
+                                onClick={() => {
+                                  const popupCode = generateFullPopupCode();
+                                  copyCodeToClipboard(popupCode.fullIntegrationCode, "Complete popup integration");
+                                }}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                              >
+                                <Copy className="w-4 h-4 mr-2" />
+                                📋 Copy Complete Popup Code
+                              </Button>
+                              <p className="text-xs text-blue-600 mt-2 text-center">
+                                Generates HTML, CSS, and JavaScript with your custom colors and settings
                               </p>
                             </div>
                           </div>
