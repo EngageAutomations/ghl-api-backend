@@ -678,9 +678,7 @@ export default function ConfigWizardDemo() {
                       {(buttonType === "popup" || buttonType === "url") && (
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label htmlFor="popup-url">
-                              {buttonType === "popup" ? "Popup URL" : "Link URL"}
-                            </Label>
+                            <Label htmlFor="popup-url">Form URL</Label>
                             <div className="flex rounded-md">
                               <Input 
                                 id="popup-url"
