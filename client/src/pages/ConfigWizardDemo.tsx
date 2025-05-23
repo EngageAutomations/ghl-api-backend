@@ -1043,7 +1043,7 @@ export default function ConfigWizardDemo() {
                                 )}
                               </div>
                               <div>
-                                <h4 className="font-medium text-slate-800">🅰️ Fade-In with Layout Squeeze</h4>
+                                <h4 className="font-medium text-slate-800">Fade-In with Layout Squeeze</h4>
                                 <p className="text-sm text-slate-600">
                                   Description shrinks smoothly as form fades in from the right
                                 </p>
@@ -1070,7 +1070,7 @@ export default function ConfigWizardDemo() {
                                 )}
                               </div>
                               <div>
-                                <h4 className="font-medium text-slate-800">🅱️ Slide-In from Right</h4>
+                                <h4 className="font-medium text-slate-800">Slide-In from Right</h4>
                                 <p className="text-sm text-slate-600">
                                   Form slides in smoothly from the right side
                                 </p>
@@ -1080,60 +1080,7 @@ export default function ConfigWizardDemo() {
                         </div>
                       </div>
 
-                      {/* Form Styling Options */}
-                      <div className="space-y-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                        <h4 className="font-medium text-slate-800">🎨 Form Appearance</h4>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="form-border-radius">Border Radius: {embeddedFormBorderRadius}px</Label>
-                            <input
-                              id="form-border-radius"
-                              type="range"
-                              min="0"
-                              max="20"
-                              value={embeddedFormBorderRadius}
-                              onChange={(e) => setEmbeddedFormBorderRadius(parseInt(e.target.value))}
-                              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="form-shadow">Box Shadow</Label>
-                            <Select 
-                              value={embeddedFormShadow}
-                              onValueChange={setEmbeddedFormShadow}
-                            >
-                              <SelectTrigger id="form-shadow">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">None</SelectItem>
-                                <SelectItem value="rgba(0, 0, 0, 0.06) 0px 0px 12px">Light</SelectItem>
-                                <SelectItem value="rgba(0, 0, 0, 0.1) 0px 4px 20px">Medium</SelectItem>
-                                <SelectItem value="rgba(0, 0, 0, 0.15) 0px 8px 30px">Strong</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
 
-                        {/* Generate Code Button */}
-                        <div className="mt-4 pt-4 border-t border-slate-300">
-                          <Button 
-                            onClick={() => {
-                              const embeddedCode = generateFullEmbeddedFormCode();
-                              copyCodeToClipboard(embeddedCode.fullIntegrationCode, "Complete embedded form integration");
-                            }}
-                            className="w-full bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            <Copy className="w-4 h-4 mr-2" />
-                            📋 Copy Embedded Form Code
-                          </Button>
-                          <p className="text-xs text-slate-600 mt-2 text-center">
-                            Generates CSS and JavaScript with your {embeddedAnimationType === "fade-squeeze" ? "Fade-In" : "Slide-In"} animation
-                          </p>
-                        </div>
-                      </div>
 
                       {/* Form Field Configuration Note */}
                       <div className="p-4 border border-blue-100 bg-blue-50 rounded-md">
