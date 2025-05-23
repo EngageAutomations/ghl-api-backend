@@ -790,6 +790,119 @@ export default function ConfigWizardDemo() {
                             </div>
                           </div>
                         </div>
+
+                        {/* Popup Color Customization - Only show for popup button type */}
+                        {buttonType === "popup" && (
+                          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <h4 className="font-medium text-blue-900 mb-4">🎨 Popup Appearance Settings</h4>
+                            
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="popup-bg-color">Popup Background</Label>
+                                <div className="flex items-center justify-between">
+                                  <div 
+                                    className="w-8 h-8 rounded border border-slate-300 cursor-pointer overflow-hidden"
+                                    onClick={() => document.getElementById('popup-bg-color')?.click()}
+                                  >
+                                    <div className="w-full h-full" style={{ backgroundColor: popupBackgroundColor }}></div>
+                                  </div>
+                                  <Input
+                                    id="popup-bg-color"
+                                    type="color"
+                                    value={popupBackgroundColor}
+                                    onChange={(e) => setPopupBackgroundColor(e.target.value)}
+                                    className="w-0 h-0 opacity-0 absolute"
+                                  />
+                                  <Input 
+                                    value={popupBackgroundColor}
+                                    onChange={(e) => setPopupBackgroundColor(e.target.value)}
+                                    placeholder="#FFFFFF"
+                                    className="flex-1 ml-2 text-sm"
+                                  />
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label htmlFor="close-btn-color">Close Button Color</Label>
+                                <div className="flex items-center justify-between">
+                                  <div 
+                                    className="w-8 h-8 rounded border border-slate-300 cursor-pointer overflow-hidden"
+                                    onClick={() => document.getElementById('close-btn-color')?.click()}
+                                  >
+                                    <div className="w-full h-full" style={{ backgroundColor: closeButtonColor }}></div>
+                                  </div>
+                                  <Input
+                                    id="close-btn-color"
+                                    type="color"
+                                    value={closeButtonColor}
+                                    onChange={(e) => setCloseButtonColor(e.target.value)}
+                                    className="w-0 h-0 opacity-0 absolute"
+                                  />
+                                  <Input 
+                                    value={closeButtonColor}
+                                    onChange={(e) => setCloseButtonColor(e.target.value)}
+                                    placeholder="#333333"
+                                    className="flex-1 ml-2 text-sm"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="close-btn-hover">Close Button Hover</Label>
+                                <div className="flex items-center justify-between">
+                                  <div 
+                                    className="w-8 h-8 rounded border border-slate-300 cursor-pointer overflow-hidden"
+                                    onClick={() => document.getElementById('close-btn-hover')?.click()}
+                                  >
+                                    <div className="w-full h-full" style={{ backgroundColor: closeButtonHoverColor }}></div>
+                                  </div>
+                                  <Input
+                                    id="close-btn-hover"
+                                    type="color"
+                                    value={closeButtonHoverColor}
+                                    onChange={(e) => setCloseButtonHoverColor(e.target.value)}
+                                    className="w-0 h-0 opacity-0 absolute"
+                                  />
+                                  <Input 
+                                    value={closeButtonHoverColor}
+                                    onChange={(e) => setCloseButtonHoverColor(e.target.value)}
+                                    placeholder="#ff4444"
+                                    className="flex-1 ml-2 text-sm"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor="popup-border-radius">Popup Roundness: {popupBorderRadius}px</Label>
+                                <input
+                                  id="popup-border-radius"
+                                  type="range"
+                                  min="0"
+                                  max="30"
+                                  value={popupBorderRadius}
+                                  onChange={(e) => setPopupBorderRadius(parseInt(e.target.value))}
+                                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="popup-overlay">Background Overlay</Label>
+                              <Input 
+                                id="popup-overlay"
+                                value={popupOverlayColor}
+                                onChange={(e) => setPopupOverlayColor(e.target.value)}
+                                placeholder="rgba(0, 0, 0, 0.6)"
+                                className="w-full text-sm"
+                              />
+                              <p className="text-xs text-blue-600">
+                                💡 Use rgba() for transparency: rgba(0, 0, 0, 0.6) = 60% black overlay
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </AccordionContent>
