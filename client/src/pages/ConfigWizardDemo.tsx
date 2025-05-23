@@ -21,6 +21,7 @@ import {
 import { useState, useEffect } from "react";
 import { Copy } from "lucide-react";
 import { generatePopupCode, generateCodePreview } from "@/lib/popup-code-generator";
+import { generateEmbeddedFormCode, generateEmbeddedFormPreview } from "@/lib/embedded-form-generator";
 import { useToast } from "@/hooks/use-toast";
 import { getConfig, saveConfig } from "@/lib/config-store";
 import { CollectionManager, Collection } from "@/components/ui/collection-manager";
@@ -47,6 +48,20 @@ export default function ConfigWizardDemo() {
     };
 
     return generatePopupCode(config);
+  };
+
+  // Generate embedded form code function
+  const generateFullEmbeddedFormCode = () => {
+    const config = {
+      formUrl: embeddedFormUrl,
+      animationType: embeddedAnimationType as "fade-squeeze" | "slide-right",
+      borderRadius: embeddedFormBorderRadius,
+      boxShadow: embeddedFormShadow,
+      customFieldName: customFieldName || "listing",
+      metadataFields: metadataFields
+    };
+
+    return generateEmbeddedFormCode(config);
   };
 
   // Copy code to clipboard
@@ -1005,6 +1020,121 @@ export default function ConfigWizardDemo() {
                         </p>
                       </div>
                       
+                      {/* Animation Type Selection */}
+                      <div className="space-y-3">
+                        <Label htmlFor="animation-type">Entry Animation Style</Label>
+                        <div className="grid grid-cols-1 gap-3">
+                          <div 
+                            className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                              embeddedAnimationType === "fade-squeeze" 
+                                ? "border-blue-500 bg-blue-50" 
+                                : "border-slate-200 hover:border-slate-300"
+                            }`}
+                            onClick={() => setEmbeddedAnimationType("fade-squeeze")}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-4 h-4 rounded-full border-2 ${
+                                embeddedAnimationType === "fade-squeeze" 
+                                  ? "border-blue-500 bg-blue-500" 
+                                  : "border-slate-300"
+                              }`}>
+                                {embeddedAnimationType === "fade-squeeze" && (
+                                  <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
+                                )}
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-slate-800">🅰️ Fade-In with Layout Squeeze</h4>
+                                <p className="text-sm text-slate-600">
+                                  Description shrinks smoothly as form fades in from the right
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div 
+                            className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                              embeddedAnimationType === "slide-right" 
+                                ? "border-blue-500 bg-blue-50" 
+                                : "border-slate-200 hover:border-slate-300"
+                            }`}
+                            onClick={() => setEmbeddedAnimationType("slide-right")}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-4 h-4 rounded-full border-2 ${
+                                embeddedAnimationType === "slide-right" 
+                                  ? "border-blue-500 bg-blue-500" 
+                                  : "border-slate-300"
+                              }`}>
+                                {embeddedAnimationType === "slide-right" && (
+                                  <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
+                                )}
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-slate-800">🅱️ Slide-In from Right</h4>
+                                <p className="text-sm text-slate-600">
+                                  Form slides in smoothly from the right side
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Form Styling Options */}
+                      <div className="space-y-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                        <h4 className="font-medium text-slate-800">🎨 Form Appearance</h4>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="form-border-radius">Border Radius: {embeddedFormBorderRadius}px</Label>
+                            <input
+                              id="form-border-radius"
+                              type="range"
+                              min="0"
+                              max="20"
+                              value={embeddedFormBorderRadius}
+                              onChange={(e) => setEmbeddedFormBorderRadius(parseInt(e.target.value))}
+                              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="form-shadow">Box Shadow</Label>
+                            <Select 
+                              value={embeddedFormShadow}
+                              onValueChange={setEmbeddedFormShadow}
+                            >
+                              <SelectTrigger id="form-shadow">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">None</SelectItem>
+                                <SelectItem value="rgba(0, 0, 0, 0.06) 0px 0px 12px">Light</SelectItem>
+                                <SelectItem value="rgba(0, 0, 0, 0.1) 0px 4px 20px">Medium</SelectItem>
+                                <SelectItem value="rgba(0, 0, 0, 0.15) 0px 8px 30px">Strong</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* Generate Code Button */}
+                        <div className="mt-4 pt-4 border-t border-slate-300">
+                          <Button 
+                            onClick={() => {
+                              const embeddedCode = generateFullEmbeddedFormCode();
+                              copyCodeToClipboard(embeddedCode.fullIntegrationCode, "Complete embedded form integration");
+                            }}
+                            className="w-full bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            <Copy className="w-4 h-4 mr-2" />
+                            📋 Copy Embedded Form Code
+                          </Button>
+                          <p className="text-xs text-slate-600 mt-2 text-center">
+                            Generates CSS and JavaScript with your {embeddedAnimationType === "fade-squeeze" ? "Fade-In" : "Slide-In"} animation
+                          </p>
+                        </div>
+                      </div>
+
                       {/* Form Field Configuration Note */}
                       <div className="p-4 border border-blue-100 bg-blue-50 rounded-md">
                         <div className="flex items-start">
