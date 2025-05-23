@@ -1097,12 +1097,50 @@ export default function ConfigWizardDemo() {
                           className="flex-1"
                         />
                         
-                        <div className="mt-3 p-3 bg-blue-50 rounded-md border border-blue-100">
-                          <p className="text-xs text-blue-800">
-                            <span className="font-medium">Important:</span> You must create this field in your Go HighLevel account 
-                            and enable "Capture URL Parameters" in your form settings. The field will automatically 
-                            be populated with listing data when visitors submit the form.
-                          </p>
+                        <div className="mt-3 p-4 bg-blue-50 rounded-md border border-blue-100">
+                          <div className="text-sm text-blue-800 space-y-3">
+                            <h4 className="font-medium text-blue-900 flex items-center">
+                              🏷️ How to Track Which Listing a Form Was Submitted From
+                            </h4>
+                            <p className="text-xs">
+                              To capture listing data when a visitor submits a form, follow these steps:
+                            </p>
+                            
+                            <div className="space-y-2">
+                              <div>
+                                <p className="font-medium text-xs text-blue-900">Create a Custom Field in GoHighLevel</p>
+                                <ul className="text-xs ml-3 mt-1 space-y-1">
+                                  <li>• Go to your GoHighLevel account.</li>
+                                  <li>• Navigate to Settings → Custom Fields.</li>
+                                  <li>• Add a new "Single Line Text" custom field.</li>
+                                  <li>• Suggested name: <span className="font-mono bg-blue-100 px-1 rounded">listing</span></li>
+                                </ul>
+                              </div>
+                              
+                              <div>
+                                <p className="font-medium text-xs text-blue-900">Enter the Field Name in Our App</p>
+                                <p className="text-xs ml-3">
+                                  In our settings panel, paste the exact field name (e.g. <span className="font-mono bg-blue-100 px-1 rounded">listing</span>) into the Tracking Field Name input.
+                                </p>
+                              </div>
+                              
+                              <div>
+                                <p className="font-medium text-xs text-blue-900">Add the Field to Your Form</p>
+                                <ul className="text-xs ml-3 mt-1 space-y-1">
+                                  <li>• Open the form you want to use in the GoHighLevel form builder.</li>
+                                  <li>• Drag in a Hidden Field element.</li>
+                                  <li>• Set its field name to match the custom field you created (e.g. <span className="font-mono bg-blue-100 px-1 rounded">listing</span>).</li>
+                                </ul>
+                              </div>
+                              
+                              <div className="pt-2">
+                                <p className="font-medium text-xs text-green-800">✅ That's it!</p>
+                                <p className="text-xs">
+                                  When a visitor submits this form from a product listing page, we'll automatically populate the hidden field with the listing's slug or readable name — so you can track where each submission came from.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                       
