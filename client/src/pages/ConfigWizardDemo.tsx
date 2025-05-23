@@ -19,6 +19,7 @@ import {
   AccordionTrigger
 } from "@/components/ui/accordion";
 import { useState, useEffect } from "react";
+import { Copy } from "lucide-react";
 import { generatePopupCode, generateCodePreview } from "@/lib/popup-code-generator";
 import { useToast } from "@/hooks/use-toast";
 import { getConfig, saveConfig } from "@/lib/config-store";
