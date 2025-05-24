@@ -102,6 +102,73 @@ export async function runTestSuite(req: Request, res: Response) {
 }
 
 /**
+ * Validate generated output
+ */
+function validateOutput(generated: any, expected: any) {
+  const errors: string[] = [];
+  
+  console.log('Validating output:', {
+    hasHeaderCode: !!(generated.headerCode && generated.headerCode.trim()),
+    hasFooterCode: !!(generated.footerCode && generated.footerCode.trim()),
+    expected
+  });
+  
+  // Check header code expectation
+  if (expected.header !== undefined) {
+    const hasHeader = !!(generated.headerCode && generated.headerCode.trim());
+    if (expected.header !== hasHeader) {
+      errors.push(`header: Expected ${expected.header}, got ${hasHeader}`);
+    }
+  }
+  
+  // Check footer code expectation
+  if (expected.footer !== undefined) {
+    const hasFooter = !!(generated.footerCode && generated.footerCode.trim());
+    if (expected.footer !== hasFooter) {
+      errors.push(`footer: Expected ${expected.footer}, got ${hasFooter}`);
+    }
+  }
+  
+  // Check other expectations
+  if (expected.hasExtendedDescriptions !== undefined) {
+    const hasDescriptions = generated.headerCode?.includes('Extended Descriptions') || false;
+    if (expected.hasExtendedDescriptions !== hasDescriptions) {
+      errors.push(`hasExtendedDescriptions: Expected ${expected.hasExtendedDescriptions}, got ${hasDescriptions}`);
+    }
+  }
+  
+  if (expected.hasMetadataBar !== undefined) {
+    const hasMetadata = generated.headerCode?.includes('Metadata Bar') || false;
+    if (expected.hasMetadataBar !== hasMetadata) {
+      errors.push(`hasMetadataBar: Expected ${expected.hasMetadataBar}, got ${hasMetadata}`);
+    }
+  }
+  
+  if (expected.hasGoogleMaps !== undefined) {
+    const hasMaps = generated.headerCode?.includes('Google Maps') || false;
+    if (expected.hasGoogleMaps !== hasMaps) {
+      errors.push(`hasGoogleMaps: Expected ${expected.hasGoogleMaps}, got ${hasMaps}`);
+    }
+  }
+  
+  if (expected.hasCustomCSS !== undefined) {
+    // hasCustomCSS should be true if there are any style definitions beyond basic container
+    const hasCustomCSS = generated.headerCode?.includes('Action Button') || 
+                         generated.headerCode?.includes('Extended Descriptions') || 
+                         generated.headerCode?.includes('Metadata Bar') || 
+                         generated.headerCode?.includes('Google Maps') || false;
+    if (expected.hasCustomCSS !== hasCustomCSS) {
+      errors.push(`hasCustomCSS: Expected ${expected.hasCustomCSS}, got ${hasCustomCSS}`);
+    }
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+/**
  * Run a single test case
  */
 async function runSingleTest(testCase: any): Promise<TestResult> {
