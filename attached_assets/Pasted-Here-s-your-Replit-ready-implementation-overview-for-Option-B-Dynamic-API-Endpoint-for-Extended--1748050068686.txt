@@ -1,0 +1,94 @@
+Here's your Replit-ready implementation overview for **Option B – Dynamic API Endpoint for Extended Descriptions**:
+
+---
+
+### 📦 **Extended Descriptions via Dynamic API Endpoint**
+
+#### ✅ Use Case
+
+Allow users to add extended HTML content (text, images, formatting) under each product description. This content is stored per listing and fetched by URL slug in real time.
+
+---
+
+### 🔧 Backend API Endpoint (`/api/descriptions`)
+
+**Purpose**: Accepts a `slug` and returns the matching rich HTML.
+
+**Example (Express.js):**
+
+```js
+// Example: GET /api/descriptions?slug=mini-itx-pc-case
+app.get('/api/descriptions', async (req, res) => {
+  const slug = req.query.slug;
+  if (!slug) return res.status(400).json({ error: 'Missing slug' });
+
+  const description = await db.findOne({ slug }); // Replace with actual DB logic
+  if (!description) return res.status(404).json({ html: '' });
+
+  res.json({ html: description.extendedHtml }); // sanitized/stored HTML
+});
+```
+
+---
+
+### 🌐 Frontend Injection Script (Tracking Footer)
+
+```html
+<script>
+(function() {
+  const slug = window.location.pathname.split('/').pop();
+  if (!slug) return;
+
+  fetch(`/api/descriptions?slug=${slug}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.html) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'extended-description';
+        wrapper.innerHTML = data.html;
+        document.querySelector('#description')?.insertAdjacentElement('afterend', wrapper);
+      }
+    });
+})();
+</script>
+```
+
+---
+
+### 🎨 Optional Styling (Custom CSS)
+
+```html
+<style>
+.extended-description {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+  font-family: inherit;
+  color: #333;
+}
+
+.extended-description img {
+  max-width: 100%;
+  border-radius: 6px;
+  display: block;
+  margin-top: 15px;
+}
+</style>
+```
+
+---
+
+### ⚠️ Notes
+
+* Ensure `extendedHtml` is **sanitized** before saving to prevent script injection.
+* Add rich text via your app’s admin/editor.
+* Images can be hosted via Cloudinary, Firebase Storage, or your app’s CDN.
+
+---
+
+Let me know if you'd like:
+
+* MongoDB, Firebase, or Supabase backend variant
+* An admin form template to upload rich descriptions
+
+You're good to drop this into Replit as part of your listing rendering logic!

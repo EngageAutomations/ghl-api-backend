@@ -1283,6 +1283,135 @@ export default function ConfigWizardDemo() {
                 </div>
               </div>
               
+              {/* Extended Description Configuration Section - Only visible when expanded description toggle is on */}
+              {showDescription && (
+                <div className="border border-slate-200 rounded-lg p-6 bg-white mt-6">
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-sm font-medium text-slate-700">Extended Description Configuration</h4>
+                      <p className="text-xs text-slate-500">Configure dynamic rich content that loads per listing slug</p>
+                    </div>
+                    
+                    {/* API Endpoint Configuration */}
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="api-endpoint">API Endpoint</Label>
+                          <Input
+                            id="api-endpoint"
+                            placeholder="/api/descriptions"
+                            defaultValue="/api/descriptions"
+                            className="font-mono text-sm"
+                          />
+                          <p className="text-xs text-slate-500">
+                            Endpoint that serves rich HTML content by slug
+                          </p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="target-element">Target Element</Label>
+                          <Input
+                            id="target-element"
+                            placeholder="#description"
+                            defaultValue="#description"
+                            className="font-mono text-sm"
+                          />
+                          <p className="text-xs text-slate-500">
+                            CSS selector where content will be inserted
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Position Configuration */}
+                      <div className="space-y-2">
+                        <Label htmlFor="insert-position">Insert Position</Label>
+                        <Select defaultValue="afterend">
+                          <SelectTrigger id="insert-position">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="afterend">After Element</SelectItem>
+                            <SelectItem value="beforeend">Inside Element (End)</SelectItem>
+                            <SelectItem value="afterbegin">Inside Element (Start)</SelectItem>
+                            <SelectItem value="beforebegin">Before Element</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-slate-500">
+                          Where to insert the extended content relative to target element
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Styling Configuration */}
+                    <div className="border-t border-slate-100 pt-4">
+                      <h5 className="text-sm font-medium text-slate-700 mb-3">Content Styling</h5>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="content-margin">Top Margin</Label>
+                          <Input
+                            id="content-margin"
+                            placeholder="40px"
+                            defaultValue="40px"
+                            className="text-sm"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="content-padding">Top Padding</Label>
+                          <Input
+                            id="content-padding"
+                            placeholder="20px"
+                            defaultValue="20px"
+                            className="text-sm"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="border-style">Border Style</Label>
+                          <Select defaultValue="top">
+                            <SelectTrigger id="border-style">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">No Border</SelectItem>
+                              <SelectItem value="top">Top Border Only</SelectItem>
+                              <SelectItem value="full">Full Border</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="image-border-radius">Image Border Radius</Label>
+                          <Input
+                            id="image-border-radius"
+                            placeholder="6px"
+                            defaultValue="6px"
+                            className="text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Generate Integration Code Button */}
+                    <div className="border-t border-slate-100 pt-4">
+                      <Button 
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                        onClick={() => {
+                          const integrationCode = generateExtendedDescriptionCode();
+                          copyCodeToClipboard(integrationCode, "Extended description integration");
+                        }}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        📄 Copy Extended Description Code
+                      </Button>
+                      <p className="text-xs text-indigo-600 mt-2 text-center">
+                        Generates backend API endpoint and frontend injection script
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Metadata Configuration Section - Only visible when metadata toggle is on */}
               {showMetadata && (
                 <div className="border border-slate-200 rounded-lg p-6 bg-white mt-6">
