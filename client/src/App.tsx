@@ -111,6 +111,15 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      {/* Developer Dashboard */}
+      <Route path="/developer">
+        <ProtectedRoute>
+          <AppLayout>
+            <DeveloperDashboard />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
       {/* Redirects for removed pages */}
       <Route path="/configuration">
         <ProtectedRoute>
