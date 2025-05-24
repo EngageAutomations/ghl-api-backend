@@ -1,0 +1,182 @@
+[
+  {
+    "id": "basic-form",
+    "name": "Basic Form Fields Only",
+    "description": "Simple form with name, email, phone fields",
+    "config": {
+      "formFields": {
+        "name": true,
+        "email": true,
+        "phone": true,
+        "company": false,
+        "address": false,
+        "message": false
+      },
+      "customFieldName": "listing",
+      "formEmbedUrl": "https://example.gohighlevel.com/form/xyz",
+      "enableActionButton": false,
+      "enableEmbeddedForm": false
+    },
+    "expectations": {
+      "hasNameField": true,
+      "hasEmailField": true,
+      "hasPhoneField": true,
+      "hasCompanyField": false,
+      "hasAddressField": false,
+      "hasMessageField": false,
+      "hasHiddenField": true,
+      "hiddenFieldName": "listing",
+      "formMethod": "POST",
+      "formAction": "https://example.gohighlevel.com/form/xyz"
+    }
+  },
+  {
+    "id": "full-form",
+    "name": "Complete Form with All Fields",
+    "description": "Form with all available field types",
+    "config": {
+      "formFields": {
+        "name": true,
+        "email": true,
+        "phone": true,
+        "company": true,
+        "address": true,
+        "message": true
+      },
+      "customFieldName": "product_slug",
+      "formEmbedUrl": "https://custom.gohighlevel.com/form/abc",
+      "enableActionButton": false,
+      "enableEmbeddedForm": false
+    },
+    "expectations": {
+      "hasNameField": true,
+      "hasEmailField": true,
+      "hasPhoneField": true,
+      "hasCompanyField": true,
+      "hasAddressField": true,
+      "hasMessageField": true,
+      "hasHiddenField": true,
+      "hiddenFieldName": "product_slug",
+      "formMethod": "POST",
+      "formAction": "https://custom.gohighlevel.com/form/abc"
+    }
+  },
+  {
+    "id": "embedded-form",
+    "name": "Embedded Form Integration",
+    "description": "Iframe-based embedded form with tracking",
+    "config": {
+      "formFields": {
+        "name": false,
+        "email": false,
+        "phone": false,
+        "company": false,
+        "address": false,
+        "message": false
+      },
+      "customFieldName": "listing_id",
+      "formEmbedUrl": "https://embed.gohighlevel.com/form/embed123",
+      "enableActionButton": false,
+      "enableEmbeddedForm": true
+    },
+    "expectations": {
+      "hasIframe": true,
+      "iframeWidth": "100%",
+      "iframeHeight": "600px",
+      "hasJavaScriptTracking": true,
+      "hasSlugDetection": true,
+      "hasParameterInjection": true,
+      "hiddenFieldName": "listing_id"
+    }
+  },
+  {
+    "id": "popup-form",
+    "name": "Popup Form with Button",
+    "description": "Button-triggered popup form",
+    "config": {
+      "formFields": {
+        "name": false,
+        "email": false,
+        "phone": false,
+        "company": false,
+        "address": false,
+        "message": false
+      },
+      "customFieldName": "listing",
+      "formEmbedUrl": "https://popup.gohighlevel.com/form/popup456",
+      "enableActionButton": true,
+      "buttonType": "popup",
+      "buttonLabel": "Get More Info",
+      "buttonColor": "#4f46e5",
+      "buttonTextColor": "#ffffff",
+      "enableEmbeddedForm": false
+    },
+    "expectations": {
+      "hasButton": true,
+      "buttonText": "Get More Info",
+      "buttonColor": "#4f46e5",
+      "buttonTextColor": "#ffffff",
+      "hasPopupFunction": true,
+      "hasJavaScriptTracking": true,
+      "opensInNewWindow": true
+    }
+  },
+  {
+    "id": "minimal-contact",
+    "name": "Minimal Contact Form",
+    "description": "Just name and email for lead capture",
+    "config": {
+      "formFields": {
+        "name": true,
+        "email": true,
+        "phone": false,
+        "company": false,
+        "address": false,
+        "message": false
+      },
+      "customFieldName": "source_listing",
+      "formEmbedUrl": "https://leads.gohighlevel.com/form/contact",
+      "enableActionButton": false,
+      "enableEmbeddedForm": false
+    },
+    "expectations": {
+      "hasNameField": true,
+      "hasEmailField": true,
+      "hasPhoneField": false,
+      "hasCompanyField": false,
+      "hasAddressField": false,
+      "hasMessageField": false,
+      "hasHiddenField": true,
+      "hiddenFieldName": "source_listing"
+    }
+  },
+  {
+    "id": "business-inquiry",
+    "name": "Business Inquiry Form",
+    "description": "Professional form with company and message fields",
+    "config": {
+      "formFields": {
+        "name": true,
+        "email": true,
+        "phone": true,
+        "company": true,
+        "address": false,
+        "message": true
+      },
+      "customFieldName": "business_listing",
+      "formEmbedUrl": "https://business.gohighlevel.com/form/inquiry",
+      "enableActionButton": false,
+      "enableEmbeddedForm": false
+    },
+    "expectations": {
+      "hasNameField": true,
+      "hasEmailField": true,
+      "hasPhoneField": true,
+      "hasCompanyField": true,
+      "hasAddressField": false,
+      "hasMessageField": true,
+      "hasHiddenField": true,
+      "hiddenFieldName": "business_listing"
+    }
+  }
+]
