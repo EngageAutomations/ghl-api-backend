@@ -509,12 +509,12 @@ export default function ConfigWizardDemo() {
             <div className="border-t border-slate-100 pt-8 mt-8">
               <h3 className="font-medium text-base mb-4">Upload Your Logo</h3>
               
-              <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-lg p-8 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer" 
+              <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-lg p-4 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer" 
                    onClick={() => document.getElementById('logo-upload')?.click()}>
-                <div id="logo-upload-container" className="mb-4 text-slate-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" x2="22" y1="5" y2="5"/><path d="M19 2v6"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                <div id="logo-upload-container" className="mb-2 text-slate-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" x2="22" y1="5" y2="5"/><path d="M19 2v6"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                 </div>
-                <p className="text-sm text-slate-600 text-center mb-2">
+                <p className="text-sm text-slate-600 text-center mb-1">
                   Drag and drop your logo here, or click to browse
                 </p>
                 <p className="text-xs text-slate-500 text-center">
@@ -569,9 +569,7 @@ export default function ConfigWizardDemo() {
                     }
                   }}
                 />
-                <Button variant="outline" size="sm" className="mt-4">
-                  Select File
-                </Button>
+
               </div>
               
 
