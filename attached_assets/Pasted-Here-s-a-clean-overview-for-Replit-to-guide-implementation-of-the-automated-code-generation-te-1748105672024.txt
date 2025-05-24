@@ -1,0 +1,90 @@
+Here’s a clean **overview for Replit** to guide implementation of the **automated code generation tests** for the listing wizard:
+
+---
+
+## ✅ Automated Code Generation Test Suite – Overview
+
+### 🎯 Goal
+
+Validate that the wizard outputs the **correct header/footer/inline HTML code** based on feature configurations. This ensures no extra or missing code is generated per listing option.
+
+---
+
+### 🔧 Setup
+
+Use a JSON-driven approach to simulate each feature configuration and assert correct code output.
+
+#### ✅ Configuration Example:
+
+```json
+{
+  "name": "Inline Form + Metadata",
+  "config": {
+    "actionButton": null,
+    "embedForm": true,
+    "metaBar": true,
+    "map": false
+  },
+  "expect": {
+    "header": true,
+    "footer": false,
+    "htmlTrigger": null
+  }
+}
+```
+
+---
+
+### 🧪 What to Test
+
+For each test case:
+
+| Checkpoint     | Description                                           |
+| -------------- | ----------------------------------------------------- |
+| `headerCode`   | Is header required? Should be included or omitted     |
+| `footerCode`   | Footer needed for scripts or structure?               |
+| `htmlTrigger`  | Does it include `[Get Access]` if popup used?         |
+| `embedContent` | Is iframe/code block added when embed option enabled? |
+
+---
+
+### 🛠️ How to Implement
+
+1. Create an array of test cases in JSON
+2. Loop through each case and simulate the wizard output
+3. Compare the output (string includes or structure match)
+4. Log pass/fail with mismatches for easy debugging
+
+---
+
+### 🧠 Bonus: DOM Simulation (Optional)
+
+To test injected HTML layout or placement:
+
+* Use a `jsdom` environment (Node.js)
+* Mock `.insertAdjacentElement`, etc.
+
+---
+
+### ✅ Output Example
+
+```
+✔️ Inline Form + Metadata: PASS
+❌ Popup Only: FAIL – Expected headerCode to exist
+✔️ All Features Enabled: PASS
+```
+
+---
+
+### 📁 Directory Suggestion
+
+```
+/tests/wizard-output/
+├── cases.json
+├── runner.js
+├── utils/validateOutput.js
+```
+
+---
+
+Let me know if you'd like test scaffolding or a validator template to plug in!

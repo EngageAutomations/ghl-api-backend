@@ -1,0 +1,302 @@
+[
+  {
+    "name": "Basic Integration Only",
+    "description": "Core integration without any additional features",
+    "config": {
+      "customFieldName": "listing_id",
+      "showDescription": false,
+      "showMetadata": false,
+      "showMaps": false,
+      "enableActionButton": false,
+      "enableEmbeddedForm": false
+    },
+    "expect": {
+      "header": true,
+      "footer": true,
+      "hasExtendedDescriptions": false,
+      "hasMetadataBar": false,
+      "hasGoogleMaps": false,
+      "hasCustomCSS": false,
+      "htmlTrigger": null
+    }
+  },
+  {
+    "name": "Extended Descriptions Only",
+    "description": "Basic integration plus extended descriptions",
+    "config": {
+      "customFieldName": "listing_id",
+      "showDescription": true,
+      "showMetadata": false,
+      "showMaps": false,
+      "enableActionButton": false,
+      "enableEmbeddedForm": false
+    },
+    "expect": {
+      "header": true,
+      "footer": true,
+      "hasExtendedDescriptions": true,
+      "hasMetadataBar": false,
+      "hasGoogleMaps": false,
+      "hasCustomCSS": true,
+      "htmlTrigger": null
+    }
+  },
+  {
+    "name": "Metadata Bar Only",
+    "description": "Basic integration plus metadata bar",
+    "config": {
+      "customFieldName": "listing_id",
+      "showDescription": false,
+      "showMetadata": true,
+      "showMaps": false,
+      "enableActionButton": false,
+      "enableEmbeddedForm": false
+    },
+    "expect": {
+      "header": true,
+      "footer": true,
+      "hasExtendedDescriptions": false,
+      "hasMetadataBar": true,
+      "hasGoogleMaps": false,
+      "hasCustomCSS": true,
+      "htmlTrigger": null
+    }
+  },
+  {
+    "name": "Google Maps Only",
+    "description": "Basic integration plus Google Maps widget",
+    "config": {
+      "customFieldName": "listing_id",
+      "showDescription": false,
+      "showMetadata": false,
+      "showMaps": true,
+      "enableActionButton": false,
+      "enableEmbeddedForm": false
+    },
+    "expect": {
+      "header": true,
+      "footer": true,
+      "hasExtendedDescriptions": false,
+      "hasMetadataBar": false,
+      "hasGoogleMaps": true,
+      "hasCustomCSS": true,
+      "htmlTrigger": null
+    }
+  },
+  {
+    "name": "Action Button - URL Type",
+    "description": "Action button with URL redirect",
+    "config": {
+      "customFieldName": "listing_id",
+      "showDescription": false,
+      "showMetadata": false,
+      "showMaps": false,
+      "enableActionButton": true,
+      "buttonType": "url",
+      "enableEmbeddedForm": false
+    },
+    "expect": {
+      "header": false,
+      "footer": false,
+      "hasExtendedDescriptions": false,
+      "hasMetadataBar": false,
+      "hasGoogleMaps": false,
+      "hasCustomCSS": true,
+      "htmlTrigger": null
+    }
+  },
+  {
+    "name": "Action Button - Download Type",
+    "description": "Action button with download functionality",
+    "config": {
+      "customFieldName": "listing_id",
+      "showDescription": false,
+      "showMetadata": false,
+      "showMaps": false,
+      "enableActionButton": true,
+      "buttonType": "download",
+      "enableEmbeddedForm": false
+    },
+    "expect": {
+      "header": false,
+      "footer": false,
+      "hasExtendedDescriptions": false,
+      "hasMetadataBar": false,
+      "hasGoogleMaps": false,
+      "hasCustomCSS": true,
+      "htmlTrigger": null
+    }
+  },
+  {
+    "name": "Action Button - Popup Form",
+    "description": "Action button with popup form",
+    "config": {
+      "customFieldName": "listing_id",
+      "showDescription": false,
+      "showMetadata": false,
+      "showMaps": false,
+      "enableActionButton": true,
+      "buttonType": "popup",
+      "enableEmbeddedForm": false
+    },
+    "expect": {
+      "header": true,
+      "footer": true,
+      "hasExtendedDescriptions": false,
+      "hasMetadataBar": false,
+      "hasGoogleMaps": false,
+      "hasCustomCSS": true,
+      "htmlTrigger": "[Get Access]"
+    }
+  },
+  {
+    "name": "Embedded Form Only",
+    "description": "Embedded form without other features",
+    "config": {
+      "customFieldName": "listing_id",
+      "showDescription": false,
+      "showMetadata": false,
+      "showMaps": false,
+      "enableActionButton": false,
+      "enableEmbeddedForm": true
+    },
+    "expect": {
+      "header": true,
+      "footer": false,
+      "hasExtendedDescriptions": false,
+      "hasMetadataBar": false,
+      "hasGoogleMaps": false,
+      "hasCustomCSS": true,
+      "htmlTrigger": null
+    }
+  },
+  {
+    "name": "Descriptions + Metadata",
+    "description": "Extended descriptions with metadata bar",
+    "config": {
+      "customFieldName": "listing_id",
+      "showDescription": true,
+      "showMetadata": true,
+      "showMaps": false,
+      "enableActionButton": false,
+      "enableEmbeddedForm": false
+    },
+    "expect": {
+      "header": true,
+      "footer": true,
+      "hasExtendedDescriptions": true,
+      "hasMetadataBar": true,
+      "hasGoogleMaps": false,
+      "hasCustomCSS": true,
+      "htmlTrigger": null
+    }
+  },
+  {
+    "name": "Metadata + Maps",
+    "description": "Metadata bar with Google Maps widget",
+    "config": {
+      "customFieldName": "listing_id",
+      "showDescription": false,
+      "showMetadata": true,
+      "showMaps": true,
+      "enableActionButton": false,
+      "enableEmbeddedForm": false
+    },
+    "expect": {
+      "header": true,
+      "footer": true,
+      "hasExtendedDescriptions": false,
+      "hasMetadataBar": true,
+      "hasGoogleMaps": true,
+      "hasCustomCSS": true,
+      "htmlTrigger": null
+    }
+  },
+  {
+    "name": "All Dynamic Features",
+    "description": "Extended descriptions, metadata bar, and Google Maps",
+    "config": {
+      "customFieldName": "listing_id",
+      "showDescription": true,
+      "showMetadata": true,
+      "showMaps": true,
+      "enableActionButton": false,
+      "enableEmbeddedForm": false
+    },
+    "expect": {
+      "header": true,
+      "footer": true,
+      "hasExtendedDescriptions": true,
+      "hasMetadataBar": true,
+      "hasGoogleMaps": true,
+      "hasCustomCSS": true,
+      "htmlTrigger": null
+    }
+  },
+  {
+    "name": "Kitchen Sink - All Features",
+    "description": "Every feature enabled for maximum complexity test",
+    "config": {
+      "customFieldName": "listing_id",
+      "showDescription": true,
+      "showMetadata": true,
+      "showMaps": true,
+      "enableActionButton": true,
+      "buttonType": "popup",
+      "enableEmbeddedForm": true
+    },
+    "expect": {
+      "header": true,
+      "footer": true,
+      "hasExtendedDescriptions": true,
+      "hasMetadataBar": true,
+      "hasGoogleMaps": true,
+      "hasCustomCSS": true,
+      "htmlTrigger": "[Get Access]"
+    }
+  },
+  {
+    "name": "Custom Field Name Test",
+    "description": "Verify custom field name appears in generated code",
+    "config": {
+      "customFieldName": "product_slug",
+      "showDescription": false,
+      "showMetadata": false,
+      "showMaps": false,
+      "enableActionButton": false,
+      "enableEmbeddedForm": false
+    },
+    "expect": {
+      "header": true,
+      "footer": true,
+      "hasExtendedDescriptions": false,
+      "hasMetadataBar": false,
+      "hasGoogleMaps": false,
+      "hasCustomCSS": false,
+      "htmlTrigger": null,
+      "customField": "product_slug"
+    }
+  },
+  {
+    "name": "Edge Case - Embedded Form + Popup",
+    "description": "Test conflicting form configurations",
+    "config": {
+      "customFieldName": "listing_id",
+      "showDescription": false,
+      "showMetadata": false,
+      "showMaps": false,
+      "enableActionButton": true,
+      "buttonType": "popup",
+      "enableEmbeddedForm": true
+    },
+    "expect": {
+      "header": true,
+      "footer": true,
+      "hasExtendedDescriptions": false,
+      "hasMetadataBar": false,
+      "hasGoogleMaps": false,
+      "hasCustomCSS": true,
+      "htmlTrigger": "[Get Access]"
+    }
+  }
+]
