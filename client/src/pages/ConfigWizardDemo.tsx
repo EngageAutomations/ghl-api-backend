@@ -339,6 +339,120 @@ Example database document:
 }
 -->`;
   };
+
+  // Generate Google Maps API integration code
+  const generateMapsAPICode = () => {
+    const apiEndpoint = (document.getElementById('maps-api-endpoint') as HTMLInputElement)?.value || '/api/map';
+    const targetElement = (document.getElementById('maps-target-element') as HTMLInputElement)?.value || '.metadata-bar';
+    const mapHeight = (document.getElementById('maps-height') as HTMLInputElement)?.value || '300px';
+    const borderRadius = (document.getElementById('maps-border-radius') as HTMLInputElement)?.value || '8px';
+    const shadowStyle = (document.getElementById('maps-shadow') as HTMLSelectElement)?.value || 'light';
+
+    const shadowMap = {
+      'none': 'none',
+      'light': '0 0 12px rgba(0,0,0,0.05)',
+      'medium': '0 4px 20px rgba(0,0,0,0.1)',
+      'strong': '0 8px 30px rgba(0,0,0,0.15)'
+    };
+
+    const backendCode = `// Google Maps API Endpoint (Express.js)
+app.get('${apiEndpoint}', async (req, res) => {
+  const slug = req.query.slug;
+  if (!slug) return res.status(400).json({ error: 'Missing slug parameter' });
+
+  try {
+    // Replace with your database query
+    const listing = await db.collection('listings').findOne({ slug });
+    
+    if (!listing || !listing.address) {
+      return res.status(404).json({ address: null });
+    }
+
+    // Return the stored address for this listing
+    res.json({ 
+      address: listing.address 
+    });
+  } catch (error) {
+    console.error('Error fetching address:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});`;
+
+    const frontendScript = `<script>
+(function() {
+  const slug = window.location.pathname.split('/').pop();
+  if (!slug) return;
+
+  fetch(\`${apiEndpoint}?slug=\${slug}\`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.address) return;
+
+      const mapWrapper = document.createElement('div');
+      mapWrapper.className = 'map-wrapper';
+      mapWrapper.innerHTML = \`
+        <iframe
+          class="gmap-embed"
+          width="100%"
+          height="${mapHeight.replace('px', '')}"
+          style="border:0; border-radius: ${borderRadius};"
+          loading="lazy"
+          allowfullscreen
+          referrerpolicy="no-referrer-when-downgrade"
+          src="https://www.google.com/maps?q=\${encodeURIComponent(data.address)}&output=embed">
+        </iframe>
+      \`;
+
+      // Injects below target element (typically metadata bar)
+      document.querySelector('${targetElement}')?.insertAdjacentElement('afterend', mapWrapper);
+    })
+    .catch(error => console.error('Error loading map:', error));
+})();
+</script>`;
+
+    const cssStyles = `<style>
+.map-wrapper {
+  margin-top: 30px;
+  width: 100%;
+  box-shadow: ${shadowMap[shadowStyle as keyof typeof shadowMap]};
+  border-radius: ${borderRadius};
+  overflow: hidden;
+}
+
+.gmap-embed {
+  width: 100%;
+  height: ${mapHeight};
+  border: none;
+  display: block;
+  border-radius: ${borderRadius};
+}
+</style>`;
+
+    return `${backendCode}
+
+${frontendScript}
+
+${cssStyles}
+
+<!-- Usage Instructions:
+1. Add the backend endpoint to your Express.js server
+2. Include the frontend script in your listing page footer
+3. Include the CSS styles in your page head or stylesheet
+4. Store addresses in your database with 'slug' and 'address' fields
+
+Example database document:
+{
+  "slug": "premium-laptop-case",
+  "address": "1600 Amphitheatre Parkway, Mountain View, CA"
+}
+
+Result Display Order:
+📝 Description
+📊 Metadata Bar
+🗺️ Google Map (with stored address)
+🧾 Extended Description (if present)
+-->`;
+  };
   
   // Google Drive connection state
   const [googleDriveTokens, setGoogleDriveTokens] = useState<any>(null);
@@ -1868,6 +1982,111 @@ Example database document:
                       <p className="text-xs text-emerald-600 mt-2 text-center">
                         Generates backend endpoint and frontend injection script for dynamic metadata
                       </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Google Maps Configuration Section - Only visible when maps toggle is on */}
+              {showMaps && (
+                <div className="border border-slate-200 rounded-lg p-6 bg-white mt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="bg-green-50 p-2 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-slate-700">Google Maps Configuration</h4>
+                        <p className="text-xs text-slate-500">Configure how maps display on listing pages</p>
+                      </div>
+                    </div>
+                    
+                    {/* Dynamic Maps API Configuration */}
+                    <div className="border-t border-slate-100 pt-4">
+                      <div className="mb-4">
+                        <h5 className="text-sm font-medium text-slate-700 mb-2">🗺️ Dynamic Maps Loading</h5>
+                        <p className="text-xs text-slate-500 mb-4">
+                          Configure dynamic map loading that displays addresses from your database
+                        </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="maps-api-endpoint">API Endpoint</Label>
+                          <Input
+                            id="maps-api-endpoint"
+                            placeholder="/api/map"
+                            defaultValue="/api/map"
+                            className="text-sm"
+                          />
+                          <p className="text-xs text-slate-500">The endpoint that will serve address data</p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="maps-target-element">Target Element</Label>
+                          <Input
+                            id="maps-target-element"
+                            placeholder=".metadata-bar"
+                            defaultValue=".metadata-bar"
+                            className="text-sm"
+                          />
+                          <p className="text-xs text-slate-500">CSS selector where map will be inserted after</p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4 mb-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="maps-height">Map Height</Label>
+                          <Input
+                            id="maps-height"
+                            placeholder="300px"
+                            defaultValue="300px"
+                            className="text-sm"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="maps-border-radius">Border Radius</Label>
+                          <Input
+                            id="maps-border-radius"
+                            placeholder="8px"
+                            defaultValue="8px"
+                            className="text-sm"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="maps-shadow">Box Shadow</Label>
+                          <Select defaultValue="light">
+                            <SelectTrigger id="maps-shadow">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">None</SelectItem>
+                              <SelectItem value="light">Light</SelectItem>
+                              <SelectItem value="medium">Medium</SelectItem>
+                              <SelectItem value="strong">Strong</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      {/* Generate Maps Integration Code Button */}
+                      <div className="border-t border-slate-100 pt-4">
+                        <Button 
+                          className="w-full bg-green-600 hover:bg-green-700 text-white"
+                          onClick={() => {
+                            const integrationCode = generateMapsAPICode();
+                            copyCodeToClipboard(integrationCode, "Google Maps integration");
+                          }}
+                        >
+                          <Copy className="w-4 h-4 mr-2" />
+                          🗺️ Copy Google Maps Code
+                        </Button>
+                        <p className="text-xs text-green-600 mt-2 text-center">
+                          Generates backend endpoint and frontend injection script for Google Maps
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
