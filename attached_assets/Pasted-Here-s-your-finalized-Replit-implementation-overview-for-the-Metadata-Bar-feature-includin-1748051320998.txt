@@ -1,0 +1,135 @@
+Here’s your finalized **Replit implementation overview** for the **Metadata Bar** feature — including fixed icon sizing and optional background styling.
+
+---
+
+### 📦 Metadata Bar (Icon + Label Strip)
+
+#### ✅ Purpose
+
+Display a row of up to **5 metadata items** under the product description. Each item includes:
+
+* A **locked-size PNG icon**
+* A short text label (e.g. "PETG", "0.2mm")
+
+---
+
+### 🧩 Dynamic Rendering (Based on URL Slug)
+
+**API Endpoint Required:**
+`GET /api/metadata?slug=...`
+
+**Response Format:**
+
+```json
+{
+  "metadata": [
+    { "icon": "/icons/material.png", "text": "PETG" },
+    { "icon": "/icons/layer-height.png", "text": "0.2mm" },
+    ...
+  ]
+}
+```
+
+---
+
+### 🖥️ Footer Code (Injects Metadata)
+
+```html
+<script>
+(function() {
+  const slug = window.location.pathname.split('/').pop();
+  if (!slug) return;
+
+  fetch(`/api/metadata?slug=${slug}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.metadata || !Array.isArray(data.metadata)) return;
+
+      const bar = document.createElement('div');
+      bar.className = 'metadata-bar';
+
+      data.metadata.forEach(item => {
+        const entry = document.createElement('div');
+        entry.className = 'meta-item';
+
+        const img = document.createElement('img');
+        img.src = item.icon;
+        img.alt = '';
+        img.className = 'meta-icon';
+
+        const label = document.createElement('span');
+        label.className = 'meta-text';
+        label.textContent = item.text;
+
+        entry.appendChild(img);
+        entry.appendChild(label);
+        bar.appendChild(entry);
+      });
+
+      document.querySelector('#description')?.insertAdjacentElement('afterend', bar);
+    });
+})();
+</script>
+```
+
+---
+
+### 🎨 Header Code (CSS Styles + Enhancements)
+
+```html
+<style>
+.metadata-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 20px 0;
+  margin-top: 20px;
+  border-top: 1px solid #eaeaea;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+  font-family: inherit;
+}
+
+/* ✅ Lock icon size */
+.meta-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* 🎨 Optional: Add icon padding + background for consistency */
+.meta-icon {
+  background-color: #f4f4f4;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+@media (max-width: 600px) {
+  .metadata-bar {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+</style>
+```
+
+---
+
+### 🧠 Notes for Replit Build
+
+* Store metadata per listing in DB (slug as key)
+* Allow users to upload PNGs & assign labels
+* Inject via API and place under `#description`
+* Ensure icons are sanitized + properly sized
+
+Let me know if you'd like an admin schema, icon pack recommendations, or label auto-suggestions based on listing content!

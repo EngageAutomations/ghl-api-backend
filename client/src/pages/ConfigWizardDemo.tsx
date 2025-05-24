@@ -215,15 +215,15 @@ app.get('${apiEndpoint}', async (req, res) => {
 
   try {
     // Replace with your database query
-    const metadata = await db.collection('listing_metadata').findOne({ slug });
+    const listing = await db.collection('listings').findOne({ slug });
     
-    if (!metadata) {
-      return res.status(404).json({ items: [] });
+    if (!listing || !listing.metadata) {
+      return res.status(404).json({ metadata: [] });
     }
 
-    // Return metadata items array
+    // Return metadata in your specified format
     res.json({ 
-      items: metadata.items || []
+      metadata: listing.metadata || []
     });
   } catch (error) {
     console.error('Error fetching metadata:', error);
@@ -236,116 +236,80 @@ app.get('${apiEndpoint}', async (req, res) => {
   const slug = window.location.pathname.split('/').pop();
   if (!slug) return;
 
-  fetch('${apiEndpoint}?slug=' + encodeURIComponent(slug))
+  fetch(\`${apiEndpoint}?slug=\${slug}\`)
     .then(res => res.json())
     .then(data => {
-      if (data.items && data.items.length > 0) {
-        const targetEl = document.querySelector('${targetElement}');
-        if (targetEl) {
-          const wrapper = document.createElement('div');
-          wrapper.className = 'dynamic-metadata ${layoutStyle}-layout';
-          
-          data.items.forEach(item => {
-            const metaItem = document.createElement('div');
-            metaItem.className = 'metadata-item';
-            metaItem.innerHTML = \`
-              <div class="metadata-icon">
-                \${item.icon ? \`<img src="\${item.icon}" alt="\${item.label}" />\` : \`<span class="default-icon">📊</span>\`}
-              </div>
-              <div class="metadata-content">
-                <span class="metadata-label">\${item.label}</span>
-                <span class="metadata-value">\${item.value}</span>
-              </div>
-            \`;
-            wrapper.appendChild(metaItem);
-          });
-          
-          targetEl.appendChild(wrapper);
-        }
-      }
+      if (!data.metadata || !Array.isArray(data.metadata)) return;
+
+      const bar = document.createElement('div');
+      bar.className = 'metadata-bar';
+
+      data.metadata.forEach(item => {
+        const entry = document.createElement('div');
+        entry.className = 'meta-item';
+
+        const img = document.createElement('img');
+        img.src = item.icon;
+        img.alt = '';
+        img.className = 'meta-icon';
+
+        const label = document.createElement('span');
+        label.className = 'meta-text';
+        label.textContent = item.text;
+
+        entry.appendChild(img);
+        entry.appendChild(label);
+        bar.appendChild(entry);
+      });
+
+      document.querySelector('${targetElement}')?.insertAdjacentElement('afterend', bar);
     })
     .catch(error => console.error('Error loading metadata:', error));
 })();
 </script>`;
 
     const cssStyles = `<style>
-.dynamic-metadata {
-  margin: 20px 0;
-  padding: 0;
-}
-
-.horizontal-layout {
+.metadata-bar {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-start;
   gap: ${itemSpacing};
+  padding: 20px 0;
+  margin-top: 20px;
+  border-top: 1px solid #eaeaea;
+  border-bottom: 1px solid #eaeaea;
 }
 
-.vertical-layout {
-  display: flex;
-  flex-direction: column;
-  gap: ${itemSpacing};
-}
-
-.grid-layout {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: ${itemSpacing};
-}
-
-.metadata-item {
+.meta-item {
   display: flex;
   align-items: center;
-  background: #f8f9fa;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+  font-family: inherit;
 }
 
-.metadata-icon {
-  margin-right: 12px;
-  flex-shrink: 0;
-}
-
-.metadata-icon img {
+/* Lock icon size as specified */
+.meta-icon {
   width: ${iconSize};
   height: ${iconSize};
   object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+  background-color: #f4f4f4;
+  padding: 4px;
+  border-radius: 4px;
 }
 
-.metadata-icon .default-icon {
-  font-size: ${iconSize};
-  line-height: 1;
-}
-
-.metadata-content {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.metadata-label {
-  font-size: 12px;
-  color: #6c757d;
+.meta-text {
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 2px;
+  white-space: nowrap;
 }
 
-.metadata-value {
-  font-size: 14px;
-  color: #212529;
-  font-weight: 600;
-  word-break: break-word;
-}
-
-@media (max-width: 768px) {
-  .horizontal-layout {
+@media (max-width: 600px) {
+  .metadata-bar {
     flex-direction: column;
-  }
-  
-  .grid-layout {
-    grid-template-columns: 1fr;
+    gap: 12px;
   }
 }
 </style>`;
@@ -365,22 +329,12 @@ ${cssStyles}
 Example database document:
 {
   "slug": "premium-laptop-case",
-  "items": [
-    {
-      "label": "Material",
-      "value": "Premium Leather",
-      "icon": "https://example.com/material-icon.png"
-    },
-    {
-      "label": "Dimensions",
-      "value": "15\" x 11\" x 2\"",
-      "icon": "https://example.com/size-icon.png"
-    },
-    {
-      "label": "Weight",
-      "value": "1.2 lbs",
-      "icon": null
-    }
+  "metadata": [
+    { "icon": "/icons/material.png", "text": "PETG" },
+    { "icon": "/icons/layer-height.png", "text": "0.2mm" },
+    { "icon": "/icons/weight.png", "text": "1.2 lbs" },
+    { "icon": "/icons/dimensions.png", "text": "15\" x 11\"" },
+    { "icon": "/icons/warranty.png", "text": "2 Year" }
   ]
 }
 -->`;
