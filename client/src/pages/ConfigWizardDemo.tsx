@@ -3466,305 +3466,26 @@ ${buttonType === "download" ? `/* -------------------------------------
                 size="lg" 
                 className="px-8 py-2 text-base"
                 onClick={() => {
-                  // Generate all code snippets together
-                  const headerCode = `<!-- GHL Directory Header Script -->
-<script>
-  (function() {
-    window.GHLDirectory = window.GHLDirectory || {};
-    window.GHLDirectory.customField = "${customFieldName}";
-    
-    window.GHLDirectory.getSlug = function() {
-      const url = new URL(window.location.href);
-      const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
-      return pathSegments[pathSegments.length - 1] || null;
-    };
-    
-    window.GHLDirectory.addParameter = function(url, key, value) {
-      const separator = url.includes('?') ? '&' : '?';
-      return \`\${url}\${separator}\${key}=\${value}\`;
-    };
-    
-    window.GHLDirectory.addTrackingToForms = function(slug) {
-      document.querySelectorAll('form').forEach(form => {
-        const hiddenField = document.createElement('input');
-        hiddenField.type = 'hidden';
-        hiddenField.name = window.GHLDirectory.customField;
-        hiddenField.value = slug;
-        form.appendChild(hiddenField);
-      });
-    };
-    
-    window.GHLDirectory.setupActionButtons = function(slug) {
-      document.querySelectorAll('.action-button').forEach(button => {
-        button.addEventListener('click', function(e) {
-          const targetUrl = this.getAttribute('data-url');
-          if (targetUrl) {
-            e.preventDefault();
-            const url = window.GHLDirectory.addParameter(targetUrl, window.GHLDirectory.customField, slug);
-            window.open(url, '_blank');
-          }
-        });
-      });
-    };
-    
-    window.GHLDirectory.setupDownloadButtons = function(slug) {
-      document.querySelectorAll('.download-button').forEach(button => {
-        button.addEventListener('click', function(e) {
-          const downloadUrl = this.getAttribute('data-download-url');
-          if (downloadUrl) {
-            e.preventDefault();
-            const url = window.GHLDirectory.addParameter(downloadUrl, window.GHLDirectory.customField, slug);
-            window.location.href = url;
-          }
-        });
-      });
-    };
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      const slug = window.GHLDirectory.getSlug();
-      if (slug) {
-        console.log('Listing slug detected:', slug);
-        window.GHLDirectory.addTrackingToForms(slug);
-        window.GHLDirectory.setupActionButtons(slug);
-        window.GHLDirectory.setupDownloadButtons(slug);
-        
-        // Store listing info in sessionStorage for other scripts
-        sessionStorage.setItem('current_listing_slug', slug);
-        sessionStorage.setItem('ghl_field_name', window.GHLDirectory.customField);
-      }
-    });
-  })();
-</script>`;
+                  // Generate dynamic code based on enabled features
+                  const { headerCode, footerCode } = generateFinalIntegrationCode();
+                  
+                  const allCode = `/* ===== GHL DIRECTORY INTEGRATION CODE ===== */
 
-                  const cssCode = `/* GHL Directory Styling */
-.product-item {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
-  border-radius: 4px;
-  overflow: hidden;
-  position: relative;
-}
-
-.product-item:hover {
-  box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-  transform: translateY(-2px);
-}
-
-.product-item .product-image-container {
-  position: relative;
-  overflow: hidden;
-  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-  height: 0;
-}
-
-.product-item .product-image-container img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.product-item:hover .product-image-container img {
-  transform: scale(1.05);
-}
-
-.product-item .product-content {
-  padding: 16px;
-}
-
-.product-item .product-title {
-  margin-top: 0;
-  margin-bottom: 8px;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.product-item .product-description {
-  font-size: 14px;
-  color: #555;
-  margin-bottom: 12px;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;  
-  overflow: hidden;
-}
-
-.product-item .product-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  color: #777;
-}
-
-.product-item .product-price {
-  font-weight: 700;
-  color: #333;
-  font-size: 16px;
-}
-
-.product-item .product-category {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 3px;
-  font-size: 12px;
-  font-weight: 500;
-  background-color: #f0f0f0;
-  color: #555;
-}
-
-.product-item a.view-details {
-  display: inline-block;
-  padding: 8px 16px;
-  background-color: ${previewColor};
-  color: ${previewTextColor};
-  text-decoration: none;
-  border-radius: ${previewBorderRadius}px;
-  font-weight: 500;
-  font-size: 14px;
-  margin-top: 12px;
-  transition: background-color 0.2s;
-}
-
-.product-item a.view-details:hover {
-  background-color: ${previewColor === '#4F46E5' ? '#4338ca' : previewColor};
-  opacity: 0.9;
-}
-
-/* Product gallery grid (2-row limit) */
-.product-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
-  max-height: calc(2 * (300px * 0.5625 + 200px)); /* Limit height to 2 rows */
-  overflow-y: auto;
-}
-
-/* Action buttons */
-.ghl-listing-button {
-  display: inline-block;
-  background-color: ${previewColor};
-  color: ${previewTextColor};
-  border: none;
-  border-radius: ${previewBorderRadius}px;
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: 500;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-.ghl-listing-button:hover {
-  opacity: 0.9;
-  transform: translateY(-2px);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .product-gallery {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    max-height: none; /* Remove height limit on mobile */
-  }
-  
-  .product-item .product-title {
-    font-size: 16px;
-  }
-}`;
-
-                  const formCode = `<!-- GHL Directory Form Embed -->
-<div class="ghl-form-container">
-  <div class="ghl-form-wrapper" data-form-type="${selectedOptIn === "embedded-form" ? 'embed' : 'popup'}">
-    ${selectedOptIn === "embedded-form" ?
-      `<iframe
-      id="ghl-form-iframe"
-      src=""
-      width="100%"
-      height="600px"
-      frameborder="0"
-      allowfullscreen
-    ></iframe>
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const slug = window.GHLDirectory.getSlug();
-        const iframe = document.getElementById('ghl-form-iframe');
-        let formUrl = '${formEmbedUrl}';
-        
-        if (slug) {
-          formUrl = window.GHLDirectory.addParameter(formUrl, '${customFieldName}', slug);
-          formUrl = window.GHLDirectory.addParameter(formUrl, 'utm_source', 'directory');
-          iframe.src = formUrl;
-        }
-      });
-    </script>` :
-      `<button class="ghl-listing-button" onclick="openGhlForm()">
-      ${previewButtonText}
-    </button>
-    <script>
-      function openGhlForm() {
-        const slug = window.GHLDirectory.getSlug();
-        let formUrl = '${formEmbedUrl}';
-        
-        if (slug) {
-          formUrl = window.GHLDirectory.addParameter(formUrl, '${customFieldName}', slug);
-          formUrl = window.GHLDirectory.addParameter(formUrl, 'utm_source', 'directory');
-          window.open(formUrl, '_blank');
-        }
-      }
-    </script>`
-    }
-  </div>
-</div>`;
-
-                  const footerCode = `<!-- GHL Directory Footer Script -->
-<script>
-  // Optional additional tracking code
-  (function() {
-    // Get the current listing slug from sessionStorage
-    const currentSlug = sessionStorage.getItem('current_listing_slug');
-    const fieldName = sessionStorage.getItem('ghl_field_name') || '${customFieldName}';
-    
-    // Track page views
-    if (currentSlug && typeof gtag === 'function') {
-      gtag('event', 'listing_view', {
-        'listing_slug': currentSlug
-      });
-    }
-    
-    // Track outbound links
-    document.querySelectorAll('a[href^="http"]').forEach(link => {
-      link.addEventListener('click', function() {
-        if (currentSlug && typeof gtag === 'function') {
-          gtag('event', 'outbound_link', {
-            'listing_slug': currentSlug,
-            'destination': this.href
-          });
-        }
-      });
-    });
-  })();
-</script>`;
-
-                  // Combine all code
-                  const allCode = 
-`/* ===== GHL DIRECTORY INTEGRATION COMPLETE CODE ===== */
-
-/* ===== 1. HEADER CODE - Add to <head> section ===== */
+/* ===== 1. HEADER CODE - Add to your site's <head> section ===== */
 ${headerCode}
 
-/* ===== 2. CSS STYLES - Add to your stylesheet ===== */
-${cssCode}
-
-/* ===== 3. FORM EMBED CODE - Add where you want the form ===== */
-${formCode}
-
-/* ===== 4. FOOTER CODE - Add before closing </body> tag ===== */
+/* ===== 2. FOOTER CODE - Add before closing </body> tag ===== */
 ${footerCode}
+
+/* ===== FEATURES INCLUDED IN THIS INTEGRATION ===== */
+${showDescription ? '✓ Extended Descriptions API' : '✗ Extended Descriptions (disabled)'}
+${showMetadata ? '✓ Dynamic Metadata Bar API' : '✗ Dynamic Metadata Bar (disabled)'}
+${showMaps ? '✓ Google Maps Widget API' : '✗ Google Maps Widget (disabled)'}
+
+/* ===== BACKEND API ENDPOINTS NEEDED ===== */
+${showDescription ? '- GET /api/descriptions?slug=... (returns {html: "content"})' : ''}
+${showMetadata ? '- GET /api/metadata?slug=... (returns {metadata: [{icon: "url", text: "value"}]})' : ''}
+${showMaps ? '- GET /api/map?slug=... (returns {address: "full address"})' : ''}
 
 /* ===== END OF GHL DIRECTORY INTEGRATION CODE ===== */`;
 
@@ -3776,6 +3497,11 @@ ${footerCode}
                   document.body.appendChild(element);
                   element.click();
                   document.body.removeChild(element);
+                  
+                  toast({
+                    title: "✓ Integration Code Downloaded!",
+                    description: `Generated with ${[showDescription && 'extended descriptions', showMetadata && 'metadata', showMaps && 'maps'].filter(Boolean).length} dynamic features enabled`,
+                  });
                 }}
               >
                 Download All Code
@@ -3794,25 +3520,14 @@ ${footerCode}
             
             <h2 className="text-2xl font-bold text-slate-800 mb-4">Congratulations!</h2>
             <p className="text-slate-600 max-w-lg mx-auto mb-8">
-              You've successfully set up your Go HighLevel directory integration. Your marketplace is now ready to capture and track leads from your listings.
+              You've successfully set up your Go HighLevel directory integration with dynamic features that only load when enabled!
             </p>
             
-            <div className="bg-amber-50 border border-amber-100 rounded-lg p-6 max-w-lg mx-auto text-left">
-              <h3 className="text-lg font-medium text-amber-800 mb-2">Important Reminder</h3>
-              <p className="text-sm text-amber-700 mb-4">
-                For proper tracking, all listings must be created with the following attributes:
+            <div className="bg-green-50 border border-green-100 rounded-lg p-6 max-w-lg mx-auto">
+              <h3 className="text-sm font-medium text-green-800 mb-2">✅ Smart Code Generation</h3>
+              <p className="text-xs text-green-700">
+                Your downloaded code only includes the features you've enabled - no unnecessary bloat!
               </p>
-              <ul className="list-disc pl-5 text-sm text-amber-700 space-y-2">
-                <li>A unique <strong>slug</strong> in the URL (e.g., /listings/product-name)</li>
-                <li>Consistent metadata for proper filtering and categorization</li>
-                <li>The tracking field <strong>listing</strong> must be set up in your Go HighLevel forms</li>
-              </ul>
-            </div>
-            
-            <div className="mt-10">
-              <Button size="lg" className="px-8 py-2 text-base">
-                Finish Setup
-              </Button>
             </div>
           </div>
         </WizardStep>
