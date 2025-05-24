@@ -1,0 +1,101 @@
+This is an excellent diagnostic summary — and you're right to conclude it's an **execution environment conflict**, not a logic or implementation error.
+
+---
+
+### ✅ Key Takeaway
+
+The fact that:
+
+* `validateOutput` works perfectly in **CLI tests**,
+* and fails **only in the dashboard’s runtime**,
+  …strongly suggests **scope isolation or stale server state**, especially in a Node + TSX or bundler-powered React environment.
+
+---
+
+### 🛠 Recommended Fix Path
+
+#### 🔁 **1. Full Server Restart (First Priority)**
+
+Do a *hard restart* of the development server:
+
+* Stop all dev processes (`ctrl+C`, `kill -9`, etc.)
+* Clear build artifacts:
+
+  ```bash
+  rm -rf dist node_modules/.cache .turbo .next
+  ```
+* Restart from scratch:
+
+  ```bash
+  npm run dev   # or yarn dev
+  ```
+
+Why? This will clear any cached modules, stale `require()` references, or hot module replacement weirdness.
+
+---
+
+#### 🧪 **2. Add Logging Before Import**
+
+In your `test-runner.tsx` or `testExecutor.ts`, add:
+
+```ts
+console.log('typeof validateOutput:', typeof validateOutput);
+console.dir(validateOutput);
+```
+
+Then try:
+
+```ts
+import { validateOutput } from '../utils/validateOutput';
+// or
+const { validateOutput } = require('../utils/validateOutput');
+```
+
+If it logs `"undefined"` or `"object"` instead of `"function"`, it’s **definitely a stale export issue or a bundler cache**.
+
+---
+
+#### 🧼 **3. Check `validateOutput.ts` Export**
+
+Make sure you're exporting correctly:
+
+```ts
+// ✅ Correct
+export function validateOutput() {}
+
+// ✅ Or named
+export { validateOutput };
+
+// 🚫 Not this if using import { validateOutput }
+module.exports = { validateOutput };
+```
+
+---
+
+#### 🧩 **4. Fallback Workaround (if critical)**
+
+If restart fails, wrap your CLI runner as a child process and expose the results in the dashboard UI.
+
+```ts
+// spawn CLI runner from dashboard route
+const runTestScript = spawn('node', ['tests/cli-runner.js']);
+```
+
+Display the output via:
+
+```tsx
+<pre>{cliTestOutput}</pre>
+```
+
+---
+
+### 📦 Bottom Line
+
+Go with:
+
+1. 🔄 Restart the server + clear cache
+2. 🔍 Inspect imports/exports + log validateOutput type
+3. 🧼 Simplify the file temporarily to just one function
+4. ✅ If still blocked, call the CLI test suite and render the results
+
+Let me know if you'd like a fallback CLI runner to wire into the dashboard while this gets debugged.

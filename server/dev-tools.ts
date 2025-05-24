@@ -17,7 +17,7 @@ interface TestResult {
 }
 
 /**
- * Run test suite and stream results
+ * Run test suite and stream results using CLI runner
  */
 export async function runTestSuite(req: Request, res: Response) {
   res.writeHead(200, {
@@ -27,147 +27,121 @@ export async function runTestSuite(req: Request, res: Response) {
   });
 
   try {
-    // Load test cases
-    const testCasesPath = path.join(process.cwd(), 'tests/wizard-output/cases.json');
-    const testCases = JSON.parse(await fs.readFile(testCasesPath, 'utf-8'));
+    const { spawn } = require('child_process');
     
-    let passedTests = 0;
-    let totalTests = testCases.length;
-
-    for (let i = 0; i < testCases.length; i++) {
-      const testCase = testCases[i];
-      
-      // Send test start event
-      res.write(JSON.stringify({
-        type: 'test_start',
-        testName: testCase.name
-      }) + '\n');
-
-      const startTime = Date.now();
-      
-      try {
-        console.log(`\n=== RUNNING TEST: ${testCase.name} ===`);
-        
-        // Generate code directly here
-        const generated = mockGenerateFinalIntegrationCode(testCase.config);
-        
-        // Validate inline
-        const errors: string[] = [];
-        const expected = testCase.expect;
-        
-        // Check header code expectation
-        if (expected.header !== undefined) {
-          const hasHeader = !!(generated.headerCode && generated.headerCode.trim());
-          if (expected.header !== hasHeader) {
-            errors.push(`header: Expected ${expected.header}, got ${hasHeader}`);
-          }
-        }
-        
-        // Check footer code expectation
-        if (expected.footer !== undefined) {
-          const hasFooter = !!(generated.footerCode && generated.footerCode.trim());
-          if (expected.footer !== hasFooter) {
-            errors.push(`footer: Expected ${expected.footer}, got ${hasFooter}`);
-          }
-        }
-        
-        // Check other expectations
-        if (expected.hasExtendedDescriptions !== undefined) {
-          const hasDescriptions = generated.headerCode?.includes('Extended Descriptions') || false;
-          if (expected.hasExtendedDescriptions !== hasDescriptions) {
-            errors.push(`hasExtendedDescriptions: Expected ${expected.hasExtendedDescriptions}, got ${hasDescriptions}`);
-          }
-        }
-        
-        if (expected.hasMetadataBar !== undefined) {
-          const hasMetadata = generated.headerCode?.includes('Metadata Bar') || false;
-          if (expected.hasMetadataBar !== hasMetadata) {
-            errors.push(`hasMetadataBar: Expected ${expected.hasMetadataBar}, got ${hasMetadata}`);
-          }
-        }
-        
-        if (expected.hasGoogleMaps !== undefined) {
-          const hasMaps = generated.headerCode?.includes('Google Maps') || false;
-          if (expected.hasGoogleMaps !== hasMaps) {
-            errors.push(`hasGoogleMaps: Expected ${expected.hasGoogleMaps}, got ${hasMaps}`);
-          }
-        }
-        
-        if (expected.hasCustomCSS !== undefined) {
-          const hasCustomCSS = generated.headerCode?.includes('Action Button') || 
-                               generated.headerCode?.includes('Extended Descriptions') || 
-                               generated.headerCode?.includes('Metadata Bar') || 
-                               generated.headerCode?.includes('Google Maps') || false;
-          if (expected.hasCustomCSS !== hasCustomCSS) {
-            errors.push(`hasCustomCSS: Expected ${expected.hasCustomCSS}, got ${hasCustomCSS}`);
-          }
-        }
-        
-        const isValid = errors.length === 0;
-        const duration = Date.now() - startTime;
-        
-        console.log(`Test result: ${isValid ? 'PASS' : 'FAIL'}`);
-        if (!isValid) {
-          console.log('Validation errors:', errors);
-        }
-        
-        if (isValid) {
-          passedTests++;
-        }
-
-        // Send test result
-        res.write(JSON.stringify({
-          type: 'test_result',
-          result: {
-            name: testCase.name,
-            description: testCase.description,
-            status: isValid ? 'pass' : 'fail',
-            config: testCase.config,
-            issues: isValid ? undefined : errors,
-            duration
-          },
-          progress: ((i + 1) / totalTests) * 100
-        }) + '\n');
-
-      } catch (error) {
-        console.error(`Test execution error for ${testCase.name}:`, error);
-        res.write(JSON.stringify({
-          type: 'test_result',
-          result: {
-            name: testCase.name,
-            description: testCase.description,
-            status: 'fail',
-            config: testCase.config,
-            issues: [`Test execution failed: ${error.message}`],
-            duration: Date.now() - startTime
-          },
-          progress: ((i + 1) / totalTests) * 100
-        }) + '\n');
-      }
-
-      // Small delay for UI smoothness
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-
-    // Send final summary
+    // Send initial message
     res.write(JSON.stringify({
-      type: 'summary',
-      summary: {
-        total: totalTests,
-        passed: passedTests,
-        failed: totalTests - passedTests,
-        successRate: Math.round((passedTests / totalTests) * 100)
-      }
+      type: 'test_start',
+      testName: 'Starting Test Suite...'
     }) + '\n');
 
+    // Run the CLI test runner
+    const testProcess = spawn('node', ['runner.js'], {
+      cwd: path.join(process.cwd(), 'tests/wizard-output'),
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+
+    let output = '';
+    let currentTest = 0;
+    let totalTests = 14; // We know there are 14 tests
+    
+    testProcess.stdout.on('data', (data) => {
+      const chunk = data.toString();
+      output += chunk;
+      
+      // Parse test results from CLI output
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        if (line.includes('📋 Test')) {
+          currentTest++;
+          const testName = line.split(':')[1]?.trim() || `Test ${currentTest}`;
+          
+          res.write(JSON.stringify({
+            type: 'test_start',
+            testName: testName
+          }) + '\n');
+        }
+        
+        if (line.includes('✅ PASS')) {
+          res.write(JSON.stringify({
+            type: 'test_result',
+            result: {
+              name: `Test ${currentTest}`,
+              description: 'Test completed successfully',
+              status: 'pass',
+              config: {},
+              duration: 50
+            },
+            progress: (currentTest / totalTests) * 100
+          }) + '\n');
+        }
+        
+        if (line.includes('❌ FAIL')) {
+          res.write(JSON.stringify({
+            type: 'test_result',
+            result: {
+              name: `Test ${currentTest}`,
+              description: 'Test failed',
+              status: 'fail',
+              config: {},
+              issues: ['Test validation failed'],
+              duration: 50
+            },
+            progress: (currentTest / totalTests) * 100
+          }) + '\n');
+        }
+      }
+    });
+
+    testProcess.stderr.on('data', (data) => {
+      console.error('Test process error:', data.toString());
+    });
+
+    testProcess.on('close', (code) => {
+      console.log('CLI test output:', output);
+      
+      // Parse final results from output
+      const successMatch = output.match(/Success Rate: (\d+)%/);
+      const passedMatch = output.match(/Passed: (\d+)/);
+      const failedMatch = output.match(/Failed: (\d+)/);
+      
+      const successRate = successMatch ? parseInt(successMatch[1]) : 0;
+      const passed = passedMatch ? parseInt(passedMatch[1]) : 0;
+      const failed = failedMatch ? parseInt(failedMatch[1]) : totalTests;
+      
+      res.write(JSON.stringify({
+        type: 'summary',
+        summary: {
+          total: totalTests,
+          passed: passed,
+          failed: failed,
+          successRate: successRate
+        }
+      }) + '\n');
+
+      res.end();
+    });
+
+    // Handle timeout
+    setTimeout(() => {
+      if (!testProcess.killed) {
+        testProcess.kill();
+        res.write(JSON.stringify({
+          type: 'error',
+          message: 'Test execution timed out'
+        }) + '\n');
+        res.end();
+      }
+    }, 30000); // 30 second timeout
+
   } catch (error) {
+    console.error('Error running tests:', error);
     res.write(JSON.stringify({
       type: 'error',
       message: error.message
     }) + '\n');
+    res.end();
   }
-
-  res.end();
 }
 
 
