@@ -1,0 +1,278 @@
+import { Request, Response } from 'express';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import OpenAI from 'openai';
+import fs from 'fs/promises';
+import path from 'path';
+
+const execAsync = promisify(exec);
+
+interface TestResult {
+  name: string;
+  description: string;
+  status: 'pass' | 'fail' | 'running' | 'pending';
+  config: any;
+  issues?: string[];
+  duration?: number;
+}
+
+/**
+ * Run test suite and stream results
+ */
+export async function runTestSuite(req: Request, res: Response) {
+  res.writeHead(200, {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+  });
+
+  try {
+    // Load test cases
+    const testCasesPath = path.join(process.cwd(), 'tests/wizard-output/cases.json');
+    const testCases = JSON.parse(await fs.readFile(testCasesPath, 'utf-8'));
+    
+    let passedTests = 0;
+    let totalTests = testCases.length;
+
+    for (let i = 0; i < testCases.length; i++) {
+      const testCase = testCases[i];
+      
+      // Send test start event
+      res.write(JSON.stringify({
+        type: 'test_start',
+        testName: testCase.name
+      }) + '\n');
+
+      const startTime = Date.now();
+      
+      try {
+        // Run individual test (simulate test execution)
+        const result = await runSingleTest(testCase);
+        const duration = Date.now() - startTime;
+        
+        if (result.status === 'pass') {
+          passedTests++;
+        }
+
+        // Send test result
+        res.write(JSON.stringify({
+          type: 'test_result',
+          result: { ...result, duration },
+          progress: ((i + 1) / totalTests) * 100
+        }) + '\n');
+
+      } catch (error) {
+        res.write(JSON.stringify({
+          type: 'test_result',
+          result: {
+            name: testCase.name,
+            description: testCase.description,
+            status: 'fail',
+            config: testCase.config,
+            issues: [`Test execution failed: ${error.message}`],
+            duration: Date.now() - startTime
+          },
+          progress: ((i + 1) / totalTests) * 100
+        }) + '\n');
+      }
+
+      // Small delay for UI smoothness
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    // Send final summary
+    res.write(JSON.stringify({
+      type: 'summary',
+      summary: {
+        total: totalTests,
+        passed: passedTests,
+        failed: totalTests - passedTests,
+        successRate: Math.round((passedTests / totalTests) * 100)
+      }
+    }) + '\n');
+
+  } catch (error) {
+    res.write(JSON.stringify({
+      type: 'error',
+      message: error.message
+    }) + '\n');
+  }
+
+  res.end();
+}
+
+/**
+ * Run a single test case
+ */
+async function runSingleTest(testCase: any): Promise<TestResult> {
+  try {
+    // Import and run the test runner logic
+    const { mockGenerateFinalIntegrationCode } = await import('../tests/wizard-output/runner.js');
+    const { validateOutput } = await import('../tests/wizard-output/utils/validateOutput.js');
+    
+    // Generate code using mock generator
+    const generated = mockGenerateFinalIntegrationCode(testCase.config);
+    
+    // Validate the output
+    const validation = validateOutput(generated, testCase.expect);
+    
+    if (validation.isValid) {
+      return {
+        name: testCase.name,
+        description: testCase.description,
+        status: 'pass',
+        config: testCase.config
+      };
+    } else {
+      return {
+        name: testCase.name,
+        description: testCase.description,
+        status: 'fail',
+        config: testCase.config,
+        issues: validation.errors
+      };
+    }
+  } catch (error) {
+    return {
+      name: testCase.name,
+      description: testCase.description,
+      status: 'fail',
+      config: testCase.config,
+      issues: [`Execution error: ${error.message}`]
+    };
+  }
+}
+
+/**
+ * AI-assisted code generation
+ */
+export async function generateCode(req: Request, res: Response) {
+  try {
+    const { feature, prompt, context } = req.body;
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(400).json({ 
+        error: 'OpenAI API key not configured. Please provide your OpenAI API key to use AI code generation.' 
+      });
+    }
+
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    // Build context-aware prompt
+    const systemPrompt = `You are an expert TypeScript/React developer working on a Go HighLevel marketplace extension wizard. 
+
+Current context: ${context}
+Feature to modify: ${feature}
+User request: ${prompt}
+
+Generate clean, production-ready TypeScript/React code that follows these patterns:
+- Use shadcn/ui components
+- Follow React hooks patterns
+- Include proper TypeScript types
+- Add helpful comments
+- Ensure accessibility
+- Use Tailwind CSS for styling
+
+Provide only the code without explanations.`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Generate code for: ${prompt}` }
+      ],
+      temperature: 0.3,
+      max_tokens: 2000
+    });
+
+    const generatedCode = completion.choices[0].message.content;
+
+    res.json({ 
+      code: generatedCode,
+      feature,
+      prompt,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Code generation error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate code',
+      details: error.message 
+    });
+  }
+}
+
+/**
+ * Get feature documentation
+ */
+export async function getFeatureDocumentation(req: Request, res: Response) {
+  const { feature } = req.params;
+  
+  try {
+    // Read relevant documentation files
+    const docsPath = path.join(process.cwd(), 'docs');
+    const files = await fs.readdir(docsPath);
+    
+    const documentation = {
+      feature,
+      files: [],
+      examples: [],
+      configuration: {}
+    };
+
+    // Look for relevant documentation
+    for (const file of files) {
+      if (file.includes(feature.toLowerCase().replace(/\s+/g, '-'))) {
+        const content = await fs.readFile(path.join(docsPath, file), 'utf-8');
+        documentation.files.push({
+          name: file,
+          content: content.substring(0, 1000) // First 1000 chars
+        });
+      }
+    }
+
+    res.json(documentation);
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Failed to load documentation',
+      details: error.message 
+    });
+  }
+}
+
+/**
+ * Update configuration code
+ */
+export async function updateConfigurationCode(req: Request, res: Response) {
+  const { feature, code, filePath } = req.body;
+  
+  try {
+    // Validate file path for security
+    if (!filePath.startsWith('client/src/') && !filePath.startsWith('server/')) {
+      return res.status(400).json({ error: 'Invalid file path' });
+    }
+
+    const fullPath = path.join(process.cwd(), filePath);
+    
+    // Create backup
+    const backupPath = `${fullPath}.backup.${Date.now()}`;
+    const originalContent = await fs.readFile(fullPath, 'utf-8');
+    await fs.writeFile(backupPath, originalContent);
+
+    // Write new code
+    await fs.writeFile(fullPath, code);
+
+    res.json({ 
+      success: true,
+      message: `Updated ${feature} configuration`,
+      backupPath: backupPath.replace(process.cwd(), '')
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Failed to update code',
+      details: error.message 
+    });
+  }
+}
