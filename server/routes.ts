@@ -11,6 +11,7 @@ import {
 } from "@shared/schema";
 import { generateBulletPoints } from "./ai-summarizer";
 import { googleDriveService } from "./google-drive";
+import { runTestSuite, generateCode, getFeatureDocumentation, updateConfigurationCode } from "./dev-tools";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
@@ -499,6 +500,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to generate bullet points" });
     }
   });
+
+  // Developer Dashboard API Routes
+  app.post("/api/dev/run-tests", runTestSuite);
+  app.post("/api/dev/generate-code", generateCode);
+  app.get("/api/dev/docs/:feature", getFeatureDocumentation);
+  app.post("/api/dev/update-code", updateConfigurationCode);
 
   // Tracking endpoint for opt-in interactions
   app.post("/api/tracking/opt-in", async (req, res) => {
