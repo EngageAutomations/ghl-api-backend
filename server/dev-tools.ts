@@ -46,22 +46,91 @@ export async function runTestSuite(req: Request, res: Response) {
       const startTime = Date.now();
       
       try {
-        // Run individual test (simulate test execution)
-        const result = await runSingleTest(testCase);
+        console.log(`\n=== RUNNING TEST: ${testCase.name} ===`);
+        
+        // Generate code directly here
+        const generated = mockGenerateFinalIntegrationCode(testCase.config);
+        
+        // Validate inline
+        const errors: string[] = [];
+        const expected = testCase.expect;
+        
+        // Check header code expectation
+        if (expected.header !== undefined) {
+          const hasHeader = !!(generated.headerCode && generated.headerCode.trim());
+          if (expected.header !== hasHeader) {
+            errors.push(`header: Expected ${expected.header}, got ${hasHeader}`);
+          }
+        }
+        
+        // Check footer code expectation
+        if (expected.footer !== undefined) {
+          const hasFooter = !!(generated.footerCode && generated.footerCode.trim());
+          if (expected.footer !== hasFooter) {
+            errors.push(`footer: Expected ${expected.footer}, got ${hasFooter}`);
+          }
+        }
+        
+        // Check other expectations
+        if (expected.hasExtendedDescriptions !== undefined) {
+          const hasDescriptions = generated.headerCode?.includes('Extended Descriptions') || false;
+          if (expected.hasExtendedDescriptions !== hasDescriptions) {
+            errors.push(`hasExtendedDescriptions: Expected ${expected.hasExtendedDescriptions}, got ${hasDescriptions}`);
+          }
+        }
+        
+        if (expected.hasMetadataBar !== undefined) {
+          const hasMetadata = generated.headerCode?.includes('Metadata Bar') || false;
+          if (expected.hasMetadataBar !== hasMetadata) {
+            errors.push(`hasMetadataBar: Expected ${expected.hasMetadataBar}, got ${hasMetadata}`);
+          }
+        }
+        
+        if (expected.hasGoogleMaps !== undefined) {
+          const hasMaps = generated.headerCode?.includes('Google Maps') || false;
+          if (expected.hasGoogleMaps !== hasMaps) {
+            errors.push(`hasGoogleMaps: Expected ${expected.hasGoogleMaps}, got ${hasMaps}`);
+          }
+        }
+        
+        if (expected.hasCustomCSS !== undefined) {
+          const hasCustomCSS = generated.headerCode?.includes('Action Button') || 
+                               generated.headerCode?.includes('Extended Descriptions') || 
+                               generated.headerCode?.includes('Metadata Bar') || 
+                               generated.headerCode?.includes('Google Maps') || false;
+          if (expected.hasCustomCSS !== hasCustomCSS) {
+            errors.push(`hasCustomCSS: Expected ${expected.hasCustomCSS}, got ${hasCustomCSS}`);
+          }
+        }
+        
+        const isValid = errors.length === 0;
         const duration = Date.now() - startTime;
         
-        if (result.status === 'pass') {
+        console.log(`Test result: ${isValid ? 'PASS' : 'FAIL'}`);
+        if (!isValid) {
+          console.log('Validation errors:', errors);
+        }
+        
+        if (isValid) {
           passedTests++;
         }
 
         // Send test result
         res.write(JSON.stringify({
           type: 'test_result',
-          result: { ...result, duration },
+          result: {
+            name: testCase.name,
+            description: testCase.description,
+            status: isValid ? 'pass' : 'fail',
+            config: testCase.config,
+            issues: isValid ? undefined : errors,
+            duration
+          },
           progress: ((i + 1) / totalTests) * 100
         }) + '\n');
 
       } catch (error) {
+        console.error(`Test execution error for ${testCase.name}:`, error);
         res.write(JSON.stringify({
           type: 'test_result',
           result: {
