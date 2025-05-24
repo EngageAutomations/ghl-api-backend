@@ -199,6 +199,192 @@ Example database document:
 }
 -->`;
   };
+
+  // Generate metadata API integration code
+  const generateMetadataAPICode = () => {
+    const apiEndpoint = (document.getElementById('metadata-api-endpoint') as HTMLInputElement)?.value || '/api/metadata';
+    const targetElement = (document.getElementById('metadata-target-element') as HTMLInputElement)?.value || '.metadata-container';
+    const layoutStyle = (document.getElementById('metadata-layout') as HTMLSelectElement)?.value || 'horizontal';
+    const itemSpacing = (document.getElementById('metadata-spacing') as HTMLInputElement)?.value || '16px';
+    const iconSize = (document.getElementById('metadata-icon-size') as HTMLInputElement)?.value || '20px';
+
+    const backendCode = `// Dynamic Metadata API Endpoint (Express.js)
+app.get('${apiEndpoint}', async (req, res) => {
+  const slug = req.query.slug;
+  if (!slug) return res.status(400).json({ error: 'Missing slug parameter' });
+
+  try {
+    // Replace with your database query
+    const metadata = await db.collection('listing_metadata').findOne({ slug });
+    
+    if (!metadata) {
+      return res.status(404).json({ items: [] });
+    }
+
+    // Return metadata items array
+    res.json({ 
+      items: metadata.items || []
+    });
+  } catch (error) {
+    console.error('Error fetching metadata:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});`;
+
+    const frontendScript = `<script>
+(function() {
+  const slug = window.location.pathname.split('/').pop();
+  if (!slug) return;
+
+  fetch('${apiEndpoint}?slug=' + encodeURIComponent(slug))
+    .then(res => res.json())
+    .then(data => {
+      if (data.items && data.items.length > 0) {
+        const targetEl = document.querySelector('${targetElement}');
+        if (targetEl) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'dynamic-metadata ${layoutStyle}-layout';
+          
+          data.items.forEach(item => {
+            const metaItem = document.createElement('div');
+            metaItem.className = 'metadata-item';
+            metaItem.innerHTML = \`
+              <div class="metadata-icon">
+                \${item.icon ? \`<img src="\${item.icon}" alt="\${item.label}" />\` : \`<span class="default-icon">📊</span>\`}
+              </div>
+              <div class="metadata-content">
+                <span class="metadata-label">\${item.label}</span>
+                <span class="metadata-value">\${item.value}</span>
+              </div>
+            \`;
+            wrapper.appendChild(metaItem);
+          });
+          
+          targetEl.appendChild(wrapper);
+        }
+      }
+    })
+    .catch(error => console.error('Error loading metadata:', error));
+})();
+</script>`;
+
+    const cssStyles = `<style>
+.dynamic-metadata {
+  margin: 20px 0;
+  padding: 0;
+}
+
+.horizontal-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${itemSpacing};
+}
+
+.vertical-layout {
+  display: flex;
+  flex-direction: column;
+  gap: ${itemSpacing};
+}
+
+.grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: ${itemSpacing};
+}
+
+.metadata-item {
+  display: flex;
+  align-items: center;
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.metadata-icon {
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.metadata-icon img {
+  width: ${iconSize};
+  height: ${iconSize};
+  object-fit: contain;
+}
+
+.metadata-icon .default-icon {
+  font-size: ${iconSize};
+  line-height: 1;
+}
+
+.metadata-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.metadata-label {
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.metadata-value {
+  font-size: 14px;
+  color: #212529;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .horizontal-layout {
+    flex-direction: column;
+  }
+  
+  .grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+</style>`;
+
+    return `${backendCode}
+
+${frontendScript}
+
+${cssStyles}
+
+<!-- Usage Instructions:
+1. Add the backend endpoint to your Express.js server
+2. Include the frontend script in your listing page footer
+3. Include the CSS styles in your page head or stylesheet
+4. Store metadata in your database with 'slug' and 'items' array fields
+
+Example database document:
+{
+  "slug": "premium-laptop-case",
+  "items": [
+    {
+      "label": "Material",
+      "value": "Premium Leather",
+      "icon": "https://example.com/material-icon.png"
+    },
+    {
+      "label": "Dimensions",
+      "value": "15\" x 11\" x 2\"",
+      "icon": "https://example.com/size-icon.png"
+    },
+    {
+      "label": "Weight",
+      "value": "1.2 lbs",
+      "icon": null
+    }
+  ]
+}
+-->`;
+  };
   
   // Google Drive connection state
   const [googleDriveTokens, setGoogleDriveTokens] = useState<any>(null);
@@ -1642,6 +1828,93 @@ Example database document:
                         `Currently using ${metadataFields.length} of 5 available metadata fields`
                       )}
                     </p>
+                  </div>
+                  
+                  {/* Dynamic Metadata API Configuration */}
+                  <div className="border-t border-slate-100 pt-6 mt-6">
+                    <div className="mb-4">
+                      <h5 className="text-sm font-medium text-slate-700 mb-2">🚀 Dynamic Metadata Loading</h5>
+                      <p className="text-xs text-slate-500 mb-4">
+                        Enable dynamic metadata that loads from your database based on the listing slug
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="metadata-api-endpoint">API Endpoint</Label>
+                        <Input
+                          id="metadata-api-endpoint"
+                          placeholder="/api/metadata"
+                          defaultValue="/api/metadata"
+                          className="text-sm"
+                        />
+                        <p className="text-xs text-slate-500">The endpoint that will serve metadata JSON</p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="metadata-target-element">Target Element</Label>
+                        <Input
+                          id="metadata-target-element"
+                          placeholder=".metadata-container"
+                          defaultValue=".metadata-container"
+                          className="text-sm"
+                        />
+                        <p className="text-xs text-slate-500">CSS selector where metadata will be inserted</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="metadata-layout">Layout Style</Label>
+                        <Select defaultValue="horizontal">
+                          <SelectTrigger id="metadata-layout">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="horizontal">Horizontal Row</SelectItem>
+                            <SelectItem value="vertical">Vertical Stack</SelectItem>
+                            <SelectItem value="grid">Grid Layout</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="metadata-spacing">Item Spacing</Label>
+                        <Input
+                          id="metadata-spacing"
+                          placeholder="16px"
+                          defaultValue="16px"
+                          className="text-sm"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="metadata-icon-size">Icon Size</Label>
+                        <Input
+                          id="metadata-icon-size"
+                          placeholder="20px"
+                          defaultValue="20px"
+                          className="text-sm"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Generate Metadata Integration Code Button */}
+                    <div className="border-t border-slate-100 pt-4">
+                      <Button 
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                        onClick={() => {
+                          const integrationCode = generateMetadataAPICode();
+                          copyCodeToClipboard(integrationCode, "Dynamic metadata integration");
+                        }}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        📊 Copy Metadata API Code
+                      </Button>
+                      <p className="text-xs text-emerald-600 mt-2 text-center">
+                        Generates backend endpoint and frontend injection script for dynamic metadata
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
