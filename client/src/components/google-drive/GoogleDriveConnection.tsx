@@ -83,28 +83,7 @@ export function GoogleDriveConnection({ onConnected, isConnected }: GoogleDriveC
         </CardHeader>
         
         <CardContent className="space-y-6">
-          {/* Benefits */}
-          <div className="bg-blue-50 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 mb-3">Why connect Google Drive?</h3>
-            <ul className="space-y-2 text-blue-800">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-blue-600" />
-                You own and control all your images
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-blue-600" />
-                Unlimited storage (based on your Google plan)
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-blue-600" />
-                Automatic organization in "Directory Images" folder
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-blue-600" />
-                Access your images anytime from Google Drive
-              </li>
-            </ul>
-          </div>
+
 
           {/* Privacy Notice */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
