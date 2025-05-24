@@ -1033,7 +1033,7 @@ export default function ConfigWizardDemo() {
                     <div className="space-y-6">
                       {/* Form URL */}
                       <div className="space-y-2">
-                        <Label htmlFor="form-embed-url">Form Embed URL</Label>
+                        <Label htmlFor="form-embed-url">Form URL (Copy and paste the form's link and paste it here. Do not use the embed code.)</Label>
                         <Input
                           id="form-embed-url"
                           placeholder="https://forms.gohighlevel.com/your-form-id"
