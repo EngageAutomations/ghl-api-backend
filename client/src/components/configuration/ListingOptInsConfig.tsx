@@ -412,7 +412,7 @@ export default function ListingOptInsConfig() {
                     </h4>
                     
                     <p className="text-xs text-slate-600">
-                      URL links are now configured individually in each listing. When creating or editing a listing, you'll be able to set:
+                      URL links are configured individually in each listing. When creating or editing a listing, you'll be able to set:
                     </p>
                     
                     <ul className="list-disc pl-5 text-xs space-y-1 text-slate-600">
@@ -422,8 +422,25 @@ export default function ListingOptInsConfig() {
                     </ul>
                     
                     <p className="text-xs text-slate-600 mt-2">
-                      URL buttons support tokens like <code>{"{listing_title}"}</code>, <code>{"{listing_category}"}</code>, <code>{"{slug}"}</code> which will be replaced with actual listing data.
+                      URL buttons support tokens like <code>{"{listing_title}"}</code>, <code>{"{listing_category}"}</code>, <code>{"{slug}"}</code> which will be replaced with actual listing data for tracking.
                     </p>
+                    
+                    <div className="space-y-2 mt-4">
+                      <Label htmlFor="url-param-name" className="text-xs font-medium">
+                        Tracking Parameter Name
+                      </Label>
+                      <Input 
+                        id="url-param-name"
+                        value={config.customFormFieldName ?? ""}
+                        readOnly
+                        className="bg-slate-50"
+                        placeholder="Set this value in the Embedded Form section"
+                      />
+                      <p className="text-xs text-slate-500">
+                        This parameter will be added to your destination URL (e.g., your-url.com?{config.customFormFieldName || "listing_id"}=listing-slug). 
+                        It tracks which listing the visitor came from and maintains consistency with your form tracking.
+                      </p>
+                    </div>
                   </div>
                 )}
                 

@@ -688,7 +688,29 @@ export default function ListingForm({ initialData, onSuccess, isEditing = false 
                       />
                     </FormControl>
                     <FormDescription>
-                      Direct link to downloadable file (PDF, ZIP, etc.)
+                      Direct link to downloadable file (PDF, ZIP, etc.). Supports tokens like {"{listing_title}"}, {"{slug}"} for tracking.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
+            {config.actionButtonType === "url" && (
+              <FormField
+                control={form.control}
+                name="linkUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Link URL <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="https://example.com/contact" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Destination URL for the button. Supports tokens like {"{listing_title}"}, {"{slug}"} for tracking.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

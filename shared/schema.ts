@@ -32,6 +32,7 @@ export const listings = pgTable("listings", {
   description: text("description"),
   price: text("price"),
   downloadUrl: text("download_url"),
+  linkUrl: text("link_url"),
   popupUrl: text("popup_url"),
   embedFormUrl: text("embed_form_url"),
   imageUrl: text("image_url"),
