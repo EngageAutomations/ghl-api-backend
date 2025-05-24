@@ -453,6 +453,224 @@ Result Display Order:
 🧾 Extended Description (if present)
 -->`;
   };
+
+  // Generate dynamic final code based on enabled features
+  const generateFinalIntegrationCode = () => {
+    let headerCode = `<!-- GHL Directory Header Script -->
+<script>
+  (function() {
+    window.GHLDirectory = window.GHLDirectory || {};
+    window.GHLDirectory.customField = "${customFieldName}";
+    
+    window.GHLDirectory.getSlug = function() {
+      const url = new URL(window.location.href);
+      const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
+      return pathSegments[pathSegments.length - 1] || null;
+    };
+    
+    window.GHLDirectory.addParameter = function(url, key, value) {
+      const separator = url.includes('?') ? '&' : '?';
+      return \`\${url}\${separator}\${key}=\${value}\`;
+    };
+  })();
+</script>`;
+
+    let footerCode = `<!-- GHL Directory Footer Script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const slug = window.GHLDirectory.getSlug();
+    if (!slug) return;
+    
+    // Basic form tracking
+    document.querySelectorAll('form').forEach(form => {
+      const hiddenField = document.createElement('input');
+      hiddenField.type = 'hidden';
+      hiddenField.name = window.GHLDirectory.customField;
+      hiddenField.value = slug;
+      form.appendChild(hiddenField);
+    });`;
+
+    // Only add extended descriptions code if enabled
+    if (showDescription) {
+      const apiEndpoint = '/api/descriptions'; // Default value
+      const targetElement = '#description'; // Default value
+      
+      footerCode += `
+    
+    // Extended Descriptions Loading
+    fetch('${apiEndpoint}?slug=' + encodeURIComponent(slug))
+      .then(res => res.json())
+      .then(data => {
+        if (data.html && data.html.trim()) {
+          const targetEl = document.querySelector('${targetElement}');
+          if (targetEl) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'extended-description';
+            wrapper.innerHTML = data.html;
+            targetEl.insertAdjacentElement('afterend', wrapper);
+          }
+        }
+      })
+      .catch(error => console.error('Error loading extended description:', error));`;
+      
+      // Add CSS for extended descriptions
+      headerCode += `
+<style>
+.extended-description {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+  font-family: inherit;
+  color: #333;
+  line-height: 1.6;
+}
+
+.extended-description img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  display: block;
+  margin: 15px 0;
+}
+</style>`;
+    }
+
+    // Only add metadata code if enabled
+    if (showMetadata) {
+      const metadataEndpoint = '/api/metadata'; // Default value
+      
+      footerCode += `
+    
+    // Dynamic Metadata Loading
+    fetch('${metadataEndpoint}?slug=' + encodeURIComponent(slug))
+      .then(res => res.json())
+      .then(data => {
+        if (data.metadata && Array.isArray(data.metadata)) {
+          const bar = document.createElement('div');
+          bar.className = 'metadata-bar';
+          
+          data.metadata.forEach(item => {
+            const entry = document.createElement('div');
+            entry.className = 'meta-item';
+            
+            const img = document.createElement('img');
+            img.src = item.icon;
+            img.alt = '';
+            img.className = 'meta-icon';
+            
+            const label = document.createElement('span');
+            label.className = 'meta-text';
+            label.textContent = item.text;
+            
+            entry.appendChild(img);
+            entry.appendChild(label);
+            bar.appendChild(entry);
+          });
+          
+          document.querySelector('#description')?.insertAdjacentElement('afterend', bar);
+        }
+      })
+      .catch(error => console.error('Error loading metadata:', error));`;
+      
+      // Add CSS for metadata
+      headerCode += `
+<style>
+.metadata-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 20px 0;
+  margin-top: 20px;
+  border-top: 1px solid #eaeaea;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+  font-family: inherit;
+}
+
+.meta-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+  background-color: #f4f4f4;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.meta-text {
+  font-weight: 500;
+  white-space: nowrap;
+}
+</style>`;
+    }
+
+    // Only add maps code if enabled
+    if (showMaps) {
+      const mapsEndpoint = '/api/map'; // Default value
+      
+      footerCode += `
+    
+    // Google Maps Loading
+    fetch('${mapsEndpoint}?slug=' + encodeURIComponent(slug))
+      .then(res => res.json())
+      .then(data => {
+        if (data.address) {
+          const mapWrapper = document.createElement('div');
+          mapWrapper.className = 'map-wrapper';
+          mapWrapper.innerHTML = \`
+            <iframe
+              class="gmap-embed"
+              width="100%"
+              height="300"
+              style="border:0; border-radius: 8px;"
+              loading="lazy"
+              allowfullscreen
+              referrerpolicy="no-referrer-when-downgrade"
+              src="https://www.google.com/maps?q=\${encodeURIComponent(data.address)}&output=embed">
+            </iframe>
+          \`;
+          
+          document.querySelector('.metadata-bar')?.insertAdjacentElement('afterend', mapWrapper);
+        }
+      })
+      .catch(error => console.error('Error loading map:', error));`;
+      
+      // Add CSS for maps
+      headerCode += `
+<style>
+.map-wrapper {
+  margin-top: 30px;
+  width: 100%;
+  box-shadow: 0 0 12px rgba(0,0,0,0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.gmap-embed {
+  width: 100%;
+  height: 300px;
+  border: none;
+  display: block;
+  border-radius: 8px;
+}
+</style>`;
+    }
+
+    footerCode += `
+  });
+</script>`;
+
+    return { headerCode, footerCode };
+  };
   
   // Google Drive connection state
   const [googleDriveTokens, setGoogleDriveTokens] = useState<any>(null);
