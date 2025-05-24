@@ -85,18 +85,7 @@ export function GoogleDriveConnection({ onConnected, isConnected }: GoogleDriveC
         <CardContent className="space-y-6">
 
 
-          {/* Privacy Notice */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="h-5 w-5 text-green-600 mt-0.5" />
-              <div>
-                <h4 className="font-semibold text-green-900">Privacy & Security</h4>
-                <p className="text-green-800 text-sm mt-1">
-                  We only access files that our app creates. Your existing Google Drive files remain private and untouched.
-                </p>
-              </div>
-            </div>
-          </div>
+
 
           {/* Connection Status */}
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
