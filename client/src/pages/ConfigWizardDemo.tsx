@@ -80,6 +80,125 @@ export default function ConfigWizardDemo() {
       });
     }
   };
+
+  // Generate extended description integration code
+  const generateExtendedDescriptionCode = () => {
+    const apiEndpoint = (document.getElementById('api-endpoint') as HTMLInputElement)?.value || '/api/descriptions';
+    const targetElement = (document.getElementById('target-element') as HTMLInputElement)?.value || '#description';
+    const insertPosition = (document.getElementById('insert-position') as HTMLSelectElement)?.value || 'afterend';
+    const contentMargin = (document.getElementById('content-margin') as HTMLInputElement)?.value || '40px';
+    const contentPadding = (document.getElementById('content-padding') as HTMLInputElement)?.value || '20px';
+    const borderStyle = (document.getElementById('border-style') as HTMLSelectElement)?.value || 'top';
+    const imageBorderRadius = (document.getElementById('image-border-radius') as HTMLInputElement)?.value || '6px';
+
+    const backendCode = `// Extended Descriptions API Endpoint (Express.js)
+app.get('${apiEndpoint}', async (req, res) => {
+  const slug = req.query.slug;
+  if (!slug) return res.status(400).json({ error: 'Missing slug parameter' });
+
+  try {
+    // Replace with your database query
+    const description = await db.collection('extended_descriptions').findOne({ slug });
+    
+    if (!description) {
+      return res.status(404).json({ html: '' });
+    }
+
+    // Return sanitized HTML content
+    res.json({ html: description.extendedHtml });
+  } catch (error) {
+    console.error('Error fetching extended description:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});`;
+
+    const frontendScript = `<script>
+(function() {
+  const slug = window.location.pathname.split('/').pop();
+  if (!slug) return;
+
+  fetch('${apiEndpoint}?slug=' + encodeURIComponent(slug))
+    .then(res => res.json())
+    .then(data => {
+      if (data.html && data.html.trim()) {
+        const targetEl = document.querySelector('${targetElement}');
+        if (targetEl) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'extended-description';
+          wrapper.innerHTML = data.html;
+          targetEl.insertAdjacentElement('${insertPosition}', wrapper);
+        }
+      }
+    })
+    .catch(error => console.error('Error loading extended description:', error));
+})();
+</script>`;
+
+    const cssStyles = `<style>
+.extended-description {
+  margin-top: ${contentMargin};
+  padding-top: ${contentPadding};
+  ${borderStyle === 'top' ? 'border-top: 1px solid #eee;' : borderStyle === 'full' ? 'border: 1px solid #eee; border-radius: 8px; padding: 20px;' : ''}
+  font-family: inherit;
+  color: #333;
+  line-height: 1.6;
+}
+
+.extended-description img {
+  max-width: 100%;
+  height: auto;
+  border-radius: ${imageBorderRadius};
+  display: block;
+  margin: 15px 0;
+}
+
+.extended-description h1,
+.extended-description h2,
+.extended-description h3 {
+  margin-top: 24px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.extended-description p {
+  margin-bottom: 12px;
+}
+
+.extended-description ul,
+.extended-description ol {
+  margin-bottom: 12px;
+  padding-left: 20px;
+}
+
+.extended-description blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 16px;
+  margin: 16px 0;
+  font-style: italic;
+  color: #6b7280;
+}
+</style>`;
+
+    return `${backendCode}
+
+${frontendScript}
+
+${cssStyles}
+
+<!-- Usage Instructions:
+1. Add the backend endpoint to your Express.js server
+2. Include the frontend script in your listing page footer
+3. Include the CSS styles in your page head or stylesheet
+4. Store extended descriptions in your database with 'slug' and 'extendedHtml' fields
+5. Ensure HTML content is sanitized before storing to prevent XSS attacks
+
+Example database document:
+{
+  "slug": "premium-laptop-case",
+  "extendedHtml": "<h2>Detailed Specifications</h2><p>This premium laptop case features...</p><img src='image.jpg' alt='Product detail'>"
+}
+-->`;
+  };
   
   // Google Drive connection state
   const [googleDriveTokens, setGoogleDriveTokens] = useState<any>(null);
