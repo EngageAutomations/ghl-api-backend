@@ -3,14 +3,18 @@
  * Executes comprehensive form generation tests
  */
 
-const fs = require('fs');
-const path = require('path');
-const { 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { 
   validateFormPreview, 
   validateEmbedCode, 
   mockGenerateFormPreview, 
   mockGenerateEmbedCode 
-} = require('./form-validator');
+} from './form-validator.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Runs all form validation test cases
@@ -190,7 +194,7 @@ function runSingleFormTest(testId) {
 }
 
 // CLI execution
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
   
   if (args.length > 0) {
@@ -202,4 +206,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { runFormTests, runSingleFormTest };
+export { runFormTests, runSingleFormTest };

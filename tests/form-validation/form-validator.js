@@ -283,6 +283,11 @@ function validateEmbedCode(config, generatedCode, expectations) {
  * (This should mirror the actual generateFormPreview function)
  */
 function mockGenerateFormPreview(config) {
+  // For embedded forms and popups, don't generate traditional form HTML
+  if (config.enableEmbeddedForm || (config.enableActionButton && config.buttonType === 'popup')) {
+    return mockGenerateEmbedCode(config);
+  }
+  
   let html = '<div class="ghl-custom-form-container">\n';
   html += `  <form id="ghl-directory-form" class="ghl-directory-form" action="${config.formEmbedUrl}" method="POST">\n`;
   
@@ -396,7 +401,7 @@ function mockGenerateEmbedCode(config) {
   return '';
 }
 
-module.exports = {
+export {
   validateFormPreview,
   validateEmbedCode,
   mockGenerateFormPreview,

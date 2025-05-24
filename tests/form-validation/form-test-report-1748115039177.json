@@ -1,0 +1,188 @@
+{
+  "total": 6,
+  "passed": 4,
+  "failed": 2,
+  "details": [
+    {
+      "testCase": "Basic Form Fields Only",
+      "id": "basic-form",
+      "passed": true,
+      "previewValidation": {
+        "passed": true,
+        "failures": [],
+        "details": {
+          "hasNameField": true,
+          "hasEmailField": true,
+          "hasPhoneField": true,
+          "hasCompanyField": false,
+          "hasAddressField": false,
+          "hasMessageField": false,
+          "hasHiddenField": true,
+          "hiddenFieldName": "listing",
+          "formMethod": "POST",
+          "formAction": "https://example.gohighlevel.com/form/xyz"
+        }
+      },
+      "embedValidation": {
+        "passed": true,
+        "failures": [],
+        "details": {}
+      },
+      "generatedFormHTML": "<div class=\"ghl-custom-form-container\">\n  <form id=\"ghl-directory-form\" class=\"ghl-directory-form\" action=\"https://example.gohighlevel.com/form/xyz\" method=\"POST\">\n    <input type=\"hidden\" id=\"ghl-listing-field\" name=\"listing\">\n    <div class=\"ghl-form-group\">\n      <label for=\"name\">Name</label>\n      <input type=\"text\" id=\"name\" name=\"name\" required>\n    </div>\n    <div class=\"ghl-form-group\">\n      <label for=\"email\">Email</label>\n      <input type=\"email\" id=\"email\" name=\"email\" required>\n    </div>\n    <div class=\"ghl-form-group\">\n      <label for=\"phone\">Phone</label>\n      <input type=\"tel\" id=\"phone\" name=\"phone\">\n    </div>\n    <button type=\"submit\" class=\"ghl-submit-button\">Submit</button>\n  </form>\n</div>",
+      "generatedEmbedCode": ""
+    },
+    {
+      "testCase": "Complete Form with All Fields",
+      "id": "full-form",
+      "passed": true,
+      "previewValidation": {
+        "passed": true,
+        "failures": [],
+        "details": {
+          "hasNameField": true,
+          "hasEmailField": true,
+          "hasPhoneField": true,
+          "hasCompanyField": true,
+          "hasAddressField": true,
+          "hasMessageField": true,
+          "hasHiddenField": true,
+          "hiddenFieldName": "product_slug",
+          "formMethod": "POST",
+          "formAction": "https://custom.gohighlevel.com/form/abc"
+        }
+      },
+      "embedValidation": {
+        "passed": true,
+        "failures": [],
+        "details": {}
+      },
+      "generatedFormHTML": "<div class=\"ghl-custom-form-container\">\n  <form id=\"ghl-directory-form\" class=\"ghl-directory-form\" action=\"https://custom.gohighlevel.com/form/abc\" method=\"POST\">\n    <input type=\"hidden\" id=\"ghl-listing-field\" name=\"product_slug\">\n    <div class=\"ghl-form-group\">\n      <label for=\"name\">Name</label>\n      <input type=\"text\" id=\"name\" name=\"name\" required>\n    </div>\n    <div class=\"ghl-form-group\">\n      <label for=\"email\">Email</label>\n      <input type=\"email\" id=\"email\" name=\"email\" required>\n    </div>\n    <div class=\"ghl-form-group\">\n      <label for=\"phone\">Phone</label>\n      <input type=\"tel\" id=\"phone\" name=\"phone\">\n    </div>\n    <div class=\"ghl-form-group\">\n      <label for=\"company\">Company</label>\n      <input type=\"text\" id=\"company\" name=\"company\">\n    </div>\n    <div class=\"ghl-form-group\">\n      <label for=\"address\">Address</label>\n      <input type=\"text\" id=\"address\" name=\"address\">\n    </div>\n    <div class=\"ghl-form-group\">\n      <label for=\"message\">Message</label>\n      <textarea id=\"message\" name=\"message\" rows=\"4\"></textarea>\n    </div>\n    <button type=\"submit\" class=\"ghl-submit-button\">Submit</button>\n  </form>\n</div>",
+      "generatedEmbedCode": ""
+    },
+    {
+      "testCase": "Embedded Form Integration",
+      "id": "embedded-form",
+      "passed": false,
+      "previewValidation": {
+        "passed": false,
+        "failures": [
+          {
+            "test": "hiddenField",
+            "expected": false,
+            "actual": true,
+            "message": "Hidden tracking field presence mismatch"
+          }
+        ],
+        "details": {
+          "hasNameField": false,
+          "hasEmailField": false,
+          "hasPhoneField": false,
+          "hasCompanyField": false,
+          "hasAddressField": false,
+          "hasMessageField": false,
+          "hasHiddenField": true,
+          "hiddenFieldName": "listing_id"
+        }
+      },
+      "embedValidation": {
+        "passed": true,
+        "failures": [],
+        "details": {
+          "hasIframe": true,
+          "hasJavaScriptTracking": true,
+          "hasParameterInjection": true
+        }
+      },
+      "generatedFormHTML": "<div class=\"ghl-custom-form-container\">\n  <form id=\"ghl-directory-form\" class=\"ghl-directory-form\" action=\"https://embed.gohighlevel.com/form/embed123\" method=\"POST\">\n    <input type=\"hidden\" id=\"ghl-listing-field\" name=\"listing_id\">\n    <button type=\"submit\" class=\"ghl-submit-button\">Submit</button>\n  </form>\n</div>",
+      "generatedEmbedCode": "<div class=\"ghl-form-container\">\n  <div class=\"ghl-form-wrapper\" data-form-type=\"embed\">\n    <iframe\n      id=\"ghl-form-iframe\"\n      src=\"\"\n      width=\"100%\"\n      height=\"600px\"\n      frameborder=\"0\"\n      allowfullscreen\n    ></iframe>\n    <script>\n      document.addEventListener('DOMContentLoaded', function() {\n        const slug = window.GHLDirectory.getSlug();\n        const iframe = document.getElementById('ghl-form-iframe');\n        let formUrl = 'https://embed.gohighlevel.com/form/embed123';\n        \n        if (slug) {\n          formUrl = window.GHLDirectory.addParameter(formUrl, 'listing_id', slug);\n          formUrl = window.GHLDirectory.addParameter(formUrl, 'utm_source', 'directory');\n          iframe.src = formUrl;\n        }\n      });\n    </script>\n  </div>\n</div>"
+    },
+    {
+      "testCase": "Popup Form with Button",
+      "id": "popup-form",
+      "passed": false,
+      "previewValidation": {
+        "passed": false,
+        "failures": [
+          {
+            "test": "hiddenField",
+            "expected": false,
+            "actual": true,
+            "message": "Hidden tracking field presence mismatch"
+          }
+        ],
+        "details": {
+          "hasNameField": false,
+          "hasEmailField": false,
+          "hasPhoneField": false,
+          "hasCompanyField": false,
+          "hasAddressField": false,
+          "hasMessageField": false,
+          "hasHiddenField": true
+        }
+      },
+      "embedValidation": {
+        "passed": true,
+        "failures": [],
+        "details": {
+          "hasButton": true,
+          "hasJavaScriptTracking": true,
+          "buttonColor": "#4f46e5"
+        }
+      },
+      "generatedFormHTML": "<div class=\"ghl-custom-form-container\">\n  <form id=\"ghl-directory-form\" class=\"ghl-directory-form\" action=\"https://popup.gohighlevel.com/form/popup456\" method=\"POST\">\n    <input type=\"hidden\" id=\"ghl-listing-field\" name=\"listing\">\n    <button type=\"submit\" class=\"ghl-submit-button\">Submit</button>\n  </form>\n</div>",
+      "generatedEmbedCode": "<div class=\"ghl-form-container\">\n  <div class=\"ghl-form-wrapper\" data-form-type=\"popup\">\n    <button class=\"ghl-listing-button\" onclick=\"openGhlForm()\" style=\"background-color: #4f46e5; color: #ffffff;\">\n      Get More Info\n    </button>\n    <script>\n      function openGhlForm() {\n        const slug = window.GHLDirectory.getSlug();\n        let formUrl = 'https://popup.gohighlevel.com/form/popup456';\n        \n        if (slug) {\n          formUrl = window.GHLDirectory.addParameter(formUrl, 'listing', slug);\n          formUrl = window.GHLDirectory.addParameter(formUrl, 'utm_source', 'directory');\n          window.open(formUrl, '_blank');\n        }\n      }\n    </script>\n  </div>\n</div>"
+    },
+    {
+      "testCase": "Minimal Contact Form",
+      "id": "minimal-contact",
+      "passed": true,
+      "previewValidation": {
+        "passed": true,
+        "failures": [],
+        "details": {
+          "hasNameField": true,
+          "hasEmailField": true,
+          "hasPhoneField": false,
+          "hasCompanyField": false,
+          "hasAddressField": false,
+          "hasMessageField": false,
+          "hasHiddenField": true,
+          "hiddenFieldName": "source_listing"
+        }
+      },
+      "embedValidation": {
+        "passed": true,
+        "failures": [],
+        "details": {}
+      },
+      "generatedFormHTML": "<div class=\"ghl-custom-form-container\">\n  <form id=\"ghl-directory-form\" class=\"ghl-directory-form\" action=\"https://leads.gohighlevel.com/form/contact\" method=\"POST\">\n    <input type=\"hidden\" id=\"ghl-listing-field\" name=\"source_listing\">\n    <div class=\"ghl-form-group\">\n      <label for=\"name\">Name</label>\n      <input type=\"text\" id=\"name\" name=\"name\" required>\n    </div>\n    <div class=\"ghl-form-group\">\n      <label for=\"email\">Email</label>\n      <input type=\"email\" id=\"email\" name=\"email\" required>\n    </div>\n    <button type=\"submit\" class=\"ghl-submit-button\">Submit</button>\n  </form>\n</div>",
+      "generatedEmbedCode": ""
+    },
+    {
+      "testCase": "Business Inquiry Form",
+      "id": "business-inquiry",
+      "passed": true,
+      "previewValidation": {
+        "passed": true,
+        "failures": [],
+        "details": {
+          "hasNameField": true,
+          "hasEmailField": true,
+          "hasPhoneField": true,
+          "hasCompanyField": true,
+          "hasAddressField": false,
+          "hasMessageField": true,
+          "hasHiddenField": true,
+          "hiddenFieldName": "business_listing"
+        }
+      },
+      "embedValidation": {
+        "passed": true,
+        "failures": [],
+        "details": {}
+      },
+      "generatedFormHTML": "<div class=\"ghl-custom-form-container\">\n  <form id=\"ghl-directory-form\" class=\"ghl-directory-form\" action=\"https://business.gohighlevel.com/form/inquiry\" method=\"POST\">\n    <input type=\"hidden\" id=\"ghl-listing-field\" name=\"business_listing\">\n    <div class=\"ghl-form-group\">\n      <label for=\"name\">Name</label>\n      <input type=\"text\" id=\"name\" name=\"name\" required>\n    </div>\n    <div class=\"ghl-form-group\">\n      <label for=\"email\">Email</label>\n      <input type=\"email\" id=\"email\" name=\"email\" required>\n    </div>\n    <div class=\"ghl-form-group\">\n      <label for=\"phone\">Phone</label>\n      <input type=\"tel\" id=\"phone\" name=\"phone\">\n    </div>\n    <div class=\"ghl-form-group\">\n      <label for=\"company\">Company</label>\n      <input type=\"text\" id=\"company\" name=\"company\">\n    </div>\n    <div class=\"ghl-form-group\">\n      <label for=\"message\">Message</label>\n      <textarea id=\"message\" name=\"message\" rows=\"4\"></textarea>\n    </div>\n    <button type=\"submit\" class=\"ghl-submit-button\">Submit</button>\n  </form>\n</div>",
+      "generatedEmbedCode": ""
+    }
+  ]
+}

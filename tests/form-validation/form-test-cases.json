@@ -86,7 +86,14 @@
       "hasJavaScriptTracking": true,
       "hasSlugDetection": true,
       "hasParameterInjection": true,
-      "hiddenFieldName": "listing_id"
+      "hiddenFieldName": "listing_id",
+      "hasNameField": false,
+      "hasEmailField": false,
+      "hasPhoneField": false,
+      "hasCompanyField": false,
+      "hasAddressField": false,
+      "hasMessageField": false,
+      "hasHiddenField": false
     }
   },
   {
@@ -118,7 +125,14 @@
       "buttonTextColor": "#ffffff",
       "hasPopupFunction": true,
       "hasJavaScriptTracking": true,
-      "opensInNewWindow": true
+      "opensInNewWindow": true,
+      "hasNameField": false,
+      "hasEmailField": false,
+      "hasPhoneField": false,
+      "hasCompanyField": false,
+      "hasAddressField": false,
+      "hasMessageField": false,
+      "hasHiddenField": false
     }
   },
   {

@@ -17,6 +17,49 @@ interface TestResult {
 }
 
 /**
+ * Run form validation tests
+ */
+export async function runFormTests(req: Request, res: Response) {
+  try {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+    });
+
+    const { spawn } = await import('child_process');
+    const testProcess = spawn('node', ['tests/form-validation/runner.js'], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      cwd: process.cwd()
+    });
+
+    testProcess.stdout?.on('data', (data) => {
+      const output = data.toString();
+      res.write(`data: ${JSON.stringify({ type: 'output', data: output })}\n\n`);
+    });
+
+    testProcess.stderr?.on('data', (data) => {
+      const error = data.toString();
+      res.write(`data: ${JSON.stringify({ type: 'error', data: error })}\n\n`);
+    });
+
+    testProcess.on('close', (code) => {
+      res.write(`data: ${JSON.stringify({ type: 'complete', code })}\n\n`);
+      res.end();
+    });
+
+    testProcess.on('error', (error) => {
+      res.write(`data: ${JSON.stringify({ type: 'error', data: error.message })}\n\n`);
+      res.end();
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to run form tests', details: error.message });
+  }
+}
+
+/**
  * Run test suite and stream results using CLI runner
  */
 export async function runTestSuite(req: Request, res: Response) {
