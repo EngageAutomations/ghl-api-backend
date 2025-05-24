@@ -106,11 +106,23 @@ export async function runTestSuite(req: Request, res: Response) {
  */
 async function runSingleTest(testCase: any): Promise<TestResult> {
   try {
+    console.log(`\n=== RUNNING TEST: ${testCase.name} ===`);
+    console.log('Config:', JSON.stringify(testCase.config, null, 2));
+    
     // Use the test runner logic directly
     const generated = mockGenerateFinalIntegrationCode(testCase.config);
     
+    console.log('Generated output:');
+    console.log('- Header present:', !!(generated.headerCode && generated.headerCode.trim()));
+    console.log('- Footer present:', !!(generated.footerCode && generated.footerCode.trim()));
+    console.log('- Header length:', generated.headerCode?.length || 0);
+    console.log('- Footer length:', generated.footerCode?.length || 0);
+    
     // Validate the output
     const validation = validateOutput(generated, testCase.expect);
+    
+    console.log('Validation errors:', validation.errors);
+    console.log('Test result:', validation.isValid ? 'PASS' : 'FAIL');
     
     if (validation.isValid) {
       return {
@@ -129,6 +141,7 @@ async function runSingleTest(testCase: any): Promise<TestResult> {
       };
     }
   } catch (error) {
+    console.error(`Test execution error for ${testCase.name}:`, error);
     return {
       name: testCase.name,
       description: testCase.description,
