@@ -85,7 +85,7 @@
   },
   {
     "name": "Action Button - URL Type",
-    "description": "Action button with URL redirect",
+    "description": "Action button with URL redirect and tracking",
     "config": {
       "customFieldName": "listing_id",
       "showDescription": false,
@@ -96,8 +96,8 @@
       "enableEmbeddedForm": false
     },
     "expect": {
-      "header": false,
-      "footer": false,
+      "header": true,
+      "footer": true,
       "hasExtendedDescriptions": false,
       "hasMetadataBar": false,
       "hasGoogleMaps": false,
@@ -107,7 +107,7 @@
   },
   {
     "name": "Action Button - Download Type",
-    "description": "Action button with download functionality",
+    "description": "Action button with download functionality and tracking",
     "config": {
       "customFieldName": "listing_id",
       "showDescription": false,
@@ -118,8 +118,8 @@
       "enableEmbeddedForm": false
     },
     "expect": {
-      "header": false,
-      "footer": false,
+      "header": true,
+      "footer": true,
       "hasExtendedDescriptions": false,
       "hasMetadataBar": false,
       "hasGoogleMaps": false,
@@ -151,7 +151,7 @@
   },
   {
     "name": "Embedded Form Only",
-    "description": "Embedded form without other features",
+    "description": "Embedded form with basic tracking",
     "config": {
       "customFieldName": "listing_id",
       "showDescription": false,
@@ -162,7 +162,7 @@
     },
     "expect": {
       "header": true,
-      "footer": false,
+      "footer": true,
       "hasExtendedDescriptions": false,
       "hasMetadataBar": false,
       "hasGoogleMaps": false,

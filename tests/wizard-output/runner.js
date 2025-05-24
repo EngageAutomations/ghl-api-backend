@@ -261,17 +261,30 @@ function mockGenerateFinalIntegrationCode(config) {
 </style>`;
   }
 
+  // Add URL/Download button tracking
+  if (config.enableActionButton && (config.buttonType === 'url' || config.buttonType === 'download')) {
+    footerCode += `
+    
+    // Setup ${config.buttonType} button tracking
+    document.querySelectorAll('.ghl-action-button').forEach(button => {
+      button.addEventListener('click', function(e) {
+        const baseUrl = this.getAttribute('data-${config.buttonType === 'url' ? 'url' : 'download-url'}');
+        if (baseUrl && slug) {
+          const trackedUrl = window.GHLDirectory.addParameter(baseUrl, window.GHLDirectory.customField, slug);
+          if ('${config.buttonType}' === 'url') {
+            window.open(trackedUrl, '_blank');
+          } else {
+            window.location.href = trackedUrl;
+          }
+          e.preventDefault();
+        }
+      });
+    });`;
+  }
+
   footerCode += `
   });
 </script>`;
-
-  // Return empty strings for features that shouldn't generate code
-  if (config.enableActionButton && (config.buttonType === 'url' || config.buttonType === 'download')) {
-    return {
-      headerCode: headerCode.includes('<style>') ? headerCode : '',
-      footerCode: ''
-    };
-  }
 
   return { headerCode, footerCode };
 }
