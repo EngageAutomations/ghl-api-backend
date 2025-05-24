@@ -106,11 +106,7 @@ export async function runTestSuite(req: Request, res: Response) {
  */
 async function runSingleTest(testCase: any): Promise<TestResult> {
   try {
-    // Import and run the test runner logic
-    const { mockGenerateFinalIntegrationCode } = await import('../tests/wizard-output/runner.js');
-    const { validateOutput } = await import('../tests/wizard-output/utils/validateOutput.js');
-    
-    // Generate code using mock generator
+    // Use the test runner logic directly
     const generated = mockGenerateFinalIntegrationCode(testCase.config);
     
     // Validate the output
@@ -141,6 +137,249 @@ async function runSingleTest(testCase: any): Promise<TestResult> {
       issues: [`Execution error: ${error.message}`]
     };
   }
+}
+
+/**
+ * Mock code generation (copied from test runner)
+ */
+function mockGenerateFinalIntegrationCode(config: any) {
+  let headerCode = `
+<style>
+/* --- Go HighLevel Directory Integration Styles --- */
+.ghl-directory-container {
+    position: relative;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.ghl-directory-content {
+    padding: 1rem;
+}`;
+
+  let footerCode = `
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize GHL Directory Integration
+  window.GHLDirectory = window.GHLDirectory || {};
+  window.GHLDirectory.customField = '${config.customFieldName || 'listing_id'}';
+  
+  // Get listing slug from URL
+  const url = new URL(window.location.href);
+  const slug = url.searchParams.get('listing') || url.searchParams.get('slug') || '';`;
+
+  // Add feature-specific code based on configuration
+  if (config.showDescription) {
+    headerCode += `
+    
+/* --- Extended Descriptions Styling --- */
+.extended-description {
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    border: 1px solid #e9ecef;
+}`;
+
+    footerCode += `
+    
+    // Extended descriptions API call
+    if (slug && document.querySelector('.extended-description-target')) {
+      fetch('/api/listings/extended-description/' + slug)
+        .then(response => response.json())
+        .then(data => {
+          if (data.description) {
+            document.querySelector('.extended-description-target').innerHTML = data.description;
+          }
+        })
+        .catch(error => console.error('Extended description error:', error));
+    }`;
+  }
+
+  if (config.showMetadata) {
+    headerCode += `
+    
+/* --- Metadata Bar Styling --- */
+.metadata-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background-color: #f1f3f4;
+    border-radius: 0.5rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.meta-icon {
+    width: 1rem;
+    height: 1rem;
+    color: #6b7280;
+}
+
+.meta-text {
+    color: #374151;
+    font-weight: 500;
+}`;
+
+    footerCode += `
+    
+    // Metadata bar API call
+    if (slug && document.querySelector('.metadata-bar-target')) {
+      fetch('/api/listings/metadata/' + slug)
+        .then(response => response.json())
+        .then(data => {
+          if (data.metadata && data.metadata.length > 0) {
+            const metadataHtml = data.metadata.map(item => 
+              '<div class="meta-item"><span class="meta-icon">' + item.icon + '</span><span class="meta-text">' + item.text + '</span></div>'
+            ).join('');
+            document.querySelector('.metadata-bar-target').innerHTML = metadataHtml;
+          }
+        })
+        .catch(error => console.error('Metadata error:', error));
+    }`;
+  }
+
+  if (config.showMaps) {
+    headerCode += `
+    
+/* --- Google Maps Widget Styling --- */
+.google-maps-widget {
+    margin: 1rem 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: 300px;
+}
+
+.google-maps-widget iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}`;
+
+    footerCode += `
+    
+    // Google Maps widget
+    if (slug && document.querySelector('.google-maps-target')) {
+      fetch('/api/listings/address/' + slug)
+        .then(response => response.json())
+        .then(data => {
+          if (data.address) {
+            const encodedAddress = encodeURIComponent(data.address);
+            const mapHtml = '<iframe src="https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=' + encodedAddress + '" allowfullscreen></iframe>';
+            document.querySelector('.google-maps-target').innerHTML = mapHtml;
+          }
+        })
+        .catch(error => console.error('Maps error:', error));
+    }`;
+  }
+
+  // Action button styling and functionality
+  if (config.enableActionButton) {
+    const buttonColor = config.buttonColor || "#4F46E5";
+    const buttonTextColor = config.buttonTextColor || "#FFFFFF";
+    const borderRadius = (config.buttonBorderRadius || 4) + "px";
+
+    headerCode += `
+    
+/* --- Action Button Styling --- */
+.ghl-action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: ${buttonColor};
+    color: ${buttonTextColor};
+    border-radius: ${borderRadius};
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    margin-top: 1rem;
+    text-decoration: none;
+}
+
+.ghl-action-button:hover {
+    opacity: 0.9;
+}`;
+  }
+
+  // Add URL/Download button tracking
+  if (config.enableActionButton && (config.buttonType === 'url' || config.buttonType === 'download')) {
+    footerCode += `
+    
+    // Setup ${config.buttonType} button tracking
+    document.querySelectorAll('.ghl-action-button').forEach(button => {
+      button.addEventListener('click', function(e) {
+        const baseUrl = this.getAttribute('data-${config.buttonType === 'url' ? 'url' : 'download-url'}');
+        if (baseUrl && slug) {
+          const trackedUrl = window.GHLDirectory.addParameter(baseUrl, window.GHLDirectory.customField, slug);
+          if ('${config.buttonType}' === 'url') {
+            window.open(trackedUrl, '_blank');
+          } else {
+            window.location.href = trackedUrl;
+          }
+          e.preventDefault();
+        }
+      });
+    });`;
+  }
+
+  // Close styles
+  headerCode += `
+}
+</style>`;
+
+  footerCode += `
+  });
+</script>`;
+
+  return { headerCode, footerCode };
+}
+
+/**
+ * Validate generated output
+ */
+function validateOutput(generated: any, expected: any) {
+  const errors: string[] = [];
+  
+  // Check header code expectation
+  if (expected.header !== undefined) {
+    const hasHeader = !!(generated.headerCode && generated.headerCode.trim());
+    if (expected.header !== hasHeader) {
+      errors.push(`header: Expected ${expected.header}, got ${hasHeader}`);
+      if (expected.header) {
+        errors.push('Expected header code to be present');
+      } else {
+        errors.push('Expected header code to be absent');
+      }
+    }
+  }
+  
+  // Check footer code expectation
+  if (expected.footer !== undefined) {
+    const hasFooter = !!(generated.footerCode && generated.footerCode.trim());
+    if (expected.footer !== hasFooter) {
+      errors.push(`footer: Expected ${expected.footer}, got ${hasFooter}`);
+      if (expected.footer) {
+        errors.push('Expected footer code to be present');
+      } else {
+        errors.push('Expected footer code to be absent');
+      }
+    }
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 }
 
 /**
