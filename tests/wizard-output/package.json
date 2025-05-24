@@ -1,0 +1,12 @@
+{
+  "name": "wizard-output-tests",
+  "version": "1.0.0",
+  "description": "Automated tests for wizard code generation",
+  "main": "runner.js",
+  "scripts": {
+    "test": "node runner.js",
+    "test:verbose": "node runner.js --verbose"
+  },
+  "keywords": ["testing", "wizard", "code-generation"],
+  "author": "Directory Integration Team"
+}
