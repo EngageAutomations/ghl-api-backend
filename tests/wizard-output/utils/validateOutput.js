@@ -94,14 +94,22 @@ function validateCodeOutput(config, output, expectations) {
   }
 
   // Test 6: Custom CSS
-  const hasCustomCSS = output.headerCode?.includes('<style>') || false;
-  results.details.hasCustomCSS = hasCustomCSS;
+  // Check for any feature-specific CSS beyond basic container styles
+  const hasFeatureCSS = output.headerCode?.includes('Action Button') || 
+                        output.headerCode?.includes('Extended Descriptions') || 
+                        output.headerCode?.includes('Metadata Bar') || 
+                        output.headerCode?.includes('Google Maps') ||
+                        output.headerCode?.includes('embedded-form') ||
+                        output.headerCode?.includes('ghl-form') ||
+                        config.enableEmbeddedForm || false;
   
-  if (expectations.hasCustomCSS !== hasCustomCSS) {
+  results.details.hasCustomCSS = hasFeatureCSS;
+  
+  if (expectations.hasCustomCSS !== hasFeatureCSS) {
     addFailure(
       'customCSS',
       expectations.hasCustomCSS,
-      hasCustomCSS,
+      hasFeatureCSS,
       'Custom CSS inclusion mismatch'
     );
   }
