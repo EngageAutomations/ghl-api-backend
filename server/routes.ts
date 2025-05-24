@@ -11,7 +11,7 @@ import {
 } from "@shared/schema";
 import { generateBulletPoints } from "./ai-summarizer";
 import { googleDriveService } from "./google-drive";
-import { runTestSuite, generateCode, getFeatureDocumentation, updateConfigurationCode } from "./dev-tools";
+import { runTestSuite, runFormTests, generateCode, getFeatureDocumentation, updateConfigurationCode } from "./dev-tools";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
@@ -503,6 +503,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Developer Dashboard API Routes
   app.post("/api/dev/run-tests", runTestSuite);
+  app.post("/api/dev/run-form-tests", runFormTests);
   app.post("/api/dev/generate-code", generateCode);
   app.get("/api/dev/docs/:feature", getFeatureDocumentation);
   app.post("/api/dev/update-code", updateConfigurationCode);
