@@ -2993,7 +2993,13 @@ ${buttonType === "download" ? `/* -------------------------------------
                 </Button>
               </div>
               <div className="bg-slate-900 p-4 text-slate-300 font-mono text-sm overflow-x-auto whitespace-pre">
-{`<script>
+{(() => {
+  // Generate the correct code based on button type
+  if (buttonType === "popup" && formEmbedUrl) {
+    const popupCode = generateFullPopupCode();
+    return popupCode.footerCode || 'Please configure popup settings and paste GoHighLevel iframe embed code.';
+  } else {
+    return `<script>
   // GHL Directory Integration - Footer Script
   document.addEventListener('DOMContentLoaded', function() {
     // Extract slug from URL
@@ -3008,7 +3014,7 @@ ${buttonType === "download" ? `/* -------------------------------------
     forms.forEach(form => {
       const hiddenField = document.createElement('input');
       hiddenField.type = 'hidden';
-      hiddenField.name = 'listing';
+      hiddenField.name = '${customFieldName || 'listing'}';
       hiddenField.value = slug;
       form.appendChild(hiddenField);
     });
@@ -3018,7 +3024,7 @@ ${buttonType === "download" ? `/* -------------------------------------
     links.forEach(link => {
       if (link.href.includes('gohighlevel.com')) {
         const linkUrl = new URL(link.href);
-        linkUrl.searchParams.set('listing', slug);
+        linkUrl.searchParams.set('${customFieldName || 'listing'}', slug);
         linkUrl.searchParams.set('utm_source', 'directory');
         linkUrl.searchParams.set('utm_medium', 'listing');
         linkUrl.searchParams.set('utm_campaign', slug);
@@ -3026,7 +3032,9 @@ ${buttonType === "download" ? `/* -------------------------------------
       }
     });
   });
-</script>`}
+</script>`;
+  }
+})()}
               </div>
             </div>
           </div>
