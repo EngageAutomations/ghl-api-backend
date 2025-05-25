@@ -12,6 +12,7 @@ export interface ActionButtonConfig {
   formUrl: string;
   hideBuyNowButton?: boolean;
   hideAddToCartButton?: boolean;
+  hideQuantitySelector?: boolean;
 }
 
 export interface PopupCodeResult {
@@ -147,6 +148,19 @@ ${config.hideAddToCartButton ? `
 [class*="cart"],
 .hl-product-cart-button,
 .product-cart-button {
+  display: none !important;
+}` : ''}
+
+${config.hideQuantitySelector ? `
+.quantity-selector,
+.qty-selector,
+.product-quantity,
+[class*="quantity"],
+[class*="qty"],
+.hl-product-quantity,
+.product-qty,
+input[type="number"][name*="quantity"],
+input[type="number"][name*="qty"] {
   display: none !important;
 }` : ''}
 

@@ -49,6 +49,7 @@ export default function ConfigWizardDemo() {
   // Button hiding options
   const [hideBuyNowButton, setHideBuyNowButton] = useState<boolean>(false);
   const [hideAddToCartButton, setHideAddToCartButton] = useState<boolean>(false);
+  const [hideQuantitySelector, setHideQuantitySelector] = useState<boolean>(false);
 
   // Parse embed code for popup dimensions
   const parsedEmbedData = useMemo(() => {
@@ -69,7 +70,8 @@ export default function ConfigWizardDemo() {
         customFieldName: customFieldName || 'listing',
         formUrl: formEmbedUrl,
         hideBuyNowButton,
-        hideAddToCartButton
+        hideAddToCartButton,
+        hideQuantitySelector
       });
       
       if (result.isValid) {
@@ -419,7 +421,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {/* GoHighLevel Button Hiding Options */}
             <div className="border-t pt-6">
               <h3 className="text-lg font-medium mb-4">GoHighLevel Page Options</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="border border-slate-200 rounded-lg p-4 bg-white">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -464,6 +466,29 @@ document.addEventListener('DOMContentLoaded', function() {
                       id="hide-add-cart" 
                     />
                   </div>
+                </div>
+              </div>
+
+              <div className="border border-slate-200 rounded-lg p-4 bg-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-purple-50 p-2 rounded-md">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600">
+                        <path d="M9 12l2 2 4-4"/>
+                        <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/>
+                        <path d="M3 13v6c0 .552.448 1 1 1h16c.552 0 1-.448 1-1v-6"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium">Hide Quantity Selector</h3>
+                      <p className="text-xs text-slate-500">Remove quantity input and controls</p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={hideQuantitySelector}
+                    onCheckedChange={setHideQuantitySelector}
+                    id="hide-quantity" 
+                  />
                 </div>
               </div>
             </div>
