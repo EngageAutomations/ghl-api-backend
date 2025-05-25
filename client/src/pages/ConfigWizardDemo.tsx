@@ -45,6 +45,10 @@ export default function ConfigWizardDemo() {
   const [showDescription, setShowDescription] = useState<boolean>(false);
   const [showMetadata, setShowMetadata] = useState<boolean>(false);
   const [showMaps, setShowMaps] = useState<boolean>(false);
+  
+  // Button hiding options
+  const [hideBuyNowButton, setHideBuyNowButton] = useState<boolean>(false);
+  const [hideAddToCartButton, setHideAddToCartButton] = useState<boolean>(false);
 
   // Parse embed code for popup dimensions
   const parsedEmbedData = useMemo(() => {
@@ -63,7 +67,9 @@ export default function ConfigWizardDemo() {
         buttonTextColor: previewTextColor,
         buttonBorderRadius: previewBorderRadius,
         customFieldName: customFieldName || 'listing',
-        formUrl: formEmbedUrl
+        formUrl: formEmbedUrl,
+        hideBuyNowButton,
+        hideAddToCartButton
       });
       
       if (result.isValid) {
@@ -406,6 +412,58 @@ document.addEventListener('DOMContentLoaded', function() {
                     onCheckedChange={setShowMaps}
                     id="show-maps" 
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* GoHighLevel Button Hiding Options */}
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-medium mb-4">GoHighLevel Page Options</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border border-slate-200 rounded-lg p-4 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-red-50 p-2 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
+                          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                          <rect width="4" height="12" x="2" y="9"/>
+                          <circle cx="4" cy="4" r="2"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium">Hide Buy Now Button</h3>
+                        <p className="text-xs text-slate-500">Remove GoHighLevel's buy now button</p>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={hideBuyNowButton}
+                      onCheckedChange={setHideBuyNowButton}
+                      id="hide-buy-now" 
+                    />
+                  </div>
+                </div>
+
+                <div className="border border-slate-200 rounded-lg p-4 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-yellow-50 p-2 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-600">
+                          <circle cx="8" cy="21" r="1"/>
+                          <circle cx="19" cy="21" r="1"/>
+                          <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57L22 7H6"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium">Hide Add to Cart Button</h3>
+                        <p className="text-xs text-slate-500">Remove GoHighLevel's add to cart button</p>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={hideAddToCartButton}
+                      onCheckedChange={setHideAddToCartButton}
+                      id="hide-add-cart" 
+                    />
+                  </div>
                 </div>
               </div>
             </div>
