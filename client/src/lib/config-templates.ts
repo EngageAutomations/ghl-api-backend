@@ -214,18 +214,7 @@ export const ACTION_BUTTON_POPUP_CONFIG: ConfigTemplate = {
     const btn = document.createElement("div");
     btn.className = "trigger-optin-btn";
     btn.textContent = "Get Access";
-    btn.style.cssText = \`
-      display: inline-block;
-      background-color: {{buttonColor}};
-      color: {{buttonTextColor}};
-      padding: 12px 20px;
-      border-radius: {{buttonRadius}};
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-      margin: 20px 0;
-      text-align: center;
-    \`;
+    btn.style.cssText = "display: inline-block; background-color: {{buttonColor}}; color: {{buttonTextColor}}; padding: 12px 20px; border-radius: {{buttonRadius}}; font-weight: bold; font-size: 16px; cursor: pointer; margin: 20px 0; text-align: center;";
     btn.addEventListener("click", openOptinPopup);
 
     priceElement.parentNode.insertBefore(btn, priceElement.nextSibling);
