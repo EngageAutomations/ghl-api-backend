@@ -1283,11 +1283,35 @@ Result Display Order:
                         </div>
                       </div>
                       
-                      {/* URL Configuration - conditional based on button type */}
-                      {(buttonType === "popup" || buttonType === "url") && (
+                      {/* Configuration - conditional based on button type */}
+                      {buttonType === "popup" && (
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label htmlFor="popup-url">Form URL (Copy and paste the form's link and paste it here. Do not use the embed code.)</Label>
+                            <Label htmlFor="popup-embed-code" className="flex items-center gap-2">
+                              GoHighLevel Embed Code
+                              <div className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                                New Enhanced System
+                              </div>
+                            </Label>
+                            <Textarea 
+                              id="popup-embed-code"
+                              placeholder='<iframe src="https://forms.gohighlevel.com/your-form-id" width="100%" height="500" frameBorder="0"></iframe>'
+                              value={formEmbedUrl}
+                              onChange={(e) => setFormEmbedUrl(e.target.value)}
+                              className="flex-1 min-h-[120px] font-mono text-xs"
+                            />
+                            <p className="text-xs text-slate-500">
+                              Paste your complete GoHighLevel iframe embed code here. The system will automatically extract the form URL and height, then create a custom popup with your styling preferences.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* URL Configuration for non-popup buttons */}
+                      {buttonType === "url" && (
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="popup-url">Link URL</Label>
                             <div className="flex rounded-md">
                               <Input 
                                 id="popup-url"
@@ -1298,12 +1322,8 @@ Result Display Order:
                               />
                             </div>
                             <p className="text-xs text-slate-500">
-                              {buttonType === "popup" 
-                                ? "This URL will be loaded in a popup window." 
-                                : "This URL will open in a new tab."}
-                              {" "}Use {"{product_name}"} to insert the product name for tracking.
+                              This URL will open in a new tab. Use {"{product_name}"} to insert the product name for tracking.
                             </p>
-
                           </div>
                           
                           {/* Custom Field for GHL Integration */}
