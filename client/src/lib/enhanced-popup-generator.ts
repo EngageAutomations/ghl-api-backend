@@ -171,24 +171,69 @@ function generatePopupHeaderCode(config: PopupConfig, parsedData: ParsedEmbedDat
  * Generates the footer JavaScript code for the popup
  */
 function generatePopupFooterCode(config: PopupConfig, parsedData: ParsedEmbedData): string {
-  return `<!-- Enhanced Popup & Backdrop -->
-<div id="customOptinBackdrop" onclick="closeOptinPopup()"></div>
-<div id="customOptinForm">
-  <span class="close-btn" onclick="closeOptinPopup()">×</span>
-  <div id="popupIframeContainer">
+  const popupWidth = parsedData.width + 100;
+  const popupHeight = parsedData.height + 100;
+  
+  return `<!-- Backdrop -->
+<div id="customOptinBackdrop" style="
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: none;
+  z-index: 9998;
+"></div>
+
+<!-- Popup Container -->
+<div id="customOptinForm" style="
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 50px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: ${popupWidth}px;
+  height: ${popupHeight}px;
+  box-sizing: border-box;
+  overflow: hidden;
+  z-index: 9999;
+">
+
+  <!-- Close Button (Inside Top-Right Corner) -->
+  <span onclick="closeOptinPopup()" style="
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    background-color: #000;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 36px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 10000;
+  ">×</span>
+
+  <!-- Custom Iframe Container -->
+  <div id="popupIframeContainer" style="width: 100%; height: 100%;">
     <iframe
       id="popupFormFrame"
       src=""
       style="
         width: 100%;
-        height: ${parsedData.height}px;
+        height: 100%;
         border: none;
         border-radius: 6px;
-        overflow: hidden;
+        display: block;
       "
       scrolling="no"
       allowfullscreen
-      title="Get Access Form"
     ></iframe>
   </div>
 </div>
@@ -202,47 +247,16 @@ function generatePopupFooterCode(config: PopupConfig, parsedData: ParsedEmbedDat
 
   function openOptinPopup() {
     const slug = getSlugFromUrl();
-    const baseFormUrl = "${parsedData.src}";
-    
-    // Build URL with tracking parameters
-    const url = new URL(baseFormUrl);
-    url.searchParams.set('${config.customFieldName}', slug);
-    url.searchParams.set('utm_source', 'directory');
-    url.searchParams.set('utm_medium', 'popup');
-    url.searchParams.set('utm_campaign', slug);
+    const formUrl = "${parsedData.src}?${config.customFieldName}=" + encodeURIComponent(slug) + "&utm_source=directory";
 
-    // Set iframe source and show popup
-    document.getElementById("popupFormFrame").src = url.toString();
+    document.getElementById("popupFormFrame").src = formUrl;
     document.getElementById("customOptinBackdrop").style.display = "block";
     document.getElementById("customOptinForm").style.display = "block";
-    
-    // Prevent body scroll when popup is open
-    document.body.style.overflow = "hidden";
-    
-    // Add escape key listener
-    document.addEventListener('keydown', handleEscapeKey);
   }
 
   function closeOptinPopup() {
     document.getElementById("customOptinBackdrop").style.display = "none";
     document.getElementById("customOptinForm").style.display = "none";
-    
-    // Restore body scroll
-    document.body.style.overflow = "auto";
-    
-    // Remove escape key listener
-    document.removeEventListener('keydown', handleEscapeKey);
-    
-    // Clear iframe source to stop any ongoing processes
-    setTimeout(() => {
-      document.getElementById("popupFormFrame").src = "";
-    }, 300);
-  }
-
-  function handleEscapeKey(event) {
-    if (event.key === 'Escape') {
-      closeOptinPopup();
-    }
   }
 
   function insertPopupButton() {
@@ -269,18 +283,7 @@ function generatePopupFooterCode(config: PopupConfig, parsedData: ParsedEmbedDat
     priceElement.parentNode.insertBefore(btn, priceElement.nextSibling);
   }
 
-  // Initialize popup system
   document.addEventListener("DOMContentLoaded", insertPopupButton);
-  
-  // Watch for dynamic content changes
-  const observer = new MutationObserver(insertPopupButton);
-  observer.observe(document.body, { 
-    childList: true, 
-    subtree: true 
-  });
-
-  // Global popup functions for external access
-  window.openOptinPopup = openOptinPopup;
-  window.closeOptinPopup = closeOptinPopup;
+  new MutationObserver(insertPopupButton).observe(document.body, { childList: true, subtree: true });
 </script>`;
 }
