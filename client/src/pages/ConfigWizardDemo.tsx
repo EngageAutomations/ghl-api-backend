@@ -34,7 +34,7 @@ function ConfigWizard({ children }: { children: React.ReactNode }) {
 export default function ConfigWizardDemo() {
   // Form configuration state
   const [buttonType, setButtonType] = useState<string>('popup');
-  const [formEmbedUrl, setFormEmbedUrl] = useState<string>('');
+  const [formEmbedUrl, setFormEmbedUrl] = useState<string>('<iframe src="https://link.msgsndr.com/form/abc123" width="500" height="600"></iframe>');
   const [customFieldName, setCustomFieldName] = useState<string>('listing');
   const [previewColor, setPreviewColor] = useState<string>('#3b82f6');
   const [previewTextColor, setPreviewTextColor] = useState<string>('#ffffff');
