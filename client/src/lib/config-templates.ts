@@ -32,8 +32,11 @@ export const ACTION_BUTTON_POPUP_CONFIG: ConfigTemplate = {
   },
   placeholders: {
     "YOUR_FORM_ID": "Parsed from iframe embed code input",
-    "LISTING_SLUG": "Dynamic listing identifier",
-    "FORM_HEIGHT": "Extracted from iframe height attribute"
+    "LISTING_SLUG": "Dynamic listing identifier", 
+    "FORM_HEIGHT": "Extracted from iframe height attribute",
+    "FORM_WIDTH": "Extracted from iframe width attribute",
+    "POPUP_HEIGHT": "Form height + 100px padding",
+    "MAX_WIDTH": "Form width + 100px padding"
   },
   stylingVariables: {
     "buttonColor": "#4CAF50",
@@ -48,218 +51,186 @@ export const ACTION_BUTTON_POPUP_CONFIG: ConfigTemplate = {
   requiresIframeEmbedInput: true,
   autoParsedFromEmbedCode: true,
   
-  // CSS Template with scoped styling to prevent conflicts
+  // Header CSS Template with customizable variables
   cssTemplate: `<style>
-/* Scoped Action Button Popup Styles */
-.engage-directory-popup-system {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
+  /* Action Button Styling */
+  .trigger-optin-btn {
+    display: inline-block;
+    background-color: {{buttonColor}};       /* customizable */
+    color: {{buttonTextColor}};              /* customizable */
+    padding: 12px 20px;
+    border-radius: {{buttonRadius}};         /* customizable */
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 20px 0;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
 
-.engage-directory-popup-system .engage-action-btn {
-  background-color: {{buttonColor}};
-  color: {{buttonTextColor}};
-  padding: 12px 24px;
-  border-radius: {{buttonRadius}};
-  border: none;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  display: inline-block;
-  margin-top: 15px;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+  .trigger-optin-btn:hover {
+    opacity: 0.9;
+  }
 
-.engage-directory-popup-system .engage-action-btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
+  /* Popup Backdrop */
+  #customOptinBackdrop {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: {{overlayColor}};  /* customizable */
+    z-index: 9998;
+  }
 
-.engage-directory-popup-system .engage-popup-backdrop {
-  display: none;
+  /* Popup Container */
+  #customOptinForm {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: {{popupBackgroundColor}};                /* customizable */
+    padding: 40px;
+    border-radius: {{popupBorderRadius}};             /* customizable */
+    z-index: 9999;
+    width: 100%;
+    max-width: 660px;
+    height: {{POPUP_HEIGHT}}px;                   /* iframe + 100px spacing */
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  /* Close Button */
+  #customOptinForm .close-btn {
+    position: absolute;
+    top: -16px;
+    right: -16px;
+    background: {{closeButtonBackgroundColor}};              /* customizable */
+    color: {{closeButtonTextColor}};                   /* customizable */
+    border-radius: 100%;
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  }
+</style>`,
+
+  // Footer Template with exact specification from attached files
+  footerTemplate: `<!-- Backdrop -->
+<div id="customOptinBackdrop" style="
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: {{overlayColor}};
-  z-index: 999998;
-  backdrop-filter: blur(2px);
-}
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: {{overlayColor}};
+  display: none;
+  z-index: 9998;
+"></div>
 
-.engage-directory-popup-system .engage-popup-container {
+<!-- Popup Container -->
+<div id="customOptinForm" style="
   display: none;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   background: {{popupBackgroundColor}};
-  padding: 30px;
+  padding: 50px; /* 100px total (50px top + 50px bottom) */
   border-radius: {{popupBorderRadius}};
-  z-index: 999999;
-  max-width: 1000px;
-  width: 90%;
-  max-height: 90vh;
-  overflow: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-.engage-directory-popup-system .engage-close-btn {
-  position: absolute;
-  top: -12px;
-  right: -12px;
-  background: {{closeButtonBackgroundColor}};
-  color: {{closeButtonTextColor}};
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: none;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  z-index: 1000000;
-}
-
-.engage-directory-popup-system .engage-close-btn:hover {
-  opacity: 0.8;
-  transform: scale(1.1);
-}
-
-.engage-directory-popup-system .engage-iframe-container {
   width: 100%;
-  height: {{FORM_HEIGHT}}px;
+  max-width: {{MAX_WIDTH}}px; /* {{FORM_WIDTH}}px iframe + 100px */
+  height: {{POPUP_HEIGHT}}px;     /* {{FORM_HEIGHT}}px iframe + 100px */
+  box-sizing: border-box;
   overflow: hidden;
-  border-radius: 6px;
-}
+  z-index: 9999;
+">
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .engage-directory-popup-system .engage-popup-container {
-    width: 95%;
-    padding: 20px;
-    max-height: 85vh;
-  }
-  
-  .engage-directory-popup-system .engage-iframe-container {
-    height: 400px;
-  }
-}
-</style>`,
+  <!-- Close Button (Inside Top-Right Corner) -->
+  <span onclick="closeOptinPopup()" style="
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    background-color: {{closeButtonBackgroundColor}};
+    color: {{closeButtonTextColor}};
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 36px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 10000;
+  ">×</span>
 
-  // Footer Template with scoped HTML and JavaScript
-  footerTemplate: `<!-- Engage Directory Popup System -->
-<div class="engage-directory-popup-system">
-  <!-- Popup Backdrop -->
-  <div class="engage-popup-backdrop" id="engagePopupBackdrop" onclick="engageClosePopup()"></div>
-  
-  <!-- Popup Container -->
-  <div class="engage-popup-container" id="engagePopupContainer">
-    <button class="engage-close-btn" onclick="engageClosePopup()">&times;</button>
-    <div class="engage-iframe-container">
-      <iframe
-        id="engagePopupFrame"
-        src=""
-        style="width: 100%; height: {{FORM_HEIGHT}}px; border: none; border-radius: 6px;"
-        scrolling="no"
-        allowfullscreen
-        title="Contact Form"
-      ></iframe>
-    </div>
+  <!-- Custom Iframe Container -->
+  <div id="popupIframeContainer" style="width: 100%; height: 100%;">
+    <iframe
+      id="popupFormFrame"
+      src=""
+      style="
+        width: 100%;
+        height: 100%;
+        border: none;
+        border-radius: 6px;
+        display: block;
+      "
+      scrolling="no"
+      allowfullscreen
+    ></iframe>
   </div>
 </div>
 
 <script>
-(function() {
-  'use strict';
-  
-  // Scoped popup functionality
-  window.engageOpenPopup = function(formUrl, listingSlug) {
-    const backdrop = document.getElementById('engagePopupBackdrop');
-    const container = document.getElementById('engagePopupContainer');
-    const iframe = document.getElementById('engagePopupFrame');
-    
-    if (backdrop && container && iframe) {
-      // Add tracking parameters
-      const separator = formUrl.includes('?') ? '&' : '?';
-      const trackingUrl = formUrl + separator + 'listing=' + encodeURIComponent(listingSlug) + '&utm_source=directory';
-      
-      iframe.src = trackingUrl;
-      backdrop.style.display = 'block';
-      container.style.display = 'block';
-      
-      // Prevent body scroll
-      document.body.style.overflow = 'hidden';
-    }
-  };
-  
-  window.engageClosePopup = function() {
-    const backdrop = document.getElementById('engagePopupBackdrop');
-    const container = document.getElementById('engagePopupContainer');
-    const iframe = document.getElementById('engagePopupFrame');
-    
-    if (backdrop && container && iframe) {
-      backdrop.style.display = 'none';
-      container.style.display = 'none';
-      iframe.src = '';
-      
-      // Restore body scroll
-      document.body.style.overflow = '';
-    }
-  };
-  
-  // ESC key handler
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      engageClosePopup();
-    }
-  });
-  
-  // Auto-inject action button after page load
-  function injectActionButton() {
-    const targetSelectors = [
-      '.price-container',
-      '.product-price', 
-      '.listing-price',
-      '.price-section'
-    ];
-    
-    for (const selector of targetSelectors) {
-      const element = document.querySelector(selector);
-      if (element) {
-        const buttonHtml = '<button class="engage-action-btn" onclick="engageOpenPopup(\'{{YOUR_FORM_ID}}\', \'{{LISTING_SLUG}}\')">Get Access</button>';
-        element.insertAdjacentHTML('afterend', buttonHtml);
-        break;
-      }
-    }
+  function getSlugFromUrl() {
+    const parts = window.location.pathname.split('/');
+    return parts[parts.length - 1] || "unknown";
   }
-  
-  // Wait for DOM and try injection
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectActionButton);
-  } else {
-    injectActionButton();
+
+  function openOptinPopup() {
+    const slug = getSlugFromUrl();
+    const formUrl = "{{YOUR_FORM_ID}}?listing=" + encodeURIComponent(slug) + "&utm_source=directory";
+
+    document.getElementById("popupFormFrame").src = formUrl;
+    document.getElementById("customOptinBackdrop").style.display = "block";
+    document.getElementById("customOptinForm").style.display = "block";
   }
-  
-  // Fallback with mutation observer
-  const observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-      if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-        injectActionButton();
-      }
-    });
-  });
-  
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
-})();
+
+  function closeOptinPopup() {
+    document.getElementById("customOptinBackdrop").style.display = "none";
+    document.getElementById("customOptinForm").style.display = "none";
+  }
+
+  function insertPopupButton() {
+    const priceElement = document.querySelector(".hl-product-detail-product-price");
+    if (!priceElement || document.querySelector(".trigger-optin-btn")) return;
+
+    const btn = document.createElement("div");
+    btn.className = "trigger-optin-btn";
+    btn.textContent = "Get Access";
+    btn.style.cssText = \`
+      display: inline-block;
+      background-color: {{buttonColor}};
+      color: {{buttonTextColor}};
+      padding: 12px 20px;
+      border-radius: {{buttonRadius}};
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 20px 0;
+      text-align: center;
+    \`;
+    btn.addEventListener("click", openOptinPopup);
+
+    priceElement.parentNode.insertBefore(btn, priceElement.nextSibling);
+  }
+
+  document.addEventListener("DOMContentLoaded", insertPopupButton);
+  new MutationObserver(insertPopupButton).observe(document.body, { childList: true, subtree: true });
 </script>`
 };
 

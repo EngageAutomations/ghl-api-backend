@@ -95,14 +95,27 @@ function createReplacements(
     replacements[key] = userSettings[key] || defaultValue;
   });
 
-  // Add placeholders
+  // Add placeholders with iframe parsing and 100px padding calculations
   Object.keys(template.placeholders).forEach(placeholder => {
     switch (placeholder) {
       case 'YOUR_FORM_ID':
         replacements[placeholder] = parsedData?.src || '';
         break;
       case 'FORM_HEIGHT':
-        replacements[placeholder] = parsedData?.height?.toString() || '400';
+        replacements[placeholder] = parsedData?.height?.toString() || '470';
+        break;
+      case 'FORM_WIDTH':
+        replacements[placeholder] = parsedData?.width?.toString() || '640';
+        break;
+      case 'POPUP_HEIGHT':
+        // Add 100px padding to iframe height
+        const formHeight = parsedData?.height || 470;
+        replacements[placeholder] = (formHeight + 100).toString();
+        break;
+      case 'MAX_WIDTH':
+        // Add 100px padding to iframe width
+        const formWidth = parsedData?.width || 640;
+        replacements[placeholder] = (formWidth + 100).toString();
         break;
       case 'LISTING_SLUG':
         replacements[placeholder] = listingSlug || 'default-listing';

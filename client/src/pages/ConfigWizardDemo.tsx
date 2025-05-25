@@ -34,23 +34,38 @@ import { GoogleDriveConnection } from "@/components/google-drive/GoogleDriveConn
 export default function ConfigWizardDemo() {
   const { toast } = useToast();
 
-  // Generate enhanced popup code with embed parsing
+  // Generate popup code using new JSON template system
   const generateFullPopupCode = () => {
     if (buttonType === "popup" && formEmbedUrl) {
-      // Use new enhanced popup system for popups
-      const config = {
-        embedCode: formEmbedUrl,
-        buttonText: previewButtonText,
+      // Use new JSON template system for Action Button Popup
+      const template = getConfigTemplate('action-button-popup');
+      if (!template) {
+        return {
+          headerCode: '',
+          footerCode: '',
+          fullIntegrationCode: '',
+          isValid: false,
+          error: 'Template not found'
+        };
+      }
+
+      const userSettings = {
         buttonColor: previewColor,
         buttonTextColor: previewTextColor,
-        buttonBorderRadius: previewBorderRadius,
-        customFieldName: customFieldName || "listing",
-        closeButtonSize: 28,
-        closeButtonColor: closeButtonColor || "white",
-        closeButtonBackground: "black"
+        buttonRadius: `${previewBorderRadius}px`,
+        popupBackgroundColor: popupBackgroundColor,
+        overlayColor: popupOverlayColor,
+        popupBorderRadius: `${popupBorderRadius}px`,
+        closeButtonTextColor: closeButtonColor,
+        closeButtonBackgroundColor: closeButtonHoverColor
       };
 
-      return generateEnhancedPopupCode(config);
+      return generateCodeFromTemplate({
+        template,
+        userSettings,
+        embedCode: formEmbedUrl,
+        listingSlug: 'sample-listing'
+      });
     } else {
       // Use original system for other button types
       const config = {
