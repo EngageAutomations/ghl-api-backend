@@ -1,0 +1,165 @@
+✅ Updated Parsing Logic Overview for Replit
+📥 Input (from user):
+The user pastes a raw HighLevel embed code into the wizard:
+
+html
+Copy
+Edit
+<iframe
+  src="https://app.makerexpress3d.com/widget/form/yZsYJQfelidUiq28ij5v"
+  data-height="426"
+  ...
+></iframe>
+🧠 Parsing Output (automated backend logic):
+The wizard backend should:
+
+🔍 Extract:
+
+src URL (e.g. https://app.makerexpress3d.com/widget/form/yZsYJQfelidUiq28ij5v)
+
+data-height (e.g. 426)
+
+🧩 Use these values to build the custom iframe + popup
+
+🔧 Custom Iframe Format (for popup)
+html
+Copy
+Edit
+<div style="max-width: 100%; overflow: hidden;">
+  <iframe
+    src="{PARSED_SRC}"
+    width="100%"
+    height="{PARSED_HEIGHT}"
+    style="
+      width: 100%;
+      height: {PARSED_HEIGHT}px;
+      border: none;
+      border-radius: 6px;
+      display: block;
+      overflow: hidden;
+    "
+    scrolling="no"
+    allowfullscreen
+    title="Get Access Form"
+  ></iframe>
+</div>
+📄 Header Code (CSS Template)
+html
+Copy
+Edit
+<style>
+  .trigger-optin-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    display: inline-block;
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  #customOptinBackdrop {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9998;
+  }
+
+  #customOptinForm {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 100px;
+    z-index: 9999;
+    border-radius: 10px;
+    max-width: 1000px;
+    width: 90%;
+    height: auto;
+    overflow: hidden;
+  }
+
+  #customOptinForm .close-btn {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    background: black;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    text-align: center;
+    line-height: 28px;
+    cursor: pointer;
+    z-index: 10000;
+  }
+</style>
+📄 Footer Code Template (JavaScript)
+html
+Copy
+Edit
+<!-- Popup & Backdrop -->
+<div id="customOptinBackdrop"></div>
+<div id="customOptinForm">
+  <span class="close-btn" onclick="closeOptinPopup()">×</span>
+  <div id="popupIframeContainer">
+    <iframe
+      id="popupFormFrame"
+      src=""
+      style="
+        width: 100%;
+        height: {PARSED_HEIGHT}px;
+        border: none;
+        border-radius: 6px;
+        overflow: hidden;
+      "
+      scrolling="no"
+      allowfullscreen
+    ></iframe>
+  </div>
+</div>
+
+<script>
+  function getSlugFromUrl() {
+    const parts = window.location.pathname.split('/');
+    return parts[parts.length - 1] || "unknown";
+  }
+
+  function openOptinPopup() {
+    const slug = getSlugFromUrl();
+    const baseFormUrl = "{PARSED_SRC}";
+    const fullUrl = `${baseFormUrl}?listing=${encodeURIComponent(slug)}&utm_source=directory`;
+
+    document.getElementById("popupFormFrame").src = fullUrl;
+    document.getElementById("customOptinBackdrop").style.display = "block";
+    document.getElementById("customOptinForm").style.display = "block";
+  }
+
+  function closeOptinPopup() {
+    document.getElementById("customOptinBackdrop").style.display = "none";
+    document.getElementById("customOptinForm").style.display = "none";
+  }
+
+  function insertAccessButton() {
+    const priceContainer = document.querySelector(".ecomm-price-desktop-container");
+    if (!priceContainer || document.querySelector(".trigger-optin-btn")) return;
+
+    const btn = document.createElement("div");
+    btn.className = "trigger-optin-btn";
+    btn.textContent = "Get Access";
+    btn.onclick = openOptinPopup;
+
+    priceContainer.parentNode.insertBefore(btn, priceContainer.nextSibling);
+  }
+
+  document.addEventListener("DOMContentLoaded", insertAccessButton);
+  new MutationObserver(insertAccessButton).observe(document.body, { childList: true, subtree: true });
+</script>

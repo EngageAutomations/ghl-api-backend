@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { ConfigWizard, WizardStep } from "@/components/ui/config-wizard";
 import {
   Select,
@@ -22,6 +23,7 @@ import { useState, useEffect } from "react";
 import { Copy } from "lucide-react";
 import { generatePopupCode, generateCodePreview } from "@/lib/popup-code-generator";
 import { generateEmbeddedFormCode, generateEmbeddedFormPreview } from "@/lib/embedded-form-generator";
+import { generateEnhancedPopupCode } from "@/lib/enhanced-popup-generator";
 import { useToast } from "@/hooks/use-toast";
 import { getConfig, saveConfig } from "@/lib/config-store";
 import { CollectionManager, Collection } from "@/components/ui/collection-manager";
@@ -30,24 +32,42 @@ import { GoogleDriveConnection } from "@/components/google-drive/GoogleDriveConn
 export default function ConfigWizardDemo() {
   const { toast } = useToast();
 
-  // Generate popup code function
+  // Generate enhanced popup code with embed parsing
   const generateFullPopupCode = () => {
-    const config = {
-      buttonColor: previewColor,
-      buttonTextColor: previewTextColor,
-      buttonBorderRadius: previewBorderRadius,
-      buttonText: previewButtonText,
-      popupBackgroundColor,
-      popupOverlayColor,
-      popupBorderRadius,
-      closeButtonColor,
-      closeButtonHoverColor,
-      formUrl: buttonUrl,
-      customFieldName: customFieldName || "listing",
-      metadataFields: metadataFields
-    };
+    if (buttonType === "popup" && formEmbedUrl) {
+      // Use new enhanced popup system for popups
+      const config = {
+        embedCode: formEmbedUrl,
+        buttonText: previewButtonText,
+        buttonColor: previewColor,
+        buttonTextColor: previewTextColor,
+        buttonBorderRadius: previewBorderRadius,
+        customFieldName: customFieldName || "listing",
+        closeButtonSize: 28,
+        closeButtonColor: closeButtonColor || "white",
+        closeButtonBackground: "black"
+      };
 
-    return generatePopupCode(config);
+      return generateEnhancedPopupCode(config);
+    } else {
+      // Use original system for other button types
+      const config = {
+        buttonColor: previewColor,
+        buttonTextColor: previewTextColor,
+        buttonBorderRadius: previewBorderRadius,
+        buttonText: previewButtonText,
+        popupBackgroundColor,
+        popupOverlayColor,
+        popupBorderRadius,
+        closeButtonColor,
+        closeButtonHoverColor,
+        formUrl: buttonUrl,
+        customFieldName: customFieldName || "listing",
+        metadataFields: metadataFields
+      };
+
+      return generatePopupCode(config);
+    }
   };
 
   // Generate embedded form code function
