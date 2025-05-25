@@ -59,16 +59,14 @@ function createHeaderCode(config: ActionButtonConfig): string {
   return `<style>
 /* GoHighLevel Page Customizations */
 
-/* Remove title truncation */
-.hl-product-detail-product-title,
-[class*="product-title"],
-[class*="title"] {
+/* Prevent text truncation in price/title */
+.hl-product-price,
+.hl-product-title,
+.hl-product-detail-product-price,
+.hl-product-detail-title {
   white-space: normal !important;
-  text-overflow: unset !important;
   overflow: visible !important;
-  max-height: none !important;
-  height: auto !important;
-  -webkit-line-clamp: unset !important;
+  text-overflow: unset !important;
   display: block !important;
 }
 
