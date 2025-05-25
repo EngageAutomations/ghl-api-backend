@@ -57,6 +57,61 @@ export function generateActionButtonPopup(config: ActionButtonConfig): PopupCode
  */
 function createHeaderCode(config: ActionButtonConfig): string {
   return `<style>
+/* GoHighLevel Page Customizations */
+
+/* Remove title truncation */
+.hl-product-detail-product-title,
+[class*="product-title"],
+[class*="title"] {
+  white-space: normal !important;
+  text-overflow: unset !important;
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+  -webkit-line-clamp: unset !important;
+  display: block !important;
+}
+
+/* Remove description truncation and show more button */
+.hl-product-detail-product-description,
+[class*="product-description"],
+[class*="description"] {
+  white-space: normal !important;
+  text-overflow: unset !important;
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+  -webkit-line-clamp: unset !important;
+  display: block !important;
+}
+
+/* Hide show more buttons */
+.show-more-btn,
+.read-more,
+.show-more,
+[class*="show-more"],
+[class*="read-more"],
+.hl-product-detail-product-description + button,
+.hl-product-detail-product-description + div button {
+  display: none !important;
+}
+
+/* Sync scrolling for image gallery and description */
+.hl-product-detail-image-gallery,
+.hl-product-detail-product-description,
+[class*="image-gallery"],
+[class*="product-images"] {
+  overflow: hidden !important;
+}
+
+/* Ensure both sections scroll together by removing individual scroll */
+.hl-product-detail-content,
+.hl-product-detail-wrapper,
+[class*="product-detail"] {
+  overflow-y: auto !important;
+}
+
+/* Custom Action Button Styling */
 .custom-action-button {
   background-color: ${config.buttonColor};
   color: ${config.buttonTextColor};
@@ -79,6 +134,7 @@ function createHeaderCode(config: ActionButtonConfig): string {
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
+/* Popup Styling */
 .popup-backdrop {
   display: none;
   position: fixed;
