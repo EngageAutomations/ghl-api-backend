@@ -259,31 +259,22 @@ function generatePopupFooterCode(config: PopupConfig, parsedData: ParsedEmbedDat
     document.getElementById("customOptinForm").style.display = "none";
   }
 
-  function insertPopupButton() {
-    const priceElement = document.querySelector(".hl-product-detail-product-price");
-    if (!priceElement || document.querySelector(".trigger-optin-btn")) return;
+  function insertAccessButton() {
+    const priceContainer = document.querySelector(".ecomm-price-desktop-container");
+    if (!priceContainer || document.querySelector(".trigger-optin-btn")) return;
 
-    const btn = document.createElement("div");
+    const btn = document.createElement("button");
     btn.className = "trigger-optin-btn";
     btn.textContent = "${config.buttonText}";
-    btn.style.cssText = \`
-      display: inline-block;
-      background-color: ${config.buttonColor};
-      color: ${config.buttonTextColor};
-      padding: 12px 20px;
-      border-radius: ${config.buttonBorderRadius}px;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-      margin: 20px 0;
-      text-align: center;
-    \`;
-    btn.addEventListener("click", openOptinPopup);
+    btn.onclick = openOptinPopup;
 
-    priceElement.parentNode.insertBefore(btn, priceElement.nextSibling);
+    priceContainer.parentNode.insertBefore(btn, priceContainer.nextSibling);
   }
 
-  document.addEventListener("DOMContentLoaded", insertPopupButton);
-  new MutationObserver(insertPopupButton).observe(document.body, { childList: true, subtree: true });
+  document.addEventListener("DOMContentLoaded", insertAccessButton);
+  new MutationObserver(insertAccessButton).observe(document.body, { childList: true, subtree: true });
+
+  window.openOptinPopup = openOptinPopup;
+  window.closeOptinPopup = closeOptinPopup;
 </script>`;
 }
