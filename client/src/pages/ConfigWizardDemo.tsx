@@ -56,33 +56,34 @@ export default function ConfigWizardDemo() {
 
   // Generate popup code with 100px additional spacing
   const generateFullPopupCode = () => {
-    if (buttonType === 'popup' && parsedEmbedData) {
-      const popupWidth = parsedEmbedData.width + 100; // Add 100px to width
-      const popupHeight = parsedEmbedData.height + 100; // Add 100px to height
-      
-      return generateEnhancedPopupCode({
-        formUrl: parsedEmbedData.src,
-        formWidth: parsedEmbedData.width,
-        formHeight: parsedEmbedData.height,
-        popupWidth,
-        popupHeight,
+    if (buttonType === 'popup' && formEmbedUrl) {
+      const result = generateEnhancedPopupCode({
+        embedCode: formEmbedUrl,
+        buttonText: 'Get More Info',
         buttonColor: previewColor,
         buttonTextColor: previewTextColor,
-        borderRadius: previewBorderRadius,
+        buttonBorderRadius: previewBorderRadius,
         customFieldName: customFieldName || 'listing'
       });
+      
+      if (result.isValid) {
+        return {
+          headerCode: result.headerCode,
+          footerCode: result.footerCode
+        };
+      }
     }
     return { headerCode: '', footerCode: '' };
   };
 
   // Generate code based on selection
   const generateCodeForSelection = () => {
-    if (buttonType === 'popup' && formEmbedUrl && parsedEmbedData) {
+    if (buttonType === 'popup' && formEmbedUrl) {
       // Generate popup template with 100px spacing
       const popupCode = generateFullPopupCode();
       return {
-        headerCode: popupCode.headerCode,
-        footerCode: popupCode.footerCode
+        headerCode: popupCode.headerCode || '/* Paste GoHighLevel iframe embed code to generate popup CSS */',
+        footerCode: popupCode.footerCode || '/* Paste GoHighLevel iframe embed code to generate popup JavaScript */'
       };
     } else {
       // Generate directory listing template
