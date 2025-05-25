@@ -10,6 +10,8 @@ export interface ActionButtonConfig {
   buttonBorderRadius: number;
   customFieldName: string;
   formUrl: string;
+  hideBuyNowButton?: boolean;
+  hideAddToCartButton?: boolean;
 }
 
 export interface PopupCodeResult {
@@ -126,6 +128,27 @@ function createHeaderCode(config: ActionButtonConfig): string {
 .hl-product-detail-product-description + div button {
   display: none !important;
 }
+
+/* Optional: Hide Buy Now and Add to Cart buttons */
+${config.hideBuyNowButton ? `
+.buy-now-button,
+.btn-buy-now,
+[class*="buy-now"],
+[class*="purchase"],
+.hl-product-buy-button,
+.product-buy-button {
+  display: none !important;
+}` : ''}
+
+${config.hideAddToCartButton ? `
+.add-to-cart-button,
+.btn-add-cart,
+[class*="add-cart"],
+[class*="cart"],
+.hl-product-cart-button,
+.product-cart-button {
+  display: none !important;
+}` : ''}
 
 /* Remove any text truncation styles completely */
 * {
