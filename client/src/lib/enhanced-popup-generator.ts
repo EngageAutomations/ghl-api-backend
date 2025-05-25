@@ -115,8 +115,8 @@ function generatePopupHeaderCode(config: PopupConfig, parsedData: ParsedEmbedDat
     border-radius: 10px;             /* ← customizable */
     z-index: 9999;
     width: 100%;
-    max-width: ${parsedData.width + 100}px;
-    height: ${parsedData.height + 100}px;                   /* iframe + spacing */
+    max-width: 660px;
+    height: 570px;                   /* iframe + spacing */
     box-sizing: border-box;
     overflow: hidden;
   }
