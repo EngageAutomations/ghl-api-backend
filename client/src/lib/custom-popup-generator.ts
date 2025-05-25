@@ -59,15 +59,26 @@ function createHeaderCode(config: ActionButtonConfig): string {
   return `<style>
 /* GoHighLevel Page Customizations */
 
-/* Prevent text truncation in price/title with wrapper styles */
+/* Prevent text truncation in price/title with specific GoHighLevel selectors */
 .hl-product-price,
 .hl-product-title,
 .hl-product-detail-product-price,
 .hl-product-detail-title,
+.cstore-product-detail h1,
+.cstore-product-detail h2,
+.cstore-product-detail h3,
+.product-detail-container h1,
+.product-detail-container h2,
+.product-detail-container h3,
+.product-title,
+.product-name,
+[class*="product-title"],
+[class*="product-name"],
 .hl-product-price *,
 .hl-product-title *,
 .hl-product-detail-product-price *,
-.hl-product-detail-title * {
+.hl-product-detail-title *,
+.cstore-product-detail * {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
@@ -76,13 +87,17 @@ function createHeaderCode(config: ActionButtonConfig): string {
   height: auto !important;
   -webkit-line-clamp: unset !important;
   word-wrap: break-word !important;
+  text-overflow: clip !important;
 }
 
-/* Force containers to expand */
+/* Force containers to expand - specific to your structure */
 .hl-product-price-container,
 .hl-product-title-container,
+.cstore-product-detail,
+.product-detail-container,
 [class*="price-container"],
-[class*="title-container"] {
+[class*="title-container"],
+[class*="product-detail"] {
   height: auto !important;
   max-height: none !important;
   overflow: visible !important;
