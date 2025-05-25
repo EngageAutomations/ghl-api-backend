@@ -110,38 +110,36 @@ function generatePopupHeaderCode(config: PopupConfig, parsedData: ParsedEmbedDat
   #customOptinForm {
     display: none;
     position: fixed;
-    top: 50%; 
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: white;
-    padding: 30px;
-    z-index: 9999;
+    background: #fff;
+    padding: 40px;
     border-radius: 10px;
-    max-width: 1000px;
-    width: 90%;
-    height: auto;
+    z-index: 9999;
+    width: 100%;
+    max-width: ${parsedData.width + 100}px;
+    height: ${parsedData.height + 100}px;
+    box-sizing: border-box;
     overflow: hidden;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    max-height: 90vh;
   }
 
   #customOptinForm .close-btn {
     position: absolute;
-    top: -12px;
-    right: -12px;
-    background: ${closeButtonBackground};
-    color: ${closeButtonColor};
+    top: -16px;
+    right: -16px;
+    background: black;
+    color: white;
+    border-radius: 100%;
+    width: 32px;
+    height: 32px;
     font-size: 18px;
     font-weight: bold;
-    border-radius: 50%;
-    width: ${closeButtonSize}px;
-    height: ${closeButtonSize}px;
-    text-align: center;
-    line-height: ${closeButtonSize}px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    z-index: 10000;
-    border: none;
-    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
   }
 
   #customOptinForm .close-btn:hover {
