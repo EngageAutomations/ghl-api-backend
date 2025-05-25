@@ -1,0 +1,87 @@
+Here’s a comprehensive overview to send to your **Replit agent** covering the **new scalable architecture**, the **code review reset**, and the **Action Button (Popup)** use case as a reference.
+
+---
+
+## 📦 Engage Directory Integration System — Phase 2 Deployment Overview
+
+### ✅ Goal
+
+We are **resetting our code integration** in the app to ensure **maximum quality, modularity, and maintainability**. The system will now be driven by a **scalable JSON schema**, where each configuration stores its own code, fields, placeholders, and styling rules. This enables us to:
+
+* Centralize and maintain all code templates
+* Dynamically generate user-facing code based on chosen settings
+* Reduce errors and make future features plug-and-play
+
+---
+
+## 🧩 JSON Configuration Schema (Scalable Template)
+
+Each directory feature (e.g. Action Button Popup, Embed Form, Metadata Bar) is defined using this schema:
+
+```json
+{
+  "configName": "Action Button (Popup)",
+  "fieldsUsed": {
+    "css": true,
+    "header": true,
+    "footer": true
+  },
+  "placeholders": {
+    "YOUR_FORM_ID": "Parsed from iframe embed code input"
+  },
+  "stylingVariables": {
+    "buttonColor": "#4CAF50",
+    "buttonTextColor": "#ffffff",
+    "buttonRadius": "6px",
+    "popupBackgroundColor": "#ffffff",
+    "overlayColor": "rgba(0, 0, 0, 0.6)",
+    "popupBorderRadius": "10px",
+    "closeButtonTextColor": "#ffffff",
+    "closeButtonBackgroundColor": "#000000"
+  },
+  "requiresIframeEmbedInput": true,
+  "autoParsedFromEmbedCode": true
+}
+```
+
+---
+
+## 🔁 How This Scales
+
+* Each new **configuration option** gets its own JSON block.
+* Your wizard UI can reference the `fieldsUsed` matrix to show/hide relevant code panels.
+* The `requiresIframeEmbedInput` flag will trigger a file parser in the wizard.
+* The `placeholders` map tells the generator what to inject during template rendering.
+* Future style controls can directly reference `stylingVariables`.
+
+---
+
+## 🛠️ First Configuration Added: Action Button (Popup)
+
+This config was fully reviewed and finalized for production.
+
+### ✅ Header Code (CSS)
+
+Includes styles for the green action button, the backdrop overlay, popup container, and circular close button.
+
+### ✅ Footer Code (HTML + JS)
+
+* Automatically inserts a green "Get Access" button below the product price
+* Opens a popup with the user’s form (passed via embed code)
+* Adds UTM and listing slug as query params
+* Includes close behavior and mutation observer
+
+> 🔁 Requires the user to paste in the **original Go High Level iframe embed code**.
+> The system will parse the height + form ID, and regenerate our custom iframe.
+
+---
+
+## ✅ Action Required in Replit
+
+1. **Clear out all legacy hardcoded feature templates**
+2. **Rebuild using the JSON schema format**
+3. **Add one-by-one as we validate each config**
+4. **Build code generator to reference templates dynamically**
+5. **Style preview UI can reference stylingVariables**
+
+We will proceed next with the **Embed Form configuration**. Let me know when you’re ready for that schema and code.

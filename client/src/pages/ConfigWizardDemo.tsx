@@ -24,6 +24,8 @@ import { Copy } from "lucide-react";
 import { generatePopupCode, generateCodePreview } from "@/lib/popup-code-generator";
 import { generateEmbeddedFormCode, generateEmbeddedFormPreview } from "@/lib/embedded-form-generator";
 import { generateEnhancedPopupCode } from "@/lib/enhanced-popup-generator";
+import { getConfigTemplate } from "@/lib/config-templates";
+import { generateCodeFromTemplate } from "@/lib/dynamic-code-generator";
 import { useToast } from "@/hooks/use-toast";
 import { getConfig, saveConfig } from "@/lib/config-store";
 import { CollectionManager, Collection } from "@/components/ui/collection-manager";
