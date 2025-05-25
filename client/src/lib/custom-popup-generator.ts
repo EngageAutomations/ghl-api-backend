@@ -127,19 +127,18 @@ function createHeaderCode(config: ActionButtonConfig): string {
   display: none !important;
 }
 
-/* Sync scrolling for image gallery and description */
-.hl-product-detail-image-gallery,
-.hl-product-detail-product-description,
-[class*="image-gallery"],
-[class*="product-images"] {
-  overflow: hidden !important;
+/* Remove any text truncation styles completely */
+* {
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
 }
 
-/* Ensure both sections scroll together by removing individual scroll */
-.hl-product-detail-content,
-.hl-product-detail-wrapper,
-[class*="product-detail"] {
-  overflow-y: auto !important;
+/* Specific nuclear option for stubborn truncation */
+h1, h2, h3, h4, h5, h6, p, span, div {
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  white-space: normal !important;
+  overflow: visible !important;
 }
 
 /* Custom Action Button Styling */
