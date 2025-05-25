@@ -75,7 +75,6 @@ function generatePopupHeaderCode(config: PopupConfig, parsedData: ParsedEmbedDat
 
   return `<style>
   .trigger-optin-btn {
-    display: inline-block;
     background-color: ${config.buttonColor};
     color: ${config.buttonTextColor};
     padding: 12px 20px;
@@ -83,9 +82,12 @@ function generatePopupHeaderCode(config: PopupConfig, parsedData: ParsedEmbedDat
     font-weight: bold;
     font-size: 16px;
     cursor: pointer;
-    margin: 20px 0;
+    display: inline-block;
+    margin-top: 20px;
     text-align: center;
+    border: none;
     transition: all 0.2s ease;
+    text-decoration: none;
   }
 
   .trigger-optin-btn:hover {
