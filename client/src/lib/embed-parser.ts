@@ -6,7 +6,9 @@
 export interface ParsedEmbedData {
   src: string;
   height: number;
+  width: number;
   originalHeight: number;
+  originalWidth: number;
 }
 
 /**
@@ -44,10 +46,25 @@ export function parseEmbedCode(embedCode: string): ParsedEmbedData | null {
       height = 426;
     }
 
+    // Extract width - try width attribute, default to 640
+    let width = 640; // Default width
+    const widthMatch = embedCode.match(/width\s*=\s*["']?(\d+)["']?/i);
+    
+    if (widthMatch) {
+      width = parseInt(widthMatch[1], 10);
+    }
+
+    // Ensure width is valid
+    if (isNaN(width) || width < 200) {
+      width = 640;
+    }
+
     return {
       src,
-      height: height + 100, // Add 100px for extra spacing as specified
-      originalHeight: height
+      height, // Original height without modification
+      width,  // Original width without modification
+      originalHeight: height,
+      originalWidth: width
     };
 
   } catch (error) {

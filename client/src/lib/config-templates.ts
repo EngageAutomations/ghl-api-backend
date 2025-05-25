@@ -122,7 +122,7 @@ export const ACTION_BUTTON_POPUP_CONFIG: ConfigTemplate = {
   }
 </style>`,
 
-  // Footer Template with exact specification from attached files
+  // Footer Template matching your exact reference specification
   footerTemplate: `<!-- Backdrop -->
 <div id="customOptinBackdrop" style="
   position: fixed;
