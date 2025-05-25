@@ -70,7 +70,7 @@ export async function runTestSuite(req: Request, res: Response) {
   });
 
   try {
-    const { spawn } = require('child_process');
+    const { spawn } = await import('child_process');
     
     // Send initial message
     res.write(JSON.stringify({

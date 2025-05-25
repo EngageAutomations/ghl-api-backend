@@ -20,6 +20,7 @@ export interface PopupConfig {
 export interface PopupGenerationResult {
   headerCode: string;
   footerCode: string;
+  fullIntegrationCode: string;
   parsedData: ParsedEmbedData | null;
   isValid: boolean;
   error?: string;
