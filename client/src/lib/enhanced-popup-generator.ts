@@ -245,23 +245,35 @@ function generatePopupFooterCode(config: PopupConfig, parsedData: ParsedEmbedDat
     }
   }
 
-  function insertAccessButton() {
-    const priceContainer = document.querySelector(".ecomm-price-desktop-container");
-    if (!priceContainer || document.querySelector(".trigger-optin-btn")) return;
+  function insertPopupButton() {
+    const priceElement = document.querySelector(".hl-product-detail-product-price");
+    if (!priceElement || document.querySelector(".trigger-optin-btn")) return;
 
-    const btn = document.createElement("button");
+    const btn = document.createElement("div");
     btn.className = "trigger-optin-btn";
     btn.textContent = "${config.buttonText}";
-    btn.onclick = openOptinPopup;
+    btn.style.cssText = \`
+      display: inline-block;
+      background-color: ${config.buttonColor};
+      color: ${config.buttonTextColor};
+      padding: 12px 20px;
+      border-radius: ${config.buttonBorderRadius}px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 20px 0;
+      text-align: center;
+    \`;
+    btn.addEventListener("click", openOptinPopup);
 
-    priceContainer.parentNode.insertBefore(btn, priceContainer.nextSibling);
+    priceElement.parentNode.insertBefore(btn, priceElement.nextSibling);
   }
 
   // Initialize popup system
-  document.addEventListener("DOMContentLoaded", insertAccessButton);
+  document.addEventListener("DOMContentLoaded", insertPopupButton);
   
   // Watch for dynamic content changes
-  const observer = new MutationObserver(insertAccessButton);
+  const observer = new MutationObserver(insertPopupButton);
   observer.observe(document.body, { 
     childList: true, 
     subtree: true 
