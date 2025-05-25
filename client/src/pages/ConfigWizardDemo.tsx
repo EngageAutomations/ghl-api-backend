@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { parseEmbedCode, ParsedEmbedData } from '@/lib/embed-parser';
-import { generateEnhancedPopupCode } from '@/lib/enhanced-popup-generator';
+import { generateSimplePopup } from '@/lib/simple-popup-generator';
 
 interface WizardStepProps {
   title: string;
@@ -54,10 +54,10 @@ export default function ConfigWizardDemo() {
     return null;
   }, [buttonType, formEmbedUrl]);
 
-  // Generate popup code with 100px additional spacing
+  // Generate popup code using simple approach
   const generateFullPopupCode = () => {
     if (buttonType === 'popup' && formEmbedUrl) {
-      const result = generateEnhancedPopupCode({
+      const result = generateSimplePopup({
         embedCode: formEmbedUrl,
         buttonText: 'Get More Info',
         buttonColor: previewColor,
