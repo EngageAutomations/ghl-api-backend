@@ -2644,7 +2644,78 @@ Result Display Order:
   max-height: 170px; /* Approx height of 2 rows */
   overflow: hidden;
   padding: 10px 0;
-}
+}`}
+              </div>
+            </div>
+          </div>
+        </WizardStep>
+        
+        {/* Footer Code */}
+        <WizardStep 
+          title="Footer Code" 
+          description="JavaScript to add to your site footer"
+        >
+          <div className="space-y-6 py-8">
+            <h2 className="text-lg font-bold text-center mb-4">Footer JavaScript Code</h2>
+            <p className="text-sm text-slate-600 text-center mb-6">
+              Add this code before the closing &lt;/body&gt; tag of your website.
+            </p>
+            
+            <div className="border border-slate-200 rounded-md overflow-hidden">
+              <div className="bg-slate-800 px-4 py-2 flex justify-between items-center">
+                <span className="text-slate-300 text-sm">Footer Code</span>
+                <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                  <span className="ml-1">Copy</span>
+                </Button>
+              </div>
+              <div className="bg-slate-900 p-4 text-slate-300 font-mono text-sm overflow-x-auto whitespace-pre">
+{(() => {
+  // Generate the correct footer code based on button type
+  if (buttonType === "popup" && formEmbedUrl) {
+    const popupCode = generateFullPopupCode();
+    return popupCode.footerCode || 'Please configure popup settings and paste GoHighLevel iframe embed code.';
+  } else {
+    return `<script>
+  // GHL Directory Integration - Footer Script
+  document.addEventListener('DOMContentLoaded', function() {
+    // Extract slug from URL
+    const url = new URL(window.location.href);
+    const pathSegments = url.pathname.split('/').filter(Boolean);
+    const slug = pathSegments[pathSegments.length - 1];
+    
+    if (!slug) return;
+    
+    // Add listing slug as hidden field to all forms
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+      const hiddenField = document.createElement('input');
+      hiddenField.type = 'hidden';
+      hiddenField.name = '${customFieldName || 'listing'}';
+      hiddenField.value = slug;
+      form.appendChild(hiddenField);
+    });
+    
+    // Add UTM parameters to links
+    const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.href.includes('gohighlevel.com')) {
+        const linkUrl = new URL(link.href);
+        linkUrl.searchParams.set('${customFieldName || 'listing'}', slug);
+        linkUrl.searchParams.set('utm_source', 'directory');
+        linkUrl.searchParams.set('utm_medium', 'listing');
+        linkUrl.searchParams.set('utm_campaign', slug);
+        link.href = linkUrl.toString();
+      }
+    });
+  });
+</script>`;
+  }
+})()}
+              </div>
+            </div>
+          </div>
+        </WizardStep>
 
 .image-list > div {
   width: calc(14.28% - 10px); /* 7 images per row */
