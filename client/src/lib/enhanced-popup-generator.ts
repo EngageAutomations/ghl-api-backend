@@ -177,65 +177,18 @@ function generatePopupFooterCode(config: PopupConfig, parsedData: ParsedEmbedDat
   const popupHeight = parsedData.height + 100;
   
   return `<!-- Backdrop -->
-<div id="customOptinBackdrop" style="
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  display: none;
-  z-index: 9998;
-"></div>
+<div id="customOptinBackdrop"></div>
 
 <!-- Popup Container -->
-<div id="customOptinForm" style="
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  padding: 50px;
-  border-radius: 10px;
-  width: 100%;
-  max-width: ${popupWidth}px;
-  height: ${popupHeight}px;
-  box-sizing: border-box;
-  overflow: hidden;
-  z-index: 9999;
-">
-
-  <!-- Close Button (Inside Top-Right Corner) -->
-  <span onclick="closeOptinPopup()" style="
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 36px;
-    height: 36px;
-    background-color: #000;
-    color: #fff;
-    border-radius: 50%;
-    font-size: 20px;
-    font-weight: bold;
-    line-height: 36px;
-    text-align: center;
-    cursor: pointer;
-    z-index: 10000;
-  ">×</span>
-
-  <!-- Custom Iframe Container -->
-  <div id="popupIframeContainer" style="width: 100%; height: 100%;">
+<div id="customOptinForm">
+  <span class="close-btn" onclick="closeOptinPopup()">×</span>
+  <div id="popupIframeContainer">
     <iframe
       id="popupFormFrame"
       src=""
-      style="
-        width: 100%;
-        height: 100%;
-        border: none;
-        border-radius: 6px;
-        display: block;
-      "
       scrolling="no"
       allowfullscreen
+      title="Get Access Form"
     ></iframe>
   </div>
 </div>
