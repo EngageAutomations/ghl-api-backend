@@ -522,12 +522,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <div className="border-t pt-6">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>GoHighLevel CSS (Copy this to your page's head section)</Label>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={async () => {
-                      const cssCode = `<style>
+                  <div className="flex items-center space-x-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        const cssCode = `<style>
 /* GoHighLevel Essential Fixes - Always Applied */
 
 /* Remove title truncation */
@@ -663,36 +663,18 @@ body:not(.hl-builder) input[class*="quantity"] {
   opacity: 1 !important;
 }` : ''}
 </style>`;
-                      try {
-                        await navigator.clipboard.writeText(cssCode);
-                        // You could add a toast notification here if needed
-                        console.log('CSS copied to clipboard');
-                      } catch (err) {
-                        console.error('Failed to copy CSS:', err);
-                        // Fallback: select the text for manual copy
-                        const textArea = document.createElement('textarea');
-                        textArea.value = cssCode;
-                        document.body.appendChild(textArea);
-                        textArea.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(textArea);
-                      }
+                        copyToClipboard(cssCode, setCssCodeCopied);
                     }}
-                    className={cssCodeCopied ? "bg-green-100 border-green-300 text-green-700" : ""}
                   >
-                    {cssCodeCopied ? (
-                      <>
-                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        Copied!
-                      </>
-                    ) : (
-                      "Copy CSS"
-                    )}
+                    Copy CSS
                   </Button>
+                  <Label>GoHighLevel CSS (Copy this to your page's head section)</Label>
                 </div>
-                <div className="bg-slate-900 text-slate-100 p-4 rounded-lg">
+                {cssCodeCopied && (
+                  <span className="text-green-600 font-medium text-sm">Copied</span>
+                )}
+              </div>
+              <div className="bg-slate-900 text-slate-100 p-4 rounded-lg">
                   <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
 {`<style>
 /* GoHighLevel Essential Fixes - Always Applied */
