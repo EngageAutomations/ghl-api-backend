@@ -60,6 +60,14 @@ export function generateActionButtonPopup(config: ActionButtonConfig): PopupCode
  */
 function createHeaderCode(config: ActionButtonConfig): string {
   return `<style>
+/* Add spacing below price element */
+.hl-product-detail-product-price,
+.ecomm-price-desktop-container,
+.price-container,
+[class*="price"] {
+  margin-bottom: 20px !important;
+}
+
 /* No custom button styling needed - using native GoHighLevel classes */
 
 /* Popup Styling */
