@@ -521,6 +521,12 @@ document.addEventListener('DOMContentLoaded', function() {
   display: none !important;
 }
 
+/* Hide price display */
+.hl-product-price, .product-price, .price, [class*="price"],
+.hl-product-detail-product-price, [class*="product-price"] {
+  display: none !important;
+}
+
 /* Ultra-nuclear scrolling fix - Kill ALL scrolling everywhere */
 *, *::before, *::after {
   overflow: visible !important;
@@ -580,6 +586,12 @@ html, body {
 
 /* Hide show more buttons */
 .show-more-btn, .read-more, [class*="show-more"], [class*="read-more"] {
+  display: none !important;
+}
+
+/* Hide price display */
+.hl-product-price, .product-price, .price, [class*="price"],
+.hl-product-detail-product-price, [class*="product-price"] {
   display: none !important;
 }
 
