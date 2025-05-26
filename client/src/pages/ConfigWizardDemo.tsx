@@ -710,7 +710,7 @@ body:not(.hl-builder) p, body:not(.hl-builder) span, body:not(.hl-builder) div {
   flex: none !important;
 }
 
-/* Destroy all truncation utility classes */
+/* Destroy all truncation utility classes - SUPER AGGRESSIVE */
 body:not(.hl-builder) .truncate,
 body:not(.hl-builder) .truncate-text,
 body:not(.hl-builder) .text-truncate,
@@ -719,6 +719,21 @@ body:not(.hl-builder) .ellipsis {
   overflow: visible !important;
   text-overflow: unset !important;
   -webkit-line-clamp: unset !important;
+}
+
+/* Multiple specific overrides for .truncate-text */
+.truncate-text,
+body .truncate-text,
+html .truncate-text,
+body:not(.hl-builder) .truncate-text,
+[class*="truncate-text"],
+*[class*="truncate-text"] {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-width: none !important;
+  width: auto !important;
 }
 
 /* Remove product description truncation */
