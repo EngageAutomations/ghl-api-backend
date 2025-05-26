@@ -521,20 +521,22 @@ document.addEventListener('DOMContentLoaded', function() {
   display: none !important;
 }
 
-/* Nuclear scrolling fix - Target GoHighLevel structure */
-.fullSection, .c-section, .c-wrapper, .inner, .vertical,
-[class*="fullSection"], [class*="c-section"], [class*="c-wrapper"],
-[class*="section-"], [class*="row-"], [class*="col-"],
-[class*="inner"], div[class*="inner"] {
+/* Ultra-nuclear scrolling fix - Kill ALL scrolling everywhere */
+*, *::before, *::after {
   overflow: visible !important;
   overflow-x: visible !important;
   overflow-y: visible !important;
   max-height: none !important;
   height: auto !important;
+  min-height: auto !important;
 }
 
-/* Force only body to handle scrolling */
-html, body { overflow-x: hidden !important; overflow-y: auto !important; }
+/* Only allow body scrolling */
+html, body { 
+  overflow-x: hidden !important; 
+  overflow-y: auto !important; 
+  height: auto !important;
+}
 
 /* Nuclear truncation fix */
 * { text-overflow: unset !important; -webkit-line-clamp: unset !important; }${hideBuyNowButton ? `
@@ -581,20 +583,22 @@ html, body { overflow-x: hidden !important; overflow-y: auto !important; }
   display: none !important;
 }
 
-/* Nuclear scrolling fix - Target GoHighLevel structure */
-.fullSection, .c-section, .c-wrapper, .inner, .vertical,
-[class*="fullSection"], [class*="c-section"], [class*="c-wrapper"],
-[class*="section-"], [class*="row-"], [class*="col-"],
-[class*="inner"], div[class*="inner"] {
+/* Ultra-nuclear scrolling fix - Kill ALL scrolling everywhere */
+*, *::before, *::after {
   overflow: visible !important;
   overflow-x: visible !important;
   overflow-y: visible !important;
   max-height: none !important;
   height: auto !important;
+  min-height: auto !important;
 }
 
-/* Force only body to handle scrolling */
-html, body { overflow-x: hidden !important; overflow-y: auto !important; }
+/* Only allow body scrolling */
+html, body { 
+  overflow-x: hidden !important; 
+  overflow-y: auto !important; 
+  height: auto !important;
+}
 
 /* Nuclear truncation fix */
 * { text-overflow: unset !important; -webkit-line-clamp: unset !important; }${hideBuyNowButton ? `
