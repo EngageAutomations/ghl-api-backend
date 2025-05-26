@@ -540,6 +540,9 @@ body:not(.hl-builder) .product-detail-container [class*="price"],
 body:not(.hl-builder) .hl-product-price,
 body:not(.hl-builder) [class*="product-price"],
 body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .hl-quantity-input-container,
+body:not(.hl-builder) .pdp-quantity-container,
+body:not(.hl-builder) .hl-quantity-input,
 body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
 body:not(.hl-builder) .product-detail-container [class*="qty"],
 body:not(.hl-builder) .cstore-product-detail input[type="number"],
@@ -607,6 +610,9 @@ body:not(.hl-builder) [class*="product-price"] {
 
 /* Show Quantity Selector */
 body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .hl-quantity-input-container,
+body:not(.hl-builder) .pdp-quantity-container,
+body:not(.hl-builder) .hl-quantity-input,
 body:not(.hl-builder) .cstore-product-detail input[type="number"],
 body:not(.hl-builder) input[class*="quantity"] {
   display: block !important;
