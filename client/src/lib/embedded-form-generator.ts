@@ -55,17 +55,37 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     }
   }
 
-  // Find the actual product details container from GoHighLevel structure
-  const productDetailsContainer = document.querySelector('[class*="cstore-product-detail"], .product-detail-container, .c-product-details');
-  if (!productDetailsContainer) return;
+  // Wait for description element to render and use structural placeholder approach
+  function waitForElement(selector, timeout = 5000) {
+    return new Promise((resolve) => {
+      const element = document.querySelector(selector);
+      if (element) return resolve(element);
+      
+      const observer = new MutationObserver(() => {
+        const element = document.querySelector(selector);
+        if (element) {
+          observer.disconnect();
+          resolve(element);
+        }
+      });
+      
+      observer.observe(document.body, { childList: true, subtree: true });
+      setTimeout(() => { observer.disconnect(); resolve(null); }, timeout);
+    });
+  }
 
-  // Create two-column wrapper for entire product details + form
-  const wrapperContainer = document.createElement('div');
-  wrapperContainer.className = 'product-details-with-form-wrapper';
+  // Wait for description element to be available
+  const descriptionElement = await waitForElement('#description, [class*="description"], .product-description');
+  if (!descriptionElement) return;
 
-  // Clone the entire product details and add to wrapper
-  const productDetailsClone = productDetailsContainer.cloneNode(true);
-  wrapperContainer.appendChild(productDetailsClone);
+  // Create structural placeholder container
+  const placeholderContainer = document.createElement('div');
+  placeholderContainer.id = 'listingEmbedFormContainer';
+  placeholderContainer.className = 'directory-embed-wrapper';
+  
+  // Clone description and add to placeholder
+  const descriptionClone = descriptionElement.cloneNode(true);
+  placeholderContainer.appendChild(descriptionClone);
 
   // Create form container
   const formContainer = document.createElement('div');
@@ -109,71 +129,74 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   iframe.style.boxShadow = '${config.boxShadow}';
   formContainer.appendChild(iframe);
 
-  // Add form to wrapper container
-  wrapperContainer.appendChild(formContainer);
+  // Add form to placeholder container
+  placeholderContainer.appendChild(formContainer);
 
-  // Replace original product details with wrapper
-  productDetailsContainer.parentNode.insertBefore(wrapperContainer, productDetailsContainer);
-  productDetailsContainer.remove();
+  // Replace original description with placeholder container
+  descriptionElement.parentNode.insertBefore(placeholderContainer, descriptionElement);
+  descriptionElement.remove();
   
-  // Force layout reflow to prevent positioning issues
-  wrapperContainer.offsetHeight;
-  document.body.classList.add('form-injected');
+  // Force layout reflow and add CSS lock-in class
+  placeholderContainer.offsetHeight;
+  document.body.classList.add('form-injected', 'directory-embed-active');
 })();
 </script>`;
 
-  // Generate CSS for product details + form wrapper (higher-level approach)
-  const fadeSqueezeCSS = `/* Product Details + Form Two-Column Layout */
-.product-details-with-form-wrapper {
+  // Generate CSS with structural placeholder and CSS lock-in
+  const fadeSqueezeCSS = `/* Directory Embed Wrapper - CSS Lock-in Approach */
+#listingEmbedFormContainer.directory-embed-wrapper {
   display: flex !important;
-  gap: 20px;
-  align-items: flex-start;
-  width: 100%;
-  box-sizing: border-box;
+  gap: 20px !important;
+  align-items: flex-start !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  position: relative !important;
 }
 
-.product-details-with-form-wrapper > [class*="cstore-product-detail"],
-.product-details-with-form-wrapper > .product-detail-container,
-.product-details-with-form-wrapper > .c-product-details {
-  flex: 1;
-  min-width: 0;
+#listingEmbedFormContainer.directory-embed-wrapper > #description,
+#listingEmbedFormContainer.directory-embed-wrapper > [class*="description"],
+#listingEmbedFormContainer.directory-embed-wrapper > .product-description {
+  flex: 1 !important;
+  min-width: 0 !important;
   max-width: none !important;
 }
 
 .product-details-form-container {
-  width: 320px;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 1.2s ease;
+  width: 320px !important;
+  flex-shrink: 0 !important;
+  opacity: 0 !important;
+  transition: opacity 1.2s ease !important;
 }
 
-body.form-injected .product-details-form-container {
-  opacity: 1;
+body.directory-embed-active .product-details-form-container {
+  opacity: 1 !important;
 }
 
 .product-details-inline-form {
   width: 100% !important;
   height: 500px !important;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  border: none !important;
 }
 
-/* Ensure parent containers don't override our layout */
-body.form-injected .product-details-with-form-wrapper {
+/* Strong CSS override protection */
+body.directory-embed-active #listingEmbedFormContainer.directory-embed-wrapper {
   display: flex !important;
   flex-wrap: nowrap !important;
 }
 
-/* Mobile Layout - Stack vertically */
+/* Failover mode - stack layout if flex fails */
 @media screen and (max-width: 768px) {
-  .product-details-with-form-wrapper {
+  #listingEmbedFormContainer.directory-embed-wrapper {
     flex-direction: column !important;
   }
   
   .product-details-form-container {
     width: 100% !important;
     opacity: 1 !important;
+    margin-top: 20px !important;
   }
 }`;
 
