@@ -521,6 +521,20 @@ document.addEventListener('DOMContentLoaded', function() {
   display: none !important;
 }
 
+/* Fix gallery and description scrolling */
+.hl-product-detail-image-gallery,
+.hl-product-detail-product-description,
+[class*="image-gallery"],
+[class*="product-images"] {
+  overflow: hidden !important;
+}
+
+.hl-product-detail-content,
+.hl-product-detail-wrapper,
+[class*="product-detail"] {
+  overflow-y: auto !important;
+}
+
 /* Nuclear truncation fix */
 * { text-overflow: unset !important; -webkit-line-clamp: unset !important; }${hideBuyNowButton ? `
 
@@ -564,6 +578,20 @@ document.addEventListener('DOMContentLoaded', function() {
 /* Hide show more buttons */
 .show-more-btn, .read-more, [class*="show-more"], [class*="read-more"] {
   display: none !important;
+}
+
+/* Fix gallery and description scrolling */
+.hl-product-detail-image-gallery,
+.hl-product-detail-product-description,
+[class*="image-gallery"],
+[class*="product-images"] {
+  overflow: hidden !important;
+}
+
+.hl-product-detail-content,
+.hl-product-detail-wrapper,
+[class*="product-detail"] {
+  overflow-y: auto !important;
 }
 
 /* Nuclear truncation fix */
