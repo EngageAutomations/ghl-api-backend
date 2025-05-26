@@ -591,6 +591,7 @@ body:not(.hl-builder) [class*="buy-now"],
 body:not(.hl-builder) .cstore-product-detail [class*="price"], 
 body:not(.hl-builder) .product-detail-container [class*="price"],
 body:not(.hl-builder) .hl-product-price,
+body:not(.hl-builder) .hl-product-detail-product-price,
 body:not(.hl-builder) .hl-product-detail-selectors,
 body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
 body:not(.hl-builder) .product-detail-container [class*="qty"],
@@ -649,7 +650,8 @@ body:not(.hl-builder) [class*="add-cart"] {
 
 /* Show Price */
 body:not(.hl-builder) .cstore-product-detail [class*="price"],
-body:not(.hl-builder) .hl-product-price {
+body:not(.hl-builder) .hl-product-price,
+body:not(.hl-builder) .hl-product-detail-product-price {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
