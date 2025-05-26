@@ -60,14 +60,6 @@ export function generateActionButtonPopup(config: ActionButtonConfig): PopupCode
  */
 function createHeaderCode(config: ActionButtonConfig): string {
   return `<style>
-/* Add spacing below price element */
-.hl-product-detail-product-price,
-.ecomm-price-desktop-container,
-.price-container,
-[class*="price"] {
-  margin-bottom: 20px !important;
-}
-
 /* No custom button styling needed - using native GoHighLevel classes */
 
 /* Popup Styling */
@@ -161,23 +153,40 @@ function closePopup() {
 }
 
 function addActionButton() {
-  // Look for price elements in GoHighLevel pages
-  const priceSelectors = [
-    '.hl-product-detail-product-price',
-    '.ecomm-price-desktop-container', 
-    '.price-container',
-    '[class*="price"]'
+  // Look for quantity selector elements in GoHighLevel pages
+  const quantitySelectors = [
+    '.quantity-container',
+    '.hl-quantity-input-container',
+    '.pdp-quantity-container',
+    '.hl-product-detail-selectors',
+    '[class*="quantity"]',
+    'input[type="number"]'
   ];
   
-  let priceElement = null;
-  for (const selector of priceSelectors) {
-    priceElement = document.querySelector(selector);
-    if (priceElement) break;
+  let quantityElement = null;
+  for (const selector of quantitySelectors) {
+    quantityElement = document.querySelector(selector);
+    if (quantityElement) break;
   }
   
-  // If no price element found, try to find any container
-  if (!priceElement) {
-    priceElement = document.querySelector('.fullSection .inner') || document.body;
+  // If no quantity element found, fallback to price element
+  if (!quantityElement) {
+    const priceSelectors = [
+      '.hl-product-detail-product-price',
+      '.ecomm-price-desktop-container', 
+      '.price-container',
+      '[class*="price"]'
+    ];
+    
+    for (const selector of priceSelectors) {
+      quantityElement = document.querySelector(selector);
+      if (quantityElement) break;
+    }
+  }
+  
+  // If still no element found, try to find any container
+  if (!quantityElement) {
+    quantityElement = document.querySelector('.fullSection .inner') || document.body;
   }
   
   // Check if button already exists
@@ -210,11 +219,11 @@ function addActionButton() {
     min-width: 460px !important;
   \`;
   
-  // Insert after price element or append to container
-  if (priceElement.parentNode) {
-    priceElement.parentNode.insertBefore(button, priceElement.nextSibling);
+  // Insert after quantity element or append to container
+  if (quantityElement.parentNode) {
+    quantityElement.parentNode.insertBefore(button, quantityElement.nextSibling);
   } else {
-    priceElement.appendChild(button);
+    quantityElement.appendChild(button);
   }
 }
 
