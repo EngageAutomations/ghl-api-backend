@@ -10,9 +10,9 @@ export interface ActionButtonConfig {
   buttonBorderRadius: number;
   customFieldName: string;
   formUrl: string;
-  hideBuyNowButton?: boolean;
-  hideAddToCartButton?: boolean;
-  hideQuantitySelector?: boolean;
+  showBuyNowButton?: boolean;
+  showAddToCartButton?: boolean;
+  showQuantitySelector?: boolean;
 }
 
 export interface PopupCodeResult {
@@ -130,28 +130,32 @@ function createHeaderCode(config: ActionButtonConfig): string {
   display: none !important;
 }
 
-/* Optional: Hide Buy Now and Add to Cart buttons */
-${config.hideBuyNowButton ? `
+/* Optional: Show Buy Now and Add to Cart buttons */
+${config.showBuyNowButton ? `
 .buy-now-button,
 .btn-buy-now,
 [class*="buy-now"],
 [class*="purchase"],
 .hl-product-buy-button,
 .product-buy-button {
-  display: none !important;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }` : ''}
 
-${config.hideAddToCartButton ? `
+${config.showAddToCartButton ? `
 .add-to-cart-button,
 .btn-add-cart,
 [class*="add-cart"],
 [class*="cart"],
 .hl-product-cart-button,
 .product-cart-button {
-  display: none !important;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }` : ''}
 
-${config.hideQuantitySelector ? `
+${config.showQuantitySelector ? `
 .quantity-selector,
 .qty-selector,
 .product-quantity,
@@ -161,7 +165,9 @@ ${config.hideQuantitySelector ? `
 .product-qty,
 input[type="number"][name*="quantity"],
 input[type="number"][name*="qty"] {
-  display: none !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }` : ''}
 
 /* Remove any text truncation styles completely */

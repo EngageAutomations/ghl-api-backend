@@ -608,21 +608,6 @@ body:not(.hl-builder) input[class*="quantity"] {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-}` : ''}${hideBuyNowButton ? `
-
-/* Hide Buy Now Button */
-.buy-now-button, .btn-buy-now, [class*="buy-now"], .hl-product-buy-button {
-  display: none !important;
-}` : ''}${hideAddToCartButton ? `
-
-/* Hide Add to Cart Button */
-.add-to-cart-button, .btn-add-cart, [class*="add-cart"], .hl-product-cart-button {
-  display: none !important;
-}` : ''}${hideQuantitySelector ? `
-
-/* Hide Quantity Selector */
-.quantity-selector, .qty-selector, [class*="quantity"], input[type="number"][name*="quantity"] {
-  display: none !important;
 }` : ''}
 </style>`;
                       try {
@@ -716,22 +701,7 @@ body:not(.hl-builder) {
 }
 
 /* Nuclear truncation fix */
-* { text-overflow: unset !important; -webkit-line-clamp: unset !important; }${hideBuyNowButton ? `
-
-/* Hide Buy Now Button */
-.buy-now-button, .btn-buy-now, [class*="buy-now"], .hl-product-buy-button {
-  display: none !important;
-}` : ''}${hideAddToCartButton ? `
-
-/* Hide Add to Cart Button */
-.add-to-cart-button, .btn-add-cart, [class*="add-cart"], .hl-product-cart-button {
-  display: none !important;
-}` : ''}${hideQuantitySelector ? `
-
-/* Hide Quantity Selector */
-.quantity-selector, .qty-selector, [class*="quantity"], input[type="number"][name*="quantity"] {
-  display: none !important;
-}` : ''}
+* { text-overflow: unset !important; -webkit-line-clamp: unset !important; }
 </style>`}
                   </pre>
                 </div>
