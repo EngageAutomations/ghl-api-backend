@@ -521,13 +521,12 @@ document.addEventListener('DOMContentLoaded', function() {
             {/* CSS Preview Field */}
             <div className="border-t pt-6">
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        const cssCode = `<style>
+                <div className="flex items-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const cssCode = `<style>
 /* GoHighLevel Essential Fixes - Always Applied */
 
 /* Remove title truncation */
@@ -676,7 +675,7 @@ body:not(.hl-builder) input[class*="quantity"] {
                 </div>
               </div>
               <div className="bg-slate-900 text-slate-100 p-4 rounded-lg">
-                  <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
 {`<style>
 /* GoHighLevel Essential Fixes - Always Applied */
 
