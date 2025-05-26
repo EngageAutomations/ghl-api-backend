@@ -55,8 +55,8 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     }
   }
 
-  // Find the product details container (higher-level approach)
-  const productDetailsContainer = document.querySelector('.c-product-details');
+  // Find the actual product details container from GoHighLevel structure
+  const productDetailsContainer = document.querySelector('[class*="cstore-product-detail"], .product-detail-container, .c-product-details');
   if (!productDetailsContainer) return;
 
   // Create two-column wrapper for entire product details + form
@@ -132,6 +132,8 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   box-sizing: border-box;
 }
 
+.product-details-with-form-wrapper > [class*="cstore-product-detail"],
+.product-details-with-form-wrapper > .product-detail-container,
 .product-details-with-form-wrapper > .c-product-details {
   flex: 1;
   min-width: 0;
