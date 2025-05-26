@@ -226,22 +226,16 @@ document.addEventListener('DOMContentLoaded', function() {
               <Label htmlFor="form-embed">
                 {buttonType === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'Form URL'}
               </Label>
-              {buttonType === 'popup' ? (
-                <Textarea
-                  id="form-embed"
-                  placeholder='<iframe src="https://link.msgsndr.com/form/..." width="500" height="600"></iframe>'
-                  value={formEmbedUrl}
-                  onChange={(e) => setFormEmbedUrl(e.target.value)}
-                  className="min-h-[100px]"
-                />
-              ) : (
-                <Input
-                  id="form-embed"
-                  placeholder="https://link.msgsndr.com/form/..."
-                  value={formEmbedUrl}
-                  onChange={(e) => setFormEmbedUrl(e.target.value)}
-                />
-              )}
+              <Textarea
+                id="form-embed"
+                placeholder={buttonType === 'popup' 
+                  ? '<iframe src="https://link.msgsndr.com/form/..." width="500" height="600"></iframe>'
+                  : 'Paste your GoHighLevel form embed code here...'
+                }
+                value={formEmbedUrl}
+                onChange={(e) => setFormEmbedUrl(e.target.value)}
+                className="min-h-[100px]"
+              />
               {buttonType === 'popup' && parsedEmbedData && (
                 <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
                   ✓ Form detected: {parsedEmbedData.width}×{parsedEmbedData.height}px 
