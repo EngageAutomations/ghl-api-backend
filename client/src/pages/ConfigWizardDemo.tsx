@@ -659,78 +659,7 @@ body:not(.hl-builder) input[class*="quantity"] {
                 </div>
                 <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
                   <pre className="text-sm whitespace-pre-wrap">
-{`<style>
-/* GoHighLevel Page Customizations */
-
-/* Remove text truncation completely */
-.hl-product-price, .hl-product-title, .cstore-product-detail *, 
-.product-detail-container *, [class*="product-title"], [class*="product-name"] {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-  -webkit-line-clamp: unset !important;
-  max-height: none !important;
-  height: auto !important;
-}
-
-/* Hide show more buttons */
-.show-more-btn, .read-more, [class*="show-more"], [class*="read-more"] {
-  display: none !important;
-}
-
-/* Hide price display by default */
-.hl-product-price, .product-price, .price, [class*="price"],
-.hl-product-detail-product-price, [class*="product-price"] {
-  display: none !important;
-}
-
-/* Hide quantity selector by default */
-.quantity-selector, .qty-selector, [class*="quantity"], 
-input[type="number"][name*="quantity"], [class*="qty"] {
-  display: none !important;
-}
-
-/* Hide add to cart button by default */
-.add-to-cart-button, .btn-add-cart, [class*="add-cart"], 
-.hl-product-cart-button, [class*="cart-btn"] {
-  display: none !important;
-}
-
-/* Hide buy now button by default */
-.buy-now-button, .btn-buy-now, [class*="buy-now"], 
-.hl-product-buy-button, [class*="buy-btn"] {
-  display: none !important;
-}
-
-/* Targeted scrolling fix - Only affect public pages, not builder */
-body:not(.hl-builder) .fullSection, 
-body:not(.hl-builder) .c-section, 
-body:not(.hl-builder) .c-wrapper, 
-body:not(.hl-builder) .inner, 
-body:not(.hl-builder) .vertical,
-body:not(.hl-builder) [class*="fullSection"], 
-body:not(.hl-builder) [class*="c-section"], 
-body:not(.hl-builder) [class*="c-wrapper"],
-body:not(.hl-builder) [class*="section-"], 
-body:not(.hl-builder) [class*="row-"], 
-body:not(.hl-builder) [class*="col-"],
-body:not(.hl-builder) [class*="inner"] {
-  overflow: visible !important;
-  overflow-x: visible !important;
-  overflow-y: visible !important;
-  max-height: none !important;
-  height: auto !important;
-}
-
-/* Only allow body scrolling on public pages */
-body:not(.hl-builder) { 
-  overflow-x: hidden !important; 
-  overflow-y: auto !important; 
-}
-
-/* Nuclear truncation fix */
-* { text-overflow: unset !important; -webkit-line-clamp: unset !important; }
-</style>`}
+{cssCode}
                   </pre>
                 </div>
               </div>
