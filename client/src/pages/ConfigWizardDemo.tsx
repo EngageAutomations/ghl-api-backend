@@ -430,6 +430,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div className="border border-slate-200 rounded-lg p-4 bg-white">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
+                      <div className="bg-blue-50 p-2 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium">Show Listing Price</h3>
+                        <p className="text-xs text-slate-500">Display product pricing information</p>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={showPrice}
+                      onCheckedChange={setShowPrice}
+                      id="show-price" 
+                    />
+                  </div>
+                </div>
+
+                <div className="border border-slate-200 rounded-lg p-4 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
                       <div className="bg-red-50 p-2 rounded-md">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
                           <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
