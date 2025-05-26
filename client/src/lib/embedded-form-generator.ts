@@ -80,10 +80,62 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     return srcMatch ? srcMatch[1] : null;
   }
 
-  const formUrl = parseEmbedCode(config.embedCode);
+  const formUrl = parseEmbedCode("${config.formUrl}");
   if (!formUrl) return;
 
-  // Set form URL to iframe
+  // Create side-positioned overlay elements
+  const sideOverlay = document.createElement('div');
+  sideOverlay.id = 'directory-side-form';
+  sideOverlay.style.position = 'fixed';
+  sideOverlay.style.top = '20px';
+  sideOverlay.style.right = '20px';
+  sideOverlay.style.width = '400px';
+  sideOverlay.style.height = '500px';
+  sideOverlay.style.background = 'white';
+  sideOverlay.style.borderRadius = '12px';
+  sideOverlay.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
+  sideOverlay.style.zIndex = '9999';
+  sideOverlay.style.display = 'none';
+  sideOverlay.style.border = '1px solid #e5e7eb';
+  sideOverlay.style.padding = '16px';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.innerHTML = '×';
+  closeBtn.style.position = 'absolute';
+  closeBtn.style.top = '8px';
+  closeBtn.style.right = '8px';
+  closeBtn.style.width = '24px';
+  closeBtn.style.height = '24px';
+  closeBtn.style.background = '#000';
+  closeBtn.style.color = 'white';
+  closeBtn.style.border = 'none';
+  closeBtn.style.borderRadius = '50%';
+  closeBtn.style.cursor = 'pointer';
+  closeBtn.style.fontSize = '16px';
+
+  const formIframe = document.createElement('iframe');
+  formIframe.style.width = '100%';
+  formIframe.style.height = 'calc(100% - 40px)';
+  formIframe.style.border = 'none';
+  formIframe.style.borderRadius = '8px';
+  formIframe.style.marginTop = '32px';
+
+  const toggleBtn = document.createElement('button');
+  toggleBtn.textContent = '📋 Contact Form';
+  toggleBtn.style.position = 'fixed';
+  toggleBtn.style.top = '20px';
+  toggleBtn.style.right = '20px';
+  toggleBtn.style.background = '#3b82f6';
+  toggleBtn.style.color = 'white';
+  toggleBtn.style.border = 'none';
+  toggleBtn.style.borderRadius = '8px';
+  toggleBtn.style.padding = '12px 16px';
+  toggleBtn.style.cursor = 'pointer';
+  toggleBtn.style.zIndex = '10000';
+  toggleBtn.style.fontSize = '14px';
+  toggleBtn.style.boxShadow = '0 4px 12px rgba(59,130,246,0.3)';
+
+  // Set form URL
   formIframe.src = formUrl;
 
   // Add event handlers
@@ -97,11 +149,9 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     toggleBtn.style.display = 'block';
   };
 
-  // Assemble the overlay
+  // Assemble and add to page
   sideOverlay.appendChild(closeBtn);
   sideOverlay.appendChild(formIframe);
-
-  // Add elements to page
   document.body.appendChild(toggleBtn);
   document.body.appendChild(sideOverlay);
 })();
