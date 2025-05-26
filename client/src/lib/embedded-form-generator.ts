@@ -55,14 +55,13 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     }
   }
 
-  const target = document.querySelector('#description');
-  if (!target) return;
+  // Find the title element to position form next to it
+  const titleElement = document.querySelector('h1, .product-title, .listing-title, .hl-product-detail-product-name, [class*="product-name"]');
+  if (!titleElement) return;
 
-  const wrapper = document.createElement('div');
-  wrapper.className = 'description-form-flexwrap';
-
-  const descriptionClone = target.cloneNode(true);
-  wrapper.appendChild(descriptionClone);
+  // Create form container
+  const formContainer = document.createElement('div');
+  formContainer.className = 'title-form-container';
 
   // Parse original embed code to extract dimensions and form URL
   function parseEmbedCode(embedCode) {
@@ -79,7 +78,7 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
 
   // Create iframe with parsed dimensions + 100px buffer
   const iframe = document.createElement('iframe');
-  iframe.className = 'inline-listing-form';
+  iframe.className = 'title-inline-form';
   
   // Build URL with UTM injection
   const metadata = getListingMetadata();
@@ -94,62 +93,59 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   const separator = "${config.formUrl}".includes("?") ? "&" : "?";
   iframe.src = \`${config.formUrl}\${separator}\${paramString}\`;
   
-  // Set dimensions with +100px buffer for smoother integration
+  // Set dimensions for title alignment
   iframe.width = '100%';
-  iframe.height = '600'; // 500 + 100px buffer
+  iframe.height = '400'; // Compact height for title alignment
   iframe.style.border = 'none';
   iframe.style.borderRadius = '${config.borderRadius}px';
   iframe.style.boxShadow = '${config.boxShadow}';
-  wrapper.appendChild(iframe);
+  formContainer.appendChild(iframe);
 
-  target.replaceWith(wrapper);
-  document.body.classList.add('form-injected', '${config.animationType === "fade-squeeze" ? "option-1" : "option-2"}');
+  // Insert form container after title element
+  titleElement.parentNode.insertBefore(formContainer, titleElement.nextSibling);
+  document.body.classList.add('form-injected');
 })();
 </script>`;
 
-  // Generate CSS based on animation type - Updated to match specifications
-  const fadeSqueezeCSS = `/* Embedded Form with Fade-In Transition */
-.description-form-flexwrap {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-top: 30px;
-  column-gap: 1px;
-  width: 100%;
-}
-
-.description-form-flexwrap > #description {
-  width: 52% !important;
-  transition: width 1.5s ease;
-}
-
-.inline-listing-form {
+  // Generate CSS for title-aligned form positioning
+  const fadeSqueezeCSS = `/* Embedded Form Positioned Next to Title */
+.title-form-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  z-index: 10;
   opacity: 0;
   transition: opacity 1.2s ease;
 }
 
-body.form-injected .inline-listing-form {
+body.form-injected .title-form-container {
   opacity: 1;
 }
 
-.description-form-flexwrap > .inline-listing-form {
-  width: 46% !important;
-  transition: opacity 1.2s ease;
+.title-inline-form {
+  width: 100% !important;
   border-radius: 8px;
   overflow: hidden;
-  opacity: 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Mobile Layout */
-@media screen and (max-width: 768px) {
-  .description-form-flexwrap {
-    flex-direction: column;
-  }
+/* Make title container relative for absolute positioning */
+body.form-injected h1,
+body.form-injected .product-title,
+body.form-injected .listing-title,
+body.form-injected .hl-product-detail-product-name,
+body.form-injected [class*="product-name"] {
+  position: relative;
+}
 
-  .description-form-flexwrap > * {
+/* Mobile Layout - Stack below title */
+@media screen and (max-width: 768px) {
+  .title-form-container {
+    position: static;
     width: 100% !important;
+    margin-top: 20px;
     opacity: 1 !important;
-    transition: none !important;
   }
 }`;
 
