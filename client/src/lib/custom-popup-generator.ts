@@ -198,8 +198,8 @@ function addActionButton() {
     white-space: nowrap !important;
     line-height: 1.42857143 !important;
     margin: 5px 5px 0 0 !important;
-    width: 500px !important;
-    min-width: 500px !important;
+    width: 460px !important;
+    min-width: 460px !important;
   \`;
   
   // Insert after price element or append to container
