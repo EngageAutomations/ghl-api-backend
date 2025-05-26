@@ -46,15 +46,15 @@ export default function ConfigWizardDemo() {
   const [footerCodeCopied, setFooterCodeCopied] = useState<boolean>(false);
 
   // Component toggles
-  const [showPrice, setShowPrice] = useState<boolean>(false);
+  const [showPrice, setShowPrice] = useState<boolean>(true);
   const [showDescription, setShowDescription] = useState<boolean>(false);
   const [showMetadata, setShowMetadata] = useState<boolean>(false);
   const [showMaps, setShowMaps] = useState<boolean>(false);
   
   // Button hiding options
-  const [showBuyNowButton, setShowBuyNowButton] = useState<boolean>(false);
-  const [showAddToCartButton, setShowAddToCartButton] = useState<boolean>(false);
-  const [showQuantitySelector, setShowQuantitySelector] = useState<boolean>(false);
+  const [showBuyNowButton, setShowBuyNowButton] = useState<boolean>(true);
+  const [showAddToCartButton, setShowAddToCartButton] = useState<boolean>(true);
+  const [showQuantitySelector, setShowQuantitySelector] = useState<boolean>(true);
 
   // Parse embed code for popup dimensions
   const parsedEmbedData = useMemo(() => {
