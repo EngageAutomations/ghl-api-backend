@@ -55,9 +55,17 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     }
   }
 
-  // Find the product details container to position form next to it
+  // Find the product details container to wrap with form
   const productDetailsContainer = document.querySelector('.c-product-details');
   if (!productDetailsContainer) return;
+
+  // Create wrapper container for product details + form
+  const wrapperContainer = document.createElement('div');
+  wrapperContainer.className = 'product-form-wrapper';
+
+  // Clone the product details and add to wrapper
+  const productDetailsClone = productDetailsContainer.cloneNode(true);
+  wrapperContainer.appendChild(productDetailsClone);
 
   // Create form container
   const formContainer = document.createElement('div');
@@ -101,20 +109,33 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   iframe.style.boxShadow = '${config.boxShadow}';
   formContainer.appendChild(iframe);
 
-  // Insert form container after product details container
-  productDetailsContainer.parentNode.insertBefore(formContainer, productDetailsContainer.nextSibling);
+  // Add form to wrapper container
+  wrapperContainer.appendChild(formContainer);
+
+  // Replace original product details with wrapper
+  productDetailsContainer.parentNode.insertBefore(wrapperContainer, productDetailsContainer);
+  productDetailsContainer.remove();
   document.body.classList.add('form-injected');
 })();
 </script>`;
 
-  // Generate CSS for product details form positioning
-  const fadeSqueezeCSS = `/* Embedded Form Positioned Next to Product Details */
+  // Generate CSS for product details form wrapper
+  const fadeSqueezeCSS = `/* Product Details + Form Wrapper */
+.product-form-wrapper {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.product-form-wrapper > .c-product-details {
+  flex: 1;
+  min-width: 0;
+}
+
 .product-details-form-container {
-  position: absolute;
-  top: 0;
-  right: -320px;
   width: 300px;
-  z-index: 10;
+  flex-shrink: 0;
   opacity: 0;
   transition: opacity 1.2s ease;
 }
@@ -130,27 +151,15 @@ body.form-injected .product-details-form-container {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Make product details container relative for absolute positioning */
-body.form-injected .c-product-details {
-  position: relative;
-}
-
-/* Ensure parent container has enough space for form */
-body.form-injected .c-product-details {
-  margin-right: 320px;
-}
-
-/* Mobile Layout - Stack below product details */
+/* Mobile Layout - Stack vertically */
 @media screen and (max-width: 768px) {
-  .product-details-form-container {
-    position: static;
-    width: 100% !important;
-    margin-top: 20px;
-    opacity: 1 !important;
+  .product-form-wrapper {
+    flex-direction: column;
   }
   
-  body.form-injected .c-product-details {
-    margin-right: 0;
+  .product-details-form-container {
+    width: 100% !important;
+    opacity: 1 !important;
   }
 }`;
 
