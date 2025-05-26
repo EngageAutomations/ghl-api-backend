@@ -561,106 +561,6 @@ body:not(.hl-builder) [class*="read-more"],
 body:not(.hl-builder) .show-more {
   display: none !important;
 }
-
-/* Remove independent scrolling from description and gallery */
-body:not(.hl-builder) .product-image-container,
-body:not(.hl-builder) .hl-product-image-container,
-body:not(.hl-builder) .product-description-container {
-  overflow: visible !important;
-  max-height: none !important;
-  height: auto !important;
-}
-
-/* Hide show more buttons */
-body:not(.hl-builder) .show-more-btn, 
-body:not(.hl-builder) .read-more, 
-body:not(.hl-builder) [class*="show-more"], 
-body:not(.hl-builder) [class*="read-more"] {
-  display: none !important;
-}
-
-/* Hide all store elements by default */
-body:not(.hl-builder) .cstore-product-detail button, 
-body:not(.hl-builder) .product-detail-container button,
-body:not(.hl-builder) .hl-product-buy-button, 
-body:not(.hl-builder) .hl-product-cart-button,
-body:not(.hl-builder) [class*="add-cart"], 
-body:not(.hl-builder) [class*="buy-now"],
-body:not(.hl-builder) .cstore-product-detail [class*="price"], 
-body:not(.hl-builder) .product-detail-container [class*="price"],
-body:not(.hl-builder) .hl-product-price,
-body:not(.hl-builder) .hl-product-detail-selectors,
-body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
-body:not(.hl-builder) .product-detail-container [class*="qty"],
-body:not(.hl-builder) .cstore-product-detail input[type="number"],
-body:not(.hl-builder) input[class*="quantity"],
-body:not(.hl-builder) input[class*="qty"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
-/* Scrolling fix - public pages only */
-body:not(.hl-builder) .fullSection, 
-body:not(.hl-builder) .c-section, 
-body:not(.hl-builder) .c-wrapper, 
-body:not(.hl-builder) .inner, 
-body:not(.hl-builder) .vertical,
-body:not(.hl-builder) [class*="fullSection"], 
-body:not(.hl-builder) [class*="c-section"], 
-body:not(.hl-builder) [class*="c-wrapper"],
-body:not(.hl-builder) [class*="section-"], 
-body:not(.hl-builder) [class*="row-"], 
-body:not(.hl-builder) [class*="col-"],
-body:not(.hl-builder) [class*="inner"] {
-  overflow: visible !important;
-  overflow-x: visible !important;
-  overflow-y: visible !important;
-  max-height: none !important;
-  height: auto !important;
-}
-
-body:not(.hl-builder) { 
-  overflow-x: hidden !important; 
-  overflow-y: auto !important; 
-}
-
-/* Nuclear truncation fix */
-* { text-overflow: unset !important; -webkit-line-clamp: unset !important; }${showBuyNowButton ? `
-
-/* Show Buy Now Button */
-body:not(.hl-builder) .cstore-product-detail button,
-body:not(.hl-builder) .hl-product-buy-button,
-body:not(.hl-builder) [class*="buy-now"] {
-  display: inline-block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}` : ''}${showAddToCartButton ? `
-
-/* Show Add to Cart Button */
-body:not(.hl-builder) .hl-product-cart-button,
-body:not(.hl-builder) [class*="add-cart"] {
-  display: inline-block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}` : ''}${showPrice ? `
-
-/* Show Price */
-body:not(.hl-builder) .cstore-product-detail [class*="price"],
-body:not(.hl-builder) .hl-product-price {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}` : ''}${showQuantitySelector ? `
-
-/* Show Quantity Selector */
-body:not(.hl-builder) .hl-product-detail-selectors,
-body:not(.hl-builder) .cstore-product-detail input[type="number"],
-body:not(.hl-builder) input[class*="quantity"] {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}` : ''}
 </style>`;
                         copyToClipboard(cssCode, setCssCodeCopied);
                     }}
@@ -691,14 +591,6 @@ body:not(.hl-builder) .hl-product-detail-product-name {
   height: auto !important;
 }
 
-/* Specific fix for truncate-text class */
-body:not(.hl-builder) .truncate-text {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-  -webkit-line-clamp: unset !important;
-}
-
 /* Remove product description truncation */
 body:not(.hl-builder) [class*="product-description"],
 body:not(.hl-builder) #description,
@@ -719,20 +611,12 @@ body:not(.hl-builder) [class*="read-more"],
 body:not(.hl-builder) .show-more {
   display: none !important;
 }
-
-/* Remove independent scrolling from description and gallery */
-body:not(.hl-builder) .product-image-container,
-body:not(.hl-builder) .hl-product-image-container,
-body:not(.hl-builder) .product-description-container {
-  overflow: visible !important;
-  max-height: none !important;
-  height: auto !important;
-}
 </style>`}
                   </pre>
                 </div>
               </div>
             </div>
+          </div>
         </WizardStep>
 
         {/* Step 4: Code Preview */}
