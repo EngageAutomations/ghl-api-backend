@@ -505,8 +505,9 @@ document.addEventListener('DOMContentLoaded', function() {
                       const cssCode = `<style>
 /* GoHighLevel Page Customizations */
 
-/* Safe text truncation removal - GoHighLevel only */
-.cstore-product-detail *, .product-detail-container * {
+/* Only apply to public pages - NOT builder */
+body:not(.hl-builder) .cstore-product-detail *, 
+body:not(.hl-builder) .product-detail-container * {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
@@ -515,10 +516,12 @@ document.addEventListener('DOMContentLoaded', function() {
   height: auto !important;
 }
 
-/* Target specific GoHighLevel elements */
-.cstore-product-detail *, .product-detail-container *, 
-[class*="product-title"], [class*="product-name"], 
-[class*="product-description"], [class*="description"] {
+/* Target specific GoHighLevel elements - public only */
+body:not(.hl-builder) .cstore-product-detail *, 
+body:not(.hl-builder) .product-detail-container *, 
+body:not(.hl-builder) [class*="product-title"], 
+body:not(.hl-builder) [class*="product-name"], 
+body:not(.hl-builder) [class*="product-description"] {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
@@ -527,36 +530,36 @@ document.addEventListener('DOMContentLoaded', function() {
   height: auto !important;
 }
 
-/* Hide show more buttons everywhere */
-.show-more-btn, .read-more, [class*="show-more"], [class*="read-more"],
-button[class*="show"], button[class*="read"], [class*="expand"] {
+/* Hide show more buttons - public only */
+body:not(.hl-builder) .show-more-btn, 
+body:not(.hl-builder) .read-more, 
+body:not(.hl-builder) [class*="show-more"], 
+body:not(.hl-builder) [class*="read-more"] {
   display: none !important;
-  visibility: hidden !important;
 }
 
-/* Target only GoHighLevel store buttons */
-.cstore-product-detail button, .product-detail-container button,
-.hl-product-buy-button, .hl-product-cart-button,
-[class*="add-cart"], [class*="buy-now"], [class*="purchase"],
-.add-to-cart, .buy-now, [class*="btn-buy"], [class*="btn-cart"] {
+/* Hide store buttons - public only */
+body:not(.hl-builder) .cstore-product-detail button, 
+body:not(.hl-builder) .product-detail-container button,
+body:not(.hl-builder) .hl-product-buy-button, 
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"], 
+body:not(.hl-builder) [class*="buy-now"] {
   display: none !important;
-  visibility: hidden !important;
 }
 
-/* Hide GoHighLevel price elements only */
-.cstore-product-detail [class*="price"], 
-.product-detail-container [class*="price"],
-.hl-product-price, [class*="product-price"] {
+/* Hide price elements - public only */
+body:not(.hl-builder) .cstore-product-detail [class*="price"], 
+body:not(.hl-builder) .product-detail-container [class*="price"],
+body:not(.hl-builder) .hl-product-price {
   display: none !important;
-  visibility: hidden !important;
 }
 
-/* Hide GoHighLevel quantity selectors only */
-.cstore-product-detail [class*="quantity"], 
-.product-detail-container [class*="qty"],
-.cstore-product-detail input[type="number"] {
+/* Hide quantity selectors - public only */
+body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
+body:not(.hl-builder) .product-detail-container [class*="qty"],
+body:not(.hl-builder) .cstore-product-detail input[type="number"] {
   display: none !important;
-  visibility: hidden !important;
 }
 
 /* Targeted scrolling fix - Only affect public pages, not builder */
