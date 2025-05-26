@@ -521,12 +521,13 @@ document.addEventListener('DOMContentLoaded', function() {
             {/* CSS Preview Field */}
             <div className="border-t pt-6">
               <div className="space-y-2">
-                <div className="flex items-center">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      const cssCode = `<style>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        const cssCode = `<style>
 /* GoHighLevel Essential Fixes - Always Applied */
 
 /* Remove title truncation */
@@ -561,17 +562,174 @@ body:not(.hl-builder) [class*="read-more"],
 body:not(.hl-builder) .show-more {
   display: none !important;
 }
+
+/* Remove independent scrolling from description and gallery */
+body:not(.hl-builder) .product-image-container,
+body:not(.hl-builder) .hl-product-image-container,
+body:not(.hl-builder) .product-description-container {
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Hide show more buttons */
+body:not(.hl-builder) .show-more-btn, 
+body:not(.hl-builder) .read-more, 
+body:not(.hl-builder) [class*="show-more"], 
+body:not(.hl-builder) [class*="read-more"] {
+  display: none !important;
+}
+
+/* Hide all store elements by default */
+body:not(.hl-builder) .cstore-product-detail button, 
+body:not(.hl-builder) .product-detail-container button,
+body:not(.hl-builder) .hl-product-buy-button, 
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"], 
+body:not(.hl-builder) [class*="buy-now"],
+body:not(.hl-builder) .cstore-product-detail [class*="price"], 
+body:not(.hl-builder) .product-detail-container [class*="price"],
+body:not(.hl-builder) .hl-product-price,
+body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
+body:not(.hl-builder) .product-detail-container [class*="qty"],
+body:not(.hl-builder) .cstore-product-detail input[type="number"],
+body:not(.hl-builder) input[class*="quantity"],
+body:not(.hl-builder) input[class*="qty"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Scrolling fix - public pages only */
+body:not(.hl-builder) .fullSection, 
+body:not(.hl-builder) .c-section, 
+body:not(.hl-builder) .c-wrapper, 
+body:not(.hl-builder) .inner, 
+body:not(.hl-builder) .vertical,
+body:not(.hl-builder) [class*="fullSection"], 
+body:not(.hl-builder) [class*="c-section"], 
+body:not(.hl-builder) [class*="c-wrapper"],
+body:not(.hl-builder) [class*="section-"], 
+body:not(.hl-builder) [class*="row-"], 
+body:not(.hl-builder) [class*="col-"],
+body:not(.hl-builder) [class*="inner"] {
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+body:not(.hl-builder) { 
+  overflow-x: hidden !important; 
+  overflow-y: auto !important; 
+}
+
+/* Nuclear truncation fix */
+* { text-overflow: unset !important; -webkit-line-clamp: unset !important; }${showBuyNowButton ? `
+
+/* Show Buy Now Button */
+body:not(.hl-builder) .cstore-product-detail button,
+body:not(.hl-builder) .hl-product-buy-button,
+body:not(.hl-builder) [class*="buy-now"] {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}` : ''}${showAddToCartButton ? `
+
+/* Show Add to Cart Button */
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"] {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}` : ''}${showPrice ? `
+
+/* Show Price */
+body:not(.hl-builder) .cstore-product-detail [class*="price"],
+body:not(.hl-builder) .hl-product-price {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}` : ''}${showQuantitySelector ? `
+
+/* Show Quantity Selector */
+body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .cstore-product-detail input[type="number"],
+body:not(.hl-builder) input[class*="quantity"] {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}` : ''}
 </style>`;
                         copyToClipboard(cssCode, setCssCodeCopied);
                     }}
-                    className="mr-3"
                   >
                     Copy CSS
                   </Button>
                   <Label>GoHighLevel CSS (Copy this to your page's head section)</Label>
-                  {cssCodeCopied && (
-                    <span className="text-green-600 font-medium text-sm ml-[70px]">Copied</span>
-                  )}
+                </div>
+                {cssCodeCopied && (
+                  <span className="text-green-600 font-medium text-sm">Copied</span>
+                )}
+              </div>
+              <div className="bg-slate-900 text-slate-100 p-4 rounded-lg">
+                  <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
+{`<style>
+/* GoHighLevel Essential Fixes - Always Applied */
+
+/* Remove title truncation */
+body:not(.hl-builder) [class*="product-title"],
+body:not(.hl-builder) [class*="product-name"],
+body:not(.hl-builder) .hl-product-detail-product-name {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Specific fix for truncate-text class */
+body:not(.hl-builder) .truncate-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+}
+
+/* Remove product description truncation */
+body:not(.hl-builder) [class*="product-description"],
+body:not(.hl-builder) #description,
+body:not(.hl-builder) .product-description {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Remove show more buttons */
+body:not(.hl-builder) .show-more-btn,
+body:not(.hl-builder) .read-more,
+body:not(.hl-builder) [class*="show-more"],
+body:not(.hl-builder) [class*="read-more"],
+body:not(.hl-builder) .show-more {
+  display: none !important;
+}
+
+/* Remove independent scrolling from description and gallery */
+body:not(.hl-builder) .product-image-container,
+body:not(.hl-builder) .hl-product-image-container,
+body:not(.hl-builder) .product-description-container {
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+</style>`}
+                  </pre>
                 </div>
               </div>
             </div>
@@ -587,20 +745,24 @@ body:not(.hl-builder) .show-more {
             {/* Header Code */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => copyToClipboard(generatedCode.headerCode, setHeaderCodeCopied)}
-                  >
-                    Copy
-                  </Button>
-                  <Label>Header Code (Add to &lt;head&gt; section)</Label>
-                </div>
-                {headerCodeCopied && (
-                  <span className="text-green-600 font-medium text-sm">Copied</span>
-                )}
-
+                <Label>Header Code (Add to &lt;head&gt; section)</Label>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => copyToClipboard(generatedCode.headerCode, setHeaderCodeCopied)}
+                  className={headerCodeCopied ? "bg-green-100 border-green-300 text-green-700" : ""}
+                >
+                  {headerCodeCopied ? (
+                    <>
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Copied!
+                    </>
+                  ) : (
+                    "Copy"
+                  )}
+                </Button>
               </div>
               <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
                 <pre className="text-sm whitespace-pre-wrap">{generatedCode.headerCode}</pre>
