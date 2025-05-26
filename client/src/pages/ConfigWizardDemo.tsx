@@ -555,11 +555,19 @@ body:not(.hl-builder) .hl-product-price {
   display: none !important;
 }
 
-/* Hide quantity selectors - public only */
+/* Hide quantity selectors - ultra-targeted */
 body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
 body:not(.hl-builder) .product-detail-container [class*="qty"],
-body:not(.hl-builder) .cstore-product-detail input[type="number"] {
+body:not(.hl-builder) .cstore-product-detail input[type="number"],
+body:not(.hl-builder) input[class*="quantity"],
+body:not(.hl-builder) input[class*="qty"],
+body:not(.hl-builder) [class*="qty-input"],
+body:not(.hl-builder) [class*="quantity-input"],
+body:not(.hl-builder) .quantity-selector,
+body:not(.hl-builder) .qty-selector {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
 /* Targeted scrolling fix - Only affect public pages, not builder */
