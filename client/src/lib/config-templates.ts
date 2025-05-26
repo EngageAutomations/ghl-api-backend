@@ -53,30 +53,30 @@ export const ACTION_BUTTON_POPUP_CONFIG: ConfigTemplate = {
   
   // Header CSS Template with customizable variables
   cssTemplate: `<style>
-  /* Action Button Styling - Matches GoHighLevel button layout */
+  /* Action Button Styling - Matches GoHighLevel primary-btn and secondary-btn exactly */
   .trigger-optin-btn {
     display: inline-block;
     background-color: {{buttonColor}};       /* customizable */
     color: {{buttonTextColor}};              /* customizable */
-    padding: 12px 24px;
+    padding: 10px 16px;
     border-radius: {{buttonRadius}};         /* customizable */
-    font-weight: 600;
+    font-weight: 500;
     font-size: 14px;
     cursor: pointer;
-    margin: 10px 0;
+    margin: 10px 5px 10px 0;
     text-align: center;
     transition: all 0.2s ease;
-    border: none;
+    border: 1px solid transparent;
     text-decoration: none;
-    min-width: 120px;
-    line-height: 1.5;
+    width: 100px;
+    box-sizing: border-box;
+    line-height: 1.42857143;
     vertical-align: middle;
     white-space: nowrap;
   }
 
   .trigger-optin-btn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+    opacity: 0.85;
   }
 
 
