@@ -662,16 +662,28 @@ body:not(.hl-builder) input[class*="quantity"] {
 {`<style>
 /* GoHighLevel Essential Fixes - Always Applied */
 
-/* Remove title truncation */
+/* Remove title truncation - Nuclear approach */
 body:not(.hl-builder) [class*="product-title"],
 body:not(.hl-builder) [class*="product-name"],
-body:not(.hl-builder) .hl-product-detail-product-name {
+body:not(.hl-builder) .hl-product-detail-product-name,
+body:not(.hl-builder) .truncate-text,
+body:not(.hl-builder) p.hl-product-detail-product-name,
+body:not(.hl-builder) p.truncate-text {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
   -webkit-line-clamp: unset !important;
   max-height: none !important;
   height: auto !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+/* Global truncate fix */
+body:not(.hl-builder) .truncate-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
 }
 
 /* Remove product description truncation */
