@@ -47,9 +47,9 @@ export default function ConfigWizardDemo() {
   const [showMaps, setShowMaps] = useState<boolean>(false);
   
   // Button hiding options
-  const [hideBuyNowButton, setHideBuyNowButton] = useState<boolean>(false);
-  const [hideAddToCartButton, setHideAddToCartButton] = useState<boolean>(false);
-  const [hideQuantitySelector, setHideQuantitySelector] = useState<boolean>(false);
+  const [showBuyNowButton, setShowBuyNowButton] = useState<boolean>(false);
+  const [showAddToCartButton, setShowAddToCartButton] = useState<boolean>(false);
+  const [showQuantitySelector, setShowQuantitySelector] = useState<boolean>(false);
 
   // Parse embed code for popup dimensions
   const parsedEmbedData = useMemo(() => {
@@ -69,9 +69,9 @@ export default function ConfigWizardDemo() {
         buttonBorderRadius: previewBorderRadius,
         customFieldName: customFieldName || 'listing',
         formUrl: formEmbedUrl,
-        hideBuyNowButton,
-        hideAddToCartButton,
-        hideQuantitySelector
+        showBuyNowButton,
+        showAddToCartButton,
+        showQuantitySelector
       });
       
       if (result.isValid) {
@@ -438,9 +438,9 @@ document.addEventListener('DOMContentLoaded', function() {
                       </div>
                     </div>
                     <Switch 
-                      checked={hideBuyNowButton}
-                      onCheckedChange={setHideBuyNowButton}
-                      id="hide-buy-now" 
+                      checked={showBuyNowButton}
+                      onCheckedChange={setShowBuyNowButton}
+                      id="show-buy-now" 
                     />
                   </div>
                 </div>
@@ -461,9 +461,9 @@ document.addEventListener('DOMContentLoaded', function() {
                       </div>
                     </div>
                     <Switch 
-                      checked={hideAddToCartButton}
-                      onCheckedChange={setHideAddToCartButton}
-                      id="hide-add-cart" 
+                      checked={showAddToCartButton}
+                      onCheckedChange={setShowAddToCartButton}
+                      id="show-add-cart" 
                     />
                   </div>
                 </div>
