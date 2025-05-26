@@ -505,8 +505,8 @@ document.addEventListener('DOMContentLoaded', function() {
                       const cssCode = `<style>
 /* GoHighLevel Page Customizations */
 
-/* Ultra-nuclear text truncation removal */
-*, *::before, *::after {
+/* Safe text truncation removal - GoHighLevel only */
+.cstore-product-detail *, .product-detail-container * {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
@@ -534,23 +534,27 @@ button[class*="show"], button[class*="read"], [class*="expand"] {
   visibility: hidden !important;
 }
 
-/* Ultra-aggressive button hiding */
-button, .btn, [class*="btn"], input[type="button"], input[type="submit"],
-[class*="button"], [class*="add-cart"], [class*="buy"], [class*="purchase"],
-[class*="cart"], .add-to-cart, .buy-now {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
-/* Hide all price elements */
-[class*="price"], .price, [class*="cost"], [class*="amount"] {
+/* Target only GoHighLevel store buttons */
+.cstore-product-detail button, .product-detail-container button,
+.hl-product-buy-button, .hl-product-cart-button,
+[class*="add-cart"], [class*="buy-now"], [class*="purchase"],
+.add-to-cart, .buy-now, [class*="btn-buy"], [class*="btn-cart"] {
   display: none !important;
   visibility: hidden !important;
 }
 
-/* Hide quantity selectors */
-[class*="quantity"], [class*="qty"], input[type="number"] {
+/* Hide GoHighLevel price elements only */
+.cstore-product-detail [class*="price"], 
+.product-detail-container [class*="price"],
+.hl-product-price, [class*="product-price"] {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Hide GoHighLevel quantity selectors only */
+.cstore-product-detail [class*="quantity"], 
+.product-detail-container [class*="qty"],
+.cstore-product-detail input[type="number"] {
   display: none !important;
   visibility: hidden !important;
 }
