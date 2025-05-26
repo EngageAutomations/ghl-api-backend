@@ -505,9 +505,8 @@ document.addEventListener('DOMContentLoaded', function() {
                       const cssCode = `<style>
 /* GoHighLevel Page Customizations */
 
-/* Remove text truncation completely - Nuclear option */
-.hl-product-price, .hl-product-title, .cstore-product-detail *, 
-.product-detail-container *, [class*="product-title"], [class*="product-name"] {
+/* Ultra-nuclear text truncation removal */
+*, *::before, *::after {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
@@ -516,33 +515,44 @@ document.addEventListener('DOMContentLoaded', function() {
   height: auto !important;
 }
 
-/* Hide product description show more button */
-.show-more-btn, .read-more, [class*="show-more"], [class*="read-more"] {
-  display: none !important;
+/* Target specific GoHighLevel elements */
+.cstore-product-detail *, .product-detail-container *, 
+[class*="product-title"], [class*="product-name"], 
+[class*="product-description"], [class*="description"] {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
 }
 
-/* Hide price display by default */
-.hl-product-price, .product-price, .price, [class*="price"],
-.hl-product-detail-product-price, [class*="product-price"] {
+/* Hide show more buttons everywhere */
+.show-more-btn, .read-more, [class*="show-more"], [class*="read-more"],
+button[class*="show"], button[class*="read"], [class*="expand"] {
   display: none !important;
+  visibility: hidden !important;
 }
 
-/* Hide quantity selector by default */
-.quantity-selector, .qty-selector, [class*="quantity"], 
-input[type="number"][name*="quantity"], [class*="qty"] {
+/* Ultra-aggressive button hiding */
+button, .btn, [class*="btn"], input[type="button"], input[type="submit"],
+[class*="button"], [class*="add-cart"], [class*="buy"], [class*="purchase"],
+[class*="cart"], .add-to-cart, .buy-now {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
-/* Hide add to cart button by default */
-.add-to-cart-button, .btn-add-cart, [class*="add-cart"], 
-.hl-product-cart-button, [class*="cart-btn"] {
+/* Hide all price elements */
+[class*="price"], .price, [class*="cost"], [class*="amount"] {
   display: none !important;
+  visibility: hidden !important;
 }
 
-/* Hide buy now button by default */
-.buy-now-button, .btn-buy-now, [class*="buy-now"], 
-.hl-product-buy-button, [class*="buy-btn"] {
+/* Hide quantity selectors */
+[class*="quantity"], [class*="qty"], input[type="number"] {
   display: none !important;
+  visibility: hidden !important;
 }
 
 /* Targeted scrolling fix - Only affect public pages, not builder */
