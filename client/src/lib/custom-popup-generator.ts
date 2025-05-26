@@ -175,18 +175,31 @@ function addActionButton() {
   // Check if button already exists
   if (document.querySelector('#custom-action-btn')) return;
   
-  // Create and insert button using GoHighLevel button structure
+  // Create and insert button matching the exact Add to Cart structure
   const button = document.createElement('button');
-  button.className = 'primary-btn';
   button.id = 'custom-action-btn';
+  button.className = 'primary-btn';
   button.textContent = '${config.buttonText}';
   button.onclick = openPopup;
   
-  // Apply inline styles to match exact GoHighLevel button appearance
+  // Copy the exact inline styles from Add to Cart button
   button.style.cssText = \`
     background-color: ${config.buttonColor} !important;
     color: ${config.buttonTextColor} !important;
     border-radius: ${config.buttonBorderRadius}px !important;
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    border: 1px solid transparent !important;
+    cursor: pointer !important;
+    display: inline-block !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+    line-height: 1.42857143 !important;
+    margin: 5px 5px 0 0 !important;
+    width: auto !important;
+    min-width: 100px !important;
   \`;
   
   // Insert after price element or append to container
