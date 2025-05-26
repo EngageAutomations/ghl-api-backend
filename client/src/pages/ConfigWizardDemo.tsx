@@ -574,48 +574,8 @@ body:not(.hl-builder) .show-more {
                   )}
                 </div>
               </div>
-              <div className="bg-slate-900 text-slate-100 p-4 rounded-lg">
-                <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
-{`<style>
-/* GoHighLevel Essential Fixes - Always Applied */
-
-/* Remove title truncation */
-body:not(.hl-builder) [class*="product-title"],
-body:not(.hl-builder) [class*="product-name"],
-body:not(.hl-builder) .hl-product-detail-product-name {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-  -webkit-line-clamp: unset !important;
-  max-height: none !important;
-  height: auto !important;
-}
-
-/* Remove product description truncation */
-body:not(.hl-builder) [class*="product-description"],
-body:not(.hl-builder) #description,
-body:not(.hl-builder) .product-description {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-  -webkit-line-clamp: unset !important;
-  max-height: none !important;
-  height: auto !important;
-}
-
-/* Remove show more buttons */
-body:not(.hl-builder) .show-more-btn,
-body:not(.hl-builder) .read-more,
-body:not(.hl-builder) [class*="show-more"],
-body:not(.hl-builder) [class*="read-more"],
-body:not(.hl-builder) .show-more {
-  display: none !important;
-}
-</style>`}
-                  </pre>
-                </div>
-              </div>
             </div>
+          </div>
         </WizardStep>
 
         {/* Step 4: Code Preview */}
