@@ -780,7 +780,48 @@ body:not(.hl-builder) .product-description-container {
   max-height: none !important;
   height: auto !important;
 }
-</style>`}
+</style>
+
+<script>
+/* JavaScript DOM Manipulation - Bypass CSS specificity */
+(function() {
+  function removeTruncation() {
+    // Target all truncate-text elements
+    const truncateElements = document.querySelectorAll('.truncate-text, .hl-product-detail-product-name, [class*="product-title"], [class*="product-name"]');
+    
+    truncateElements.forEach(function(element) {
+      element.style.setProperty('white-space', 'normal', 'important');
+      element.style.setProperty('overflow', 'visible', 'important');
+      element.style.setProperty('text-overflow', 'unset', 'important');
+      element.style.setProperty('-webkit-line-clamp', 'unset', 'important');
+      element.style.setProperty('max-width', 'none', 'important');
+      element.style.setProperty('width', 'auto', 'important');
+    });
+    
+    // Remove show more buttons
+    const showMoreButtons = document.querySelectorAll('.show-more-btn, .read-more, [class*="show-more"], [class*="read-more"], .show-more');
+    showMoreButtons.forEach(function(button) {
+      button.style.display = 'none';
+    });
+  }
+  
+  // Run on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', removeTruncation);
+  } else {
+    removeTruncation();
+  }
+  
+  // Run periodically to catch dynamically loaded content
+  setInterval(removeTruncation, 1000);
+  
+  // Run on any DOM changes
+  if (window.MutationObserver) {
+    const observer = new MutationObserver(removeTruncation);
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+})();
+</script>`}
                   </pre>
                 </div>
               </div>
