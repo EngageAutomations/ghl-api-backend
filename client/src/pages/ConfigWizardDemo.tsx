@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { parseEmbedCode, ParsedEmbedData } from '@/lib/embed-parser';
 import { generateActionButtonPopup } from '@/lib/custom-popup-generator';
+import { generateEmbeddedFormCode } from '@/lib/embedded-form-generator';
 
 interface WizardStepProps {
   title: string;
@@ -97,6 +98,20 @@ export default function ConfigWizardDemo() {
       return {
         headerCode: popupCode.headerCode || '/* Paste GoHighLevel iframe embed code to generate popup CSS */',
         footerCode: popupCode.footerCode || '/* Paste GoHighLevel iframe embed code to generate popup JavaScript */'
+      };
+    } else if (buttonType === 'embed' && formEmbedUrl) {
+      // Generate embedded form template
+      const embeddedFormCode = generateEmbeddedFormCode({
+        formUrl: formEmbedUrl,
+        animationType: "fade-squeeze",
+        borderRadius: previewBorderRadius,
+        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        customFieldName: customFieldName || 'listing',
+        metadataFields: []
+      });
+      return {
+        headerCode: embeddedFormCode.cssCode,
+        footerCode: embeddedFormCode.jsCode
       };
     } else {
       // Generate directory listing template
