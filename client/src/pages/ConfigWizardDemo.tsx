@@ -666,6 +666,7 @@ body:not(.hl-builder) input[class*="quantity"] {
 body:not(.hl-builder) * {
   text-overflow: unset !important;
   -webkit-line-clamp: unset !important;
+  white-space: normal !important;
 }
 
 /* FORCE all containers to allow full width */
