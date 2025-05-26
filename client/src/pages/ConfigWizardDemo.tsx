@@ -609,7 +609,9 @@ body:not(.hl-builder) {
 /* Hide Buy Now Button */
 body:not(.hl-builder) .cstore-product-detail button,
 body:not(.hl-builder) .hl-product-buy-button,
-body:not(.hl-builder) [class*="buy-now"] {
+body:not(.hl-builder) [class*="buy-now"],
+body:not(.hl-builder) #buy-now-btn,
+body:not(.hl-builder) .secondary-btn {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
@@ -740,7 +742,9 @@ body:not(.hl-builder) {
 /* Hide Buy Now Button */
 body:not(.hl-builder) .cstore-product-detail button,
 body:not(.hl-builder) .hl-product-buy-button,
-body:not(.hl-builder) [class*="buy-now"] {
+body:not(.hl-builder) [class*="buy-now"],
+body:not(.hl-builder) #buy-now-btn,
+body:not(.hl-builder) .secondary-btn {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
