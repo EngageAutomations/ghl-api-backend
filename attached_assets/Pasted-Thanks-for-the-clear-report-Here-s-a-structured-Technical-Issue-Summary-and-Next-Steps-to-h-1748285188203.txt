@@ -1,0 +1,59 @@
+Thanks for the clear report. Here's a structured **Technical Issue Summary** and **Next Steps** to help Replit or your dev team resolve this embedded form positioning bug efficiently.
+
+---
+
+### 🛠️ **Issue Report: Embedded Form Placement Bug**
+
+#### 🔍 **Problem Summary**
+
+The **embedded form** consistently renders **below** the product content instead of appearing **alongside** the `.c-product-details` section, despite targeting various DOM anchors. This misplacement breaks the intended layout integration.
+
+---
+
+#### 🧪 **Attempts Made**
+
+| Attempt | Target Element                      | Strategy                                                       | Result                                                |
+| ------- | ----------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------- |
+| 1️⃣     | `.hl-product-detail-product-name`   | Absolute injection below title                                 | ❌ Overlapping / broken structure                      |
+| 2️⃣     | `.c-product-details`                | Appended a flex container                                      | ❌ Form dropped to bottom                              |
+| 3️⃣     | `#description`                      | Created `.description-form-flexwrap` around description + form | ⚠️ Form loads but layout misaligned (still below)     |
+| 4️⃣     | CSS Flexbox                         | Forced horizontal layout with `display: flex`                  | ⚠️ Layout applies, but only after content fully loads |
+| 5️⃣     | MutationObserver + DOMContentLoaded | Ensured injection runs after load                              | ✅ Form injects reliably, ❌ layout breaks persist      |
+
+---
+
+#### 🔧 **Root Cause Hypothesis**
+
+* **GoHighLevel page layout** may reflow or overwrite DOM positioning after render, especially with deeply nested or asynchronously hydrated components.
+* **Form is injected correctly**, but **the parent container may not have enough structure** to position inline elements reliably.
+* There may be missing structural guarantees in the **element targeted** (`#description`) to support horizontal layout injection.
+
+---
+
+### ✅ **Recommended Fix Strategy**
+
+#### Option A: Target Higher-Level Container (Best Fix)
+
+Instead of injecting after `#description`, target the **parent `.c-product-details`** or a **sibling container** with controlled dimensions. Wrap this in a custom layout block:
+
+```js
+const productDetails = document.querySelector(".c-product-details");
+```
+
+Insert a two-column flex wrapper **around the entire section**, not just `#description`.
+
+#### Option B: Reserve Space Preload (Fallback Fix)
+
+Inject a **placeholder div** on page load in the correct location. After DOM is ready, **replace it** with the iframe. This can preserve layout before mutation completes.
+
+#### Option C: DOM Patch + Reflow Trigger
+
+After injecting the iframe, force a **layout reflow** by toggling a CSS class or reassigning `offsetHeight`.
+
+---
+
+### 📦 Final Suggestion for Replit Agent
+
+> Inject the form at the `.c-product-details` level instead of only under `#description`. Wrap the **entire content block** in a flex container so both the text and the embedded form exist side-by-side. This allows true two-column layout on desktop and stacked layout on mobile. This strategy ensures structural alignment regardless of async content rehydration.
+
+Let me know if you want a fresh injection script that targets `.c-product-details` and handles fallback gracefully.

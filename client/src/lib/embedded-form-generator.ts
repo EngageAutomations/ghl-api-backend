@@ -55,17 +55,17 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     }
   }
 
-  // Find the description element to position form next to it
-  const descriptionElement = document.querySelector('#description, .product-description, [class*="description"]');
-  if (!descriptionElement) return;
+  // Find the product details container (higher-level approach)
+  const productDetailsContainer = document.querySelector('.c-product-details');
+  if (!productDetailsContainer) return;
 
-  // Create wrapper container for description + form
+  // Create two-column wrapper for entire product details + form
   const wrapperContainer = document.createElement('div');
-  wrapperContainer.className = 'description-form-wrapper';
+  wrapperContainer.className = 'product-details-with-form-wrapper';
 
-  // Clone the description and add to wrapper
-  const descriptionClone = descriptionElement.cloneNode(true);
-  wrapperContainer.appendChild(descriptionClone);
+  // Clone the entire product details and add to wrapper
+  const productDetailsClone = productDetailsContainer.cloneNode(true);
+  wrapperContainer.appendChild(productDetailsClone);
 
   // Create form container
   const formContainer = document.createElement('div');
@@ -112,31 +112,34 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   // Add form to wrapper container
   wrapperContainer.appendChild(formContainer);
 
-  // Replace original description with wrapper
-  descriptionElement.parentNode.insertBefore(wrapperContainer, descriptionElement);
-  descriptionElement.remove();
+  // Replace original product details with wrapper
+  productDetailsContainer.parentNode.insertBefore(wrapperContainer, productDetailsContainer);
+  productDetailsContainer.remove();
+  
+  // Force layout reflow to prevent positioning issues
+  wrapperContainer.offsetHeight;
   document.body.classList.add('form-injected');
 })();
 </script>`;
 
-  // Generate CSS for description + form wrapper
-  const fadeSqueezeCSS = `/* Description + Form Wrapper */
-.description-form-wrapper {
-  display: flex;
+  // Generate CSS for product details + form wrapper (higher-level approach)
+  const fadeSqueezeCSS = `/* Product Details + Form Two-Column Layout */
+.product-details-with-form-wrapper {
+  display: flex !important;
   gap: 20px;
   align-items: flex-start;
   width: 100%;
+  box-sizing: border-box;
 }
 
-.description-form-wrapper > #description,
-.description-form-wrapper > .product-description,
-.description-form-wrapper > [class*="description"] {
+.product-details-with-form-wrapper > .c-product-details {
   flex: 1;
   min-width: 0;
+  max-width: none !important;
 }
 
 .product-details-form-container {
-  width: 300px;
+  width: 320px;
   flex-shrink: 0;
   opacity: 0;
   transition: opacity 1.2s ease;
@@ -148,15 +151,22 @@ body.form-injected .product-details-form-container {
 
 .product-details-inline-form {
   width: 100% !important;
+  height: 500px !important;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
+/* Ensure parent containers don't override our layout */
+body.form-injected .product-details-with-form-wrapper {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+}
+
 /* Mobile Layout - Stack vertically */
 @media screen and (max-width: 768px) {
-  .description-form-wrapper {
-    flex-direction: column;
+  .product-details-with-form-wrapper {
+    flex-direction: column !important;
   }
   
   .product-details-form-container {
