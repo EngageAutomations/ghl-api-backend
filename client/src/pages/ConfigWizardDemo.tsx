@@ -492,6 +492,102 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
               </div>
             </div>
+
+            {/* CSS Preview Field */}
+            <div className="border-t pt-6">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>GoHighLevel CSS (Copy this to your page's head section)</Label>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const cssCode = `<style>
+/* GoHighLevel Page Customizations */
+
+/* Remove text truncation completely */
+.hl-product-price, .hl-product-title, .cstore-product-detail *, 
+.product-detail-container *, [class*="product-title"], [class*="product-name"] {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Hide show more buttons */
+.show-more-btn, .read-more, [class*="show-more"], [class*="read-more"] {
+  display: none !important;
+}
+
+/* Nuclear truncation fix */
+* { text-overflow: unset !important; -webkit-line-clamp: unset !important; }${hideBuyNowButton ? `
+
+/* Hide Buy Now Button */
+.buy-now-button, .btn-buy-now, [class*="buy-now"], .hl-product-buy-button {
+  display: none !important;
+}` : ''}${hideAddToCartButton ? `
+
+/* Hide Add to Cart Button */
+.add-to-cart-button, .btn-add-cart, [class*="add-cart"], .hl-product-cart-button {
+  display: none !important;
+}` : ''}${hideQuantitySelector ? `
+
+/* Hide Quantity Selector */
+.quantity-selector, .qty-selector, [class*="quantity"], input[type="number"][name*="quantity"] {
+  display: none !important;
+}` : ''}
+</style>`;
+                      navigator.clipboard.writeText(cssCode);
+                    }}
+                  >
+                    Copy CSS
+                  </Button>
+                </div>
+                <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
+                  <pre className="text-sm whitespace-pre-wrap">
+{`<style>
+/* GoHighLevel Page Customizations */
+
+/* Remove text truncation completely */
+.hl-product-price, .hl-product-title, .cstore-product-detail *, 
+.product-detail-container *, [class*="product-title"], [class*="product-name"] {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Hide show more buttons */
+.show-more-btn, .read-more, [class*="show-more"], [class*="read-more"] {
+  display: none !important;
+}
+
+/* Nuclear truncation fix */
+* { text-overflow: unset !important; -webkit-line-clamp: unset !important; }${hideBuyNowButton ? `
+
+/* Hide Buy Now Button */
+.buy-now-button, .btn-buy-now, [class*="buy-now"], .hl-product-buy-button {
+  display: none !important;
+}` : ''}${hideAddToCartButton ? `
+
+/* Hide Add to Cart Button */
+.add-to-cart-button, .btn-add-cart, [class*="add-cart"], .hl-product-cart-button {
+  display: none !important;
+}` : ''}${hideQuantitySelector ? `
+
+/* Hide Quantity Selector */
+.quantity-selector, .qty-selector, [class*="quantity"], input[type="number"][name*="quantity"] {
+  display: none !important;
+}` : ''}
+</style>`}
+                  </pre>
+                </div>
+              </div>
+            </div>
           </div>
         </WizardStep>
 
