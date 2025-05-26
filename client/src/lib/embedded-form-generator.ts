@@ -83,32 +83,34 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   placeholderContainer.id = 'listingEmbedFormContainer';
   placeholderContainer.className = 'directory-embed-wrapper';
   
-  // Clone description and add to placeholder
-  const descriptionClone = descriptionElement.cloneNode(true);
-  placeholderContainer.appendChild(descriptionClone);
+  // Move original description element instead of cloning
+  placeholderContainer.appendChild(descriptionElement);
 
   // Create form container
   const formContainer = document.createElement('div');
   formContainer.className = 'product-details-form-container';
 
-  // Parse original embed code to extract dimensions and form URL
+  // Parse original embed code to extract form URL properly
   function parseEmbedCode(embedCode) {
     const srcMatch = embedCode.match(/src="([^"]+)"/);
     const widthMatch = embedCode.match(/width="([^"]+)"/);
     const heightMatch = embedCode.match(/height="([^"]+)"/);
     
     return {
-      formUrl: srcMatch ? srcMatch[1] : "${config.formUrl}",
+      formUrl: srcMatch ? srcMatch[1] : embedCode,
       width: widthMatch ? parseInt(widthMatch[1]) : 500,
       height: heightMatch ? parseInt(heightMatch[1]) : 500
     };
   }
 
-  // Create iframe with parsed dimensions + 100px buffer
+  // Parse the form URL properly
+  const parsedForm = parseEmbedCode("${config.formUrl}");
+  
+  // Create iframe with proper URL handling
   const iframe = document.createElement('iframe');
   iframe.className = 'product-details-inline-form';
   
-  // Build URL with UTM injection
+  // Build URL with UTM injection (use parsed form URL, not full embed code)
   const metadata = getListingMetadata();
   let paramString = \`listing=\${encodeURIComponent(slug)}&utm_source=directory\`;
   
@@ -118,8 +120,8 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   // Add metadata parameters
   ${metadataParams}
 
-  const separator = "${config.formUrl}".includes("?") ? "&" : "?";
-  iframe.src = \`${config.formUrl}\${separator}\${paramString}\`;
+  const separator = parsedForm.formUrl.includes("?") ? "&" : "?";
+  iframe.src = \`\${parsedForm.formUrl}\${separator}\${paramString}\`;
   
   // Set dimensions for product details alignment
   iframe.width = '100%';
@@ -132,9 +134,11 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   // Add form to placeholder container
   placeholderContainer.appendChild(formContainer);
 
-  // Replace original description with placeholder container
-  descriptionElement.parentNode.insertBefore(placeholderContainer, descriptionElement);
-  descriptionElement.remove();
+  // Find the parent container to inject properly  
+  const targetContainer = descriptionElement.closest('[class*="c-product-details"], .product-detail-container') || descriptionElement.parentNode;
+  
+  // Insert placeholder container in the target location
+  targetContainer.parentNode.insertBefore(placeholderContainer, targetContainer.nextSibling);
   
   // Force layout reflow and add CSS lock-in class
   placeholderContainer.offsetHeight;
@@ -166,6 +170,7 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   flex-shrink: 0 !important;
   opacity: 0 !important;
   transition: opacity 1.2s ease !important;
+  min-height: 500px !important;
 }
 
 body.directory-embed-active .product-details-form-container {
@@ -177,7 +182,7 @@ body.directory-embed-active .product-details-form-container {
   height: 500px !important;
   border-radius: 8px !important;
   overflow: hidden !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: none !important;
   border: none !important;
 }
 
