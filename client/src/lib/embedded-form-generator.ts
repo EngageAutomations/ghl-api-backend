@@ -74,64 +74,36 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     });
   }
 
-  // Simple floating widget approach - more reliable than layout manipulation
-  const formWidget = document.createElement('div');
-  formWidget.id = 'directory-form-widget';
-  formWidget.className = 'directory-floating-form';
-
-  // Parse original embed code to extract form URL properly
+  // Parse embed code to extract form URL
   function parseEmbedCode(embedCode) {
     const srcMatch = embedCode.match(/src="([^"]+)"/);
-    const widthMatch = embedCode.match(/width="([^"]+)"/);
-    const heightMatch = embedCode.match(/height="([^"]+)"/);
-    
-    return {
-      formUrl: srcMatch ? srcMatch[1] : embedCode,
-      width: widthMatch ? parseInt(widthMatch[1]) : 500,
-      height: heightMatch ? parseInt(heightMatch[1]) : 500
-    };
+    return srcMatch ? srcMatch[1] : null;
   }
 
-  // Parse the form URL properly
-  const parsedForm = parseEmbedCode("${config.formUrl}");
-  
-  // Create iframe with proper URL handling
-  const iframe = document.createElement('iframe');
-  iframe.className = 'product-details-inline-form';
-  
-  // Build URL with UTM injection (use parsed form URL, not full embed code)
-  const metadata = getListingMetadata();
-  let paramString = \`listing=\${encodeURIComponent(slug)}&utm_source=directory\`;
-  
-  // Add custom field and metadata parameters
-  paramString += \`&${config.customFieldName}=\${encodeURIComponent(title)}\`;
-  
-  // Add metadata parameters
-  ${metadataParams}
+  const formUrl = parseEmbedCode(config.embedCode);
+  if (!formUrl) return;
 
-  const separator = parsedForm.formUrl.includes("?") ? "&" : "?";
-  iframe.src = \`\${parsedForm.formUrl}\${separator}\${paramString}\`;
-  
-  // Set dimensions for product details alignment
-  iframe.width = '100%';
-  iframe.height = '500'; // Height for product details alignment
-  iframe.style.border = 'none';
-  iframe.style.borderRadius = '${config.borderRadius}px';
-  iframe.style.boxShadow = '${config.boxShadow}';
-  formContainer.appendChild(iframe);
+  // Set form URL to iframe
+  formIframe.src = formUrl;
 
-  // Add form to placeholder container
-  placeholderContainer.appendChild(formContainer);
+  // Add event handlers
+  toggleBtn.onclick = function() {
+    sideOverlay.style.display = 'block';
+    toggleBtn.style.display = 'none';
+  };
 
-  // Find the parent container to inject properly  
-  const targetContainer = descriptionElement.closest('[class*="c-product-details"], .product-detail-container') || descriptionElement.parentNode;
-  
-  // Insert placeholder container in the target location
-  targetContainer.parentNode.insertBefore(placeholderContainer, targetContainer.nextSibling);
-  
-  // Force layout reflow and add CSS lock-in class
-  placeholderContainer.offsetHeight;
-  document.body.classList.add('form-injected', 'directory-embed-active');
+  closeBtn.onclick = function() {
+    sideOverlay.style.display = 'none';
+    toggleBtn.style.display = 'block';
+  };
+
+  // Assemble the overlay
+  sideOverlay.appendChild(closeBtn);
+  sideOverlay.appendChild(formIframe);
+
+  // Add elements to page
+  document.body.appendChild(toggleBtn);
+  document.body.appendChild(sideOverlay);
 })();
 </script>`;
 
