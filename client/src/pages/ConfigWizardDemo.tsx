@@ -644,7 +644,12 @@ body:not(.hl-builder) .cstore-product-detail [class*="quantity"],
 body:not(.hl-builder) .product-detail-container [class*="qty"],
 body:not(.hl-builder) .cstore-product-detail input[type="number"],
 body:not(.hl-builder) input[class*="quantity"],
-body:not(.hl-builder) input[class*="qty"] {
+body:not(.hl-builder) input[class*="qty"],
+body:not(.hl-builder) .quantity-container,
+body:not(.hl-builder) .hl-quantity-input-container,
+body:not(.hl-builder) .pdp-quantity-container,
+body:not(.hl-builder) .hl-quantity-input,
+body:not(.hl-builder) .action-icon {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
@@ -779,7 +784,12 @@ body:not(.hl-builder) .cstore-product-detail [class*="quantity"],
 body:not(.hl-builder) .product-detail-container [class*="qty"],
 body:not(.hl-builder) .cstore-product-detail input[type="number"],
 body:not(.hl-builder) input[class*="quantity"],
-body:not(.hl-builder) input[class*="qty"] {
+body:not(.hl-builder) input[class*="qty"],
+body:not(.hl-builder) .quantity-container,
+body:not(.hl-builder) .hl-quantity-input-container,
+body:not(.hl-builder) .pdp-quantity-container,
+body:not(.hl-builder) .hl-quantity-input,
+body:not(.hl-builder) .action-icon {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
