@@ -616,7 +616,6 @@ body:not(.hl-builder) .show-more {
                 </div>
               </div>
             </div>
-          </div>
         </WizardStep>
 
         {/* Step 4: Code Preview */}
