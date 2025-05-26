@@ -662,10 +662,27 @@ body:not(.hl-builder) input[class*="quantity"] {
 {`<style>
 /* GoHighLevel Essential Fixes - Always Applied */
 
-/* Remove title truncation - ULTRA NUCLEAR approach */
+/* Remove title truncation - MEGA NUCLEAR approach */
 body:not(.hl-builder) * {
   text-overflow: unset !important;
   -webkit-line-clamp: unset !important;
+}
+
+/* FORCE all containers to allow full width */
+body:not(.hl-builder) .fullSection,
+body:not(.hl-builder) .c-section,
+body:not(.hl-builder) .c-wrapper,
+body:not(.hl-builder) .inner,
+body:not(.hl-builder) .vertical,
+body:not(.hl-builder) .c-row,
+body:not(.hl-builder) .c-column,
+body:not(.hl-builder) [class*="section-"],
+body:not(.hl-builder) [class*="row-"],
+body:not(.hl-builder) [class*="col-"] {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: auto !important;
+  flex: none !important;
 }
 
 body:not(.hl-builder) [class*="product-title"],
@@ -684,10 +701,12 @@ body:not(.hl-builder) p, body:not(.hl-builder) span, body:not(.hl-builder) div {
   -webkit-line-clamp: unset !important;
   max-height: none !important;
   height: auto !important;
-  width: auto !important;
+  width: 100% !important;
   max-width: none !important;
+  min-width: auto !important;
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
+  flex: none !important;
 }
 
 /* Destroy all truncation utility classes */
