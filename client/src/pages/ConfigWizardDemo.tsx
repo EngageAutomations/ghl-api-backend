@@ -501,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => {
+                    onClick={async () => {
                       const cssCode = `<style>
 /* GoHighLevel Page Customizations */
 
@@ -571,7 +571,20 @@ body:not(.hl-builder) {
   display: none !important;
 }` : ''}
 </style>`;
-                      navigator.clipboard.writeText(cssCode);
+                      try {
+                        await navigator.clipboard.writeText(cssCode);
+                        // You could add a toast notification here if needed
+                        console.log('CSS copied to clipboard');
+                      } catch (err) {
+                        console.error('Failed to copy CSS:', err);
+                        // Fallback: select the text for manual copy
+                        const textArea = document.createElement('textarea');
+                        textArea.value = cssCode;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                      }
                     }}
                   >
                     Copy CSS
@@ -668,7 +681,20 @@ body:not(.hl-builder) {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => navigator.clipboard.writeText(generatedCode.headerCode)}
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(generatedCode.headerCode);
+                      console.log('Header code copied to clipboard');
+                    } catch (err) {
+                      console.error('Failed to copy header code:', err);
+                      const textArea = document.createElement('textarea');
+                      textArea.value = generatedCode.headerCode;
+                      document.body.appendChild(textArea);
+                      textArea.select();
+                      document.execCommand('copy');
+                      document.body.removeChild(textArea);
+                    }
+                  }}
                 >
                   Copy
                 </Button>
@@ -685,7 +711,20 @@ body:not(.hl-builder) {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => navigator.clipboard.writeText(generatedCode.footerCode)}
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(generatedCode.footerCode);
+                      console.log('Footer code copied to clipboard');
+                    } catch (err) {
+                      console.error('Failed to copy footer code:', err);
+                      const textArea = document.createElement('textarea');
+                      textArea.value = generatedCode.footerCode;
+                      document.body.appendChild(textArea);
+                      textArea.select();
+                      document.execCommand('copy');
+                      document.body.removeChild(textArea);
+                    }
+                  }}
                 >
                   Copy
                 </Button>
