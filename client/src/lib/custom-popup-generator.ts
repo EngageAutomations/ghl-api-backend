@@ -62,24 +62,26 @@ function createHeaderCode(config: ActionButtonConfig): string {
   return `<style>
 /* Custom Action Button Styling - Matches GoHighLevel buttons exactly */
 .custom-action-button {
-  background-color: ${config.buttonColor};
-  color: ${config.buttonTextColor};
-  padding: 10px 16px;
-  border-radius: ${config.buttonBorderRadius}px;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  margin: 10px 5px 10px 0;
-  display: inline-block;
-  text-align: center;
-  transition: all 0.2s ease;
-  width: 100px;
-  box-sizing: border-box;
-  line-height: 1.42857143;
-  vertical-align: middle;
-  white-space: nowrap;
-  text-decoration: none;
+  background-color: ${config.buttonColor} !important;
+  color: ${config.buttonTextColor} !important;
+  padding: 10px 16px !important;
+  border-radius: ${config.buttonBorderRadius}px !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  border: 1px solid transparent !important;
+  margin: 10px 5px 10px 0 !important;
+  display: inline-block !important;
+  text-align: center !important;
+  transition: all 0.2s ease !important;
+  width: 100px !important;
+  max-width: 100px !important;
+  min-width: 100px !important;
+  box-sizing: border-box !important;
+  line-height: 1.42857143 !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
