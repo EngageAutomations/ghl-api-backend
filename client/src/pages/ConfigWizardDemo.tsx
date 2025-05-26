@@ -581,29 +581,6 @@ body:not(.hl-builder) .product-description-container {
   height: auto !important;
 }
 
-/* Hide all store elements by default */
-body:not(.hl-builder) .cstore-product-detail button, 
-body:not(.hl-builder) .product-detail-container button,
-body:not(.hl-builder) .hl-product-buy-button, 
-body:not(.hl-builder) .hl-product-cart-button,
-body:not(.hl-builder) [class*="add-cart"], 
-body:not(.hl-builder) [class*="buy-now"],
-body:not(.hl-builder) .cstore-product-detail [class*="price"], 
-body:not(.hl-builder) .product-detail-container [class*="price"],
-body:not(.hl-builder) .hl-product-price,
-body:not(.hl-builder) .hl-product-detail-product-price,
-body:not(.hl-builder) p.hl-product-detail-product-price,
-body:not(.hl-builder) .hl-product-detail-selectors,
-body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
-body:not(.hl-builder) .product-detail-container [class*="qty"],
-body:not(.hl-builder) .cstore-product-detail input[type="number"],
-body:not(.hl-builder) input[class*="quantity"],
-body:not(.hl-builder) input[class*="qty"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
 /* Scrolling fix - public pages only */
 body:not(.hl-builder) .fullSection, 
 body:not(.hl-builder) .c-section, 
@@ -627,43 +604,46 @@ body:not(.hl-builder) [class*="inner"] {
 body:not(.hl-builder) { 
   overflow-x: hidden !important; 
   overflow-y: auto !important; 
-}${showBuyNowButton ? `
+}${!showBuyNowButton ? `
 
-/* Show Buy Now Button */
+/* Hide Buy Now Button */
 body:not(.hl-builder) .cstore-product-detail button,
 body:not(.hl-builder) .hl-product-buy-button,
 body:not(.hl-builder) [class*="buy-now"] {
-  display: inline-block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}` : ''}${showAddToCartButton ? `
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showAddToCartButton ? `
 
-/* Show Add to Cart Button */
+/* Hide Add to Cart Button */
 body:not(.hl-builder) .hl-product-cart-button,
 body:not(.hl-builder) [class*="add-cart"] {
-  display: inline-block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}` : ''}${showPrice ? `
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showPrice ? `
 
-/* Show Price - Higher specificity override */
+/* Hide Price */
 body:not(.hl-builder) .cstore-product-detail [class*="price"],
 body:not(.hl-builder) .product-detail-container [class*="price"],
 body:not(.hl-builder) .hl-product-price,
 body:not(.hl-builder) .hl-product-detail-product-price,
 body:not(.hl-builder) p.hl-product-detail-product-price {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}` : ''}${showQuantitySelector ? `
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showQuantitySelector ? `
 
-/* Show Quantity Selector */
+/* Hide Quantity Selector */
 body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
+body:not(.hl-builder) .product-detail-container [class*="qty"],
 body:not(.hl-builder) .cstore-product-detail input[type="number"],
-body:not(.hl-builder) input[class*="quantity"] {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+body:not(.hl-builder) input[class*="quantity"],
+body:not(.hl-builder) input[class*="qty"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }` : ''}
 </style>`;
                         copyToClipboard(cssCode, setCssCodeCopied);
@@ -732,29 +712,6 @@ body:not(.hl-builder) .product-description-container {
   height: auto !important;
 }
 
-/* Hide all store elements by default */
-body:not(.hl-builder) .cstore-product-detail button, 
-body:not(.hl-builder) .product-detail-container button,
-body:not(.hl-builder) .hl-product-buy-button, 
-body:not(.hl-builder) .hl-product-cart-button,
-body:not(.hl-builder) [class*="add-cart"], 
-body:not(.hl-builder) [class*="buy-now"],
-body:not(.hl-builder) .cstore-product-detail [class*="price"], 
-body:not(.hl-builder) .product-detail-container [class*="price"],
-body:not(.hl-builder) .hl-product-price,
-body:not(.hl-builder) .hl-product-detail-product-price,
-body:not(.hl-builder) p.hl-product-detail-product-price,
-body:not(.hl-builder) .hl-product-detail-selectors,
-body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
-body:not(.hl-builder) .product-detail-container [class*="qty"],
-body:not(.hl-builder) .cstore-product-detail input[type="number"],
-body:not(.hl-builder) input[class*="quantity"],
-body:not(.hl-builder) input[class*="qty"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
 /* Scrolling fix - public pages only */
 body:not(.hl-builder) .fullSection, 
 body:not(.hl-builder) .c-section, 
@@ -778,43 +735,46 @@ body:not(.hl-builder) [class*="inner"] {
 body:not(.hl-builder) { 
   overflow-x: hidden !important; 
   overflow-y: auto !important; 
-}${showBuyNowButton ? `
+}${!showBuyNowButton ? `
 
-/* Show Buy Now Button */
+/* Hide Buy Now Button */
 body:not(.hl-builder) .cstore-product-detail button,
 body:not(.hl-builder) .hl-product-buy-button,
 body:not(.hl-builder) [class*="buy-now"] {
-  display: inline-block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}` : ''}${showAddToCartButton ? `
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showAddToCartButton ? `
 
-/* Show Add to Cart Button */
+/* Hide Add to Cart Button */
 body:not(.hl-builder) .hl-product-cart-button,
 body:not(.hl-builder) [class*="add-cart"] {
-  display: inline-block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}` : ''}${showPrice ? `
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showPrice ? `
 
-/* Show Price - Higher specificity override */
+/* Hide Price */
 body:not(.hl-builder) .cstore-product-detail [class*="price"],
 body:not(.hl-builder) .product-detail-container [class*="price"],
 body:not(.hl-builder) .hl-product-price,
 body:not(.hl-builder) .hl-product-detail-product-price,
 body:not(.hl-builder) p.hl-product-detail-product-price {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}` : ''}${showQuantitySelector ? `
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showQuantitySelector ? `
 
-/* Show Quantity Selector */
+/* Hide Quantity Selector */
 body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
+body:not(.hl-builder) .product-detail-container [class*="qty"],
 body:not(.hl-builder) .cstore-product-detail input[type="number"],
-body:not(.hl-builder) input[class*="quantity"] {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+body:not(.hl-builder) input[class*="quantity"],
+body:not(.hl-builder) input[class*="qty"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }` : ''}
 </style>`}
                   </pre>
