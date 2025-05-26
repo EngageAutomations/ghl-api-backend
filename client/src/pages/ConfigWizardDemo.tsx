@@ -39,6 +39,11 @@ export default function ConfigWizardDemo() {
   const [previewColor, setPreviewColor] = useState<string>('#3b82f6');
   const [previewTextColor, setPreviewTextColor] = useState<string>('#ffffff');
   const [previewBorderRadius, setPreviewBorderRadius] = useState<number>(8);
+  
+  // Copy button states
+  const [cssCodeCopied, setCssCodeCopied] = useState<boolean>(false);
+  const [headerCodeCopied, setHeaderCodeCopied] = useState<boolean>(false);
+  const [footerCodeCopied, setFooterCodeCopied] = useState<boolean>(false);
 
   // Component toggles
   const [showPrice, setShowPrice] = useState<boolean>(false);
@@ -122,6 +127,26 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   const generatedCode = generateCodeForSelection();
+
+  // Helper function for copying text with visual feedback
+  const copyToClipboard = async (text: string, setCopiedState: (value: boolean) => void) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedState(true);
+      setTimeout(() => setCopiedState(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      // Fallback method
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopiedState(true);
+      setTimeout(() => setCopiedState(false), 2000);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
@@ -653,8 +678,18 @@ body:not(.hl-builder) input[class*="quantity"] {
                         document.body.removeChild(textArea);
                       }
                     }}
+                    className={cssCodeCopied ? "bg-green-100 border-green-300 text-green-700" : ""}
                   >
-                    Copy CSS
+                    {cssCodeCopied ? (
+                      <>
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Copied!
+                      </>
+                    ) : (
+                      "Copy CSS"
+                    )}
                   </Button>
                 </div>
                 <div className="bg-slate-900 text-slate-100 p-4 rounded-lg">
@@ -732,22 +767,19 @@ body:not(.hl-builder) .product-description-container {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(generatedCode.headerCode);
-                      console.log('Header code copied to clipboard');
-                    } catch (err) {
-                      console.error('Failed to copy header code:', err);
-                      const textArea = document.createElement('textarea');
-                      textArea.value = generatedCode.headerCode;
-                      document.body.appendChild(textArea);
-                      textArea.select();
-                      document.execCommand('copy');
-                      document.body.removeChild(textArea);
-                    }
-                  }}
+                  onClick={() => copyToClipboard(generatedCode.headerCode, setHeaderCodeCopied)}
+                  className={headerCodeCopied ? "bg-green-100 border-green-300 text-green-700" : ""}
                 >
-                  Copy
+                  {headerCodeCopied ? (
+                    <>
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Copied!
+                    </>
+                  ) : (
+                    "Copy"
+                  )}
                 </Button>
               </div>
               <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
@@ -762,22 +794,19 @@ body:not(.hl-builder) .product-description-container {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(generatedCode.footerCode);
-                      console.log('Footer code copied to clipboard');
-                    } catch (err) {
-                      console.error('Failed to copy footer code:', err);
-                      const textArea = document.createElement('textarea');
-                      textArea.value = generatedCode.footerCode;
-                      document.body.appendChild(textArea);
-                      textArea.select();
-                      document.execCommand('copy');
-                      document.body.removeChild(textArea);
-                    }
-                  }}
+                  onClick={() => copyToClipboard(generatedCode.footerCode, setFooterCodeCopied)}
+                  className={footerCodeCopied ? "bg-green-100 border-green-300 text-green-700" : ""}
                 >
-                  Copy
+                  {footerCodeCopied ? (
+                    <>
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Copied!
+                    </>
+                  ) : (
+                    "Copy"
+                  )}
                 </Button>
               </div>
               <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
