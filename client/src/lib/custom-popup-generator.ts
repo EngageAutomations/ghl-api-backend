@@ -60,144 +60,26 @@ export function generateActionButtonPopup(config: ActionButtonConfig): PopupCode
  */
 function createHeaderCode(config: ActionButtonConfig): string {
   return `<style>
-/* GoHighLevel Page Customizations */
-
-/* Prevent text truncation in price/title with specific GoHighLevel selectors */
-.hl-product-price,
-.hl-product-title,
-.hl-product-detail-product-price,
-.hl-product-detail-title,
-.cstore-product-detail h1,
-.cstore-product-detail h2,
-.cstore-product-detail h3,
-.product-detail-container h1,
-.product-detail-container h2,
-.product-detail-container h3,
-.product-title,
-.product-name,
-[class*="product-title"],
-[class*="product-name"],
-.hl-product-price *,
-.hl-product-title *,
-.hl-product-detail-product-price *,
-.hl-product-detail-title *,
-.cstore-product-detail * {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-  display: block !important;
-  max-height: none !important;
-  height: auto !important;
-  -webkit-line-clamp: unset !important;
-  word-wrap: break-word !important;
-  text-overflow: clip !important;
-}
-
-/* Force containers to expand - specific to your structure */
-.hl-product-price-container,
-.hl-product-title-container,
-.cstore-product-detail,
-.product-detail-container,
-[class*="price-container"],
-[class*="title-container"],
-[class*="product-detail"] {
-  height: auto !important;
-  max-height: none !important;
-  overflow: visible !important;
-}
-
-/* Remove description truncation and show more button */
-.hl-product-detail-product-description,
-[class*="product-description"],
-[class*="description"] {
-  white-space: normal !important;
-  text-overflow: unset !important;
-  overflow: visible !important;
-  max-height: none !important;
-  height: auto !important;
-  -webkit-line-clamp: unset !important;
-  display: block !important;
-}
-
-/* Hide show more buttons */
-.show-more-btn,
-.read-more,
-.show-more,
-[class*="show-more"],
-[class*="read-more"],
-.hl-product-detail-product-description + button,
-.hl-product-detail-product-description + div button {
-  display: none !important;
-}
-
-/* Optional: Show Buy Now and Add to Cart buttons */
-${config.showBuyNowButton ? `
-.buy-now-button,
-.btn-buy-now,
-[class*="buy-now"],
-[class*="purchase"],
-.hl-product-buy-button,
-.product-buy-button {
-  display: inline-block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}` : ''}
-
-${config.showAddToCartButton ? `
-.add-to-cart-button,
-.btn-add-cart,
-[class*="add-cart"],
-[class*="cart"],
-.hl-product-cart-button,
-.product-cart-button {
-  display: inline-block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}` : ''}
-
-${config.showQuantitySelector ? `
-.quantity-selector,
-.qty-selector,
-.product-quantity,
-[class*="quantity"],
-[class*="qty"],
-.hl-product-quantity,
-.product-qty,
-input[type="number"][name*="quantity"],
-input[type="number"][name*="qty"] {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}` : ''}
-
-/* Remove any text truncation styles completely */
-* {
-  text-overflow: unset !important;
-  -webkit-line-clamp: unset !important;
-}
-
-/* Specific nuclear option for stubborn truncation */
-h1, h2, h3, h4, h5, h6, p, span, div {
-  text-overflow: unset !important;
-  -webkit-line-clamp: unset !important;
-  white-space: normal !important;
-  overflow: visible !important;
-}
-
-/* Custom Action Button Styling */
+/* Custom Action Button Styling - Matches GoHighLevel buttons exactly */
 .custom-action-button {
   background-color: ${config.buttonColor};
   color: ${config.buttonTextColor};
-  padding: 12px 24px;
+  padding: 10px 16px;
   border-radius: ${config.buttonBorderRadius}px;
-  font-weight: bold;
-  font-size: 16px;
+  font-weight: 500;
+  font-size: 14px;
   cursor: pointer;
-  border: none;
-  margin: 15px 0;
+  border: 1px solid transparent;
+  margin: 10px 5px 10px 0;
   display: inline-block;
   text-align: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  width: 100px;
+  box-sizing: border-box;
+  line-height: 1.42857143;
+  vertical-align: middle;
+  white-space: nowrap;
+  text-decoration: none;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
