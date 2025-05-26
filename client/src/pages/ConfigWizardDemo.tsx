@@ -522,7 +522,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div className="border-t pt-6">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -745,24 +745,20 @@ body:not(.hl-builder) .product-description-container {
             {/* Header Code */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Header Code (Add to &lt;head&gt; section)</Label>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => copyToClipboard(generatedCode.headerCode, setHeaderCodeCopied)}
-                  className={headerCodeCopied ? "bg-green-100 border-green-300 text-green-700" : ""}
-                >
-                  {headerCodeCopied ? (
-                    <>
-                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      Copied!
-                    </>
-                  ) : (
-                    "Copy"
-                  )}
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => copyToClipboard(generatedCode.headerCode, setHeaderCodeCopied)}
+                  >
+                    Copy
+                  </Button>
+                  <Label>Header Code (Add to &lt;head&gt; section)</Label>
+                </div>
+                {headerCodeCopied && (
+                  <span className="text-green-600 font-medium text-sm">Copied</span>
+                )}
+
               </div>
               <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
                 <pre className="text-sm whitespace-pre-wrap">{generatedCode.headerCode}</pre>
