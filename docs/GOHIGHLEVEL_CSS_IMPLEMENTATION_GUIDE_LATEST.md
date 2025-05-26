@@ -52,7 +52,18 @@ body:not(.hl-builder) .product-description {
 }
 ```
 
-### 4. Show More Button Removal
+### 4. Price Element Spacing
+```css
+/* Add spacing below price element */
+body:not(.hl-builder) .hl-product-detail-product-price,
+body:not(.hl-builder) .ecomm-price-desktop-container,
+body:not(.hl-builder) .price-container,
+body:not(.hl-builder) [class*="price"] {
+  margin-bottom: 20px !important;
+}
+```
+
+### 5. Show More Button Removal
 ```css
 /* Remove show more buttons */
 body:not(.hl-builder) .show-more-btn,
