@@ -485,9 +485,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                   </div>
                   <Switch 
-                    checked={hideQuantitySelector}
-                    onCheckedChange={setHideQuantitySelector}
-                    id="hide-quantity" 
+                    checked={showQuantitySelector}
+                    onCheckedChange={setShowQuantitySelector}
+                    id="show-quantity" 
                   />
                 </div>
               </div>
@@ -574,7 +574,41 @@ body:not(.hl-builder) {
 }
 
 /* Nuclear truncation fix */
-* { text-overflow: unset !important; -webkit-line-clamp: unset !important; }${hideBuyNowButton ? `
+* { text-overflow: unset !important; -webkit-line-clamp: unset !important; }${showBuyNowButton ? `
+
+/* Show Buy Now Button */
+body:not(.hl-builder) .cstore-product-detail button,
+body:not(.hl-builder) .hl-product-buy-button,
+body:not(.hl-builder) [class*="buy-now"] {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}` : ''}${showAddToCartButton ? `
+
+/* Show Add to Cart Button */
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"] {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}` : ''}${showPrice ? `
+
+/* Show Price */
+body:not(.hl-builder) .cstore-product-detail [class*="price"],
+body:not(.hl-builder) .hl-product-price {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}` : ''}${showQuantitySelector ? `
+
+/* Show Quantity Selector */
+body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .cstore-product-detail input[type="number"],
+body:not(.hl-builder) input[class*="quantity"] {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}` : ''}${hideBuyNowButton ? `
 
 /* Hide Buy Now Button */
 .buy-now-button, .btn-buy-now, [class*="buy-now"], .hl-product-buy-button {
