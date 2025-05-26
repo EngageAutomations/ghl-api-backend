@@ -182,7 +182,7 @@ function addActionButton() {
   button.textContent = '${config.buttonText}';
   button.onclick = openPopup;
   
-  // Copy the exact inline styles from Add to Cart button
+  // Copy the exact inline styles from Add to Cart button with proper width
   button.style.cssText = \`
     background-color: ${config.buttonColor} !important;
     color: ${config.buttonTextColor} !important;
@@ -198,8 +198,8 @@ function addActionButton() {
     white-space: nowrap !important;
     line-height: 1.42857143 !important;
     margin: 5px 5px 0 0 !important;
-    width: auto !important;
-    min-width: 100px !important;
+    width: 300px !important;
+    min-width: 300px !important;
   \`;
   
   // Insert after price element or append to container
