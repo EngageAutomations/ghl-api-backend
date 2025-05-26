@@ -659,7 +659,51 @@ body:not(.hl-builder) input[class*="quantity"] {
                 </div>
                 <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
                   <pre className="text-sm whitespace-pre-wrap">
-{cssCode}
+{`<style>
+/* GoHighLevel Essential Fixes - Always Applied */
+
+/* Remove title truncation */
+body:not(.hl-builder) [class*="product-title"],
+body:not(.hl-builder) [class*="product-name"],
+body:not(.hl-builder) .hl-product-detail-product-name {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Remove product description truncation */
+body:not(.hl-builder) [class*="product-description"],
+body:not(.hl-builder) #description,
+body:not(.hl-builder) .product-description {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Remove show more buttons */
+body:not(.hl-builder) .show-more-btn,
+body:not(.hl-builder) .read-more,
+body:not(.hl-builder) [class*="show-more"],
+body:not(.hl-builder) [class*="read-more"],
+body:not(.hl-builder) .show-more {
+  display: none !important;
+}
+
+/* Remove independent scrolling from description and gallery */
+body:not(.hl-builder) .product-image-container,
+body:not(.hl-builder) .hl-product-image-container,
+body:not(.hl-builder) .product-description-container {
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+</style>`}
                   </pre>
                 </div>
               </div>
