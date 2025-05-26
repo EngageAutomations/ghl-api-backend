@@ -619,7 +619,9 @@ body:not(.hl-builder) .secondary-btn {
 
 /* Hide Add to Cart Button */
 body:not(.hl-builder) .hl-product-cart-button,
-body:not(.hl-builder) [class*="add-cart"] {
+body:not(.hl-builder) [class*="add-cart"],
+body:not(.hl-builder) #add-to-cart-btn,
+body:not(.hl-builder) .primary-btn {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
@@ -752,7 +754,9 @@ body:not(.hl-builder) .secondary-btn {
 
 /* Hide Add to Cart Button */
 body:not(.hl-builder) .hl-product-cart-button,
-body:not(.hl-builder) [class*="add-cart"] {
+body:not(.hl-builder) [class*="add-cart"],
+body:not(.hl-builder) #add-to-cart-btn,
+body:not(.hl-builder) .primary-btn {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
