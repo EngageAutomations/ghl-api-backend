@@ -522,7 +522,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div className="border-t pt-6">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center">
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -665,14 +665,15 @@ body:not(.hl-builder) input[class*="quantity"] {
 </style>`;
                         copyToClipboard(cssCode, setCssCodeCopied);
                     }}
+                    className="mr-3"
                   >
                     Copy CSS
                   </Button>
                   <Label>GoHighLevel CSS (Copy this to your page's head section)</Label>
+                  {cssCodeCopied && (
+                    <span className="text-green-600 font-medium text-sm ml-[70px]">Copied</span>
+                  )}
                 </div>
-                {cssCodeCopied && (
-                  <span className="text-green-600 font-medium text-sm">Copied</span>
-                )}
               </div>
               <div className="bg-slate-900 text-slate-100 p-4 rounded-lg">
                   <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
