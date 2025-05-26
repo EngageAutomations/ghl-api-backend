@@ -505,20 +505,9 @@ document.addEventListener('DOMContentLoaded', function() {
                       const cssCode = `<style>
 /* GoHighLevel Page Customizations */
 
-/* Only apply to public pages - NOT builder */
+/* Text truncation removal - public pages only */
 body:not(.hl-builder) .cstore-product-detail *, 
-body:not(.hl-builder) .product-detail-container * {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-  -webkit-line-clamp: unset !important;
-  max-height: none !important;
-  height: auto !important;
-}
-
-/* Target specific GoHighLevel elements - public only */
-body:not(.hl-builder) .cstore-product-detail *, 
-body:not(.hl-builder) .product-detail-container *, 
+body:not(.hl-builder) .product-detail-container *,
 body:not(.hl-builder) [class*="product-title"], 
 body:not(.hl-builder) [class*="product-name"], 
 body:not(.hl-builder) [class*="product-description"] {
@@ -530,7 +519,7 @@ body:not(.hl-builder) [class*="product-description"] {
   height: auto !important;
 }
 
-/* Hide show more buttons - public only */
+/* Hide show more buttons */
 body:not(.hl-builder) .show-more-btn, 
 body:not(.hl-builder) .read-more, 
 body:not(.hl-builder) [class*="show-more"], 
@@ -538,55 +527,28 @@ body:not(.hl-builder) [class*="read-more"] {
   display: none !important;
 }
 
-/* Hide store buttons - public only */
+/* Hide all store elements by default */
 body:not(.hl-builder) .cstore-product-detail button, 
 body:not(.hl-builder) .product-detail-container button,
 body:not(.hl-builder) .hl-product-buy-button, 
 body:not(.hl-builder) .hl-product-cart-button,
 body:not(.hl-builder) [class*="add-cart"], 
-body:not(.hl-builder) [class*="buy-now"] {
-  display: none !important;
-}
-
-/* Hide price elements - public only */
+body:not(.hl-builder) [class*="buy-now"],
 body:not(.hl-builder) .cstore-product-detail [class*="price"], 
 body:not(.hl-builder) .product-detail-container [class*="price"],
-body:not(.hl-builder) .hl-product-price {
-  display: none !important;
-}
-
-/* Hide quantity text and selectors */
+body:not(.hl-builder) .hl-product-price,
 body:not(.hl-builder) .hl-product-detail-selectors,
 body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
 body:not(.hl-builder) .product-detail-container [class*="qty"],
 body:not(.hl-builder) .cstore-product-detail input[type="number"],
 body:not(.hl-builder) input[class*="quantity"],
-body:not(.hl-builder) input[class*="qty"],
-body:not(.hl-builder) [class*="qty-input"],
-body:not(.hl-builder) [class*="quantity-input"],
-body:not(.hl-builder) .quantity-selector,
-body:not(.hl-builder) .qty-selector,
-body:not(.hl-builder) label[for*="quantity"],
-body:not(.hl-builder) label[for*="qty"],
-body:not(.hl-builder) .hl-product-detail-quantity,
-body:not(.hl-builder) [class*="quantity-label"],
-body:not(.hl-builder) [class*="qty-label"],
-body:not(.hl-builder) .hl-product-detail-add-to-cart,
-body:not(.hl-builder) .hl-product-add-to-cart,
-body:not(.hl-builder) [class*="product-qty"],
-body:not(.hl-builder) [class*="product-quantity"] {
+body:not(.hl-builder) input[class*="qty"] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
 }
 
-/* Hide quantity wrapper/container */
-body:not(.hl-builder) .cstore-product-detail div:has(input[type="number"]),
-body:not(.hl-builder) .product-detail-container div:has(input[type="number"]) {
-  display: none !important;
-}
-
-/* Targeted scrolling fix - Only affect public pages, not builder */
+/* Scrolling fix - public pages only */
 body:not(.hl-builder) .fullSection, 
 body:not(.hl-builder) .c-section, 
 body:not(.hl-builder) .c-wrapper, 
@@ -606,7 +568,6 @@ body:not(.hl-builder) [class*="inner"] {
   height: auto !important;
 }
 
-/* Only allow body scrolling on public pages */
 body:not(.hl-builder) { 
   overflow-x: hidden !important; 
   overflow-y: auto !important; 
