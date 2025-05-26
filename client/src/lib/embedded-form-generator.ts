@@ -74,21 +74,10 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     });
   }
 
-  // Wait for description element to be available
-  const descriptionElement = await waitForElement('#description, [class*="description"], .product-description');
-  if (!descriptionElement) return;
-
-  // Create structural placeholder container
-  const placeholderContainer = document.createElement('div');
-  placeholderContainer.id = 'listingEmbedFormContainer';
-  placeholderContainer.className = 'directory-embed-wrapper';
-  
-  // Move original description element instead of cloning
-  placeholderContainer.appendChild(descriptionElement);
-
-  // Create form container
-  const formContainer = document.createElement('div');
-  formContainer.className = 'product-details-form-container';
+  // Simple floating widget approach - more reliable than layout manipulation
+  const formWidget = document.createElement('div');
+  formWidget.id = 'directory-form-widget';
+  formWidget.className = 'directory-floating-form';
 
   // Parse original embed code to extract form URL properly
   function parseEmbedCode(embedCode) {
