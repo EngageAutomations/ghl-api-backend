@@ -55,13 +55,13 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     }
   }
 
-  // Find the title element to position form next to it
-  const titleElement = document.querySelector('h1, .product-title, .listing-title, .hl-product-detail-product-name, [class*="product-name"]');
-  if (!titleElement) return;
+  // Find the product details container to position form next to it
+  const productDetailsContainer = document.querySelector('.c-product-details');
+  if (!productDetailsContainer) return;
 
   // Create form container
   const formContainer = document.createElement('div');
-  formContainer.className = 'title-form-container';
+  formContainer.className = 'product-details-form-container';
 
   // Parse original embed code to extract dimensions and form URL
   function parseEmbedCode(embedCode) {
@@ -78,7 +78,7 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
 
   // Create iframe with parsed dimensions + 100px buffer
   const iframe = document.createElement('iframe');
-  iframe.className = 'title-inline-form';
+  iframe.className = 'product-details-inline-form';
   
   // Build URL with UTM injection
   const metadata = getListingMetadata();
@@ -93,59 +93,64 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   const separator = "${config.formUrl}".includes("?") ? "&" : "?";
   iframe.src = \`${config.formUrl}\${separator}\${paramString}\`;
   
-  // Set dimensions for title alignment
+  // Set dimensions for product details alignment
   iframe.width = '100%';
-  iframe.height = '400'; // Compact height for title alignment
+  iframe.height = '500'; // Height for product details alignment
   iframe.style.border = 'none';
   iframe.style.borderRadius = '${config.borderRadius}px';
   iframe.style.boxShadow = '${config.boxShadow}';
   formContainer.appendChild(iframe);
 
-  // Insert form container after title element
-  titleElement.parentNode.insertBefore(formContainer, titleElement.nextSibling);
+  // Insert form container after product details container
+  productDetailsContainer.parentNode.insertBefore(formContainer, productDetailsContainer.nextSibling);
   document.body.classList.add('form-injected');
 })();
 </script>`;
 
-  // Generate CSS for title-aligned form positioning
-  const fadeSqueezeCSS = `/* Embedded Form Positioned Next to Title */
-.title-form-container {
+  // Generate CSS for product details form positioning
+  const fadeSqueezeCSS = `/* Embedded Form Positioned Next to Product Details */
+.product-details-form-container {
   position: absolute;
   top: 0;
-  right: 0;
+  right: -320px;
   width: 300px;
   z-index: 10;
   opacity: 0;
   transition: opacity 1.2s ease;
 }
 
-body.form-injected .title-form-container {
+body.form-injected .product-details-form-container {
   opacity: 1;
 }
 
-.title-inline-form {
+.product-details-inline-form {
   width: 100% !important;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Make title container relative for absolute positioning */
-body.form-injected h1,
-body.form-injected .product-title,
-body.form-injected .listing-title,
-body.form-injected .hl-product-detail-product-name,
-body.form-injected [class*="product-name"] {
+/* Make product details container relative for absolute positioning */
+body.form-injected .c-product-details {
   position: relative;
 }
 
-/* Mobile Layout - Stack below title */
+/* Ensure parent container has enough space for form */
+body.form-injected .c-product-details {
+  margin-right: 320px;
+}
+
+/* Mobile Layout - Stack below product details */
 @media screen and (max-width: 768px) {
-  .title-form-container {
+  .product-details-form-container {
     position: static;
     width: 100% !important;
     margin-top: 20px;
     opacity: 1 !important;
+  }
+  
+  body.form-injected .c-product-details {
+    margin-right: 0;
   }
 }`;
 
