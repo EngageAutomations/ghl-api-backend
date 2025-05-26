@@ -812,6 +812,12 @@ body:not(.hl-builder) .hl-product-detail-product-price {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
 }` : ''}${showQuantitySelector ? `
 
 /* Show Quantity Selector */
