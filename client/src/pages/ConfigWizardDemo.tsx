@@ -521,19 +521,20 @@ document.addEventListener('DOMContentLoaded', function() {
   display: none !important;
 }
 
-/* Fix gallery and description scrolling */
-.hl-product-detail-image-gallery,
-.hl-product-detail-product-description,
-[class*="image-gallery"],
-[class*="product-images"] {
-  overflow: hidden !important;
+/* Nuclear scrolling fix - Target GoHighLevel structure */
+.fullSection, .c-section, .c-wrapper, .inner, .vertical,
+[class*="fullSection"], [class*="c-section"], [class*="c-wrapper"],
+[class*="section-"], [class*="row-"], [class*="col-"],
+[class*="inner"], div[class*="inner"] {
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  max-height: none !important;
+  height: auto !important;
 }
 
-.hl-product-detail-content,
-.hl-product-detail-wrapper,
-[class*="product-detail"] {
-  overflow-y: auto !important;
-}
+/* Force only body to handle scrolling */
+html, body { overflow-x: hidden !important; overflow-y: auto !important; }
 
 /* Nuclear truncation fix */
 * { text-overflow: unset !important; -webkit-line-clamp: unset !important; }${hideBuyNowButton ? `
