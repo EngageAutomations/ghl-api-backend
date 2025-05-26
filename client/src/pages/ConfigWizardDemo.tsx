@@ -531,6 +531,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         const cssCode = `<style>
 /* GoHighLevel Essential Fixes - Always Applied */
 
+/* Nuclear truncation fix - Apply first to prevent any truncation */
+body:not(.hl-builder) * { 
+  text-overflow: unset !important; 
+  -webkit-line-clamp: unset !important; 
+  white-space: normal !important;
+  overflow: visible !important;
+}
+
 /* Remove title truncation */
 body:not(.hl-builder) [class*="product-title"],
 body:not(.hl-builder) [class*="product-name"],
@@ -573,14 +581,6 @@ body:not(.hl-builder) .product-description-container {
   height: auto !important;
 }
 
-/* Hide show more buttons */
-body:not(.hl-builder) .show-more-btn, 
-body:not(.hl-builder) .read-more, 
-body:not(.hl-builder) [class*="show-more"], 
-body:not(.hl-builder) [class*="read-more"] {
-  display: none !important;
-}
-
 /* Hide all store elements by default */
 body:not(.hl-builder) .cstore-product-detail button, 
 body:not(.hl-builder) .product-detail-container button,
@@ -592,6 +592,7 @@ body:not(.hl-builder) .cstore-product-detail [class*="price"],
 body:not(.hl-builder) .product-detail-container [class*="price"],
 body:not(.hl-builder) .hl-product-price,
 body:not(.hl-builder) .hl-product-detail-product-price,
+body:not(.hl-builder) p.hl-product-detail-product-price,
 body:not(.hl-builder) .hl-product-detail-selectors,
 body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
 body:not(.hl-builder) .product-detail-container [class*="qty"],
@@ -626,10 +627,7 @@ body:not(.hl-builder) [class*="inner"] {
 body:not(.hl-builder) { 
   overflow-x: hidden !important; 
   overflow-y: auto !important; 
-}
-
-/* Nuclear truncation fix */
-* { text-overflow: unset !important; -webkit-line-clamp: unset !important; }${showBuyNowButton ? `
+}${showBuyNowButton ? `
 
 /* Show Buy Now Button */
 body:not(.hl-builder) .cstore-product-detail button,
@@ -648,19 +646,15 @@ body:not(.hl-builder) [class*="add-cart"] {
   opacity: 1 !important;
 }` : ''}${showPrice ? `
 
-/* Show Price */
+/* Show Price - Higher specificity override */
 body:not(.hl-builder) .cstore-product-detail [class*="price"],
+body:not(.hl-builder) .product-detail-container [class*="price"],
 body:not(.hl-builder) .hl-product-price,
-body:not(.hl-builder) .hl-product-detail-product-price {
+body:not(.hl-builder) .hl-product-detail-product-price,
+body:not(.hl-builder) p.hl-product-detail-product-price {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-  -webkit-line-clamp: unset !important;
-  max-height: none !important;
-  height: auto !important;
 }` : ''}${showQuantitySelector ? `
 
 /* Show Quantity Selector */
@@ -688,6 +682,14 @@ body:not(.hl-builder) input[class*="quantity"] {
 {`<style>
 /* GoHighLevel Essential Fixes - Always Applied */
 
+/* Nuclear truncation fix - Apply first to prevent any truncation */
+body:not(.hl-builder) * { 
+  text-overflow: unset !important; 
+  -webkit-line-clamp: unset !important; 
+  white-space: normal !important;
+  overflow: visible !important;
+}
+
 /* Remove title truncation */
 body:not(.hl-builder) [class*="product-title"],
 body:not(.hl-builder) [class*="product-name"],
@@ -698,14 +700,6 @@ body:not(.hl-builder) .hl-product-detail-product-name {
   -webkit-line-clamp: unset !important;
   max-height: none !important;
   height: auto !important;
-}
-
-/* Specific fix for truncate-text class */
-body:not(.hl-builder) .truncate-text {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-  -webkit-line-clamp: unset !important;
 }
 
 /* Remove product description truncation */
@@ -749,6 +743,7 @@ body:not(.hl-builder) .cstore-product-detail [class*="price"],
 body:not(.hl-builder) .product-detail-container [class*="price"],
 body:not(.hl-builder) .hl-product-price,
 body:not(.hl-builder) .hl-product-detail-product-price,
+body:not(.hl-builder) p.hl-product-detail-product-price,
 body:not(.hl-builder) .hl-product-detail-selectors,
 body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
 body:not(.hl-builder) .product-detail-container [class*="qty"],
@@ -783,10 +778,7 @@ body:not(.hl-builder) [class*="inner"] {
 body:not(.hl-builder) { 
   overflow-x: hidden !important; 
   overflow-y: auto !important; 
-}
-
-/* Nuclear truncation fix */
-* { text-overflow: unset !important; -webkit-line-clamp: unset !important; }${showBuyNowButton ? `
+}${showBuyNowButton ? `
 
 /* Show Buy Now Button */
 body:not(.hl-builder) .cstore-product-detail button,
@@ -805,19 +797,15 @@ body:not(.hl-builder) [class*="add-cart"] {
   opacity: 1 !important;
 }` : ''}${showPrice ? `
 
-/* Show Price */
+/* Show Price - Higher specificity override */
 body:not(.hl-builder) .cstore-product-detail [class*="price"],
+body:not(.hl-builder) .product-detail-container [class*="price"],
 body:not(.hl-builder) .hl-product-price,
-body:not(.hl-builder) .hl-product-detail-product-price {
+body:not(.hl-builder) .hl-product-detail-product-price,
+body:not(.hl-builder) p.hl-product-detail-product-price {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-  -webkit-line-clamp: unset !important;
-  max-height: none !important;
-  height: auto !important;
 }` : ''}${showQuantitySelector ? `
 
 /* Show Quantity Selector */
