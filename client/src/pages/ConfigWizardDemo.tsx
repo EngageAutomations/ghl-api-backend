@@ -555,7 +555,8 @@ body:not(.hl-builder) .hl-product-price {
   display: none !important;
 }
 
-/* Hide entire quantity section */
+/* Hide quantity text and selectors */
+body:not(.hl-builder) .hl-product-detail-selectors,
 body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
 body:not(.hl-builder) .product-detail-container [class*="qty"],
 body:not(.hl-builder) .cstore-product-detail input[type="number"],
