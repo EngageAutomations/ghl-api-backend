@@ -527,21 +527,30 @@ document.addEventListener('DOMContentLoaded', function() {
   display: none !important;
 }
 
-/* Ultra-nuclear scrolling fix - Kill ALL scrolling everywhere */
-*, *::before, *::after {
+/* Targeted scrolling fix - Only affect public pages, not builder */
+body:not(.hl-builder) .fullSection, 
+body:not(.hl-builder) .c-section, 
+body:not(.hl-builder) .c-wrapper, 
+body:not(.hl-builder) .inner, 
+body:not(.hl-builder) .vertical,
+body:not(.hl-builder) [class*="fullSection"], 
+body:not(.hl-builder) [class*="c-section"], 
+body:not(.hl-builder) [class*="c-wrapper"],
+body:not(.hl-builder) [class*="section-"], 
+body:not(.hl-builder) [class*="row-"], 
+body:not(.hl-builder) [class*="col-"],
+body:not(.hl-builder) [class*="inner"] {
   overflow: visible !important;
   overflow-x: visible !important;
   overflow-y: visible !important;
   max-height: none !important;
   height: auto !important;
-  min-height: auto !important;
 }
 
-/* Only allow body scrolling */
-html, body { 
+/* Only allow body scrolling on public pages */
+body:not(.hl-builder) { 
   overflow-x: hidden !important; 
   overflow-y: auto !important; 
-  height: auto !important;
 }
 
 /* Nuclear truncation fix */
@@ -595,21 +604,30 @@ html, body {
   display: none !important;
 }
 
-/* Ultra-nuclear scrolling fix - Kill ALL scrolling everywhere */
-*, *::before, *::after {
+/* Targeted scrolling fix - Only affect public pages, not builder */
+body:not(.hl-builder) .fullSection, 
+body:not(.hl-builder) .c-section, 
+body:not(.hl-builder) .c-wrapper, 
+body:not(.hl-builder) .inner, 
+body:not(.hl-builder) .vertical,
+body:not(.hl-builder) [class*="fullSection"], 
+body:not(.hl-builder) [class*="c-section"], 
+body:not(.hl-builder) [class*="c-wrapper"],
+body:not(.hl-builder) [class*="section-"], 
+body:not(.hl-builder) [class*="row-"], 
+body:not(.hl-builder) [class*="col-"],
+body:not(.hl-builder) [class*="inner"] {
   overflow: visible !important;
   overflow-x: visible !important;
   overflow-y: visible !important;
   max-height: none !important;
   height: auto !important;
-  min-height: auto !important;
 }
 
-/* Only allow body scrolling */
-html, body { 
+/* Only allow body scrolling on public pages */
+body:not(.hl-builder) { 
   overflow-x: hidden !important; 
   overflow-y: auto !important; 
-  height: auto !important;
 }
 
 /* Nuclear truncation fix */
