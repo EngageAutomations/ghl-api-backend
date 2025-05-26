@@ -579,26 +579,10 @@ body:not(.hl-builder) [class*="product-quantity"] {
   opacity: 0 !important;
 }
 
-/* Nuclear approach - hide any text that might be "Quantity" */
-body:not(.hl-builder) .cstore-product-detail *,
-body:not(.hl-builder) .product-detail-container * {
-  font-size: 0 !important;
-}
-
-body:not(.hl-builder) .cstore-product-detail *:not(img):not(input):not(button),
-body:not(.hl-builder) .product-detail-container *:not(img):not(input):not(button) {
-  color: transparent !important;
-  text-indent: -9999px !important;
-}
-
-/* Show only product title and description */
-body:not(.hl-builder) .cstore-product-detail [class*="title"],
-body:not(.hl-builder) .cstore-product-detail [class*="description"],
-body:not(.hl-builder) .product-detail-container [class*="title"],
-body:not(.hl-builder) .product-detail-container [class*="description"] {
-  font-size: inherit !important;
-  color: inherit !important;
-  text-indent: 0 !important;
+/* Hide quantity wrapper/container */
+body:not(.hl-builder) .cstore-product-detail div:has(input[type="number"]),
+body:not(.hl-builder) .product-detail-container div:has(input[type="number"]) {
+  display: none !important;
 }
 
 /* Targeted scrolling fix - Only affect public pages, not builder */
