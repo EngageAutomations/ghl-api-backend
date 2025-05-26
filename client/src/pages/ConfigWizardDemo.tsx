@@ -433,8 +433,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         </svg>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium">Hide Buy Now Button</h3>
-                        <p className="text-xs text-slate-500">Remove GoHighLevel's buy now button</p>
+                        <h3 className="text-sm font-medium">Show Buy Now Button</h3>
+                        <p className="text-xs text-slate-500">Display GoHighLevel's buy now button</p>
                       </div>
                     </div>
                     <Switch 
@@ -456,8 +456,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         </svg>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium">Hide Add to Cart Button</h3>
-                        <p className="text-xs text-slate-500">Remove GoHighLevel's add to cart button</p>
+                        <h3 className="text-sm font-medium">Show Add to Cart Button</h3>
+                        <p className="text-xs text-slate-500">Display GoHighLevel's add to cart button</p>
                       </div>
                     </div>
                     <Switch 
@@ -480,8 +480,8 @@ document.addEventListener('DOMContentLoaded', function() {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium">Hide Quantity Selector</h3>
-                      <p className="text-xs text-slate-500">Remove quantity input and controls</p>
+                      <h3 className="text-sm font-medium">Show Quantity Selector</h3>
+                      <p className="text-xs text-slate-500">Display quantity input and controls</p>
                     </div>
                   </div>
                   <Switch 
@@ -505,7 +505,7 @@ document.addEventListener('DOMContentLoaded', function() {
                       const cssCode = `<style>
 /* GoHighLevel Page Customizations */
 
-/* Remove text truncation completely */
+/* Remove text truncation completely - Nuclear option */
 .hl-product-price, .hl-product-title, .cstore-product-detail *, 
 .product-detail-container *, [class*="product-title"], [class*="product-name"] {
   white-space: normal !important;
@@ -516,14 +516,32 @@ document.addEventListener('DOMContentLoaded', function() {
   height: auto !important;
 }
 
-/* Hide show more buttons */
+/* Hide product description show more button */
 .show-more-btn, .read-more, [class*="show-more"], [class*="read-more"] {
   display: none !important;
 }
 
-/* Hide price display */
+/* Hide price display by default */
 .hl-product-price, .product-price, .price, [class*="price"],
 .hl-product-detail-product-price, [class*="product-price"] {
+  display: none !important;
+}
+
+/* Hide quantity selector by default */
+.quantity-selector, .qty-selector, [class*="quantity"], 
+input[type="number"][name*="quantity"], [class*="qty"] {
+  display: none !important;
+}
+
+/* Hide add to cart button by default */
+.add-to-cart-button, .btn-add-cart, [class*="add-cart"], 
+.hl-product-cart-button, [class*="cart-btn"] {
+  display: none !important;
+}
+
+/* Hide buy now button by default */
+.buy-now-button, .btn-buy-now, [class*="buy-now"], 
+.hl-product-buy-button, [class*="buy-btn"] {
   display: none !important;
 }
 
@@ -611,9 +629,27 @@ body:not(.hl-builder) {
   display: none !important;
 }
 
-/* Hide price display */
+/* Hide price display by default */
 .hl-product-price, .product-price, .price, [class*="price"],
 .hl-product-detail-product-price, [class*="product-price"] {
+  display: none !important;
+}
+
+/* Hide quantity selector by default */
+.quantity-selector, .qty-selector, [class*="quantity"], 
+input[type="number"][name*="quantity"], [class*="qty"] {
+  display: none !important;
+}
+
+/* Hide add to cart button by default */
+.add-to-cart-button, .btn-add-cart, [class*="add-cart"], 
+.hl-product-cart-button, [class*="cart-btn"] {
+  display: none !important;
+}
+
+/* Hide buy now button by default */
+.buy-now-button, .btn-buy-now, [class*="buy-now"], 
+.hl-product-buy-button, [class*="buy-btn"] {
   display: none !important;
 }
 
