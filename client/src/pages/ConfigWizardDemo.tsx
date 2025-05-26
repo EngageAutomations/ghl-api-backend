@@ -555,7 +555,7 @@ body:not(.hl-builder) .hl-product-price {
   display: none !important;
 }
 
-/* Hide quantity selectors and labels - comprehensive targeting */
+/* Hide entire quantity section */
 body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
 body:not(.hl-builder) .product-detail-container [class*="qty"],
 body:not(.hl-builder) .cstore-product-detail input[type="number"],
@@ -567,14 +567,22 @@ body:not(.hl-builder) .quantity-selector,
 body:not(.hl-builder) .qty-selector,
 body:not(.hl-builder) label[for*="quantity"],
 body:not(.hl-builder) label[for*="qty"],
-body:not(.hl-builder) .cstore-product-detail label,
-body:not(.hl-builder) .product-detail-container label,
 body:not(.hl-builder) .hl-product-detail-quantity,
 body:not(.hl-builder) [class*="quantity-label"],
-body:not(.hl-builder) [class*="qty-label"] {
+body:not(.hl-builder) [class*="qty-label"],
+body:not(.hl-builder) .hl-product-detail-add-to-cart,
+body:not(.hl-builder) .hl-product-add-to-cart,
+body:not(.hl-builder) [class*="product-qty"],
+body:not(.hl-builder) [class*="product-quantity"] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
+}
+
+/* Hide quantity wrapper/container */
+body:not(.hl-builder) .cstore-product-detail div:has(input[type="number"]),
+body:not(.hl-builder) .product-detail-container div:has(input[type="number"]) {
+  display: none !important;
 }
 
 /* Targeted scrolling fix - Only affect public pages, not builder */
