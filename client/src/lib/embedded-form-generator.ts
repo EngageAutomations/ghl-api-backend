@@ -55,17 +55,17 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     }
   }
 
-  // Find the product details container to wrap with form
-  const productDetailsContainer = document.querySelector('.c-product-details');
-  if (!productDetailsContainer) return;
+  // Find the description element to position form next to it
+  const descriptionElement = document.querySelector('#description, .product-description, [class*="description"]');
+  if (!descriptionElement) return;
 
-  // Create wrapper container for product details + form
+  // Create wrapper container for description + form
   const wrapperContainer = document.createElement('div');
-  wrapperContainer.className = 'product-form-wrapper';
+  wrapperContainer.className = 'description-form-wrapper';
 
-  // Clone the product details and add to wrapper
-  const productDetailsClone = productDetailsContainer.cloneNode(true);
-  wrapperContainer.appendChild(productDetailsClone);
+  // Clone the description and add to wrapper
+  const descriptionClone = descriptionElement.cloneNode(true);
+  wrapperContainer.appendChild(descriptionClone);
 
   // Create form container
   const formContainer = document.createElement('div');
@@ -112,23 +112,25 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   // Add form to wrapper container
   wrapperContainer.appendChild(formContainer);
 
-  // Replace original product details with wrapper
-  productDetailsContainer.parentNode.insertBefore(wrapperContainer, productDetailsContainer);
-  productDetailsContainer.remove();
+  // Replace original description with wrapper
+  descriptionElement.parentNode.insertBefore(wrapperContainer, descriptionElement);
+  descriptionElement.remove();
   document.body.classList.add('form-injected');
 })();
 </script>`;
 
-  // Generate CSS for product details form wrapper
-  const fadeSqueezeCSS = `/* Product Details + Form Wrapper */
-.product-form-wrapper {
+  // Generate CSS for description + form wrapper
+  const fadeSqueezeCSS = `/* Description + Form Wrapper */
+.description-form-wrapper {
   display: flex;
   gap: 20px;
   align-items: flex-start;
   width: 100%;
 }
 
-.product-form-wrapper > .c-product-details {
+.description-form-wrapper > #description,
+.description-form-wrapper > .product-description,
+.description-form-wrapper > [class*="description"] {
   flex: 1;
   min-width: 0;
 }
@@ -153,7 +155,7 @@ body.form-injected .product-details-form-container {
 
 /* Mobile Layout - Stack vertically */
 @media screen and (max-width: 768px) {
-  .product-form-wrapper {
+  .description-form-wrapper {
     flex-direction: column;
   }
   
