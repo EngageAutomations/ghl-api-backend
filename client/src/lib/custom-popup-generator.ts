@@ -60,36 +60,7 @@ export function generateActionButtonPopup(config: ActionButtonConfig): PopupCode
  */
 function createHeaderCode(config: ActionButtonConfig): string {
   return `<style>
-/* Custom Action Button Styling - Matches GoHighLevel buttons exactly */
-.custom-action-button {
-  background-color: ${config.buttonColor} !important;
-  color: ${config.buttonTextColor} !important;
-  padding: 10px 16px !important;
-  border-radius: ${config.buttonBorderRadius}px !important;
-  font-weight: 500 !important;
-  font-size: 14px !important;
-  cursor: pointer !important;
-  border: 1px solid transparent !important;
-  margin: 10px 5px 10px 0 !important;
-  display: inline-block !important;
-  text-align: center !important;
-  transition: all 0.2s ease !important;
-  width: 100px !important;
-  max-width: 100px !important;
-  min-width: 100px !important;
-  box-sizing: border-box !important;
-  line-height: 1.42857143 !important;
-  vertical-align: middle !important;
-  white-space: nowrap !important;
-  text-decoration: none !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.custom-action-button:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
+/* No custom button styling needed - using native GoHighLevel classes */
 
 /* Popup Styling */
 .popup-backdrop {
@@ -202,13 +173,21 @@ function addActionButton() {
   }
   
   // Check if button already exists
-  if (document.querySelector('.custom-action-button')) return;
+  if (document.querySelector('#custom-action-btn')) return;
   
-  // Create and insert button
+  // Create and insert button using GoHighLevel button structure
   const button = document.createElement('button');
-  button.className = 'custom-action-button';
+  button.className = 'primary-btn';
+  button.id = 'custom-action-btn';
   button.textContent = '${config.buttonText}';
   button.onclick = openPopup;
+  
+  // Apply inline styles to match exact GoHighLevel button appearance
+  button.style.cssText = \`
+    background-color: ${config.buttonColor} !important;
+    color: ${config.buttonTextColor} !important;
+    border-radius: ${config.buttonBorderRadius}px !important;
+  \`;
   
   // Insert after price element or append to container
   if (priceElement.parentNode) {
