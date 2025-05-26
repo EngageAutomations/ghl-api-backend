@@ -733,7 +733,6 @@ body:not(.hl-builder) .product-description-container {
                 </div>
               </div>
             </div>
-          </div>
         </WizardStep>
 
         {/* Step 4: Code Preview */}
