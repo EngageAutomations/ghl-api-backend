@@ -64,12 +64,29 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   const descriptionClone = target.cloneNode(true);
   wrapper.appendChild(descriptionClone);
 
+  // Parse original embed code to extract dimensions and form URL
+  function parseEmbedCode(embedCode) {
+    const srcMatch = embedCode.match(/src="([^"]+)"/);
+    const widthMatch = embedCode.match(/width="([^"]+)"/);
+    const heightMatch = embedCode.match(/height="([^"]+)"/);
+    
+    return {
+      formUrl: srcMatch ? srcMatch[1] : "${config.formUrl}",
+      width: widthMatch ? parseInt(widthMatch[1]) : 500,
+      height: heightMatch ? parseInt(heightMatch[1]) : 500
+    };
+  }
+
+  // Create iframe with parsed dimensions + 100px buffer
   const iframe = document.createElement('iframe');
   iframe.className = 'inline-listing-form';
   
-  // Build URL with metadata parameters
+  // Build URL with UTM injection
   const metadata = getListingMetadata();
-  let paramString = \`${config.customFieldName}=\${encodeURIComponent(title)}&slug=\${encodeURIComponent(slug)}\`;
+  let paramString = \`listing=\${encodeURIComponent(slug)}&utm_source=directory\`;
+  
+  // Add custom field and metadata parameters
+  paramString += \`&${config.customFieldName}=\${encodeURIComponent(title)}\`;
   
   // Add metadata parameters
   ${metadataParams}
@@ -77,8 +94,9 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   const separator = "${config.formUrl}".includes("?") ? "&" : "?";
   iframe.src = \`${config.formUrl}\${separator}\${paramString}\`;
   
+  // Set dimensions with +100px buffer for smoother integration
   iframe.width = '100%';
-  iframe.height = '500';
+  iframe.height = '600'; // 500 + 100px buffer
   iframe.style.border = 'none';
   iframe.style.borderRadius = '${config.borderRadius}px';
   iframe.style.boxShadow = '${config.boxShadow}';
@@ -89,28 +107,50 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
 })();
 </script>`;
 
-  // Generate CSS based on animation type
-  const fadeSqueezeCSS = `/* 🅰️ Option 1: Fade-In with Layout Squeeze */
+  // Generate CSS based on animation type - Updated to match specifications
+  const fadeSqueezeCSS = `/* Embedded Form with Fade-In Transition */
+.description-form-flexwrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 30px;
+  column-gap: 1px;
+  width: 100%;
+}
+
 .description-form-flexwrap > #description {
-  width: 100% !important;
+  width: 52% !important;
   transition: width 1.5s ease;
 }
 
-.description-form-flexwrap > .inline-listing-form {
-  width: 0 !important;
+.inline-listing-form {
   opacity: 0;
-  flex-shrink: 0;
-  overflow: hidden;
-  transition: width 1.5s ease, opacity 0.8s ease 0.5s;
+  transition: opacity 1.2s ease;
 }
 
-body.form-injected.option-1 .description-form-flexwrap > #description {
-  width: 52% !important;
-}
-
-body.form-injected.option-1 .description-form-flexwrap > .inline-listing-form {
-  width: 46% !important;
+body.form-injected .inline-listing-form {
   opacity: 1;
+}
+
+.description-form-flexwrap > .inline-listing-form {
+  width: 46% !important;
+  transition: opacity 1.2s ease;
+  border-radius: 8px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+/* Mobile Layout */
+@media screen and (max-width: 768px) {
+  .description-form-flexwrap {
+    flex-direction: column;
+  }
+
+  .description-form-flexwrap > * {
+    width: 100% !important;
+    opacity: 1 !important;
+    transition: none !important;
+  }
 }`;
 
   const slideRightCSS = `/* 🅱️ Option 2: Slide-In from Right */

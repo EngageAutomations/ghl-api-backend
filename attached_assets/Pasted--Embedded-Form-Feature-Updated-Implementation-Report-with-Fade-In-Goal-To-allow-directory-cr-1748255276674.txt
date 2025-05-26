@@ -1,0 +1,102 @@
+✅ Embedded Form Feature — Updated Implementation Report (with Fade-In)
+🔧 Goal
+To allow directory creators to embed a custom Go HighLevel form beside the product description. The form is responsively styled, injected automatically, and populated dynamically with listing data from the URL.
+
+🧠 Core Features
+1. Smart Placement
+The form is inserted next to the #description using a .description-form-flexwrap container.
+
+On desktop, the layout is side-by-side.
+
+On mobile, the layout stacks vertically.
+
+2. Dynamic UTM Injection
+Extracts the slug from the URL.
+
+Appends it as a UTM param to the iframe:
+?listing=slug&utm_source=directory
+
+Hidden field in the GHL form should match (listing).
+
+3. Custom Iframe Generation
+User pastes original GHL embed code into the wizard.
+
+Wizard parses:
+
+form ID
+
+height and width from the original embed
+
+Adds +100px to width and height for buffer.
+
+Builds custom iframe for smoother integration.
+
+4. Fade-In Transition for Form
+Prevents harsh pop-in when the form loads.
+
+Improves UX during iframe render.
+
+🔽 Fade-In CSS
+css
+Copy
+Edit
+.inline-listing-form {
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+body.form-injected .inline-listing-form {
+  opacity: 1;
+}
+5. Layout & Responsive Styling (Header CSS)
+css
+Copy
+Edit
+.description-form-flexwrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 30px;
+  column-gap: 1px;
+  width: 100%;
+}
+
+.description-form-flexwrap > #description {
+  width: 52% !important;
+  transition: width 1.5s ease;
+}
+
+.description-form-flexwrap > .inline-listing-form {
+  width: 46% !important;
+  transition: opacity 1.2s ease;
+  border-radius: 8px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+/* Mobile Layout */
+@media screen and (max-width: 768px) {
+  .description-form-flexwrap {
+    flex-direction: column;
+  }
+
+  .description-form-flexwrap > * {
+    width: 100% !important;
+    opacity: 1 !important;
+    transition: none !important;
+  }
+}
+📌 User Requirements
+Requirement	Description
+Paste GHL form embed code	Wizard parses & re-generates final iframe
+Hidden field named listing	Required in GHL form
+Capture URL Parameters enabled	Ensures UTM data is stored
+Re-enter embed if form is edited	To re-parse size and update the iframe
+
+🧩 Scalable Architecture
+Uses a JSON-configured schema for storing form metadata (height, ID, UTM target).
+
+Parsing is handled on the backend for robustness.
+
+The fade-in effect is purely CSS-based and applies only when the form becomes visible.
+
