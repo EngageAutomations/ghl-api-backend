@@ -662,13 +662,22 @@ body:not(.hl-builder) input[class*="quantity"] {
 {`<style>
 /* GoHighLevel Essential Fixes - Always Applied */
 
-/* Remove title truncation - Nuclear approach */
+/* Remove title truncation - ULTRA NUCLEAR approach */
+body:not(.hl-builder) * {
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+}
+
 body:not(.hl-builder) [class*="product-title"],
 body:not(.hl-builder) [class*="product-name"],
 body:not(.hl-builder) .hl-product-detail-product-name,
 body:not(.hl-builder) .truncate-text,
+body:not(.hl-builder) .truncate,
 body:not(.hl-builder) p.hl-product-detail-product-name,
-body:not(.hl-builder) p.truncate-text {
+body:not(.hl-builder) p.truncate-text,
+body:not(.hl-builder) h1, body:not(.hl-builder) h2, body:not(.hl-builder) h3,
+body:not(.hl-builder) h4, body:not(.hl-builder) h5, body:not(.hl-builder) h6,
+body:not(.hl-builder) p, body:not(.hl-builder) span, body:not(.hl-builder) div {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
@@ -677,13 +686,19 @@ body:not(.hl-builder) p.truncate-text {
   height: auto !important;
   width: auto !important;
   max-width: none !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
 }
 
-/* Global truncate fix */
-body:not(.hl-builder) .truncate-text {
+/* Destroy all truncation utility classes */
+body:not(.hl-builder) .truncate,
+body:not(.hl-builder) .truncate-text,
+body:not(.hl-builder) .text-truncate,
+body:not(.hl-builder) .ellipsis {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
 }
 
 /* Remove product description truncation */
