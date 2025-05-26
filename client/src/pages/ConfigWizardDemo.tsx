@@ -657,8 +657,8 @@ body:not(.hl-builder) input[class*="quantity"] {
                     Copy CSS
                   </Button>
                 </div>
-                <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
-                  <pre className="text-sm whitespace-pre-wrap">
+                <div className="bg-slate-900 text-slate-100 p-4 rounded-lg">
+                  <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
 {`<style>
 /* GoHighLevel Essential Fixes - Always Applied */
 
