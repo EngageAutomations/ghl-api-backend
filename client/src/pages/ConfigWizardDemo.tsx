@@ -662,93 +662,24 @@ body:not(.hl-builder) input[class*="quantity"] {
 {`<style>
 /* GoHighLevel Essential Fixes - Always Applied */
 
-/* Remove title truncation - MEGA NUCLEAR approach */
-body:not(.hl-builder) * {
-  text-overflow: unset !important;
-  -webkit-line-clamp: unset !important;
-  white-space: normal !important;
-}
-
-/* FORCE all containers to allow full width */
-body:not(.hl-builder) .fullSection,
-body:not(.hl-builder) .c-section,
-body:not(.hl-builder) .c-wrapper,
-body:not(.hl-builder) .inner,
-body:not(.hl-builder) .vertical,
-body:not(.hl-builder) .c-row,
-body:not(.hl-builder) .c-column,
-body:not(.hl-builder) [class*="section-"],
-body:not(.hl-builder) [class*="row-"],
-body:not(.hl-builder) [class*="col-"] {
-  width: 100% !important;
-  max-width: none !important;
-  min-width: auto !important;
-  flex: none !important;
-}
-
+/* Remove title truncation */
 body:not(.hl-builder) [class*="product-title"],
 body:not(.hl-builder) [class*="product-name"],
-body:not(.hl-builder) .hl-product-detail-product-name,
-body:not(.hl-builder) .truncate-text,
-body:not(.hl-builder) .truncate,
-body:not(.hl-builder) p.hl-product-detail-product-name,
-body:not(.hl-builder) p.truncate-text,
-body:not(.hl-builder) h1, body:not(.hl-builder) h2, body:not(.hl-builder) h3,
-body:not(.hl-builder) h4, body:not(.hl-builder) h5, body:not(.hl-builder) h6,
-body:not(.hl-builder) p, body:not(.hl-builder) span, body:not(.hl-builder) div {
+body:not(.hl-builder) .hl-product-detail-product-name {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
   -webkit-line-clamp: unset !important;
   max-height: none !important;
   height: auto !important;
-  width: 100% !important;
-  max-width: none !important;
-  min-width: auto !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  flex: none !important;
 }
 
-/* Destroy all truncation utility classes - SUPER AGGRESSIVE */
-body:not(.hl-builder) .truncate,
-body:not(.hl-builder) .truncate-text,
-body:not(.hl-builder) .text-truncate,
-body:not(.hl-builder) .ellipsis {
+/* Specific fix for truncate-text class */
+body:not(.hl-builder) .truncate-text {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
   -webkit-line-clamp: unset !important;
-}
-
-/* Multiple specific overrides for .truncate-text - MAXIMUM IMPORTANT */
-.truncate-text,
-body .truncate-text,
-html .truncate-text,
-html body .truncate-text,
-body:not(.hl-builder) .truncate-text,
-body div .truncate-text,
-html body div .truncate-text,
-[class*="truncate-text"],
-*[class*="truncate-text"],
-p.truncate-text,
-div.truncate-text,
-span.truncate-text,
-h1.truncate-text, h2.truncate-text, h3.truncate-text,
-h4.truncate-text, h5.truncate-text, h6.truncate-text {
-  white-space: normal !important !important;
-  overflow: visible !important !important;
-  text-overflow: unset !important !important;
-  -webkit-line-clamp: unset !important !important;
-  max-width: none !important !important;
-  width: auto !important !important;
-}
-
-/* Ultra high specificity override */
-html body div p.hl-product-detail-product-name.truncate-text {
-  white-space: normal !important !important !important;
-  overflow: visible !important !important !important;
-  text-overflow: unset !important !important !important;
 }
 
 /* Remove product description truncation */
