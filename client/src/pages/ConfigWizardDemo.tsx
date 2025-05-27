@@ -34,7 +34,7 @@ function ConfigWizard({ children }: { children: React.ReactNode }) {
 
 export default function ConfigWizardDemo() {
   // Form configuration state
-  const [buttonType, setButtonType] = useState<string>('popup');
+  const [buttonType, setButtonType] = useState<string>('embed');
   const [formEmbedUrl, setFormEmbedUrl] = useState<string>('<iframe src="https://link.msgsndr.com/form/abc123" width="500" height="600"></iframe>');
   const [customFieldName, setCustomFieldName] = useState<string>('listing');
   const [previewColor, setPreviewColor] = useState<string>('#3b82f6');
@@ -90,6 +90,27 @@ export default function ConfigWizardDemo() {
     return { headerCode: '', footerCode: '' };
   };
 
+  // Extract form URL from iframe embed code if needed
+  const extractFormUrl = (embedCode: string) => {
+    if (!embedCode) return '';
+    
+    // If it's already a clean URL/ID, return as is
+    if (!embedCode.includes('<iframe')) {
+      return embedCode;
+    }
+    
+    // Extract src from iframe
+    const srcMatch = embedCode.match(/src=["']([^"']+)["']/);
+    if (srcMatch) {
+      const fullUrl = srcMatch[1];
+      // Extract form ID from URL (last part of path)
+      const urlParts = fullUrl.split('/');
+      return urlParts[urlParts.length - 1] || fullUrl;
+    }
+    
+    return embedCode;
+  };
+
   // Generate code based on selection - always show embedded form code when form URL is provided
   const generateCodeForSelection = () => {
     if (formEmbedUrl && formEmbedUrl.trim()) {
@@ -101,9 +122,12 @@ export default function ConfigWizardDemo() {
           footerCode: popupCode.footerCode || '/* Paste GoHighLevel iframe embed code to generate popup JavaScript */'
         };
       } else {
+        // Extract clean form URL/ID from iframe if needed
+        const cleanFormUrl = extractFormUrl(formEmbedUrl);
+        
         // Generate embedded form template (default when form URL is provided)
         const embeddedFormCode = generateEmbeddedFormCode({
-          formUrl: formEmbedUrl,
+          formUrl: cleanFormUrl,
           animationType: "fade-squeeze",
           borderRadius: previewBorderRadius,
           boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
