@@ -100,13 +100,9 @@ export default function ConfigWizardDemo() {
         footerCode: popupCode.footerCode || '/* Paste GoHighLevel iframe embed code to generate popup JavaScript */'
       };
     } else if (buttonType === 'embed' && formEmbedUrl) {
-      // Parse the iframe to extract form URL/ID
-      const parsedData = parseEmbedCode(formEmbedUrl);
-      const formUrl = parsedData?.src || formEmbedUrl;
-      
       // Generate embedded form template
       const embeddedFormCode = generateEmbeddedFormCode({
-        formUrl: formUrl,
+        formUrl: formEmbedUrl,
         animationType: "fade-squeeze",
         borderRadius: previewBorderRadius,
         boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
