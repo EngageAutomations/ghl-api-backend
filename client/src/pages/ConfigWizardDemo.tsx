@@ -577,7 +577,21 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             )}
 
-
+            {/* Custom Field Name - Show for popup and embed types */}
+            {(buttonType === 'popup' || buttonType === 'embed') && (
+              <div className="space-y-2">
+                <Label htmlFor="field-name">Custom Field Name</Label>
+                <Input
+                  id="field-name"
+                  placeholder="listing"
+                  value={customFieldName}
+                  onChange={(e) => setCustomFieldName(e.target.value)}
+                />
+                <p className="text-sm text-slate-500">
+                  The hidden field name that will store the directory listing identifier
+                </p>
+              </div>
+            )}
 
             {/* Button Styling Section - Hide for embedded forms */}
             {buttonType !== 'embed' && (
