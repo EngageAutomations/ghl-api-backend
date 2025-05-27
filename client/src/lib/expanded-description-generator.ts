@@ -8,6 +8,8 @@ export interface ExpandedDescriptionConfig {
   content: string;
   fadeInAnimation: boolean;
   customClass: string;
+  useUrlBasedContent?: boolean;
+  fallbackContent?: string;
 }
 
 export function generateExpandedDescriptionCode(config: ExpandedDescriptionConfig): {
@@ -105,6 +107,26 @@ ${config.fadeInAnimation ? `
 
   // JavaScript for injecting expanded description
   const jsCode = `<script>
+// Expanded Description Content Map (URL-based)
+const expandedDescriptions = {
+  // Add your listing-specific content here
+  // 'listing-slug': '<h2>Custom Content</h2><p>Specific content for this listing...</p>',
+  
+  // Default fallback content
+  'default': \`${(config.fallbackContent || config.content).replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`
+};
+
+function getExpandedDescriptionContent() {
+  // Extract slug from URL
+  const url = new URL(window.location.href);
+  const slug = url.searchParams.get('slug') || 
+               url.pathname.split('/').pop() || 
+               url.pathname.split('/').filter(part => part.length > 0).pop();
+  
+  // Return specific content for this listing or default
+  return expandedDescriptions[slug] || expandedDescriptions['default'];
+}
+
 function injectExpandedDescription() {
   // Prevent duplicate injection
   if (document.querySelector('.${config.customClass || 'expanded-description'}')) {
@@ -117,10 +139,13 @@ function injectExpandedDescription() {
     return;
   }
 
+  // Get content based on URL
+  const content = getExpandedDescriptionContent();
+  
   // Create expanded description element
   const expandedDesc = document.createElement('div');
   expandedDesc.className = '${config.customClass || 'expanded-description'}';
-  expandedDesc.innerHTML = \`${config.content.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+  expandedDesc.innerHTML = content;
 
   // Insert after product detail container
   productContainer.parentNode.insertBefore(expandedDesc, productContainer.nextSibling);

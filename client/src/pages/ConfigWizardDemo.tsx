@@ -55,14 +55,13 @@ export default function ConfigWizardDemo() {
   
   // Expanded description configuration
   const [expandedDescriptionContent, setExpandedDescriptionContent] = useState(`<h2>Product Details</h2>
-<p>This is where you can add rich, detailed information about your product or service. You can include:</p>
-<ul>
-  <li>Detailed specifications and features</li>
-  <li>Usage instructions and guidelines</li>
-  <li>Customer testimonials and reviews</li>
-  <li>Technical documentation</li>
-  <li>Images and multimedia content</li>
-</ul>
+<p>This is the default content that will appear on all listings unless you specify custom content for specific URLs.</p>
+<p><strong>To add custom content for specific listings:</strong></p>
+<ol>
+  <li>Edit the expandedDescriptions object in the generated code</li>
+  <li>Add entries like: <code>'your-listing-slug': '&lt;h2&gt;Custom Content&lt;/h2&gt;&lt;p&gt;Specific details...&lt;/p&gt;'</code></li>
+  <li>The system will automatically show the right content based on the URL</li>
+</ol>
 <p>This expanded description appears below the main product details and provides additional space for comprehensive information that helps customers make informed decisions.</p>`);
   const [expandedDescFadeIn, setExpandedDescFadeIn] = useState(true);
   const [expandedDescClass, setExpandedDescClass] = useState('expanded-description');
@@ -516,17 +515,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h3 className="text-lg font-medium mb-4">Expanded Description Settings</h3>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="expanded-content">Rich Text Content</Label>
+                    <Label htmlFor="expanded-content">Default Rich Text Content</Label>
                     <textarea
                       id="expanded-content"
                       className="w-full h-32 p-3 border border-slate-200 rounded-lg resize-vertical"
-                      placeholder="Enter HTML content for expanded description..."
+                      placeholder="Enter default HTML content for expanded description..."
                       value={expandedDescriptionContent}
                       onChange={(e) => setExpandedDescriptionContent(e.target.value)}
                     />
                     <p className="text-sm text-slate-500">
-                      You can use HTML tags like &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;img&gt;, etc.
+                      This default content appears on all listings. You can customize content for specific listings by editing the generated code.
                     </p>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-blue-800 mb-2">URL-Based Content System</h4>
+                    <p className="text-sm text-blue-700 mb-2">
+                      The system automatically detects the listing URL and shows the appropriate content:
+                    </p>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• Default content (above) shows on all listings</li>
+                      <li>• Edit the <code>expandedDescriptions</code> object in the generated code</li>
+                      <li>• Add custom content for specific listing slugs</li>
+                      <li>• Works with both URL parameters and path-based routing</li>
+                    </ul>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
