@@ -40,7 +40,7 @@ div.c-product-details {
 
 /* Remove truncation and ellipsis from product name */
 .hl-product-detail-product-name {
-    width: 900px !important;
+    width: 800px !important;
     display: block;
     white-space: normal !important;
     overflow: visible !important;
