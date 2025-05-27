@@ -30,7 +30,7 @@ export function generateExpandedDescriptionCode(config: ExpandedDescriptionConfi
 /* Reduce product detail container bottom spacing for tighter layout */
 .product-detail-container,
 .cstore-product-detail {
-  margin-bottom: -200px !important;
+  margin-bottom: -300px !important;
   padding-bottom: 0 !important;
 }
 
