@@ -579,99 +579,101 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-            {/* Button Styling Section */}
-            <div className="border border-slate-200 rounded-lg p-6 bg-white">
-              <h3 className="text-lg font-medium mb-4 flex items-center">
-                <div className="bg-purple-50 p-2 rounded-md mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600">
-                    <path d="M7 10v12"/>
-                    <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/>
-                  </svg>
-                </div>
-                Button Styling
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="button-color">Button Color</Label>
-                  <div className="flex space-x-2">
+            {/* Button Styling Section - Hide for embedded forms */}
+            {buttonType !== 'embed' && (
+              <div className="border border-slate-200 rounded-lg p-6 bg-white">
+                <h3 className="text-lg font-medium mb-4 flex items-center">
+                  <div className="bg-purple-50 p-2 rounded-md mr-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600">
+                      <path d="M7 10v12"/>
+                      <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/>
+                    </svg>
+                  </div>
+                  Button Styling
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="button-color">Button Color</Label>
+                    <div className="flex space-x-2">
+                      <Input
+                        id="button-color"
+                        type="color"
+                        value={previewColor}
+                        onChange={(e) => setPreviewColor(e.target.value)}
+                        className="w-12 h-10 p-1 border"
+                      />
+                      <Input
+                        value={previewColor}
+                        onChange={(e) => setPreviewColor(e.target.value)}
+                        placeholder="#3b82f6"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="text-color">Text Color</Label>
+                    <div className="flex space-x-2">
+                      <Input
+                        id="text-color"
+                        type="color"
+                        value={previewTextColor}
+                        onChange={(e) => setPreviewTextColor(e.target.value)}
+                        className="w-12 h-10 p-1 border"
+                      />
+                      <Input
+                        value={previewTextColor}
+                        onChange={(e) => setPreviewTextColor(e.target.value)}
+                        placeholder="#ffffff"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="border-radius">Border Radius</Label>
                     <Input
-                      id="button-color"
-                      type="color"
-                      value={previewColor}
-                      onChange={(e) => setPreviewColor(e.target.value)}
-                      className="w-12 h-10 p-1 border"
-                    />
-                    <Input
-                      value={previewColor}
-                      onChange={(e) => setPreviewColor(e.target.value)}
-                      placeholder="#3b82f6"
+                      id="border-radius"
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={previewBorderRadius}
+                      onChange={(e) => setPreviewBorderRadius(Number(e.target.value))}
+                      placeholder="8"
                       className="flex-1"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="text-color">Text Color</Label>
-                  <div className="flex space-x-2">
-                    <Input
-                      id="text-color"
-                      type="color"
-                      value={previewTextColor}
-                      onChange={(e) => setPreviewTextColor(e.target.value)}
-                      className="w-12 h-10 p-1 border"
-                    />
-                    <Input
-                      value={previewTextColor}
-                      onChange={(e) => setPreviewTextColor(e.target.value)}
-                      placeholder="#ffffff"
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="border-radius">Border Radius</Label>
+                <div className="mt-4 space-y-2">
+                  <Label htmlFor="button-text">Button Text</Label>
                   <Input
-                    id="border-radius"
-                    type="number"
-                    min="0"
-                    max="50"
-                    value={previewBorderRadius}
-                    onChange={(e) => setPreviewBorderRadius(Number(e.target.value))}
-                    placeholder="8"
-                    className="flex-1"
+                    id="button-text"
+                    placeholder="Get More Info"
+                    value={buttonText}
+                    onChange={(e) => setButtonText(e.target.value)}
+                    className="w-full"
                   />
                 </div>
-              </div>
 
-              <div className="mt-4 space-y-2">
-                <Label htmlFor="button-text">Button Text</Label>
-                <Input
-                  id="button-text"
-                  placeholder="Get More Info"
-                  value={buttonText}
-                  onChange={(e) => setButtonText(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Button Preview */}
-              <div className="mt-6">
-                <Label>Preview</Label>
-                <div className="border border-slate-200 rounded-lg p-4 bg-slate-50 flex justify-center">
-                  <button
-                    style={{
-                      backgroundColor: previewColor,
-                      color: previewTextColor,
-                      borderRadius: `${previewBorderRadius}px`,
-                    }}
-                    className="px-6 py-3 font-medium shadow-sm transition-all hover:shadow-md"
-                  >
-                    {buttonText || 'Get More Info'}
-                  </button>
+                {/* Button Preview */}
+                <div className="mt-6">
+                  <Label>Preview</Label>
+                  <div className="border border-slate-200 rounded-lg p-4 bg-slate-50 flex justify-center">
+                    <button
+                      style={{
+                        backgroundColor: previewColor,
+                        color: previewTextColor,
+                        borderRadius: `${previewBorderRadius}px`,
+                      }}
+                      className="px-6 py-3 font-medium shadow-sm transition-all hover:shadow-md"
+                    >
+                      {buttonText || 'Get More Info'}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </WizardStep>
 
