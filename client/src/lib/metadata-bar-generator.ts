@@ -53,7 +53,7 @@ export function generateMetadataBarCode(config: MetadataBarConfig): {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 40px;
   max-width: 100%;
 }
 
@@ -68,8 +68,8 @@ export function generateMetadataBarCode(config: MetadataBarConfig): {
 }
 
 .${config.customClass} .metadata-icon {
-  width: 24px !important;
-  height: 24px !important;
+  width: 40px !important;
+  height: 40px !important;
   opacity: 0.8;
   flex-shrink: 0;
 }
@@ -164,7 +164,7 @@ function injectMetadataBar() {
       const item = document.createElement('div');
       item.className = 'metadata-item';
       item.innerHTML = \`
-        <svg class="metadata-icon" fill="currentColor" viewBox="0 0 20 20" style="width: 24px !important; height: 24px !important;">
+        <svg class="metadata-icon" fill="currentColor" viewBox="0 0 20 20" style="width: 40px !important; height: 40px !important;">
           \${field.icon}
         </svg>
         <div class="metadata-text">
