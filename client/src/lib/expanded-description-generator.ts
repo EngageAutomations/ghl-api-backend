@@ -188,10 +188,20 @@ function injectExpandedDescription() {
   let orderedContent = '';
   
   ${config.showMetadata ? `
-  // Add metadata bar at the top if enabled
+  // Add metadata bar at the top if enabled (transparent, no borders)
   const metadataBar = document.querySelector('.${config.metadataClass || 'listing-metadata-bar'}');
   if (metadataBar) {
-    orderedContent += '<div class="metadata-section">' + metadataBar.outerHTML + '</div>';
+    // Clone and modify the metadata bar for transparent display
+    const transparentMetadata = metadataBar.cloneNode(true);
+    transparentMetadata.style.background = 'transparent';
+    transparentMetadata.style.backgroundColor = 'transparent';
+    transparentMetadata.style.border = 'none';
+    transparentMetadata.style.boxShadow = 'none';
+    transparentMetadata.style.padding = '20px 0';
+    transparentMetadata.style.margin = '0 0 20px 0';
+    orderedContent += '<div class="metadata-section">' + transparentMetadata.outerHTML + '</div>';
+    // Hide the original metadata bar to avoid duplication
+    metadataBar.style.display = 'none';
   }
   ` : ''}
   
