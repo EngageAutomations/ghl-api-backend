@@ -40,7 +40,7 @@ export function generateMetadataBarCode(config: MetadataBarConfig): {
   background: transparent;
   color: ${config.textColor};
   padding: 20px 0;
-  margin: 10px 0;
+  margin: 80px 0 10px 0;
   border-radius: 0;
   box-shadow: none;
   border: none;

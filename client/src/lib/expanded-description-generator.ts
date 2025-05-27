@@ -33,13 +33,13 @@ export function generateExpandedDescriptionCode(config: ExpandedDescriptionConfi
 /* Reduce product detail container bottom spacing for tighter layout */
 .product-detail-container,
 .cstore-product-detail {
-  margin-bottom: -100px !important;
+  margin-bottom: -20px !important;
   padding-bottom: 0 !important;
 }
 
 /* Expanded Description Styling */
 .${config.customClass || 'expanded-description'} {
-  margin-top: 10px;
+  margin-top: 80px;
   margin-bottom: 20px;
   padding: 20px;
   background: #ffffff;
