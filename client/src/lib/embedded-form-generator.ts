@@ -139,7 +139,7 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     baseDomain = 'https://app.makerexpress3d.com', // [EDITABLE] 🟢 Set user domain
     formId = '',                                   // [EDITABLE] 🟢 Set form ID
     height = 470,                                  // [EDITABLE] 🟢 Set base form height
-    paramName = 'listing',                         // [EDITABLE] 🟢 Set custom query key
+    paramName = '${config.customFieldName}',       // [EDITABLE] 🟢 Set custom query key
     paramValue = '',                               // [EDITABLE] 🟢 Optional: override slug
     utm = 'directory'                              // [EDITABLE] 🟢 Optional UTM tag
   } = {}) {
