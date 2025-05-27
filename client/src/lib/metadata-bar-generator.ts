@@ -49,32 +49,44 @@ export function generateMetadataBarCode(config: MetadataBarConfig): {
 }
 
 .${config.customClass} .metadata-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  max-width: 100%;
 }
 
 .${config.customClass} .metadata-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
+  text-align: center;
   gap: 8px;
+  min-width: 80px;
+  max-width: 120px;
 }
 
 .${config.customClass} .metadata-icon {
-  width: 16px;
-  height: 16px;
+  width: 24px !important;
+  height: 24px !important;
   opacity: 0.8;
   flex-shrink: 0;
 }
 
 .${config.customClass} .metadata-label {
   font-weight: 600;
-  margin-right: 4px;
+  font-size: 18px !important;
+  line-height: 1.2;
+  margin: 0;
 }
 
 .${config.customClass} .metadata-value {
   color: inherit;
   opacity: 0.9;
+  font-size: 18px !important;
+  line-height: 1.2;
+  margin: 0;
 }
 
 /* Responsive design */
@@ -142,20 +154,27 @@ function injectMetadataBar() {
   const metadataGrid = document.createElement('div');
   metadataGrid.className = 'metadata-grid';
   
-  // Add metadata items
-${config.fields.map(field => `
-  if (metadata.${field.id}) {
-    const item = document.createElement('div');
-    item.className = 'metadata-item';
-    item.innerHTML = \`
-      <svg class="metadata-icon" fill="currentColor" viewBox="0 0 20 20">
-        ${field.icon}
-      </svg>
-      <span class="metadata-label">${field.label}:</span>
-      <span class="metadata-value">\${metadata.${field.id}}</span>
-    \`;
-    metadataGrid.appendChild(item);
-  }`).join('')}
+  // Add metadata items (maximum of 8, center aligned)
+  const fieldsToShow = [${config.fields.slice(0, 8).map(field => `
+    { id: '${field.id}', label: '${field.label}', icon: '${field.icon}' }`).join(',')}
+  ];
+  
+  fieldsToShow.forEach(field => {
+    if (metadata[field.id]) {
+      const item = document.createElement('div');
+      item.className = 'metadata-item';
+      item.innerHTML = \`
+        <svg class="metadata-icon" fill="currentColor" viewBox="0 0 20 20" style="width: 24px !important; height: 24px !important;">
+          \${field.icon}
+        </svg>
+        <div class="metadata-text">
+          <div class="metadata-label">\${field.label}</div>
+          <div class="metadata-value">\${metadata[field.id]}</div>
+        </div>
+      \`;
+      metadataGrid.appendChild(item);
+    }
+  });
   
   metadataBar.appendChild(metadataGrid);
 
