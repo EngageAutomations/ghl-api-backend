@@ -106,7 +106,9 @@ function Router() {
       {/* New Slideshow Wizard */}
       <Route path="/wizard">
         <ProtectedRoute>
-          <ConfigWizardSlideshow />
+          <AppLayout>
+            <ConfigWizardSlideshow />
+          </AppLayout>
         </ProtectedRoute>
       </Route>
       
