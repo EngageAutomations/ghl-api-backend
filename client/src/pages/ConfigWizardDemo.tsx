@@ -539,19 +539,22 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             )}
 
-            {/* Download URL - Only show for download type */}
+            {/* Download Type - No additional configuration needed */}
             {buttonType === 'download' && (
-              <div className="space-y-2">
-                <Label htmlFor="download-url">Download File URL</Label>
-                <Input
-                  id="download-url"
-                  placeholder="https://your-domain.com/files/document.pdf"
-                  value={formEmbedUrl}
-                  onChange={(e) => setFormEmbedUrl(e.target.value)}
-                />
-                <p className="text-sm text-slate-500">
-                  Enter the direct URL to the file you want users to download
-                </p>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div className="flex items-center space-x-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-600">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7,10 12,15 17,10"/>
+                    <line x1="12" x2="12" y1="15" y2="3"/>
+                  </svg>
+                  <div>
+                    <h4 className="text-sm font-medium text-orange-800">Direct Download Button</h4>
+                    <p className="text-sm text-orange-700">
+                      Download URLs will be configured through your form submissions. The button will trigger direct file downloads.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
