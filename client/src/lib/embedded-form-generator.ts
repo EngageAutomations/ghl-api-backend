@@ -137,8 +137,8 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
 
   return {
     htmlCode,
-    cssCode,
-    jsCode,
-    fullIntegrationCode
+    cssCode: cssCode, // Complete header with CSS + JavaScript
+    jsCode: '', // Footer is empty since everything is in header
+    fullIntegrationCode: cssCode
   };
 }
