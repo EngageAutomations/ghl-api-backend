@@ -22,7 +22,7 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   jsCode: string;
   fullIntegrationCode: string;
 } {
-  // Generate the universal header CSS
+  // Header CSS - exactly from your working implementation
   const cssCode = `<style>
 /* 👯 Wrapper for description + form */
 .description-form-flexwrap {
@@ -82,20 +82,11 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
 }
 </style>`;
 
-  // Generate the universal footer script with templated form URL
+  // Footer JavaScript - exactly from your working implementation with templated URL
   const jsCode = `<script>
   function getSlugFromUrl() {
     const parts = window.location.pathname.split('/');
     return parts[parts.length - 1] || "unknown";
-  }
-
-  function parseIframeSize(embedCode) {
-    const widthMatch = embedCode.match(/width="([^"]+)"/);
-    const heightMatch = embedCode.match(/height="([^"]+)"/);
-    return {
-      width: widthMatch ? widthMatch[1] : '100%',
-      height: heightMatch ? heightMatch[1] : '800px'
-    };
   }
 
   function injectEmbeddedForm() {
@@ -106,31 +97,23 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
 
     const slug = getSlugFromUrl();
     const embedUrl = \`${config.formUrl}?${config.customFieldName}=\${encodeURIComponent(slug)}&utm_source=directory\`;
-    
-    // Parse original iframe dimensions from embed code
-    const originalEmbedCode = \`${config.formUrl}\`;
-    const dimensions = parseIframeSize(originalEmbedCode);
 
     const wrapper = document.createElement('div');
     wrapper.className = 'description-form-flexwrap';
+
+    // Insert wrapper before the description, then move description into it
+    desc.parentNode.insertBefore(wrapper, desc);
     wrapper.appendChild(desc);
 
     const iframe = document.createElement('iframe');
     iframe.className = 'inline-listing-form';
     iframe.src = embedUrl;
-    iframe.style.pointerEvents = 'none';
-    
-    // Apply parsed dimensions to iframe
-    if (dimensions.width !== '100%') iframe.style.width = dimensions.width + 'px';
-    if (dimensions.height !== '800px') iframe.style.height = dimensions.height + 'px';
 
     iframe.onload = () => {
       iframe.classList.add('visible');
-      iframe.style.pointerEvents = 'auto';
     };
 
     wrapper.appendChild(iframe);
-    desc.parentNode.insertBefore(wrapper, desc.nextSibling);
     document.body.classList.add('form-injected');
   }
 
