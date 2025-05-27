@@ -10,6 +10,9 @@ export interface ExpandedDescriptionConfig {
   customClass: string;
   useUrlBasedContent?: boolean;
   fallbackContent?: string;
+  showMetadata?: boolean;
+  showMaps?: boolean;
+  metadataClass?: string;
 }
 
 export function generateExpandedDescriptionCode(config: ExpandedDescriptionConfig): {
@@ -50,6 +53,7 @@ export function generateExpandedDescriptionCode(config: ExpandedDescriptionConfi
   z-index: 1;
   width: 100%;
   clear: both;
+  text-align: center;
 }
 
 .${config.customClass || 'expanded-description'} h1,
@@ -153,13 +157,31 @@ function injectExpandedDescription() {
     return;
   }
 
-  // Get content based on URL
-  const content = getExpandedDescriptionContent();
-  
-  // Create expanded description element
+  // Create expanded description element with smart ordering
   const expandedDesc = document.createElement('div');
   expandedDesc.className = '${config.customClass || 'expanded-description'}';
-  expandedDesc.innerHTML = content;
+  
+  // Build ordered content based on component settings
+  let orderedContent = '';
+  
+  ${config.showMetadata ? `
+  // Add metadata bar at the top if enabled
+  const metadataBar = document.querySelector('.${config.metadataClass || 'listing-metadata-bar'}');
+  if (metadataBar) {
+    orderedContent += '<div class="metadata-section">' + metadataBar.outerHTML + '</div>';
+  }
+  ` : ''}
+  
+  ${config.showMaps ? `
+  // Add Google Maps widget after metadata (or at top if no metadata)
+  orderedContent += '<div class="google-maps-section" style="margin: 20px 0; padding: 20px; background: #f8fafc; border-radius: 8px; text-align: center;"><h3 style="margin-bottom: 15px; color: #374151;">Location</h3><div style="background: #e5e7eb; height: 200px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #6b7280;"><p>Google Maps Widget<br><small>Integration will display interactive map here</small></p></div></div>';
+  ` : ''}
+  
+  // Add user content last
+  const userContent = getExpandedDescriptionContent();
+  orderedContent += '<div class="user-content-section">' + userContent + '</div>';
+  
+  expandedDesc.innerHTML = orderedContent;
 
   // Insert after product detail container
   productContainer.parentNode.insertBefore(expandedDesc, productContainer.nextSibling);
