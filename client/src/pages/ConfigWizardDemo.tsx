@@ -10,6 +10,7 @@ import { parseEmbedCode, ParsedEmbedData } from '@/lib/embed-parser';
 import { generateActionButtonPopup } from '@/lib/custom-popup-generator';
 import { generateEmbeddedFormCode } from '@/lib/embedded-form-generator';
 import { generateExpandedDescriptionCode } from '@/lib/expanded-description-generator';
+import { generateMetadataBarCode, MetadataField } from '@/lib/metadata-bar-generator';
 
 interface WizardStepProps {
   title: string;
@@ -65,6 +66,39 @@ export default function ConfigWizardDemo() {
 <p>This expanded description appears below the main product details and provides additional space for comprehensive information that helps customers make informed decisions.</p>`);
   const [expandedDescFadeIn, setExpandedDescFadeIn] = useState(true);
   const [expandedDescClass, setExpandedDescClass] = useState('expanded-description');
+  
+  // Metadata bar configuration
+  const [metadataPosition, setMetadataPosition] = useState<'top' | 'bottom'>('bottom');
+  const [metadataBackgroundColor, setMetadataBackgroundColor] = useState('#f8fafc');
+  const [metadataTextColor, setMetadataTextColor] = useState('#374151');
+  const [metadataBorderRadius, setMetadataBorderRadius] = useState(8);
+  const [metadataClass, setMetadataClass] = useState('listing-metadata-bar');
+  const [metadataFields, setMetadataFields] = useState<MetadataField[]>([
+    {
+      id: 'phone',
+      label: 'Phone',
+      icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
+      defaultValue: '(555) 123-4567'
+    },
+    {
+      id: 'hours',
+      label: 'Hours',
+      icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
+      defaultValue: 'Mon-Fri 9AM-6PM'
+    },
+    {
+      id: 'location',
+      label: 'Address',
+      icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
+      defaultValue: '123 Main St, City, State'
+    },
+    {
+      id: 'website',
+      label: 'Website',
+      icon: '<path fillRule="evenodd" d="M4.083 9h1.946c.089-1.546.383-2.97.837-4.118A6.004 6.004 0 004.083 9zM10 2a8 8 0 100 16 8 8 0 000-16zm0 2c-.076 0-.232.032-.465.262-.238.234-.497.623-.737 1.182-.389.907-.673 2.142-.766 3.556h3.936c-.093-1.414-.377-2.649-.766-3.556-.24-.56-.5-.948-.737-1.182C10.232 4.032 10.076 4 10 4zm3.971 5c-.089-1.546-.383-2.97-.837-4.118A6.004 6.004 0 0115.917 9h-1.946zm-2.003 2H8.032c.093 1.414.377 2.649.766 3.556.24.56.5.948.737 1.182.233.23.389.262.465.262.076 0 .232-.032.465-.262.238-.234.498-.623.737-1.182.389-.907.673-2.142.766-3.556zm1.166 4.118c.454-1.147.748-2.572.837-4.118h1.946a6.004 6.004 0 01-2.783 4.118zm-6.268 0C6.412 13.97 6.118 12.546 6.03 11H4.083a6.004 6.004 0 002.783 4.118z" clipRule="evenodd"/>',
+      defaultValue: 'https://example.com'
+    }
+  ]);
   
   // Button hiding options
   const [showBuyNowButton, setShowBuyNowButton] = useState<boolean>(true);
@@ -140,9 +174,24 @@ export default function ConfigWizardDemo() {
           customClass: expandedDescClass
         });
 
+        // Generate metadata bar code if enabled
+        const metadataCode = generateMetadataBarCode({
+          enabled: showMetadata,
+          position: metadataPosition,
+          fields: metadataFields,
+          customClass: metadataClass,
+          backgroundColor: metadataBackgroundColor,
+          textColor: metadataTextColor,
+          borderRadius: metadataBorderRadius
+        });
+
         return {
-          headerCode: (popupCode.headerCode || '/* Paste GoHighLevel iframe embed code to generate popup CSS */') + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : ''),
-          footerCode: (popupCode.footerCode || '/* Paste GoHighLevel iframe embed code to generate popup JavaScript */') + (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '')
+          headerCode: (popupCode.headerCode || '/* Paste GoHighLevel iframe embed code to generate popup CSS */') + 
+                     (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
+                     (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
+          footerCode: (popupCode.footerCode || '/* Paste GoHighLevel iframe embed code to generate popup JavaScript */') + 
+                     (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '') +
+                     (metadataCode.jsCode ? '\n\n' + metadataCode.jsCode : '')
         };
       } else {
         // Extract clean form URL/ID from iframe if needed
@@ -166,9 +215,24 @@ export default function ConfigWizardDemo() {
           customClass: expandedDescClass
         });
 
+        // Generate metadata bar code if enabled
+        const metadataCode = generateMetadataBarCode({
+          enabled: showMetadata,
+          position: metadataPosition,
+          fields: metadataFields,
+          customClass: metadataClass,
+          backgroundColor: metadataBackgroundColor,
+          textColor: metadataTextColor,
+          borderRadius: metadataBorderRadius
+        });
+
         return {
-          headerCode: embeddedFormCode.cssCode + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : ''),
-          footerCode: embeddedFormCode.jsCode + (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '')
+          headerCode: embeddedFormCode.cssCode + 
+                     (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
+                     (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
+          footerCode: embeddedFormCode.jsCode + 
+                     (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '') +
+                     (metadataCode.jsCode ? '\n\n' + metadataCode.jsCode : '')
         };
       }
     } else {
@@ -181,6 +245,17 @@ export default function ConfigWizardDemo() {
         customClass: expandedDescClass
       });
 
+      // Generate metadata bar code if enabled
+      const metadataCode = generateMetadataBarCode({
+        enabled: showMetadata,
+        position: metadataPosition,
+        fields: metadataFields,
+        customClass: metadataClass,
+        backgroundColor: metadataBackgroundColor,
+        textColor: metadataTextColor,
+        borderRadius: metadataBorderRadius
+      });
+
       return {
         headerCode: `/* Directory Listing CSS */
 .ghl-listing-button {
@@ -189,7 +264,8 @@ export default function ConfigWizardDemo() {
   border-radius: ${previewBorderRadius}px;
   padding: 0.5rem 1rem;
   transition: all 0.2s ease;
-}` + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : ''),
+}` + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
+    (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
         footerCode: `<script>
 // Directory Integration Script
 document.addEventListener('DOMContentLoaded', function() {
@@ -202,7 +278,8 @@ document.addEventListener('DOMContentLoaded', function() {
     form.appendChild(hiddenField);
   });
 });
-</script>` + (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '')
+</script>` + (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '') +
+         (metadataCode.jsCode ? '\n\n' + metadataCode.jsCode : '')
       };
     }
   };
@@ -560,6 +637,148 @@ document.addEventListener('DOMContentLoaded', function() {
                       />
                       <Label htmlFor="fade-in-toggle">Fade-in Animation</Label>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Metadata Bar Configuration */}
+            {showMetadata && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium mb-4">Metadata Bar Settings</h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="metadata-position">Position</Label>
+                      <Select value={metadataPosition} onValueChange={(value: 'top' | 'bottom') => setMetadataPosition(value)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="top">Above Product Details</SelectItem>
+                          <SelectItem value="bottom">Below Product Details</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="metadata-class">CSS Class Name</Label>
+                      <Input
+                        id="metadata-class"
+                        placeholder="listing-metadata-bar"
+                        value={metadataClass}
+                        onChange={(e) => setMetadataClass(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="metadata-bg-color">Background Color</Label>
+                      <div className="flex space-x-2">
+                        <Input
+                          id="metadata-bg-color"
+                          type="color"
+                          value={metadataBackgroundColor}
+                          onChange={(e) => setMetadataBackgroundColor(e.target.value)}
+                          className="w-12 h-10 p-1 border"
+                        />
+                        <Input
+                          value={metadataBackgroundColor}
+                          onChange={(e) => setMetadataBackgroundColor(e.target.value)}
+                          placeholder="#f8fafc"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="metadata-text-color">Text Color</Label>
+                      <div className="flex space-x-2">
+                        <Input
+                          id="metadata-text-color"
+                          type="color"
+                          value={metadataTextColor}
+                          onChange={(e) => setMetadataTextColor(e.target.value)}
+                          className="w-12 h-10 p-1 border"
+                        />
+                        <Input
+                          value={metadataTextColor}
+                          onChange={(e) => setMetadataTextColor(e.target.value)}
+                          placeholder="#374151"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="metadata-border-radius">Border Radius</Label>
+                      <Input
+                        id="metadata-border-radius"
+                        type="number"
+                        min="0"
+                        max="50"
+                        value={metadataBorderRadius}
+                        onChange={(e) => setMetadataBorderRadius(Number(e.target.value))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-green-800 mb-2">URL-Based Business Information</h4>
+                    <p className="text-sm text-green-700 mb-2">
+                      The metadata bar shows business information that changes per listing:
+                    </p>
+                    <ul className="text-sm text-green-700 space-y-1">
+                      <li>• Default values (below) show on all listings</li>
+                      <li>• Edit the <code>metadataContent</code> object in the generated code</li>
+                      <li>• Add custom business info for specific listing slugs</li>
+                      <li>• Perfect for phone numbers, hours, addresses, websites</li>
+                    </ul>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Default Business Information Fields</Label>
+                    {metadataFields.map((field, index) => (
+                      <div key={field.id} className="grid grid-cols-1 md:grid-cols-3 gap-2 p-3 border border-slate-200 rounded-lg bg-white">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-slate-500">Field Label</Label>
+                          <Input
+                            placeholder="Label"
+                            value={field.label}
+                            onChange={(e) => {
+                              const newFields = [...metadataFields];
+                              newFields[index].label = e.target.value;
+                              setMetadataFields(newFields);
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-slate-500">Default Value</Label>
+                          <Input
+                            placeholder="Default value"
+                            value={field.defaultValue}
+                            onChange={(e) => {
+                              const newFields = [...metadataFields];
+                              newFields[index].defaultValue = e.target.value;
+                              setMetadataFields(newFields);
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-slate-500">Field ID</Label>
+                          <Input
+                            placeholder="field_id"
+                            value={field.id}
+                            onChange={(e) => {
+                              const newFields = [...metadataFields];
+                              newFields[index].id = e.target.value;
+                              setMetadataFields(newFields);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
