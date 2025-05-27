@@ -98,7 +98,7 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     if (!desc) return;
 
     const slug = getSlugFromUrl();
-    const formId = 'YOUR_FORM_ID'; // 🔁 Replace with your actual form ID
+    const formId = '${config.formUrl}'; // 🔁 Replace with your actual form ID
     const embedUrl = \`https://app.makerexpress3d.com/widget/form/\${formId}?listing=\${encodeURIComponent(slug)}&utm_source=directory\`;
 
     // Create wrapper
