@@ -29,7 +29,7 @@ export function generateExpandedDescriptionCode(config: ExpandedDescriptionConfi
   const cssCode = `<style>
 /* Expanded Description Styling */
 .${config.customClass || 'expanded-description'} {
-  margin-top: 30px;
+  margin-top: 10px;
   padding: 20px;
   background: #ffffff;
   border-radius: 8px;
