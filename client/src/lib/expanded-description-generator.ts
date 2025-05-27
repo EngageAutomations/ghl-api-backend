@@ -133,8 +133,10 @@ function injectExpandedDescription() {
     return;
   }
 
-  // Find the product detail container
-  const productContainer = document.querySelector('.product-detail-container');
+  // Find the product detail container (try multiple GoHighLevel selectors)
+  const productContainer = document.querySelector('.product-detail-container') ||
+                           document.querySelector('.cstore-product-detail') ||
+                           document.querySelector('[class*="product-detail"]');
   if (!productContainer) {
     return;
   }
