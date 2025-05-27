@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon } from 'lucide-react';
 
 interface SlideProps {
   children: React.ReactNode;
@@ -25,6 +26,9 @@ export default function ConfigWizardSlideshow() {
   const [logoUrl, setLogoUrl] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [buttonType, setButtonType] = useState<'popup' | 'redirect' | 'download' | 'embed'>('popup');
+  const [formEmbedUrl, setFormEmbedUrl] = useState('');
+  const [customFieldName, setCustomFieldName] = useState('listing');
 
   // Handle file drop
   const handleDrop = (e: React.DragEvent) => {
@@ -347,7 +351,186 @@ export default function ConfigWizardSlideshow() {
       </div>
     </Slide>,
 
-    // Slide 3: Generate Code (placeholder for now)
+    // Slide 3: Integration Method
+    <Slide key="integration-method" className="bg-gradient-to-br from-green-50 to-emerald-100">
+      <div className="text-center max-w-4xl mx-auto">
+        <div className="mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mb-6">
+            <Settings className="w-10 h-10 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Integration Method</h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Select how you want to integrate GoHighLevel forms
+          </p>
+        </div>
+
+        {/* Integration Options Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card 
+            className={`cursor-pointer transition-all border-2 ${
+              buttonType === 'popup' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
+            }`}
+            onClick={() => setButtonType('popup')}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="bg-blue-500 text-white p-2 rounded-md">
+                  <MousePointer className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-medium">Action Button (Popup)</h3>
+                  <p className="text-sm text-gray-500">Opens form in a popup overlay</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className={`cursor-pointer transition-all border-2 ${
+              buttonType === 'redirect' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
+            }`}
+            onClick={() => setButtonType('redirect')}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="bg-green-500 text-white p-2 rounded-md">
+                  <ExternalLink className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-medium">Action Button (Redirect)</h3>
+                  <p className="text-sm text-gray-500">Redirects to external form page</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className={`cursor-pointer transition-all border-2 ${
+              buttonType === 'download' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
+            }`}
+            onClick={() => setButtonType('download')}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="bg-orange-500 text-white p-2 rounded-md">
+                  <DownloadIcon className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-medium">Action Button (Download)</h3>
+                  <p className="text-sm text-gray-500">Downloads file directly</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className={`cursor-pointer transition-all border-2 ${
+              buttonType === 'embed' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
+            }`}
+            onClick={() => setButtonType('embed')}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="bg-purple-500 text-white p-2 rounded-md">
+                  <Code className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-medium">Embedded Form</h3>
+                  <p className="text-sm text-gray-500">Displays form directly on page</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Configuration Card */}
+        <Card className="bg-white/80 backdrop-blur-sm border border-green-200 max-w-2xl mx-auto">
+          <CardContent className="p-8">
+            {/* Form Configuration - Only show for popup and embed */}
+            {(buttonType === 'popup' || buttonType === 'embed') && (
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="form-embed" className="text-left block text-lg font-medium text-gray-700">
+                    {buttonType === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
+                  </Label>
+                  <Textarea
+                    id="form-embed"
+                    placeholder={buttonType === 'popup' 
+                      ? '<iframe src="https://link.msgsndr.com/form/..." width="500" height="600"></iframe>'
+                      : 'Paste your GoHighLevel form embed code here...'
+                    }
+                    value={formEmbedUrl}
+                    onChange={(e) => setFormEmbedUrl(e.target.value)}
+                    className="min-h-[120px] text-sm"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="field-name" className="text-left block text-lg font-medium text-gray-700">
+                    Custom Field Name
+                  </Label>
+                  <Input
+                    id="field-name"
+                    placeholder="listing"
+                    value={customFieldName}
+                    onChange={(e) => setCustomFieldName(e.target.value)}
+                    className="text-lg p-4 h-auto"
+                  />
+                  <p className="text-sm text-gray-600 text-left">
+                    The hidden field name that will store the directory listing identifier
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Info cards for redirect and download */}
+            {buttonType === 'redirect' && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                <div className="flex items-center space-x-3">
+                  <ExternalLink className="w-6 h-6 text-green-600" />
+                  <div className="text-left">
+                    <h4 className="text-lg font-medium text-green-800">Redirect Button</h4>
+                    <p className="text-green-700 mt-2">
+                      Redirect URLs will be configured through your form submissions. The button will redirect users to external pages.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {buttonType === 'download' && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                <div className="flex items-center space-x-3">
+                  <DownloadIcon className="w-6 h-6 text-orange-600" />
+                  <div className="text-left">
+                    <h4 className="text-lg font-medium text-orange-800">Direct Download Button</h4>
+                    <p className="text-orange-700 mt-2">
+                      Download URLs will be configured through your form submissions. The button will trigger direct file downloads.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Current Selection Summary */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+              <h4 className="text-sm font-medium text-blue-800 mb-2">Selected Integration:</h4>
+              <div className="text-sm text-blue-700">
+                <p><strong>Method:</strong> {buttonType === 'popup' ? 'Popup Form' : buttonType === 'redirect' ? 'Page Redirect' : buttonType === 'download' ? 'Direct Download' : 'Embedded Form'}</p>
+                {(buttonType === 'popup' || buttonType === 'embed') && customFieldName && (
+                  <p><strong>Field Name:</strong> {customFieldName}</p>
+                )}
+                {formEmbedUrl && (
+                  <p><strong>Form Code:</strong> Configured ✓</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </Slide>,
+
+    // Slide 4: Generate Code (placeholder for now)
     <Slide key="generate-code" className="bg-gradient-to-br from-orange-50 to-amber-100">
       <div className="text-center max-w-2xl mx-auto">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Generate Integration Code</h2>
