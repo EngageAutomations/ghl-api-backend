@@ -185,7 +185,8 @@ export default function ConfigWizardDemo() {
           backgroundColor: 'transparent',
           textColor: metadataTextColor,
           borderRadius: 0,
-          fontFamily: metadataFont
+          fontFamily: metadataFont,
+          showMaps: showMaps
         });
 
         return {
@@ -227,7 +228,8 @@ export default function ConfigWizardDemo() {
           backgroundColor: 'transparent',
           textColor: metadataTextColor,
           borderRadius: 0,
-          fontFamily: metadataFont
+          fontFamily: metadataFont,
+          showMaps: showMaps
         });
 
         return {
@@ -258,7 +260,8 @@ export default function ConfigWizardDemo() {
         backgroundColor: 'transparent',
         textColor: metadataTextColor,
         borderRadius: 0,
-        fontFamily: metadataFont
+        fontFamily: metadataFont,
+        showMaps: showMaps
       });
 
       return {

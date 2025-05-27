@@ -12,6 +12,7 @@ export interface MetadataBarConfig {
   textColor: string;
   borderRadius: number;
   fontFamily?: string;
+  showMaps?: boolean;
 }
 
 export interface MetadataField {
@@ -179,6 +180,15 @@ function injectMetadataBar() {
   });
   
   metadataBar.appendChild(metadataGrid);
+
+  // Add Google Maps widget under metadata bar if enabled
+  ${config.showMaps ? `
+  const mapsWidget = document.createElement('div');
+  mapsWidget.className = 'google-maps-widget';
+  mapsWidget.style.cssText = 'width: 100%; height: 300px; background: #e5e7eb; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #6b7280; margin: 20px 0; font-family: ' + (getComputedStyle(document.body).fontFamily || 'system-ui, sans-serif');
+  mapsWidget.innerHTML = '<p style="text-align: center; margin: 0;">Google Maps Widget<br><small>Integration will display interactive map here</small></p>';
+  metadataBar.appendChild(mapsWidget);
+  ` : ''}
 
   // Insert based on position
   if ('${config.position}' === 'top') {
