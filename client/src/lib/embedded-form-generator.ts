@@ -198,7 +198,8 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   // 🧩 Inject on page load and re-check via DOM observer
   document.addEventListener("DOMContentLoaded", () => injectCustomForm(parsedEmbedData));
   new MutationObserver(() => injectCustomForm(parsedEmbedData)).observe(document.body, { childList: true, subtree: true });
-</script>`;
+</script>`.replace(/\$\{config\.formUrl\}/g, config.formUrl)
+   .replace(/\$\{config\.customFieldName\}/g, config.customFieldName);
 
   // HTML is empty since this is a script-only implementation
   const htmlCode = '';
