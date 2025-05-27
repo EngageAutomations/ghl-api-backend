@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload } from 'lucide-react';
 
 interface SlideProps {
   children: React.ReactNode;
@@ -19,6 +21,8 @@ function Slide({ children, className = "" }: SlideProps) {
 export default function ConfigWizardSlideshow() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [googleDriveConnected, setGoogleDriveConnected] = useState(false);
+  const [directoryName, setDirectoryName] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
 
   const slides = [
     // Slide 0: Get Started
@@ -165,16 +169,112 @@ export default function ConfigWizardSlideshow() {
       </div>
     </Slide>,
 
-    // Slide 2: Content Settings (placeholder for now)
-    <Slide key="content-settings" className="bg-gradient-to-br from-purple-50 to-violet-100">
+    // Slide 2: Directory Setup
+    <Slide key="directory-setup" className="bg-gradient-to-br from-blue-50 to-cyan-100">
       <div className="text-center max-w-2xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Content Settings</h2>
-        <p className="text-lg text-gray-600 mb-8">
-          Customize your content display options
-        </p>
-        <div className="bg-white/80 backdrop-blur-sm rounded-lg p-8 border border-purple-200">
-          <p className="text-gray-600">Content settings will appear here...</p>
+        <div className="mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-6">
+            <Building2 className="w-10 h-10 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Directory Setup</h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Name your directory and set up basic information
+          </p>
         </div>
+
+        <Card className="bg-white/80 backdrop-blur-sm border border-blue-200 max-w-lg mx-auto">
+          <CardContent className="p-8">
+            <div className="space-y-6">
+              {/* Directory Name Field */}
+              <div className="space-y-3">
+                <Label htmlFor="directory-name" className="text-left block text-lg font-medium text-gray-700">
+                  Directory Name
+                </Label>
+                <Input
+                  id="directory-name"
+                  placeholder="My Business Directory"
+                  value={directoryName}
+                  onChange={(e) => setDirectoryName(e.target.value)}
+                  className="text-lg p-4 h-auto"
+                />
+                <p className="text-sm text-gray-600 text-left">
+                  Give your directory a memorable name for organization
+                </p>
+              </div>
+
+              {/* Logo URL Field */}
+              <div className="space-y-3">
+                <Label htmlFor="logo-url" className="text-left block text-lg font-medium text-gray-700">
+                  Logo URL (Optional)
+                </Label>
+                <div className="space-y-2">
+                  <Input
+                    id="logo-url"
+                    placeholder="https://example.com/logo.png"
+                    value={logoUrl}
+                    onChange={(e) => setLogoUrl(e.target.value)}
+                    className="text-lg p-4 h-auto"
+                  />
+                  <p className="text-sm text-gray-600 text-left">
+                    Enter a URL to your logo image, or leave blank to use default
+                  </p>
+                </div>
+              </div>
+
+              {/* Logo Preview */}
+              {logoUrl && (
+                <div className="space-y-3">
+                  <Label className="text-left block text-lg font-medium text-gray-700">
+                    Logo Preview
+                  </Label>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-center">
+                    <img
+                      src={logoUrl}
+                      alt="Logo Preview"
+                      className="max-h-16 max-w-full object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'text-red-500 text-sm';
+                        errorDiv.textContent = 'Unable to load image from this URL';
+                        target.parentNode?.appendChild(errorDiv);
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Info Card */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <Upload className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div className="text-left">
+                    <h4 className="text-sm font-medium text-blue-800 mb-1">Logo Tips:</h4>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• Use PNG or SVG format for best quality</li>
+                      <li>• Recommended size: 200x60px or similar ratio</li>
+                      <li>• Ensure the image is publicly accessible</li>
+                      <li>• Test the URL to make sure it loads correctly</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Configuration Summary */}
+              {(directoryName || logoUrl) && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-green-800 mb-2">Current Configuration:</h4>
+                  <div className="text-sm text-green-700 space-y-1 text-left">
+                    {directoryName && <p><strong>Directory:</strong> {directoryName}</p>}
+                    {logoUrl && <p><strong>Logo:</strong> Custom logo configured</p>}
+                    {!directoryName && <p className="text-green-600 italic">Enter a directory name to continue</p>}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </Slide>,
 
