@@ -1,0 +1,39 @@
+<script>
+  function getSlugFromUrl() {
+    const parts = window.location.pathname.split('/');
+    return parts[parts.length - 1] || "unknown";
+  }
+
+  function injectEmbeddedForm() {
+    if (document.querySelector('.description-form-flexwrap')) return;
+
+    const desc = document.getElementById('description');
+    if (!desc) return;
+
+    const slug = getSlugFromUrl();
+    const formId = 'yZsYJQfelidUiq28ij5v'; // Replace dynamically if needed
+    const embedUrl = `https://app.makerexpress3d.com/widget/form/${formId}?listing=${encodeURIComponent(slug)}&utm_source=directory`;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'description-form-flexwrap';
+    wrapper.appendChild(desc);
+
+    const iframe = document.createElement('iframe');
+    iframe.className = 'inline-listing-form';
+    iframe.src = embedUrl;
+    iframe.style.pointerEvents = 'none'; // Optional: prevent interaction until loaded
+
+    // Show iframe after it finishes loading
+    iframe.onload = () => {
+      iframe.classList.add('visible');
+      iframe.style.pointerEvents = 'auto';
+    };
+
+    wrapper.appendChild(iframe);
+    desc.parentNode.insertBefore(wrapper, desc.nextSibling);
+    document.body.classList.add('form-injected');
+  }
+
+  document.addEventListener("DOMContentLoaded", injectEmbeddedForm);
+  new MutationObserver(injectEmbeddedForm).observe(document.body, { childList: true, subtree: true });
+</script>

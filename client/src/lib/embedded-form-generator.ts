@@ -22,231 +22,51 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   jsCode: string;
   fullIntegrationCode: string;
 } {
-  // Generate the universal footer script
-  const enabledMetadata = config.metadataFields.filter(field => field.enabled && field.label);
-  const metadataParams = enabledMetadata.map(field => 
-    `if (metadata.${field.label.toLowerCase()}) paramString += \`&${field.label.toLowerCase()}=\${encodeURIComponent(metadata.${field.label.toLowerCase()})}\`;`
-  ).join('\n  ');
-
-  const jsCode = `<script>
-(function() {
-  const slug = window.location.pathname.split('/').pop();
-  const title = slug.replace(/-/g, ' ').replace(/\\b\\w/g, c => c.toUpperCase());
-
-  // Function to extract metadata from page elements
-  function getListingMetadata() {
-    try {
-      const metadata = {};
-      
-      // Try to extract metadata from page elements or data attributes
-      const titleElement = document.querySelector('h1, .product-title, .listing-title');
-      if (titleElement) metadata.title = titleElement.textContent.trim();
-      
-      const categoryElement = document.querySelector('.category, .product-category, [data-category]');
-      if (categoryElement) metadata.category = categoryElement.textContent.trim() || categoryElement.getAttribute('data-category');
-      
-      const locationElement = document.querySelector('.location, .product-location, [data-location]');
-      if (locationElement) metadata.location = locationElement.textContent.trim() || locationElement.getAttribute('data-location');
-      
-      return metadata;
-    } catch (error) {
-      console.log('Could not extract metadata:', error);
-      return {};
-    }
-  }
-
-  // Wait for description element to render and use structural placeholder approach
-  function waitForElement(selector, timeout = 5000) {
-    return new Promise((resolve) => {
-      const element = document.querySelector(selector);
-      if (element) return resolve(element);
-      
-      const observer = new MutationObserver(() => {
-        const element = document.querySelector(selector);
-        if (element) {
-          observer.disconnect();
-          resolve(element);
-        }
-      });
-      
-      observer.observe(document.body, { childList: true, subtree: true });
-      setTimeout(() => { observer.disconnect(); resolve(null); }, timeout);
-    });
-  }
-
-  // Parse embed code to extract form URL
-  function parseEmbedCode(embedCode) {
-    const srcMatch = embedCode.match(/src="([^"]+)"/);
-    return srcMatch ? srcMatch[1] : null;
-  }
-
-  const formUrl = parseEmbedCode("${config.formUrl}");
-  if (!formUrl) return;
-
-  // Create side-positioned overlay elements
-  const sideOverlay = document.createElement('div');
-  sideOverlay.id = 'directory-side-form';
-  sideOverlay.style.position = 'fixed';
-  sideOverlay.style.top = '20px';
-  sideOverlay.style.right = '20px';
-  sideOverlay.style.width = '400px';
-  sideOverlay.style.height = '500px';
-  sideOverlay.style.background = 'white';
-  sideOverlay.style.borderRadius = '12px';
-  sideOverlay.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
-  sideOverlay.style.zIndex = '9999';
-  sideOverlay.style.display = 'none';
-  sideOverlay.style.border = '1px solid #e5e7eb';
-  sideOverlay.style.padding = '16px';
-
-  const closeBtn = document.createElement('button');
-  closeBtn.innerHTML = '×';
-  closeBtn.style.position = 'absolute';
-  closeBtn.style.top = '8px';
-  closeBtn.style.right = '8px';
-  closeBtn.style.width = '24px';
-  closeBtn.style.height = '24px';
-  closeBtn.style.background = '#000';
-  closeBtn.style.color = 'white';
-  closeBtn.style.border = 'none';
-  closeBtn.style.borderRadius = '50%';
-  closeBtn.style.cursor = 'pointer';
-  closeBtn.style.fontSize = '16px';
-
-  const formIframe = document.createElement('iframe');
-  formIframe.style.width = '100%';
-  formIframe.style.height = 'calc(100% - 40px)';
-  formIframe.style.border = 'none';
-  formIframe.style.borderRadius = '8px';
-  formIframe.style.marginTop = '32px';
-
-  const toggleBtn = document.createElement('button');
-  toggleBtn.textContent = '📋 Contact Form';
-  toggleBtn.style.position = 'fixed';
-  toggleBtn.style.top = '20px';
-  toggleBtn.style.right = '20px';
-  toggleBtn.style.background = '#3b82f6';
-  toggleBtn.style.color = 'white';
-  toggleBtn.style.border = 'none';
-  toggleBtn.style.borderRadius = '8px';
-  toggleBtn.style.padding = '12px 16px';
-  toggleBtn.style.cursor = 'pointer';
-  toggleBtn.style.zIndex = '10000';
-  toggleBtn.style.fontSize = '14px';
-  toggleBtn.style.boxShadow = '0 4px 12px rgba(59,130,246,0.3)';
-
-  // Set form URL
-  formIframe.src = formUrl;
-
-  // Add event handlers
-  toggleBtn.onclick = function() {
-    sideOverlay.style.display = 'block';
-    toggleBtn.style.display = 'none';
-  };
-
-  closeBtn.onclick = function() {
-    sideOverlay.style.display = 'none';
-    toggleBtn.style.display = 'block';
-  };
-
-  // Assemble and add to page
-  sideOverlay.appendChild(closeBtn);
-  sideOverlay.appendChild(formIframe);
-  document.body.appendChild(toggleBtn);
-  document.body.appendChild(sideOverlay);
-})();
-</script>`;
-
-  // Generate CSS with structural placeholder and CSS lock-in
-  const fadeSqueezeCSS = `/* Directory Embed Wrapper - CSS Lock-in Approach */
-#listingEmbedFormContainer.directory-embed-wrapper {
-  display: flex !important;
-  gap: 20px !important;
-  align-items: flex-start !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  position: relative !important;
-}
-
-#listingEmbedFormContainer.directory-embed-wrapper > #description,
-#listingEmbedFormContainer.directory-embed-wrapper > [class*="description"],
-#listingEmbedFormContainer.directory-embed-wrapper > .product-description {
-  flex: 1 !important;
-  min-width: 0 !important;
-  max-width: none !important;
-}
-
-.product-details-form-container {
-  width: 320px !important;
-  flex-shrink: 0 !important;
-  opacity: 0 !important;
-  transition: opacity 1.2s ease !important;
-  min-height: 500px !important;
-}
-
-body.directory-embed-active .product-details-form-container {
-  opacity: 1 !important;
-}
-
-.product-details-inline-form {
-  width: 100% !important;
-  height: 500px !important;
-  border-radius: 8px !important;
-  overflow: hidden !important;
-  box-shadow: none !important;
-  border: none !important;
-}
-
-/* Strong CSS override protection */
-body.directory-embed-active #listingEmbedFormContainer.directory-embed-wrapper {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-}
-
-/* Failover mode - stack layout if flex fails */
-@media screen and (max-width: 768px) {
-  #listingEmbedFormContainer.directory-embed-wrapper {
-    flex-direction: column !important;
-  }
-  
-  .product-details-form-container {
-    width: 100% !important;
-    opacity: 1 !important;
-    margin-top: 20px !important;
-  }
-}`;
-
-  const slideRightCSS = `/* 🅱️ Option 2: Slide-In from Right */
-body.option-2 .description-form-flexwrap > .inline-listing-form {
-  width: 46% !important;
-  transform: translateX(100%);
-  opacity: 0;
-  flex-shrink: 0;
-  overflow: hidden;
-  transition: transform 0.8s ease, opacity 0.8s ease;
-}
-
-body.form-injected.option-2 .description-form-flexwrap > #description {
-  width: 52% !important;
-}
-
-body.form-injected.option-2 .description-form-flexwrap > .inline-listing-form {
-  transform: translateX(0);
-  opacity: 1;
-}`;
-
-  const baseCSS = `/* 👯 Flex Wrapper + Mobile Responsiveness */
+  // Generate the universal header CSS
+  const cssCode = `<style>
+/* 👯 Wrapper for description + form */
 .description-form-flexwrap {
   display: flex !important;
   flex-wrap: nowrap !important;
   justify-content: space-between;
   align-items: flex-start;
-  margin-top: 30px;
   column-gap: 1px;
   width: 100%;
+  margin-top: 30px;
   box-sizing: border-box;
 }
 
+/* 📝 Description column */
+.description-form-flexwrap > #description {
+  flex: 1 1 52% !important;
+  max-width: 52% !important;
+  box-sizing: border-box;
+  margin: 0 !important;
+}
+
+/* 📄 Iframe column - preload hidden */
+.description-form-flexwrap > .inline-listing-form {
+  flex: 1 1 46% !important;
+  max-width: 46% !important;
+  width: 100% !important;
+  height: 800px !important;
+  border: none;
+  border-radius: 8px;
+  box-shadow: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+/* ✅ Fades in iframe after it loads */
+.description-form-flexwrap > .inline-listing-form.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 📱 Responsive layout */
 @media screen and (max-width: 768px) {
   .description-form-flexwrap {
     flex-direction: column !important;
@@ -254,47 +74,63 @@ body.form-injected.option-2 .description-form-flexwrap > .inline-listing-form {
 
   .description-form-flexwrap > #description,
   .description-form-flexwrap > .inline-listing-form {
-    width: 100% !important;
+    flex: 1 1 100% !important;
     max-width: 100% !important;
+    margin-top: 20px !important;
     transition: none !important;
-    opacity: 1 !important;
-    transform: none !important;
   }
-}`;
-
-  const cssCode = `<style>
-${config.animationType === "fade-squeeze" ? fadeSqueezeCSS : slideRightCSS}
-
-${baseCSS}
+}
 </style>`;
 
-  // Generate complete integration code
-  const fullIntegrationCode = `<!-- Place this CSS in Header Tracking Code -->
-${cssCode}
+  // Generate the universal footer script with templated form URL
+  const jsCode = `<script>
+  function getSlugFromUrl() {
+    const parts = window.location.pathname.split('/');
+    return parts[parts.length - 1] || "unknown";
+  }
 
-<!-- Place this JavaScript in Footer Tracking Code -->
-${jsCode}`;
+  function injectEmbeddedForm() {
+    if (document.querySelector('.description-form-flexwrap')) return;
+
+    const desc = document.getElementById('description');
+    if (!desc) return;
+
+    const slug = getSlugFromUrl();
+    const embedUrl = \`${config.formUrl}?${config.customFieldName}=\${encodeURIComponent(slug)}&utm_source=directory\`;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'description-form-flexwrap';
+    wrapper.appendChild(desc);
+
+    const iframe = document.createElement('iframe');
+    iframe.className = 'inline-listing-form';
+    iframe.src = embedUrl;
+    iframe.style.pointerEvents = 'none';
+
+    iframe.onload = () => {
+      iframe.classList.add('visible');
+      iframe.style.pointerEvents = 'auto';
+    };
+
+    wrapper.appendChild(iframe);
+    desc.parentNode.insertBefore(wrapper, desc.nextSibling);
+    document.body.classList.add('form-injected');
+  }
+
+  document.addEventListener("DOMContentLoaded", injectEmbeddedForm);
+  new MutationObserver(injectEmbeddedForm).observe(document.body, { childList: true, subtree: true });
+</script>`;
+
+  // HTML is empty since this is a script-only implementation
+  const htmlCode = '';
+
+  // Combined integration code for easy copy-paste
+  const fullIntegrationCode = `${cssCode}\n\n${jsCode}`;
 
   return {
-    htmlCode: "",
+    htmlCode,
     cssCode,
     jsCode,
     fullIntegrationCode
   };
-}
-
-export function generateEmbeddedFormPreview(config: EmbeddedFormConfig): string {
-  return `🎯 **Your Custom Embedded Form Integration**
-
-**Animation Style:** ${config.animationType === "fade-squeeze" ? "🅰️ Fade-In with Layout Squeeze" : "🅱️ Slide-In from Right"}
-**Form URL:** ${config.formUrl}
-**Custom Field:** ${config.customFieldName}
-
-**Styling:**
-- Border Radius: ${config.borderRadius}px
-- Box Shadow: ${config.boxShadow === "none" ? "None" : config.boxShadow}
-
-**Metadata Fields:** ${config.metadataFields.filter(f => f.enabled && f.label).length} active fields
-
-Copy the generated code and paste it into your Go HighLevel website settings.`;
 }
