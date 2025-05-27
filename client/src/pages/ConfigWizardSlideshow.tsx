@@ -23,6 +23,45 @@ export default function ConfigWizardSlideshow() {
   const [googleDriveConnected, setGoogleDriveConnected] = useState(false);
   const [directoryName, setDirectoryName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  // Handle file drop
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    
+    if (imageFile) {
+      setLogoFile(imageFile);
+      // Create a preview URL for the dropped file
+      const url = URL.createObjectURL(imageFile);
+      setLogoUrl(url);
+    }
+  };
+
+  // Handle file input change
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setLogoFile(file);
+      const url = URL.createObjectURL(file);
+      setLogoUrl(url);
+    }
+  };
+
+  // Handle drag events
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
 
   const slides = [
     // Slide 0: Get Started
@@ -202,22 +241,52 @@ export default function ConfigWizardSlideshow() {
                 </p>
               </div>
 
-              {/* Logo URL Field */}
+              {/* Logo Upload Field */}
               <div className="space-y-3">
-                <Label htmlFor="logo-url" className="text-left block text-lg font-medium text-gray-700">
-                  Logo URL (Optional)
+                <Label className="text-left block text-lg font-medium text-gray-700">
+                  Logo Upload (Optional)
                 </Label>
                 <div className="space-y-2">
-                  <Input
-                    id="logo-url"
-                    placeholder="https://example.com/logo.png"
-                    value={logoUrl}
-                    onChange={(e) => setLogoUrl(e.target.value)}
-                    className="text-lg p-4 h-auto"
-                  />
-                  <p className="text-sm text-gray-600 text-left">
-                    Enter a URL to your logo image, or leave blank to use default
-                  </p>
+                  {/* Drag and Drop Area */}
+                  <div
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    className={`
+                      border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer
+                      ${isDragOver 
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
+                      }
+                    `}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      id="logo-upload"
+                    />
+                    <label htmlFor="logo-upload" className="cursor-pointer">
+                      <Upload className="w-10 h-10 text-gray-400 mx-auto mb-4" />
+                      <div className="space-y-2">
+                        <p className="text-lg font-medium text-gray-700">
+                          {isDragOver ? 'Drop your logo here' : 'Drag and drop your logo'}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          or click to browse files
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          PNG, JPG, SVG up to 5MB
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                  {logoFile && (
+                    <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
+                      ✓ Uploaded: {logoFile.name} ({(logoFile.size / 1024).toFixed(1)}KB)
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -250,24 +319,24 @@ export default function ConfigWizardSlideshow() {
                 <div className="flex items-start space-x-3">
                   <Upload className="w-5 h-5 text-blue-600 mt-0.5" />
                   <div className="text-left">
-                    <h4 className="text-sm font-medium text-blue-800 mb-1">Logo Tips:</h4>
+                    <h4 className="text-sm font-medium text-blue-800 mb-1">Logo Upload Tips:</h4>
                     <ul className="text-sm text-blue-700 space-y-1">
                       <li>• Use PNG or SVG format for best quality</li>
                       <li>• Recommended size: 200x60px or similar ratio</li>
-                      <li>• Ensure the image is publicly accessible</li>
-                      <li>• Test the URL to make sure it loads correctly</li>
+                      <li>• File size should be under 5MB</li>
+                      <li>• JPG, PNG, and SVG formats are supported</li>
                     </ul>
                   </div>
                 </div>
               </div>
 
               {/* Current Configuration Summary */}
-              {(directoryName || logoUrl) && (
+              {(directoryName || logoFile) && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <h4 className="text-sm font-medium text-green-800 mb-2">Current Configuration:</h4>
                   <div className="text-sm text-green-700 space-y-1 text-left">
                     {directoryName && <p><strong>Directory:</strong> {directoryName}</p>}
-                    {logoUrl && <p><strong>Logo:</strong> Custom logo configured</p>}
+                    {logoFile && <p><strong>Logo:</strong> {logoFile.name} uploaded</p>}
                     {!directoryName && <p className="text-green-600 italic">Enter a directory name to continue</p>}
                   </div>
                 </div>
