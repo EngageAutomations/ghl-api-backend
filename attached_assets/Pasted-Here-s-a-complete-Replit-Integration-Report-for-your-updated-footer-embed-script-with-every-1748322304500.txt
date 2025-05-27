@@ -1,0 +1,129 @@
+Here’s a complete **Replit Integration Report** for your updated **footer embed script**, with every configurable value clearly marked and explained. This version supports user-defined domains, form IDs, parameter names/values, and optional UTM tags.
+
+---
+
+## ✅ Replit Integration Report: Custom Form Embed Footer Script (Fully Dynamic)
+
+This script injects an iframe-based form below the `#description` element on any page. It supports:
+
+* Custom domains
+* Dynamic form IDs
+* Custom query parameter names and values
+* Optional UTM tracking
+* Responsive fade-in behavior
+* Re-injection prevention
+
+---
+
+### 📄 Full Script Block (Place before `</body>`)
+
+```html
+<script>
+  // 🔧 Auto-grabs the last URL segment as a fallback slug
+  function getSlugFromUrl() {
+    const parts = window.location.pathname.split('/');
+    return parts[parts.length - 1] || "unknown";
+  }
+
+  // 💡 Main injection function using user-provided config
+  function injectCustomForm({
+    baseDomain = 'https://app.makerexpress3d.com', // [EDITABLE] 🟢 Set user domain
+    formId = '',                                   // [EDITABLE] 🟢 Set form ID
+    height = 470,                                  // [EDITABLE] 🟢 Set base form height
+    paramName = 'listing',                         // [EDITABLE] 🟢 Set custom query key
+    paramValue = '',                               // [EDITABLE] 🟢 Optional: override slug
+    utm = 'directory'                              // [EDITABLE] 🟢 Optional UTM tag
+  } = {}) {
+    // ✅ Safety checks
+    if (!formId || !paramName || document.querySelector('.description-form-flexwrap')) return;
+
+    const desc = document.getElementById('description');
+    if (!desc) return;
+
+    const finalValue = paramValue || getSlugFromUrl(); // fallback to slug if paramValue is blank
+
+    // 🔗 Construct query string dynamically
+    const queryParams = new URLSearchParams({
+      [paramName]: finalValue,
+      utm_source: utm
+    });
+
+    // 🔨 Build full embed URL
+    const embedUrl = `${baseDomain}/widget/form/${formId}?${queryParams.toString()}`;
+
+    // 🧱 Layout wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'description-form-flexwrap';
+    desc.parentNode.insertBefore(wrapper, desc);
+    wrapper.appendChild(desc);
+
+    // 🖼️ Iframe setup with fade-in
+    const iframe = document.createElement('iframe');
+    iframe.className = 'inline-listing-form';
+    iframe.src = embedUrl;
+    iframe.style.height = `${height + 100}px`; // [EDITABLE] ⬆ Adds padding
+    iframe.style.opacity = '0';
+    iframe.style.transition = 'opacity 0.6s ease';
+    iframe.style.pointerEvents = 'none';
+
+    iframe.onload = () => {
+      iframe.classList.add('visible');
+      iframe.style.opacity = '1';
+      iframe.style.pointerEvents = 'auto';
+    };
+
+    wrapper.appendChild(iframe);
+    document.body.classList.add('form-injected');
+  }
+
+  // 🚀 Config Example (set dynamically from Replit)
+  const parsedEmbedData = {
+    baseDomain: 'https://custom.domain.com',      // [EDITABLE] 🟢 User’s white-labeled domain
+    formId: 'yZsYJQfelidUiq28ij5v',                // [EDITABLE] 🟢 Replace with actual form ID
+    height: 470,                                   // [EDITABLE] 🟢 Custom height if needed
+    paramName: 'item',                             // [EDITABLE] 🟢 Custom parameter name
+    paramValue: '',                                // [EDITABLE] 🟢 Optional, uses slug if blank
+    utm: 'homepage-directory'                      // [EDITABLE] 🟢 Optional UTM tag
+  };
+
+  // 🧩 Inject on page load and re-check via DOM observer
+  document.addEventListener("DOMContentLoaded", () => injectCustomForm(parsedEmbedData));
+  new MutationObserver(() => injectCustomForm(parsedEmbedData)).observe(document.body, { childList: true, subtree: true });
+</script>
+```
+
+---
+
+### 🧠 Summary of Editable Fields
+
+| Key          | Description                                  | Default Value                    | Editable? |
+| ------------ | -------------------------------------------- | -------------------------------- | --------- |
+| `baseDomain` | The base domain where the form is hosted     | `https://app.makerexpress3d.com` | ✅ Yes     |
+| `formId`     | The form’s unique ID                         | `'yZsYJQfelidUiq28ij5v'`         | ✅ Yes     |
+| `height`     | Iframe height (before +100 padding is added) | `470`                            | ✅ Yes     |
+| `paramName`  | Query string key to pass data                | `'listing'`                      | ✅ Yes     |
+| `paramValue` | Query string value (falls back to URL slug)  | `''` (fallbacks to slug)         | ✅ Yes     |
+| `utm`        | Optional UTM source parameter                | `'directory'`                    | ✅ Yes     |
+
+---
+
+### ✅ Example Resulting URL
+
+If the user sets:
+
+```js
+baseDomain: 'https://form.partneragency.com',
+formId: 'abc123',
+paramName: 'product',
+paramValue: 'solar-lamp'
+```
+
+Then the generated iframe URL will be:
+
+```
+https://form.partneragency.com/widget/form/abc123?product=solar-lamp&utm_source=directory
+```
+
+---
+
+Let me know if you'd like a paired config form UI for this in Replit, or if we should support fallback to default config when values are missing!

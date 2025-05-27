@@ -126,33 +126,51 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   new MutationObserver(injectEmbeddedForm).observe(document.body, { childList: true, subtree: true });
 </script>`;
 
-  // Footer script with enhanced config object approach
+  // Footer script with fully configurable parameters
   const jsCode = `<script>
+  // 🔧 Auto-grabs the last URL segment as a fallback slug
   function getSlugFromUrl() {
     const parts = window.location.pathname.split('/');
     return parts[parts.length - 1] || "unknown";
   }
 
-  function injectCustomForm({ formId = '', height = 470 } = {}) {
-    if (!formId || document.querySelector('.description-form-flexwrap')) return;
+  // 💡 Main injection function using user-provided config
+  function injectCustomForm({
+    baseDomain = 'https://app.makerexpress3d.com', // [EDITABLE] 🟢 Set user domain
+    formId = '',                                   // [EDITABLE] 🟢 Set form ID
+    height = 470,                                  // [EDITABLE] 🟢 Set base form height
+    paramName = 'listing',                         // [EDITABLE] 🟢 Set custom query key
+    paramValue = '',                               // [EDITABLE] 🟢 Optional: override slug
+    utm = 'directory'                              // [EDITABLE] 🟢 Optional UTM tag
+  } = {}) {
+    // ✅ Safety checks
+    if (!formId || !paramName || document.querySelector('.description-form-flexwrap')) return;
 
     const desc = document.getElementById('description');
     if (!desc) return;
 
-    const slug = getSlugFromUrl();
-    const embedUrl = \`https://app.makerexpress3d.com/widget/form/\${formId}?${config.customFieldName}=\${encodeURIComponent(slug)}&utm_source=directory\`;
+    const finalValue = paramValue || getSlugFromUrl(); // fallback to slug if paramValue is blank
 
-    // Build the wrapper and preserve layout
+    // 🔗 Construct query string dynamically
+    const queryParams = new URLSearchParams({
+      [paramName]: finalValue,
+      utm_source: utm
+    });
+
+    // 🔨 Build full embed URL
+    const embedUrl = \`\${baseDomain}/widget/form/\${formId}?\${queryParams.toString()}\`;
+
+    // 🧱 Layout wrapper
     const wrapper = document.createElement('div');
     wrapper.className = 'description-form-flexwrap';
     desc.parentNode.insertBefore(wrapper, desc);
     wrapper.appendChild(desc);
 
-    // Build the iframe
+    // 🖼️ Iframe setup with fade-in
     const iframe = document.createElement('iframe');
     iframe.className = 'inline-listing-form';
     iframe.src = embedUrl;
-    iframe.style.height = \`\${height + 100}px\`; // 100px padding if needed
+    iframe.style.height = \`\${height + 100}px\`; // [EDITABLE] ⬆ Adds padding
     iframe.style.opacity = '0';
     iframe.style.transition = 'opacity 0.6s ease';
     iframe.style.pointerEvents = 'none';
@@ -167,12 +185,17 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     document.body.classList.add('form-injected');
   }
 
-  // Configuration with templated values
+  // 🚀 Config Example (set dynamically from Replit)
   const parsedEmbedData = {
-    formId: '${config.formUrl}', // ⬅ Replace dynamically from parser or form UI
-    height: 470                  // ⬅ Optional override
+    baseDomain: 'https://app.makerexpress3d.com',      // [EDITABLE] 🟢 User's white-labeled domain
+    formId: '${config.formUrl}',                        // [EDITABLE] 🟢 Replace with actual form ID
+    height: 470,                                        // [EDITABLE] 🟢 Custom height if needed
+    paramName: '${config.customFieldName}',             // [EDITABLE] 🟢 Custom parameter name
+    paramValue: '',                                     // [EDITABLE] 🟢 Optional, uses slug if blank
+    utm: 'directory'                                    // [EDITABLE] 🟢 Optional UTM tag
   };
 
+  // 🧩 Inject on page load and re-check via DOM observer
   document.addEventListener("DOMContentLoaded", () => injectCustomForm(parsedEmbedData));
   new MutationObserver(() => injectCustomForm(parsedEmbedData)).observe(document.body, { childList: true, subtree: true });
 </script>`;
