@@ -72,14 +72,24 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
 @media screen and (max-width: 768px) {
   .description-form-flexwrap {
     flex-direction: column !important;
+    overflow-x: hidden !important;
   }
 
   .description-form-flexwrap > #description,
   .description-form-flexwrap > .inline-listing-form {
     flex: 1 1 100% !important;
     max-width: 100% !important;
+    width: 100% !important;
     margin-top: 20px !important;
     transition: none !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+  
+  .description-form-flexwrap > .inline-listing-form {
+    height: 500px !important;
+    min-height: 500px !important;
+    border: none !important;
   }
 }
 </style>
