@@ -38,11 +38,13 @@ div.c-product-details {
     margin-top: 60px !important;
 }
 
-/* Remove truncation and ellipsis from product name */
+/* Remove truncation and ellipsis from product name - FORCE OVERRIDE */
 body:not(.hl-builder) .hl-product-detail-product-name,
 body:not(.hl-builder) .hl-product-detail-product-name.truncate-text,
 body:not(.hl-builder) p.hl-product-detail-product-name,
-body:not(.hl-builder) p.hl-product-detail-product-name.truncate-text {
+body:not(.hl-builder) p.hl-product-detail-product-name.truncate-text,
+body:not(.hl-builder) div .hl-product-detail-product-name,
+body:not(.hl-builder) div p.hl-product-detail-product-name.truncate-text {
     width: 800px !important;
     max-width: 800px !important;
     min-width: 800px !important;
@@ -51,6 +53,13 @@ body:not(.hl-builder) p.hl-product-detail-product-name.truncate-text {
     overflow: visible !important;
     text-overflow: unset !important;
     -webkit-line-clamp: unset !important;
+}
+
+/* Nuclear option - override any GoHighLevel CSS with atomic specificity */
+body:not(.hl-builder) [class*="product-detail"] .hl-product-detail-product-name.truncate-text {
+    width: 800px !important;
+    max-width: 800px !important;
+    min-width: 800px !important;
 }
 
 /* Globally override truncation utility class */
