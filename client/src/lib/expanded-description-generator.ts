@@ -27,6 +27,13 @@ export function generateExpandedDescriptionCode(config: ExpandedDescriptionConfi
 
   // CSS for expanded description styling
   const cssCode = `<style>
+/* Reduce product detail container bottom spacing for tighter layout */
+.product-detail-container,
+.cstore-product-detail {
+  margin-bottom: -200px !important;
+  padding-bottom: 0 !important;
+}
+
 /* Expanded Description Styling */
 .${config.customClass || 'expanded-description'} {
   margin-top: 10px;
