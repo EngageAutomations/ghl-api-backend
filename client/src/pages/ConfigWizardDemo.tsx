@@ -72,12 +72,9 @@ export default function ConfigWizardDemo() {
   const [googleDriveConnected, setGoogleDriveConnected] = useState(false);
   const [buttonText, setButtonText] = useState('Get More Info');
   
-  // Metadata bar configuration
-  const [metadataPosition, setMetadataPosition] = useState<'top' | 'bottom'>('bottom');
-  const [metadataBackgroundColor, setMetadataBackgroundColor] = useState('#f8fafc');
+  // Metadata bar configuration (simplified for wizard)
   const [metadataTextColor, setMetadataTextColor] = useState('#374151');
-  const [metadataBorderRadius, setMetadataBorderRadius] = useState(8);
-  const [metadataClass, setMetadataClass] = useState('listing-metadata-bar');
+  const [metadataFont, setMetadataFont] = useState('system-ui, sans-serif');
   const [metadataFields, setMetadataFields] = useState<MetadataField[]>([
     {
       id: 'phone',
@@ -253,12 +250,13 @@ export default function ConfigWizardDemo() {
       // Generate metadata bar code if enabled
       const metadataCode = generateMetadataBarCode({
         enabled: showMetadata,
-        position: metadataPosition,
+        position: 'bottom',
         fields: metadataFields,
-        customClass: metadataClass,
-        backgroundColor: metadataBackgroundColor,
+        customClass: 'listing-metadata-bar',
+        backgroundColor: 'transparent',
         textColor: metadataTextColor,
-        borderRadius: metadataBorderRadius
+        borderRadius: 0,
+        fontFamily: metadataFont
       });
 
       return {
@@ -832,26 +830,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="metadata-position">Position</Label>
-                      <Select value={metadataPosition} onValueChange={(value: 'top' | 'bottom') => setMetadataPosition(value)}>
+                      <Label htmlFor="metadata-text-color">Text Color</Label>
+                      <Input
+                        id="metadata-text-color"
+                        type="color"
+                        value={metadataTextColor}
+                        onChange={(e) => setMetadataTextColor(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="metadata-font">Font Family</Label>
+                      <Select value={metadataFont} onValueChange={setMetadataFont}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="top">Above Product Details</SelectItem>
-                          <SelectItem value="bottom">Below Product Details</SelectItem>
+                          <SelectItem value="Arial, sans-serif">Arial</SelectItem>
+                          <SelectItem value="Helvetica, sans-serif">Helvetica</SelectItem>
+                          <SelectItem value="Georgia, serif">Georgia</SelectItem>
+                          <SelectItem value="Times New Roman, serif">Times New Roman</SelectItem>
+                          <SelectItem value="system-ui, sans-serif">System Default</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="metadata-class">CSS Class Name</Label>
-                      <Input
-                        id="metadata-class"
-                        placeholder="listing-metadata-bar"
-                        value={metadataClass}
-                        onChange={(e) => setMetadataClass(e.target.value)}
-                      />
                     </div>
                   </div>
 

@@ -11,6 +11,7 @@ export interface MetadataBarConfig {
   backgroundColor: string;
   textColor: string;
   borderRadius: number;
+  fontFamily?: string;
 }
 
 export interface MetadataField {
@@ -46,6 +47,7 @@ export function generateMetadataBarCode(config: MetadataBarConfig): {
   border: none;
   font-size: 14px;
   line-height: 1.5;
+  font-family: ${config.fontFamily || 'system-ui, sans-serif'};
 }
 
 .${config.customClass} .metadata-grid {
