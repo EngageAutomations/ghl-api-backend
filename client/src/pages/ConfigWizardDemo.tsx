@@ -179,12 +179,13 @@ export default function ConfigWizardDemo() {
         // Generate metadata bar code if enabled
         const metadataCode = generateMetadataBarCode({
           enabled: showMetadata,
-          position: metadataPosition,
+          position: 'bottom',
           fields: metadataFields,
-          customClass: metadataClass,
-          backgroundColor: metadataBackgroundColor,
+          customClass: 'listing-metadata-bar',
+          backgroundColor: 'transparent',
           textColor: metadataTextColor,
-          borderRadius: metadataBorderRadius
+          borderRadius: 0,
+          fontFamily: metadataFont
         });
 
         return {
@@ -220,12 +221,13 @@ export default function ConfigWizardDemo() {
         // Generate metadata bar code if enabled
         const metadataCode = generateMetadataBarCode({
           enabled: showMetadata,
-          position: metadataPosition,
+          position: 'bottom',
           fields: metadataFields,
-          customClass: metadataClass,
-          backgroundColor: metadataBackgroundColor,
+          customClass: 'listing-metadata-bar',
+          backgroundColor: 'transparent',
           textColor: metadataTextColor,
-          borderRadius: metadataBorderRadius
+          borderRadius: 0,
+          fontFamily: metadataFont
         });
 
         return {
@@ -303,11 +305,8 @@ document.addEventListener('DOMContentLoaded', function() {
     expandedDescFadeIn,
     expandedDescClass,
     showMetadata,
-    metadataPosition,
-    metadataBackgroundColor,
     metadataTextColor,
-    metadataBorderRadius,
-    metadataClass,
+    metadataFont,
     metadataFields
   ]);
 
