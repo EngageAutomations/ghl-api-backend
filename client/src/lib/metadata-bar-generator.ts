@@ -37,13 +37,13 @@ export function generateMetadataBarCode(config: MetadataBarConfig): {
   const cssCode = `<style>
 /* Metadata Bar Styling */
 .${config.customClass} {
-  background-color: ${config.backgroundColor};
+  background: transparent;
   color: ${config.textColor};
-  padding: 16px 20px;
-  margin: 20px 0;
-  border-radius: ${config.borderRadius}px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 20px 0;
+  margin: 10px 0;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
   font-size: 14px;
   line-height: 1.5;
 }
