@@ -12,7 +12,8 @@ import {
   Menu as MenuIcon,
   X,
   Bell,
-  HelpCircle
+  HelpCircle,
+  Presentation
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -84,6 +85,7 @@ export default function TopNavbar() {
   const navLinks = [
     { href: "/", icon: <Home className="h-4 w-4" />, label: "Dashboard" },
     { href: "/listings", icon: <GanttChart className="h-4 w-4" />, label: "Listings" },
+    { href: "/wizard", icon: <Presentation className="h-4 w-4" />, label: "Slideshow Wizard" },
     { href: "/config-wizard", icon: <Settings className="h-4 w-4" />, label: "Config Wizard" },
     { href: "/config-tester", icon: <HelpCircle className="h-4 w-4" />, label: "Config Tester" },
     { href: "/developer", icon: <Settings className="h-4 w-4" />, label: "Developer" },
