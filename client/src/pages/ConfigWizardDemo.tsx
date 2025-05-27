@@ -174,6 +174,14 @@ export default function ConfigWizardDemo() {
       }
     } else {
       // Generate directory listing template when no form URL is provided
+      // Generate expanded description code if enabled
+      const expandedDescCode = generateExpandedDescriptionCode({
+        enabled: showDescription,
+        content: expandedDescriptionContent,
+        fadeInAnimation: expandedDescFadeIn,
+        customClass: expandedDescClass
+      });
+
       return {
         headerCode: `/* Directory Listing CSS */
 .ghl-listing-button {
@@ -182,7 +190,7 @@ export default function ConfigWizardDemo() {
   border-radius: ${previewBorderRadius}px;
   padding: 0.5rem 1rem;
   transition: all 0.2s ease;
-}`,
+}` + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : ''),
         footerCode: `<script>
 // Directory Integration Script
 document.addEventListener('DOMContentLoaded', function() {
@@ -195,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
     form.appendChild(hiddenField);
   });
 });
-</script>`
+</script>` + (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '')
       };
     }
   };
