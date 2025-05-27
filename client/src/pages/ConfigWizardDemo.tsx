@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { parseEmbedCode, ParsedEmbedData } from '@/lib/embed-parser';
 import { generateActionButtonPopup } from '@/lib/custom-popup-generator';
 import { generateEmbeddedFormCode } from '@/lib/embedded-form-generator';
+import { generateExpandedDescriptionCode } from '@/lib/expanded-description-generator';
 
 interface WizardStepProps {
   title: string;
@@ -51,6 +52,20 @@ export default function ConfigWizardDemo() {
   const [showDescription, setShowDescription] = useState<boolean>(false);
   const [showMetadata, setShowMetadata] = useState<boolean>(false);
   const [showMaps, setShowMaps] = useState<boolean>(false);
+  
+  // Expanded description configuration
+  const [expandedDescriptionContent, setExpandedDescriptionContent] = useState(`<h2>Product Details</h2>
+<p>This is where you can add rich, detailed information about your product or service. You can include:</p>
+<ul>
+  <li>Detailed specifications and features</li>
+  <li>Usage instructions and guidelines</li>
+  <li>Customer testimonials and reviews</li>
+  <li>Technical documentation</li>
+  <li>Images and multimedia content</li>
+</ul>
+<p>This expanded description appears below the main product details and provides additional space for comprehensive information that helps customers make informed decisions.</p>`);
+  const [expandedDescFadeIn, setExpandedDescFadeIn] = useState(true);
+  const [expandedDescClass, setExpandedDescClass] = useState('expanded-description');
   
   // Button hiding options
   const [showBuyNowButton, setShowBuyNowButton] = useState<boolean>(true);
@@ -117,9 +132,18 @@ export default function ConfigWizardDemo() {
       if (buttonType === 'popup') {
         // Generate popup template with 100px spacing
         const popupCode = generateFullPopupCode();
+        
+        // Generate expanded description code if enabled
+        const expandedDescCode = generateExpandedDescriptionCode({
+          enabled: showDescription,
+          content: expandedDescriptionContent,
+          fadeInAnimation: expandedDescFadeIn,
+          customClass: expandedDescClass
+        });
+
         return {
-          headerCode: popupCode.headerCode || '/* Paste GoHighLevel iframe embed code to generate popup CSS */',
-          footerCode: popupCode.footerCode || '/* Paste GoHighLevel iframe embed code to generate popup JavaScript */'
+          headerCode: (popupCode.headerCode || '/* Paste GoHighLevel iframe embed code to generate popup CSS */') + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : ''),
+          footerCode: (popupCode.footerCode || '/* Paste GoHighLevel iframe embed code to generate popup JavaScript */') + (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '')
         };
       } else {
         // Extract clean form URL/ID from iframe if needed
@@ -134,9 +158,18 @@ export default function ConfigWizardDemo() {
           customFieldName: customFieldName || 'listing',
           metadataFields: []
         });
+
+        // Generate expanded description code if enabled
+        const expandedDescCode = generateExpandedDescriptionCode({
+          enabled: showDescription,
+          content: expandedDescriptionContent,
+          fadeInAnimation: expandedDescFadeIn,
+          customClass: expandedDescClass
+        });
+
         return {
-          headerCode: embeddedFormCode.cssCode,
-          footerCode: embeddedFormCode.jsCode
+          headerCode: embeddedFormCode.cssCode + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : ''),
+          footerCode: embeddedFormCode.jsCode + (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '')
         };
       }
     } else {
@@ -468,6 +501,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
               </div>
             </div>
+
+            {/* Expanded Description Configuration */}
+            {showDescription && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium mb-4">Expanded Description Settings</h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="expanded-content">Rich Text Content</Label>
+                    <textarea
+                      id="expanded-content"
+                      className="w-full h-32 p-3 border border-slate-200 rounded-lg resize-vertical"
+                      placeholder="Enter HTML content for expanded description..."
+                      value={expandedDescriptionContent}
+                      onChange={(e) => setExpandedDescriptionContent(e.target.value)}
+                    />
+                    <p className="text-sm text-slate-500">
+                      You can use HTML tags like &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;img&gt;, etc.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="expanded-class">CSS Class Name</Label>
+                      <Input
+                        id="expanded-class"
+                        placeholder="expanded-description"
+                        value={expandedDescClass}
+                        onChange={(e) => setExpandedDescClass(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        checked={expandedDescFadeIn}
+                        onCheckedChange={setExpandedDescFadeIn}
+                        id="fade-in-toggle" 
+                      />
+                      <Label htmlFor="fade-in-toggle">Fade-in Animation</Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* GoHighLevel Button Hiding Options */}
             <div className="border-t pt-6">
