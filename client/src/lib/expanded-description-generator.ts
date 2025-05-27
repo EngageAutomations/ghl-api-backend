@@ -74,7 +74,12 @@ export function generateExpandedDescriptionCode(config: ExpandedDescriptionConfi
 .${config.customClass || 'expanded-description'} ul,
 .${config.customClass || 'expanded-description'} ol {
   margin-bottom: 16px;
-  padding-left: 20px;
+  padding-left: 0;
+  list-style-position: inside;
+  text-align: center;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .${config.customClass || 'expanded-description'} li {
