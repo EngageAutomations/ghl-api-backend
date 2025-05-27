@@ -90,31 +90,33 @@ export default function ConfigWizardDemo() {
     return { headerCode: '', footerCode: '' };
   };
 
-  // Generate code based on selection
+  // Generate code based on selection - always show embedded form code when form URL is provided
   const generateCodeForSelection = () => {
-    if (buttonType === 'popup' && formEmbedUrl) {
-      // Generate popup template with 100px spacing
-      const popupCode = generateFullPopupCode();
-      return {
-        headerCode: popupCode.headerCode || '/* Paste GoHighLevel iframe embed code to generate popup CSS */',
-        footerCode: popupCode.footerCode || '/* Paste GoHighLevel iframe embed code to generate popup JavaScript */'
-      };
-    } else if (buttonType === 'embed' && formEmbedUrl) {
-      // Generate embedded form template
-      const embeddedFormCode = generateEmbeddedFormCode({
-        formUrl: formEmbedUrl,
-        animationType: "fade-squeeze",
-        borderRadius: previewBorderRadius,
-        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-        customFieldName: customFieldName || 'listing',
-        metadataFields: []
-      });
-      return {
-        headerCode: embeddedFormCode.cssCode,
-        footerCode: embeddedFormCode.jsCode
-      };
+    if (formEmbedUrl && formEmbedUrl.trim()) {
+      if (buttonType === 'popup') {
+        // Generate popup template with 100px spacing
+        const popupCode = generateFullPopupCode();
+        return {
+          headerCode: popupCode.headerCode || '/* Paste GoHighLevel iframe embed code to generate popup CSS */',
+          footerCode: popupCode.footerCode || '/* Paste GoHighLevel iframe embed code to generate popup JavaScript */'
+        };
+      } else {
+        // Generate embedded form template (default when form URL is provided)
+        const embeddedFormCode = generateEmbeddedFormCode({
+          formUrl: formEmbedUrl,
+          animationType: "fade-squeeze",
+          borderRadius: previewBorderRadius,
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          customFieldName: customFieldName || 'listing',
+          metadataFields: []
+        });
+        return {
+          headerCode: embeddedFormCode.cssCode,
+          footerCode: embeddedFormCode.jsCode
+        };
+      }
     } else {
-      // Generate directory listing template
+      // Generate directory listing template when no form URL is provided
       return {
         headerCode: `/* Directory Listing CSS */
 .ghl-listing-button {
