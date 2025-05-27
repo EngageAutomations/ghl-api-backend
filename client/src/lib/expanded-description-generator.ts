@@ -111,12 +111,30 @@ ${config.fadeInAnimation ? `
 }
 ` : ''}
 
+/* Google Maps responsive styling */
+.google-maps-container {
+  width: 800px !important;
+  height: 400px !important;
+  max-width: 100% !important;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .${config.customClass || 'expanded-description'} {
     margin-top: 20px;
     padding: 16px;
     font-size: 14px;
+  }
+  
+  .google-maps-container {
+    width: 100% !important;
+    height: 300px !important;
+  }
+  
+  .google-maps-section {
+    margin: 15px auto !important;
+    padding: 15px !important;
+    max-width: 100% !important;
   }
 }
 </style>`;
@@ -174,7 +192,7 @@ function injectExpandedDescription() {
   
   ${config.showMaps ? `
   // Add Google Maps widget after metadata (or at top if no metadata)
-  orderedContent += '<div class="google-maps-section" style="margin: 20px 0; padding: 20px; background: #f8fafc; border-radius: 8px; text-align: center;"><h3 style="margin-bottom: 15px; color: #374151;">Location</h3><div style="background: #e5e7eb; height: 200px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #6b7280;"><p>Google Maps Widget<br><small>Integration will display interactive map here</small></p></div></div>';
+  orderedContent += '<div class="google-maps-section" style="margin: 20px auto; padding: 20px; background: #f8fafc; border-radius: 8px; text-align: center; max-width: 840px;"><h3 style="margin-bottom: 15px; color: #374151;">Location</h3><div class="google-maps-container" style="background: #e5e7eb; width: 800px; height: 400px; max-width: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #6b7280; margin: 0 auto;"><p>Google Maps Widget<br><small>Integration will display interactive map here</small></p></div></div>';
   ` : ''}
   
   // Add user content last
