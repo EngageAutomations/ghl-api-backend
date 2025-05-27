@@ -9,6 +9,7 @@ import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import Listings from "@/pages/listings";
 import ConfigWizardDemo from "@/pages/ConfigWizardDemo";
+import ConfigWizardSlideshow from "@/pages/ConfigWizardSlideshow";
 import ConfigTester from "@/pages/ConfigTester";
 import ImageStorageDemo from "@/pages/ImageStorageDemo";
 import DeveloperDashboard from "@/pages/DeveloperDashboard";
@@ -99,6 +100,13 @@ function Router() {
           <AppLayout>
             <ConfigWizardDemo />
           </AppLayout>
+        </ProtectedRoute>
+      </Route>
+
+      {/* New Slideshow Wizard */}
+      <Route path="/wizard">
+        <ProtectedRoute>
+          <ConfigWizardSlideshow />
         </ProtectedRoute>
       </Route>
       
