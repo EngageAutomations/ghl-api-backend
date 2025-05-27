@@ -208,8 +208,8 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
 
   return {
     htmlCode,
-    cssCode: cssCode, // Complete header with CSS + JavaScript
-    jsCode: '', // Footer is empty since everything is in header
-    fullIntegrationCode: cssCode
+    cssCode: cssCode, // Complete header with CSS + JavaScript  
+    jsCode: jsCode, // Footer script with enhanced config
+    fullIntegrationCode: `${cssCode}\n\n${jsCode}`
   };
 }
