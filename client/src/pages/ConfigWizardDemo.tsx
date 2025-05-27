@@ -487,7 +487,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-medium">Direct Download</h3>
+                    <h3 className="font-medium">Action Button (Download)</h3>
                     <p className="text-sm text-slate-500">Downloads file directly</p>
                   </div>
                 </div>
@@ -558,21 +558,7 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             )}
 
-            {/* Custom Field Name - Show for all types except download */}
-            {buttonType !== 'download' && (
-              <div className="space-y-2">
-                <Label htmlFor="field-name">Custom Field Name</Label>
-                <Input
-                  id="field-name"
-                  placeholder="listing"
-                  value={customFieldName}
-                  onChange={(e) => setCustomFieldName(e.target.value)}
-                />
-                <p className="text-sm text-slate-500">
-                  The hidden field name that will store the directory listing identifier
-                </p>
-              </div>
-            )}
+
 
             {/* Button Styling Section */}
             <div className="border border-slate-200 rounded-lg p-6 bg-white">
