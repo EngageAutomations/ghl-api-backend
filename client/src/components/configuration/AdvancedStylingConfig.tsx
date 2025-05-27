@@ -39,8 +39,10 @@ div.c-product-details {
 }
 
 /* Remove truncation and ellipsis from product name */
-.hl-product-detail-product-name {
+.hl-product-detail-product-name,
+.hl-product-detail-product-name.truncate-text {
     width: 800px !important;
+    max-width: 800px !important;
     display: block;
     white-space: normal !important;
     overflow: visible !important;
