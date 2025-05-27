@@ -84,15 +84,15 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
 }
 </style>`;
 
-  // Footer JavaScript - your exact working code with templated variables
+  // Footer JavaScript - your enhanced template with dynamic configuration
   const jsCode = `<script>
   function getSlugFromUrl() {
     const parts = window.location.pathname.split('/');
     return parts[parts.length - 1] || "unknown";
   }
 
-  function injectEmbeddedForm() {
-    if (document.querySelector('.description-form-flexwrap')) return;
+  function injectCustomForm({ formId = '', height = 470 } = {}) {
+    if (!formId || document.querySelector('.description-form-flexwrap')) return;
 
     const desc = document.getElementById('description');
     if (!desc) return;
@@ -100,28 +100,39 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     const slug = getSlugFromUrl();
     const embedUrl = \`${config.formUrl}?${config.customFieldName}=\${encodeURIComponent(slug)}&utm_source=directory\`;
 
+    // Build the wrapper and preserve layout
     const wrapper = document.createElement('div');
     wrapper.className = 'description-form-flexwrap';
-
-    // Insert wrapper before the description, then move description into it
     desc.parentNode.insertBefore(wrapper, desc);
     wrapper.appendChild(desc);
 
-    // Create iframe (initially hidden)
+    // Build the iframe
     const iframe = document.createElement('iframe');
     iframe.className = 'inline-listing-form';
     iframe.src = embedUrl;
+    iframe.style.height = \`\${height + 100}px\`; // 100px padding if needed
+    iframe.style.opacity = '0';
+    iframe.style.transition = 'opacity 0.6s ease';
+    iframe.style.pointerEvents = 'none';
 
     iframe.onload = () => {
       iframe.classList.add('visible');
+      iframe.style.opacity = '1';
+      iframe.style.pointerEvents = 'auto';
     };
 
     wrapper.appendChild(iframe);
     document.body.classList.add('form-injected');
   }
 
-  document.addEventListener("DOMContentLoaded", injectEmbeddedForm);
-  new MutationObserver(injectEmbeddedForm).observe(document.body, { childList: true, subtree: true });
+  // Configuration with templated values
+  const parsedEmbedData = {
+    formId: 'USER_FORM_ID', // ⬅ Replace with your form ID
+    height: 470             // ⬅ Replace with desired height
+  };
+
+  document.addEventListener("DOMContentLoaded", () => injectCustomForm(parsedEmbedData));
+  new MutationObserver(() => injectCustomForm(parsedEmbedData)).observe(document.body, { childList: true, subtree: true });
 </script>`;
 
   // HTML is empty since this is a script-only implementation
