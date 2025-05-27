@@ -39,14 +39,18 @@ div.c-product-details {
 }
 
 /* Remove truncation and ellipsis from product name */
-.hl-product-detail-product-name,
-.hl-product-detail-product-name.truncate-text {
+body:not(.hl-builder) .hl-product-detail-product-name,
+body:not(.hl-builder) .hl-product-detail-product-name.truncate-text,
+body:not(.hl-builder) p.hl-product-detail-product-name,
+body:not(.hl-builder) p.hl-product-detail-product-name.truncate-text {
     width: 800px !important;
     max-width: 800px !important;
-    display: block;
+    min-width: 800px !important;
+    display: block !important;
     white-space: normal !important;
     overflow: visible !important;
     text-overflow: unset !important;
+    -webkit-line-clamp: unset !important;
 }
 
 /* Globally override truncation utility class */
