@@ -89,6 +89,15 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     return parts[parts.length - 1] || "unknown";
   }
 
+  function parseIframeSize(embedCode) {
+    const widthMatch = embedCode.match(/width="([^"]+)"/);
+    const heightMatch = embedCode.match(/height="([^"]+)"/);
+    return {
+      width: widthMatch ? widthMatch[1] : '100%',
+      height: heightMatch ? heightMatch[1] : '800px'
+    };
+  }
+
   function injectEmbeddedForm() {
     if (document.querySelector('.description-form-flexwrap')) return;
 
@@ -97,6 +106,10 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
 
     const slug = getSlugFromUrl();
     const embedUrl = \`${config.formUrl}?${config.customFieldName}=\${encodeURIComponent(slug)}&utm_source=directory\`;
+    
+    // Parse original iframe dimensions from embed code
+    const originalEmbedCode = \`${config.formUrl}\`;
+    const dimensions = parseIframeSize(originalEmbedCode);
 
     const wrapper = document.createElement('div');
     wrapper.className = 'description-form-flexwrap';
@@ -106,6 +119,10 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     iframe.className = 'inline-listing-form';
     iframe.src = embedUrl;
     iframe.style.pointerEvents = 'none';
+    
+    // Apply parsed dimensions to iframe
+    if (dimensions.width !== '100%') iframe.style.width = dimensions.width + 'px';
+    if (dimensions.height !== '800px') iframe.style.height = dimensions.height + 'px';
 
     iframe.onload = () => {
       iframe.classList.add('visible');
