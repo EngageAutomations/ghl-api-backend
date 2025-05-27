@@ -335,40 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
       <ConfigWizard>
-        {/* Step 1: Directory Setup */}
-        <WizardStep 
-          title="Directory Setup" 
-          description="Name your directory and set up basic information"
-        >
-          <div className="space-y-6">
-            <div className="border border-slate-200 rounded-lg p-6 bg-white">
-              <h3 className="text-lg font-medium mb-4 flex items-center">
-                <div className="bg-blue-50 p-2 rounded-md mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
-                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
-                  </svg>
-                </div>
-                Directory Information
-              </h3>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="directory-name">Directory Name</Label>
-                  <Input
-                    id="directory-name"
-                    placeholder="My Business Directory"
-                    value={directoryName}
-                    onChange={(e) => setDirectoryName(e.target.value)}
-                  />
-                  <p className="text-sm text-slate-500">
-                    Give your directory a memorable name for organization
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </WizardStep>
-
-        {/* Step 2: Google Drive Connection */}
+        {/* Step 1: Google Drive Connection */}
         <WizardStep 
           title="Connect Google Drive" 
           description="Connect your Google Drive for image storage and management"
@@ -417,6 +384,39 @@ document.addEventListener('DOMContentLoaded', function() {
                     </p>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </WizardStep>
+
+        {/* Step 2: Directory Setup */}
+        <WizardStep 
+          title="Directory Setup" 
+          description="Name your directory and set up basic information"
+        >
+          <div className="space-y-6">
+            <div className="border border-slate-200 rounded-lg p-6 bg-white">
+              <h3 className="text-lg font-medium mb-4 flex items-center">
+                <div className="bg-blue-50 p-2 rounded-md mr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+                  </svg>
+                </div>
+                Directory Information
+              </h3>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="directory-name">Directory Name</Label>
+                  <Input
+                    id="directory-name"
+                    placeholder="My Business Directory"
+                    value={directoryName}
+                    onChange={(e) => setDirectoryName(e.target.value)}
+                  />
+                  <p className="text-sm text-slate-500">
+                    Give your directory a memorable name for organization
+                  </p>
+                </div>
               </div>
             </div>
           </div>
