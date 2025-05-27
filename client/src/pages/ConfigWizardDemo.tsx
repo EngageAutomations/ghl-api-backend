@@ -856,24 +856,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="metadata-bg-color">Background Color</Label>
-                      <div className="flex space-x-2">
-                        <Input
-                          id="metadata-bg-color"
-                          type="color"
-                          value={metadataBackgroundColor}
-                          onChange={(e) => setMetadataBackgroundColor(e.target.value)}
-                          className="w-12 h-10 p-1 border"
-                        />
-                        <Input
-                          value={metadataBackgroundColor}
-                          onChange={(e) => setMetadataBackgroundColor(e.target.value)}
-                          placeholder="#f8fafc"
-                          className="flex-1"
-                        />
-                      </div>
-                    </div>
+
 
                     <div className="space-y-2">
                       <Label htmlFor="metadata-text-color">Text Color</Label>
@@ -894,17 +877,7 @@ document.addEventListener('DOMContentLoaded', function() {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="metadata-border-radius">Border Radius</Label>
-                      <Input
-                        id="metadata-border-radius"
-                        type="number"
-                        min="0"
-                        max="50"
-                        value={metadataBorderRadius}
-                        onChange={(e) => setMetadataBorderRadius(Number(e.target.value))}
-                      />
-                    </div>
+
                   </div>
 
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
