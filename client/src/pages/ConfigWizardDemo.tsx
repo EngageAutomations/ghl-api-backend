@@ -429,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function() {
           description="Select how you want to integrate GoHighLevel forms"
         >
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div 
                 className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
                   buttonType === 'popup' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'
@@ -474,6 +474,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
               <div 
                 className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                  buttonType === 'download' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+                onClick={() => setButtonType('download')}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="bg-orange-500 text-white p-2 rounded-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7,10 12,15 17,10"/>
+                      <line x1="12" x2="12" y1="15" y2="3"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Direct Download</h3>
+                    <p className="text-sm text-slate-500">Downloads file directly</p>
+                  </div>
+                </div>
+              </div>
+
+              <div 
+                className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
                   buttonType === 'embed' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'
                 }`}
                 onClick={() => setButtonType('embed')}
@@ -493,42 +514,62 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             </div>
 
-            {/* Form Embed Code Input */}
-            <div className="space-y-2">
-              <Label htmlFor="form-embed">
-                {buttonType === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'Form URL'}
-              </Label>
-              <Textarea
-                id="form-embed"
-                placeholder={buttonType === 'popup' 
-                  ? '<iframe src="https://link.msgsndr.com/form/..." width="500" height="600"></iframe>'
-                  : 'Paste your GoHighLevel form embed code here...'
-                }
-                value={formEmbedUrl}
-                onChange={(e) => setFormEmbedUrl(e.target.value)}
-                className="min-h-[100px]"
-              />
-              {buttonType === 'popup' && parsedEmbedData && (
-                <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
-                  ✓ Form detected: {parsedEmbedData.width}×{parsedEmbedData.height}px 
-                  → Popup will be {parsedEmbedData.width + 100}×{parsedEmbedData.height + 100}px (+100px spacing)
-                </div>
-              )}
-            </div>
+            {/* Form Configuration - Only show for popup and embed */}
+            {(buttonType === 'popup' || buttonType === 'embed') && (
+              <div className="space-y-2">
+                <Label htmlFor="form-embed">
+                  {buttonType === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
+                </Label>
+                <Textarea
+                  id="form-embed"
+                  placeholder={buttonType === 'popup' 
+                    ? '<iframe src="https://link.msgsndr.com/form/..." width="500" height="600"></iframe>'
+                    : 'Paste your GoHighLevel form embed code here...'
+                  }
+                  value={formEmbedUrl}
+                  onChange={(e) => setFormEmbedUrl(e.target.value)}
+                  className="min-h-[100px]"
+                />
+                {buttonType === 'popup' && parsedEmbedData && (
+                  <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
+                    ✓ Form detected: {parsedEmbedData.width}×{parsedEmbedData.height}px 
+                    → Popup will be {parsedEmbedData.width + 100}×{parsedEmbedData.height + 100}px (+100px spacing)
+                  </div>
+                )}
+              </div>
+            )}
 
-            {/* Custom Field Name */}
-            <div className="space-y-2">
-              <Label htmlFor="field-name">Custom Field Name</Label>
-              <Input
-                id="field-name"
-                placeholder="listing"
-                value={customFieldName}
-                onChange={(e) => setCustomFieldName(e.target.value)}
-              />
-              <p className="text-sm text-slate-500">
-                The hidden field name that will store the directory listing identifier
-              </p>
-            </div>
+            {/* Download URL - Only show for download type */}
+            {buttonType === 'download' && (
+              <div className="space-y-2">
+                <Label htmlFor="download-url">Download File URL</Label>
+                <Input
+                  id="download-url"
+                  placeholder="https://your-domain.com/files/document.pdf"
+                  value={formEmbedUrl}
+                  onChange={(e) => setFormEmbedUrl(e.target.value)}
+                />
+                <p className="text-sm text-slate-500">
+                  Enter the direct URL to the file you want users to download
+                </p>
+              </div>
+            )}
+
+            {/* Custom Field Name - Show for all types except download */}
+            {buttonType !== 'download' && (
+              <div className="space-y-2">
+                <Label htmlFor="field-name">Custom Field Name</Label>
+                <Input
+                  id="field-name"
+                  placeholder="listing"
+                  value={customFieldName}
+                  onChange={(e) => setCustomFieldName(e.target.value)}
+                />
+                <p className="text-sm text-slate-500">
+                  The hidden field name that will store the directory listing identifier
+                </p>
+              </div>
+            )}
 
             {/* Button Styling Section */}
             <div className="border border-slate-200 rounded-lg p-6 bg-white">
