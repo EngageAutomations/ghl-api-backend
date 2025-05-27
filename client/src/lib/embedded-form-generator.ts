@@ -22,8 +22,9 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   jsCode: string;
   fullIntegrationCode: string;
 } {
-  // Header CSS - exactly from your working implementation
-  const cssCode = `<style>
+  // Header CSS - your exact working implementation
+  const cssCode = `<!-- 🔧 HEAD STYLE BLOCK -->
+<style>
 /* 👯 Wrapper for description + form */
 .description-form-flexwrap {
   display: flex !important;
@@ -52,9 +53,10 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
   height: 800px !important;
   border: none;
   border-radius: 8px;
-  box-shadow: none;
+  box-shadow: none; /* 🔧 Shadow removed */
   overflow: hidden;
   box-sizing: border-box;
+
   opacity: 0;
   transition: opacity 0.6s ease;
   pointer-events: none;
@@ -82,7 +84,7 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
 }
 </style>`;
 
-  // Footer JavaScript - exactly from your working implementation with templated URL
+  // Footer JavaScript - your exact working code with templated variables
   const jsCode = `<script>
   function getSlugFromUrl() {
     const parts = window.location.pathname.split('/');
@@ -105,6 +107,7 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     desc.parentNode.insertBefore(wrapper, desc);
     wrapper.appendChild(desc);
 
+    // Create iframe (initially hidden)
     const iframe = document.createElement('iframe');
     iframe.className = 'inline-listing-form';
     iframe.src = embedUrl;
