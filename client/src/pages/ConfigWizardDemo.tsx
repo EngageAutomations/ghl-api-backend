@@ -294,7 +294,18 @@ document.addEventListener('DOMContentLoaded', function() {
     showPrice,
     showBuyNowButton,
     showAddToCartButton,
-    showQuantitySelector
+    showQuantitySelector,
+    showDescription,
+    expandedDescriptionContent,
+    expandedDescFadeIn,
+    expandedDescClass,
+    showMetadata,
+    metadataPosition,
+    metadataBackgroundColor,
+    metadataTextColor,
+    metadataBorderRadius,
+    metadataClass,
+    metadataFields
   ]);
 
   // Helper function for copying text with visual feedback
