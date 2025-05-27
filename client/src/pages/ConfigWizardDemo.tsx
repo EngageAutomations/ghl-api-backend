@@ -167,7 +167,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  const generatedCode = generateCodeForSelection();
+  const generatedCode = useMemo(() => generateCodeForSelection(), [
+    formEmbedUrl, 
+    buttonType, 
+    customFieldName, 
+    previewBorderRadius, 
+    previewColor, 
+    previewTextColor,
+    showPrice,
+    showBuyNowButton,
+    showAddToCartButton,
+    showQuantitySelector
+  ]);
 
   // Helper function for copying text with visual feedback
   const copyToClipboard = async (text: string, setCopiedState: (value: boolean) => void) => {
