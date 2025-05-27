@@ -67,6 +67,10 @@ export default function ConfigWizardDemo() {
   const [expandedDescFadeIn, setExpandedDescFadeIn] = useState(true);
   const [expandedDescClass, setExpandedDescClass] = useState('expanded-description');
   
+  // New state for Google Drive and Directory naming
+  const [directoryName, setDirectoryName] = useState('');
+  const [googleDriveConnected, setGoogleDriveConnected] = useState(false);
+  
   // Metadata bar configuration
   const [metadataPosition, setMetadataPosition] = useState<'top' | 'bottom'>('bottom');
   const [metadataBackgroundColor, setMetadataBackgroundColor] = useState('#f8fafc');
@@ -331,7 +335,94 @@ document.addEventListener('DOMContentLoaded', function() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
       <ConfigWizard>
-        {/* Step 1: Form Integration Method */}
+        {/* Step 1: Directory Setup */}
+        <WizardStep 
+          title="Directory Setup" 
+          description="Name your directory and set up basic information"
+        >
+          <div className="space-y-6">
+            <div className="border border-slate-200 rounded-lg p-6 bg-white">
+              <h3 className="text-lg font-medium mb-4 flex items-center">
+                <div className="bg-blue-50 p-2 rounded-md mr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+                  </svg>
+                </div>
+                Directory Information
+              </h3>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="directory-name">Directory Name</Label>
+                  <Input
+                    id="directory-name"
+                    placeholder="My Business Directory"
+                    value={directoryName}
+                    onChange={(e) => setDirectoryName(e.target.value)}
+                  />
+                  <p className="text-sm text-slate-500">
+                    Give your directory a memorable name for organization
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </WizardStep>
+
+        {/* Step 2: Google Drive Connection */}
+        <WizardStep 
+          title="Connect Google Drive" 
+          description="Connect your Google Drive for image storage and management"
+        >
+          <div className="space-y-6">
+            <div className="border border-slate-200 rounded-lg p-6 bg-white">
+              <h3 className="text-lg font-medium mb-4 flex items-center">
+                <div className="bg-red-50 p-2 rounded-md mr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                  </svg>
+                </div>
+                Google Drive Integration
+              </h3>
+              <div className="space-y-4">
+                {!googleDriveConnected ? (
+                  <div className="text-center py-6">
+                    <div className="bg-slate-50 rounded-lg p-6 mb-4">
+                      <svg className="w-12 h-12 text-slate-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                      </svg>
+                      <h4 className="text-lg font-medium text-slate-900 mb-2">Connect Google Drive</h4>
+                      <p className="text-slate-600 mb-4">
+                        Store and manage your directory images with Google Drive integration
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={() => setGoogleDriveConnected(true)}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Connect Google Drive
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                      </svg>
+                      <span className="text-green-800 font-medium">Google Drive Connected</span>
+                    </div>
+                    <p className="text-green-700 text-sm mt-2">
+                      Your images will be stored in the "Directory Images" folder
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </WizardStep>
+
+        {/* Step 3: Setup & Styling */}
         <WizardStep 
           title="Choose Integration Method" 
           description="Select how you want to integrate GoHighLevel forms"
