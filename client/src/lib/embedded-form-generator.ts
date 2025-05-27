@@ -99,7 +99,7 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
 
     const slug = getSlugFromUrl();
     const formId = '${config.formUrl}'; // 🔁 Replace with your actual form ID
-    const embedUrl = \`https://app.makerexpress3d.com/widget/form/\${formId}?${config.customFieldName}=\${encodeURIComponent(slug)}&utm_source=directory\`;
+    const embedUrl = \`\${formId}?\${formId.includes('?') ? '&' : ''}\${config.customFieldName}=\${encodeURIComponent(slug)}&utm_source=directory\`;
 
     // Create wrapper
     const wrapper = document.createElement('div');
@@ -140,7 +140,7 @@ export function generateEmbeddedFormCode(config: EmbeddedFormConfig): {
     if (!desc) return;
 
     const slug = getSlugFromUrl();
-    const embedUrl = \`https://app.makerexpress3d.com/widget/form/\${formId}?${config.customFieldName}=\${encodeURIComponent(slug)}&utm_source=directory\`;
+    const embedUrl = \`\${formId}?\${formId.includes('?') ? '&' : ''}\${config.customFieldName}=\${encodeURIComponent(slug)}&utm_source=directory\`;
 
     // Build the wrapper and preserve layout
     const wrapper = document.createElement('div');
