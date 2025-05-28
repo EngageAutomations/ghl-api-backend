@@ -548,6 +548,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     value={formEmbedUrl}
                     onChange={(e) => setFormEmbedUrl(e.target.value)}
                     className="min-h-[120px] text-sm"
+                    disabled={false}
+                    readOnly={false}
                   />
                 </div>
               </div>
