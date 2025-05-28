@@ -31,6 +31,7 @@ export default function ConfigWizardSlideshow() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [buttonType, setButtonType] = useState<'popup' | 'redirect' | 'download' | 'embed'>('popup');
   const [formEmbedUrl, setFormEmbedUrl] = useState('');
+  const [embedCode, setEmbedCode] = useState('');
   const [customFieldName, setCustomFieldName] = useState('listing');
   const [showDescription, setShowDescription] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
@@ -558,7 +559,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <p className="text-xs text-green-600">Value: "{directoryName}"</p>
                 </div>
 
-                {/* Form Embed Code - Testing with working directoryName state */}
+                {/* Form Embed Code - Using new embedCode state to avoid conflicts */}
                 <div className="space-y-3">
                   <Label htmlFor="form-embed-input" className="text-left block text-lg font-medium text-gray-700">
                     {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
@@ -566,11 +567,11 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <Input
                     id="form-embed-input"
                     placeholder="Paste your GoHighLevel form embed code here..."
-                    value={logoUrl}
-                    onChange={(e) => setLogoUrl(e.target.value)}
+                    value={embedCode}
+                    onChange={(e) => setEmbedCode(e.target.value)}
                     className="text-lg p-4 h-auto"
                   />
-                  <p className="text-xs text-gray-500">Testing with logoUrl state: "{logoUrl}"</p>
+                  <p className="text-xs text-gray-500">Value: "{embedCode}"</p>
                 </div>
 
                 {/* Custom Field Name - Exact copy of directory name field pattern */}
