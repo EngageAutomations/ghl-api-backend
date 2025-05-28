@@ -30,13 +30,13 @@ export default function ConfigWizardSlideshow() {
   const [buttonType, setButtonType] = useState<'popup' | 'redirect' | 'download' | 'embed'>('popup');
   const [formEmbedUrl, setFormEmbedUrl] = useState('');
   const [customFieldName, setCustomFieldName] = useState('listing');
-  const [showDescription, setShowDescription] = useState(true);
-  const [showMetadata, setShowMetadata] = useState(true);
+  const [showDescription, setShowDescription] = useState(false);
+  const [showMetadata, setShowMetadata] = useState(false);
   const [showMaps, setShowMaps] = useState(false);
-  const [showPrice, setShowPrice] = useState(true);
-  const [showBuyNowButton, setShowBuyNowButton] = useState(true);
-  const [showAddToCartButton, setShowAddToCartButton] = useState(true);
-  const [showQuantitySelector, setShowQuantitySelector] = useState(true);
+  const [showPrice, setShowPrice] = useState(false);
+  const [showBuyNowButton, setShowBuyNowButton] = useState(false);
+  const [showAddToCartButton, setShowAddToCartButton] = useState(false);
+  const [showQuantitySelector, setShowQuantitySelector] = useState(false);
   const [showCartIcon, setShowCartIcon] = useState(true);
   const [integrationMethod, setIntegrationMethod] = useState('popup');
 
