@@ -505,17 +505,31 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
         {/* Configuration Card */}
         <div className="max-w-2xl mx-auto text-center">
           <div>
-            {/* Action Button Info */}
-            {(integrationMethod === 'redirect' || integrationMethod === 'download') && (
+            {/* Redirect Action Button Info */}
+            {integrationMethod === 'redirect' && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-center space-x-3">
                   <div className="bg-green-600 text-white p-2 rounded-md">
-                    <MousePointer className="w-5 h-5" />
+                    <ExternalLink className="w-5 h-5" />
                   </div>
                   <div className="text-center">
-                    <h4 className="font-medium text-green-800">Action Button Setup</h4>
-                    <p className="text-sm text-green-700 mt-1">Add external links to your listings
-</p>
+                    <h4 className="font-medium text-green-800">Redirect Action Button Setup</h4>
+                    <p className="text-sm text-green-700 mt-1">Send visitors to external websites with your action button</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Download Action Button Info */}
+            {integrationMethod === 'download' && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="bg-orange-600 text-white p-2 rounded-md">
+                    <DownloadIcon className="w-5 h-5" />
+                  </div>
+                  <div className="text-center">
+                    <h4 className="font-medium text-orange-800">Download Action Button Setup</h4>
+                    <p className="text-sm text-orange-700 mt-1">Place download links to your listings</p>
                   </div>
                 </div>
               </div>
