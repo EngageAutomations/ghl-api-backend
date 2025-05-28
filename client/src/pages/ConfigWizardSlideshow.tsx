@@ -503,7 +503,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
         </div>
 
         {/* Configuration Card */}
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto text-center">
           <div>
             {/* Action Button Info */}
             {(integrationMethod === 'redirect' || integrationMethod === 'download') && (
@@ -514,7 +514,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   </div>
                   <div className="text-left">
                     <h4 className="font-medium text-green-800">Action Button Setup</h4>
-                    <p className="text-sm text-green-700 mt-1">Send your visitors to another website with your action button</p>
+                    <p className="text-sm text-green-700 mt-1">Attach a direct download link to your listings.</p>
                   </div>
                 </div>
               </div>
