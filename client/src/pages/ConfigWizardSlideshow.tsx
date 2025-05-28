@@ -973,7 +973,248 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
     </Slide>
   ];
 
-    // Add conditional slide for cart bookmarks if enabled
+    // Add conditional slides based on configuration options
+    
+    // 1. Product Details Page CSS - Always after Configuration Summary
+    baseSlides.splice(-1, 0,
+      <Slide key="product-details-css" className="bg-gradient-to-br from-indigo-50 to-blue-100">
+        <div className="text-center max-w-4xl mx-auto">
+          <div className="mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-600 rounded-full mb-6">
+              <Code className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Product Details Page CSS</h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Main CSS code for your product details pages
+            </p>
+          </div>
+
+          <Card className="bg-white border border-indigo-200 text-left">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Product Details Page CSS</h3>
+                <Button
+                  onClick={() => {
+                    const cssCode = generateFinalCSS();
+                    navigator.clipboard.writeText(cssCode);
+                  }}
+                  className="bg-indigo-600 hover:bg-indigo-700"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy CSS
+                </Button>
+              </div>
+              
+              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
+                <pre className="text-sm whitespace-pre-wrap">
+                  {generateFinalCSS()}
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </Slide>
+    );
+
+    // 2. Product Details Page Header - Always after CSS
+    baseSlides.splice(-1, 0,
+      <Slide key="product-details-header" className="bg-gradient-to-br from-emerald-50 to-green-100">
+        <div className="text-center max-w-4xl mx-auto">
+          <div className="mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-600 rounded-full mb-6">
+              <FileText className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Product Details Page Header</h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Header code for enhanced product page functionality
+            </p>
+          </div>
+
+          <Card className="bg-white border border-emerald-200 text-left">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Header Code</h3>
+                <Button
+                  onClick={() => {
+                    const headerCode = `<!-- Enhanced Product Details Header -->
+<script>
+// Enhanced product page functionality
+document.addEventListener('DOMContentLoaded', function() {
+  // URL slug detection
+  const url = new URL(window.location.href);
+  const slug = url.searchParams.get('slug') || url.pathname.split('/').pop();
+  
+  // Enhanced description handling
+  ${showDescription ? `
+  if (slug) {
+    // Load enhanced description content
+    console.log('Loading enhanced description for:', slug);
+  }` : ''}
+  
+  // Metadata bar setup
+  ${showMetadata ? `
+  // Initialize metadata display
+  console.log('Setting up metadata bar');` : ''}
+  
+  // Google Maps integration
+  ${showMaps ? `
+  // Initialize Google Maps widget
+  console.log('Loading Google Maps widget');` : ''}
+});
+</script>`;
+                    navigator.clipboard.writeText(headerCode);
+                  }}
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Header
+                </Button>
+              </div>
+              
+              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
+                <pre className="text-sm whitespace-pre-wrap">
+{`<!-- Enhanced Product Details Header -->
+<script>
+// Enhanced product page functionality
+document.addEventListener('DOMContentLoaded', function() {
+  // URL slug detection
+  const url = new URL(window.location.href);
+  const slug = url.searchParams.get('slug') || url.pathname.split('/').pop();
+  
+  // Enhanced description handling
+  ${showDescription ? `
+  if (slug) {
+    // Load enhanced description content
+    console.log('Loading enhanced description for:', slug);
+  }` : ''}
+  
+  // Metadata bar setup
+  ${showMetadata ? `
+  // Initialize metadata display
+  console.log('Setting up metadata bar');` : ''}
+  
+  // Google Maps integration
+  ${showMaps ? `
+  // Initialize Google Maps widget
+  console.log('Loading Google Maps widget');` : ''}
+});
+</script>`}
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </Slide>
+    );
+
+    // 3. Product Details Page Footer - Always after Header
+    baseSlides.splice(-1, 0,
+      <Slide key="product-details-footer" className="bg-gradient-to-br from-purple-50 to-violet-100">
+        <div className="text-center max-w-4xl mx-auto">
+          <div className="mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-600 rounded-full mb-6">
+              <Layout className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Product Details Page Footer</h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Footer code for form integration and enhanced features
+            </p>
+          </div>
+
+          <Card className="bg-white border border-purple-200 text-left">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Footer Code</h3>
+                <Button
+                  onClick={() => {
+                    const footerCode = `<!-- Enhanced Product Details Footer -->
+<script>
+// Form integration and enhanced features
+(function() {
+  // Form integration setup
+  ${integrationMethod === 'popup' ? `
+  // Popup form integration
+  function showFormPopup() {
+    console.log('Opening popup form');
+    // Popup logic here
+  }` : ''}
+  
+  ${integrationMethod === 'embed' ? `
+  // Embedded form setup
+  console.log('Setting up embedded form');` : ''}
+  
+  ${integrationMethod === 'redirect' ? `
+  // Redirect form setup
+  console.log('Setting up redirect functionality');` : ''}
+  
+  // Enhanced components initialization
+  ${showDescription ? `
+  // Enhanced description functionality
+  console.log('Initializing enhanced descriptions');` : ''}
+  
+  ${showMetadata ? `
+  // Metadata bar functionality
+  console.log('Initializing metadata bar');` : ''}
+  
+  ${showMaps ? `
+  // Google Maps functionality
+  console.log('Initializing Google Maps');` : ''}
+})();
+</script>`;
+                    navigator.clipboard.writeText(footerCode);
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Footer
+                </Button>
+              </div>
+              
+              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
+                <pre className="text-sm whitespace-pre-wrap">
+{`<!-- Enhanced Product Details Footer -->
+<script>
+// Form integration and enhanced features
+(function() {
+  // Form integration setup
+  ${integrationMethod === 'popup' ? `
+  // Popup form integration
+  function showFormPopup() {
+    console.log('Opening popup form');
+    // Popup logic here
+  }` : ''}
+  
+  ${integrationMethod === 'embed' ? `
+  // Embedded form setup
+  console.log('Setting up embedded form');` : ''}
+  
+  ${integrationMethod === 'redirect' ? `
+  // Redirect form setup
+  console.log('Setting up redirect functionality');` : ''}
+  
+  // Enhanced components initialization
+  ${showDescription ? `
+  // Enhanced description functionality
+  console.log('Initializing enhanced descriptions');` : ''}
+  
+  ${showMetadata ? `
+  // Metadata bar functionality
+  console.log('Initializing metadata bar');` : ''}
+  
+  ${showMaps ? `
+  // Google Maps functionality
+  console.log('Initializing Google Maps');` : ''}
+})();
+</script>`}
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </Slide>
+    );
+
+    // 4. Cart Bookmark CSS - Only if cart bookmark feature is enabled
     if (convertCartToBookmarks) {
       baseSlides.splice(-1, 0, 
         <Slide key="cart-bookmarks-css" className="bg-gradient-to-br from-orange-50 to-amber-100">
@@ -996,12 +1237,6 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <p className="text-orange-800 text-sm">
                     <strong>Important:</strong> The following CSS must be added to specific pages in addition to the main CSS code.
                   </p>
-                </div>
-                <div className="space-y-4 text-left">
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-2">📄 Pages that display cart symbols</h4>
-                    <p className="text-sm text-gray-600 mb-3">Add this CSS to any page that shows cart icons or cart-related elements:</p>
-                  </div>
                 </div>
               </CardContent>
             </Card>
