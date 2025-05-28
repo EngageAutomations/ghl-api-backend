@@ -668,8 +668,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
           </p>
         </div>
 
-        {/* GoHighLevel Options Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* GoHighLevel Options Grid - 2x2 Square Formation */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto">
           <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -734,8 +734,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     <ShoppingCart className="w-6 h-6 text-yellow-600" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-lg font-medium">Show Add to Cart Button</h3>
-                    <p className="text-sm text-gray-500">Display GoHighLevel's add to cart button</p>
+                    <h3 className="text-lg font-medium">Convert Cart To Bookmarks</h3>
+                    <p className="text-sm text-gray-500">Converts the cart feature into a book marking system.</p>
                   </div>
                 </div>
                 <Switch 
