@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+
 import { Switch } from '@/components/ui/switch';
 import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy, Monitor, Zap } from 'lucide-react';
 
@@ -545,18 +545,6 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   </div>
                 </div>
                 
-                {/* DEBUG: Test if basic Input works */}
-                <div className="space-y-3 mb-4 p-4 border-2 border-red-300 rounded-lg bg-red-50">
-                  <Label htmlFor="test-input" className="text-red-700 font-bold">🔧 DEBUG TEST: Basic Input</Label>
-                  <Input
-                    id="test-input"
-                    placeholder="Type here to test..."
-                    value={directoryName}
-                    onChange={(e) => setDirectoryName(e.target.value)}
-                  />
-                  <p className="text-xs text-red-600">Value: "{directoryName}"</p>
-                </div>
-
                 <div className="space-y-3">
                   <Label htmlFor="form-embed" className="text-left block text-lg font-medium text-gray-700">
                     {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
@@ -568,7 +556,6 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     onChange={(e) => setFormEmbedUrl(e.target.value)}
                     className="h-32 text-sm"
                   />
-                  <p className="text-xs text-gray-500">Current value: "{formEmbedUrl}"</p>
                 </div>
               </div>
             )}
