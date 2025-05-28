@@ -545,6 +545,19 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   </div>
                 </div>
                 
+                {/* TEST FIELD - Same as working directory field */}
+                <div className="space-y-3 mb-4 p-4 border-2 border-green-300 rounded-lg bg-green-50">
+                  <Label htmlFor="test-field-slide4" className="text-green-700 font-bold">🧪 TEST FIELD (Should Work)</Label>
+                  <Input
+                    id="test-field-slide4"
+                    placeholder="Type here to test on slide 4..."
+                    value={directoryName}
+                    onChange={(e) => setDirectoryName(e.target.value)}
+                    className="text-lg p-4 h-auto"
+                  />
+                  <p className="text-xs text-green-600">Value: "{directoryName}"</p>
+                </div>
+
                 {/* Form Embed Code - Exact copy of directory name field pattern */}
                 <div className="space-y-3">
                   <Label htmlFor="form-embed-input" className="text-left block text-lg font-medium text-gray-700">
