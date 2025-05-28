@@ -503,7 +503,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
         </div>
 
         {/* Configuration Card */}
-        <Card className="bg-white/80 backdrop-blur-sm border border-green-200 max-w-2xl mx-auto">
+        <Card className="bg-white/80 backdrop-blur-sm max-w-2xl mx-auto">
           <CardContent className="p-8">
             {/* Action Button Info */}
             {(integrationMethod === 'redirect' || integrationMethod === 'download') && (
