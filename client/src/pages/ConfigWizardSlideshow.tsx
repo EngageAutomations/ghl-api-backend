@@ -523,62 +523,52 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
               </div>
             )}
             
-            {/* Popup Configuration */}
-            {integrationMethod === 'popup' && (
+            {/* Form Configuration - Show for popup and embed */}
+            {(integrationMethod === 'popup' || integrationMethod === 'embed') && (
               <div className="space-y-6">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                   <div className="flex items-center justify-center space-x-3">
                     <div className="bg-blue-600 text-white p-2 rounded-md">
-                      <Monitor className="w-5 h-5" />
+                      {integrationMethod === 'popup' ? <Monitor className="w-5 h-5" /> : <Code className="w-5 h-5" />}
                     </div>
                     <div className="text-center">
-                      <h4 className="font-medium text-blue-800">Action Button Popup Setup</h4>
-                      <p className="text-sm text-blue-700 mt-1">Display forms in an overlay popup window</p>
+                      <h4 className="font-medium text-blue-800">
+                        {integrationMethod === 'popup' ? 'Action Button Popup Setup' : 'Embedded Form Setup'}
+                      </h4>
+                      <p className="text-sm text-blue-700 mt-1">
+                        {integrationMethod === 'popup' 
+                          ? 'Display forms in an overlay popup window' 
+                          : 'Embed forms directly into your listing pages'
+                        }
+                      </p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="space-y-3">
-                  <Label htmlFor="form-embed-popup" className="text-left block text-lg font-medium text-gray-700">
-                    GoHighLevel Iframe Embed Code
-                  </Label>
-                  <Textarea
-                    id="form-embed-popup"
-                    placeholder="Paste your GoHighLevel form embed code here..."
-                    value={formEmbedUrl}
-                    onChange={(e) => setFormEmbedUrl(e.target.value)}
-                    className="min-h-[120px] text-sm"
+                {/* DEBUG: Test if basic Input works */}
+                <div className="space-y-3 mb-4 p-4 border-2 border-red-300 rounded-lg bg-red-50">
+                  <Label htmlFor="test-input" className="text-red-700 font-bold">🔧 DEBUG TEST: Basic Input</Label>
+                  <Input
+                    id="test-input"
+                    placeholder="Type here to test..."
+                    value={directoryName}
+                    onChange={(e) => setDirectoryName(e.target.value)}
                   />
+                  <p className="text-xs text-red-600">Value: "{directoryName}"</p>
                 </div>
-              </div>
-            )}
 
-            {/* Embed Configuration */}
-            {integrationMethod === 'embed' && (
-              <div className="space-y-6">
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
-                  <div className="flex items-center justify-center space-x-3">
-                    <div className="bg-purple-600 text-white p-2 rounded-md">
-                      <Code className="w-5 h-5" />
-                    </div>
-                    <div className="text-center">
-                      <h4 className="font-medium text-purple-800">Embedded Form Setup</h4>
-                      <p className="text-sm text-purple-700 mt-1">Embed forms directly into your listing pages</p>
-                    </div>
-                  </div>
-                </div>
-                
                 <div className="space-y-3">
-                  <Label htmlFor="form-embed-direct" className="text-left block text-lg font-medium text-gray-700">
-                    GoHighLevel Form Embed Code
+                  <Label htmlFor="form-embed" className="text-left block text-lg font-medium text-gray-700">
+                    {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
                   </Label>
                   <Textarea
-                    id="form-embed-direct"
+                    id="form-embed"
                     placeholder="Paste your GoHighLevel form embed code here..."
                     value={formEmbedUrl}
                     onChange={(e) => setFormEmbedUrl(e.target.value)}
                     className="min-h-[120px] text-sm"
                   />
+                  <p className="text-xs text-gray-500">Current value: "{formEmbedUrl}"</p>
                 </div>
               </div>
             )}
