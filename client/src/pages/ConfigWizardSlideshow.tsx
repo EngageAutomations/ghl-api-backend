@@ -274,49 +274,46 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
           </p>
         </div>
 
-        <Card className="bg-white/80 backdrop-blur-sm border border-red-200 max-w-4xl mx-auto">
-          <CardContent className="p-8">
-            {!googleDriveConnected ? (
-              <div className="text-center">
-
-                <Button 
-                  onClick={() => setGoogleDriveConnected(true)}
-                  className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 text-lg"
-                >
-                  Connect Google Drive
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-                  <div className="flex items-center justify-center mb-4">
-                    <svg className="w-8 h-8 text-green-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                    </svg>
-                    <h3 className="text-xl font-semibold text-green-800">Google Drive Connected!</h3>
-                  </div>
-                  <p className="text-green-700 mb-4">
-                    Your Google Drive is now connected and ready to use.
-                  </p>
-                  <div className="bg-white rounded-lg p-4 border border-green-200">
-                    <p className="text-sm text-green-800">
-                      <strong>Storage Location:</strong> Directory Images folder<br/>
-                      <strong>Status:</strong> Ready for image uploads<br/>
-                      <strong>Access:</strong> Full read/write permissions
-                    </p>
-                  </div>
+        <div className="text-center">
+          {!googleDriveConnected ? (
+            <div>
+              <Button 
+                onClick={() => setGoogleDriveConnected(true)}
+                className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 text-lg"
+              >
+                Connect Google Drive
+              </Button>
+            </div>
+          ) : (
+            <div>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+                <div className="flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8 text-green-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                  </svg>
+                  <h3 className="text-xl font-semibold text-green-800">Google Drive Connected!</h3>
                 </div>
-                <Button 
-                  onClick={() => setGoogleDriveConnected(false)}
-                  variant="outline"
-                  className="border-red-300 text-red-600 hover:bg-red-50"
-                >
-                  Disconnect
-                </Button>
+                <p className="text-green-700 mb-4">
+                  Your Google Drive is now connected and ready to use.
+                </p>
+                <div className="bg-white rounded-lg p-4 border border-green-200">
+                  <p className="text-sm text-green-800">
+                    <strong>Storage Location:</strong> Directory Images folder<br/>
+                    <strong>Status:</strong> Ready for image uploads<br/>
+                    <strong>Access:</strong> Full read/write permissions
+                  </p>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <Button 
+                onClick={() => setGoogleDriveConnected(false)}
+                variant="outline"
+                className="border-red-300 text-red-600 hover:bg-red-50"
+              >
+                Disconnect
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </Slide>,
 
