@@ -576,11 +576,11 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
               <div className="space-y-6">
                 <div className="space-y-3">
                   <Label htmlFor="form-embed" className="text-left block text-lg font-medium text-gray-700">
-                    {buttonType === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
+                    {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
                   </Label>
                   <Textarea
                     id="form-embed"
-                    placeholder={buttonType === 'popup' 
+                    placeholder={integrationMethod === 'popup' 
                       ? '<iframe src="https://link.msgsndr.com/form/..." width="500" height="600"></iframe>'
                       : 'Paste your GoHighLevel form embed code here...'
                     }
