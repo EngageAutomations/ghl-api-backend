@@ -446,6 +446,25 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
 
           <Card 
             className={`cursor-pointer transition-all border-2 ${
+              integrationMethod === 'embed' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
+            }`}
+            onClick={() => setIntegrationMethod('embed')}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="bg-purple-500 text-white p-2 rounded-md">
+                  <Code className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-medium">Embedded Form</h3>
+                  <p className="text-sm text-gray-500">Displays form directly on page</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className={`cursor-pointer transition-all border-2 ${
               integrationMethod === 'redirect' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
             }`}
             onClick={() => setIntegrationMethod('redirect')}
@@ -477,25 +496,6 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                 <div className="text-left">
                   <h3 className="font-medium">Action Button (Download)</h3>
                   <p className="text-sm text-gray-500">Downloads file directly</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className={`cursor-pointer transition-all border-2 ${
-              integrationMethod === 'embed' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
-            }`}
-            onClick={() => setIntegrationMethod('embed')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="bg-purple-500 text-white p-2 rounded-md">
-                  <Code className="w-6 h-6" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Embedded Form</h3>
-                  <p className="text-sm text-gray-500">Displays form directly on page</p>
                 </div>
               </div>
             </CardContent>
