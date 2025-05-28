@@ -761,53 +761,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
 
         </div>
 
-        {/* Configuration Summary */}
-        <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200 max-w-2xl mx-auto">
-          <CardContent className="p-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">GoHighLevel Display Settings</h3>
-            
-            {/* Enabled Features */}
-            <div className="space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h4 className="font-medium text-green-800 mb-2">Enabled Features:</h4>
-                <div className="text-sm text-green-700 space-y-1">
-                  {showPrice && <p>• Product pricing display</p>}
-                  {showBuyNowButton && <p>• Buy now button functionality</p>}
-                  {showAddToCartButton && <p>• Add to cart functionality</p>}
-                  {showQuantitySelector && <p>• Quantity selection controls</p>}
-                  {!showPrice && !showBuyNowButton && !showAddToCartButton && !showQuantitySelector && (
-                    <p className="text-green-600 italic">No ecommerce features enabled - Pure directory mode</p>
-                  )}
-                </div>
-              </div>
 
-              {(!showPrice || !showBuyNowButton || !showAddToCartButton || !showQuantitySelector) && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <h4 className="font-medium text-red-800 mb-2">Hidden Features:</h4>
-                  <div className="text-sm text-red-700 space-y-1">
-                    {!showPrice && <p>• Product pricing (customers won't see prices)</p>}
-                    {!showBuyNowButton && <p>• Buy now button (direct purchase disabled)</p>}
-                    {!showAddToCartButton && <p>• Add to cart button (cart functionality disabled)</p>}
-                    {!showQuantitySelector && <p>• Quantity selector (quantity selection disabled)</p>}
-                  </div>
-                </div>
-              )}
-
-              {/* Page Mode Indicator */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-blue-800 mb-2">Page Mode:</h4>
-                <div className="text-sm text-blue-700">
-                  <p><strong>Current Mode:</strong> {
-                    showPrice && showBuyNowButton && showAddToCartButton && showQuantitySelector ? 'Full Ecommerce' :
-                    showPrice || showBuyNowButton || showAddToCartButton ? 'Partial Ecommerce' :
-                    'Directory Only'
-                  }</p>
-                  <p><strong>CSS Applied:</strong> Essential fixes + selective hiding based on your settings</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </Slide>,
 
