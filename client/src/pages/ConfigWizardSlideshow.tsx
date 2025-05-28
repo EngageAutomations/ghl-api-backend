@@ -558,7 +558,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <p className="text-xs text-green-600">Value: "{directoryName}"</p>
                 </div>
 
-                {/* Form Embed Code - Exact copy of directory name field pattern */}
+                {/* Form Embed Code - Testing with working directoryName state */}
                 <div className="space-y-3">
                   <Label htmlFor="form-embed-input" className="text-left block text-lg font-medium text-gray-700">
                     {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
@@ -566,10 +566,11 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <Input
                     id="form-embed-input"
                     placeholder="Paste your GoHighLevel form embed code here..."
-                    value={formEmbedUrl}
-                    onChange={(e) => setFormEmbedUrl(e.target.value)}
+                    value={logoUrl}
+                    onChange={(e) => setLogoUrl(e.target.value)}
                     className="text-lg p-4 h-auto"
                   />
+                  <p className="text-xs text-gray-500">Testing with logoUrl state: "{logoUrl}"</p>
                 </div>
 
                 {/* Custom Field Name - Exact copy of directory name field pattern */}
