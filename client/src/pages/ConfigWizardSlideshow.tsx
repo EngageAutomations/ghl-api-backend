@@ -545,16 +545,41 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   </div>
                 </div>
                 
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <div className="text-center">
-                    <h4 className="font-medium text-yellow-800 mb-2">Configuration Ready</h4>
-                    <p className="text-sm text-yellow-700 mb-3">
-                      Your {integrationMethod === 'popup' ? 'popup' : 'embedded form'} integration is configured.
-                      You'll add your GoHighLevel form code and custom field name in the final generated configuration.
-                    </p>
-                    <div className="text-xs text-yellow-600 bg-yellow-100 rounded p-2">
-                      Integration Method: <strong>{integrationMethod}</strong><br/>
-                      Directory: <strong>{directoryName || 'Unnamed Directory'}</strong>
+                {/* Form Embed Code - Using exact same pattern as directory name */}
+                <div className="space-y-3">
+                  <Label htmlFor="form-embed-url" className="text-left block text-lg font-medium text-gray-700">
+                    {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
+                  </Label>
+                  <Input
+                    id="form-embed-url"
+                    placeholder="Paste your GoHighLevel form embed code here..."
+                    value={formEmbedUrl}
+                    onChange={(e) => setFormEmbedUrl(e.target.value)}
+                    className="text-lg p-4 h-auto"
+                  />
+                </div>
+
+                {/* Custom Field Name - Using exact same pattern as directory name */}
+                <div className="space-y-3">
+                  <Label htmlFor="custom-field" className="text-left block text-lg font-medium text-gray-700">
+                    Custom Field Name
+                  </Label>
+                  <Input
+                    id="custom-field"
+                    placeholder="listing"
+                    value={customFieldName}
+                    onChange={(e) => setCustomFieldName(e.target.value)}
+                    className="text-lg p-4 h-auto"
+                  />
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+                    <div className="text-sm text-blue-700 text-left">
+                      <p className="font-medium mb-2">💡 Setup Instructions:</p>
+                      <ol className="space-y-1">
+                        <li>1. Create a single line custom field in High Level</li>
+                        <li>2. Place the field in the form and make it hidden</li>
+                        <li>3. Add the field name here</li>
+                        <li>4. When a visitor fills out your form, you will know which listing the form was on</li>
+                      </ol>
                     </div>
                   </div>
                 </div>
