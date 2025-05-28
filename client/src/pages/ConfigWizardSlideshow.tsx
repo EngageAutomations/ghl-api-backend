@@ -539,11 +539,11 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                 </div>
                 
                 <div className="space-y-3">
-                  <Label htmlFor="form-embed" className="text-left block text-lg font-medium text-gray-700">
+                  <Label htmlFor="form-embed-popup" className="text-left block text-lg font-medium text-gray-700">
                     GoHighLevel Iframe Embed Code
                   </Label>
                   <Textarea
-                    id="form-embed"
+                    id="form-embed-popup"
                     placeholder="Paste your GoHighLevel form embed code here..."
                     value={formEmbedUrl}
                     onChange={(e) => setFormEmbedUrl(e.target.value)}
@@ -569,11 +569,11 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                 </div>
                 
                 <div className="space-y-3">
-                  <Label htmlFor="form-embed" className="text-left block text-lg font-medium text-gray-700">
+                  <Label htmlFor="form-embed-direct" className="text-left block text-lg font-medium text-gray-700">
                     GoHighLevel Form Embed Code
                   </Label>
                   <Textarea
-                    id="form-embed"
+                    id="form-embed-direct"
                     placeholder="Paste your GoHighLevel form embed code here..."
                     value={formEmbedUrl}
                     onChange={(e) => setFormEmbedUrl(e.target.value)}
