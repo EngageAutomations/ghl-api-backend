@@ -571,19 +571,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
               </div>
             )}
 
-            {/* Current Selection Summary */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-              <h4 className="text-sm font-medium text-blue-800 mb-2">Selected Integration:</h4>
-              <div className="text-sm text-blue-700">
-                <p><strong>Method:</strong> {buttonType === 'popup' ? 'Popup Form' : buttonType === 'redirect' ? 'Page Redirect' : buttonType === 'download' ? 'Direct Download' : 'Embedded Form'}</p>
-                {(buttonType === 'popup' || buttonType === 'embed') && customFieldName && (
-                  <p><strong>Field Name:</strong> {customFieldName}</p>
-                )}
-                {formEmbedUrl && (
-                  <p><strong>Form Code:</strong> Configured ✓</p>
-                )}
-              </div>
-            </div>
+
           </CardContent>
         </Card>
       </div>
