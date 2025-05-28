@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash } from 'lucide-react';
 
 interface SlideProps {
   children: React.ReactNode;
@@ -33,6 +33,10 @@ export default function ConfigWizardSlideshow() {
   const [showDescription, setShowDescription] = useState(true);
   const [showMetadata, setShowMetadata] = useState(true);
   const [showMaps, setShowMaps] = useState(false);
+  const [showPrice, setShowPrice] = useState(true);
+  const [showBuyNowButton, setShowBuyNowButton] = useState(true);
+  const [showAddToCartButton, setShowAddToCartButton] = useState(true);
+  const [showQuantitySelector, setShowQuantitySelector] = useState(true);
 
   // Handle file drop
   const handleDrop = (e: React.DragEvent) => {
@@ -534,16 +538,194 @@ export default function ConfigWizardSlideshow() {
       </div>
     </Slide>,
 
-    // Slide 4: Page Components
-    <Slide key="page-components" className="bg-gradient-to-br from-purple-50 to-violet-100">
+    // Slide 4: GoHighLevel Page Options
+    <Slide key="ghl-page-options" className="bg-gradient-to-br from-indigo-50 to-blue-100">
+      <div className="text-center max-w-4xl mx-auto">
+        <div className="mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-600 rounded-full mb-6">
+            <Settings className="w-10 h-10 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">GoHighLevel Page Options</h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Control which ecommerce elements to show or hide on your marketplace pages
+          </p>
+        </div>
+
+        {/* GoHighLevel Options Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-blue-50 p-2 rounded-md">
+                    <DollarSign className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-medium">Show Listing Price</h3>
+                    <p className="text-sm text-gray-500">Display product pricing information</p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={showPrice}
+                  onCheckedChange={setShowPrice}
+                  id="show-price" 
+                />
+              </div>
+              {!showPrice && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-left">
+                  <p className="text-sm text-red-700">
+                    ⚠ Price information will be hidden from customers
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-red-50 p-2 rounded-md">
+                    <ShoppingBag className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-medium">Show Buy Now Button</h3>
+                    <p className="text-sm text-gray-500">Display GoHighLevel's buy now button</p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={showBuyNowButton}
+                  onCheckedChange={setShowBuyNowButton}
+                  id="show-buy-now" 
+                />
+              </div>
+              {!showBuyNowButton && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-left">
+                  <p className="text-sm text-red-700">
+                    ⚠ Buy now functionality will be disabled
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-yellow-50 p-2 rounded-md">
+                    <ShoppingCart className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-medium">Show Add to Cart Button</h3>
+                    <p className="text-sm text-gray-500">Display GoHighLevel's add to cart button</p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={showAddToCartButton}
+                  onCheckedChange={setShowAddToCartButton}
+                  id="show-add-cart" 
+                />
+              </div>
+              {!showAddToCartButton && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-left">
+                  <p className="text-sm text-red-700">
+                    ⚠ Add to cart functionality will be disabled
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-purple-50 p-2 rounded-md">
+                    <Hash className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-medium">Show Quantity Selector</h3>
+                    <p className="text-sm text-gray-500">Display quantity input and controls</p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={showQuantitySelector}
+                  onCheckedChange={setShowQuantitySelector}
+                  id="show-quantity" 
+                />
+              </div>
+              {!showQuantitySelector && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-left">
+                  <p className="text-sm text-red-700">
+                    ⚠ Quantity selection will be disabled
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Configuration Summary */}
+        <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200 max-w-2xl mx-auto">
+          <CardContent className="p-8">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">GoHighLevel Display Settings</h3>
+            
+            {/* Enabled Features */}
+            <div className="space-y-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-medium text-green-800 mb-2">Enabled Features:</h4>
+                <div className="text-sm text-green-700 space-y-1">
+                  {showPrice && <p>• Product pricing display</p>}
+                  {showBuyNowButton && <p>• Buy now button functionality</p>}
+                  {showAddToCartButton && <p>• Add to cart functionality</p>}
+                  {showQuantitySelector && <p>• Quantity selection controls</p>}
+                  {!showPrice && !showBuyNowButton && !showAddToCartButton && !showQuantitySelector && (
+                    <p className="text-green-600 italic">No ecommerce features enabled - Pure directory mode</p>
+                  )}
+                </div>
+              </div>
+
+              {(!showPrice || !showBuyNowButton || !showAddToCartButton || !showQuantitySelector) && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h4 className="font-medium text-red-800 mb-2">Hidden Features:</h4>
+                  <div className="text-sm text-red-700 space-y-1">
+                    {!showPrice && <p>• Product pricing (customers won't see prices)</p>}
+                    {!showBuyNowButton && <p>• Buy now button (direct purchase disabled)</p>}
+                    {!showAddToCartButton && <p>• Add to cart button (cart functionality disabled)</p>}
+                    {!showQuantitySelector && <p>• Quantity selector (quantity selection disabled)</p>}
+                  </div>
+                </div>
+              )}
+
+              {/* Page Mode Indicator */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-blue-800 mb-2">Page Mode:</h4>
+                <div className="text-sm text-blue-700">
+                  <p><strong>Current Mode:</strong> {
+                    showPrice && showBuyNowButton && showAddToCartButton && showQuantitySelector ? 'Full Ecommerce' :
+                    showPrice || showBuyNowButton || showAddToCartButton ? 'Partial Ecommerce' :
+                    'Directory Only'
+                  }</p>
+                  <p><strong>CSS Applied:</strong> Essential fixes + selective hiding based on your settings</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </Slide>,
+
+    // Slide 5: Directory Components
+    <Slide key="directory-components" className="bg-gradient-to-br from-purple-50 to-violet-100">
       <div className="text-center max-w-4xl mx-auto">
         <div className="mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-600 rounded-full mb-6">
             <Layout className="w-10 h-10 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">GoHighLevel Page Components</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Directory Enhancement Components</h2>
           <p className="text-lg text-gray-600 mb-8">
-            Choose which components to display on your listings
+            Add enhanced components to make your directory more engaging
           </p>
         </div>
 
