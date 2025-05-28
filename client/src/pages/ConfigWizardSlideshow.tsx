@@ -30,10 +30,8 @@ export default function ConfigWizardSlideshow() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [buttonType, setButtonType] = useState<'popup' | 'redirect' | 'download' | 'embed'>('popup');
-  const [formEmbedUrl, setFormEmbedUrl] = useState('');
-  const [embedCode, setEmbedCode] = useState('');
-  const [testFormCode, setTestFormCode] = useState('');
-  const [customFieldName, setCustomFieldName] = useState('listing');
+  const [formEmbedUrlWiz, setFormEmbedUrlWiz] = useState('');
+  const [customFieldNameWiz, setCustomFieldNameWiz] = useState('listing');
   const [showDescription, setShowDescription] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
   const [showMaps, setShowMaps] = useState(false);
@@ -547,47 +545,34 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   </div>
                 </div>
                 
-                {/* TEST FIELD - Same as working directory field */}
-                <div className="space-y-3 mb-4 p-4 border-2 border-green-300 rounded-lg bg-green-50">
-                  <Label htmlFor="test-field-slide4" className="text-green-700 font-bold">🧪 TEST FIELD (Should Work)</Label>
-                  <Input
-                    id="test-field-slide4"
-                    placeholder="Type here to test on slide 4..."
-                    value={directoryName}
-                    onChange={(e) => setDirectoryName(e.target.value)}
-                    className="text-lg p-4 h-auto"
-                  />
-                  <p className="text-xs text-green-600">Value: "{directoryName}"</p>
-                </div>
-
-                {/* Form Embed Code - Using completely new variable */}
+                {/* Form Embed Code - Using formEmbedUrlWiz (no conflicts) */}
                 <div className="space-y-3">
-                  <Label htmlFor="form-embed-input" className="text-left block text-lg font-medium text-gray-700">
+                  <Label htmlFor="form-embed-wiz" className="text-left block text-lg font-medium text-gray-700">
                     {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
                   </Label>
                   <Input
-                    id="form-embed-input"
+                    id="form-embed-wiz"
                     placeholder="Paste your GoHighLevel form embed code here..."
-                    value={testFormCode}
-                    onChange={(e) => setTestFormCode(e.target.value)}
+                    value={formEmbedUrlWiz}
+                    onChange={(e) => setFormEmbedUrlWiz(e.target.value)}
                     className="text-lg p-4 h-auto"
                   />
-                  <p className="text-xs text-gray-500">Value: "{testFormCode}"</p>
+                  <p className="text-xs text-gray-500">Value: "{formEmbedUrlWiz}"</p>
                 </div>
 
-                {/* Custom Field Name - Test if this works */}
+                {/* Custom Field Name - Using customFieldNameWiz (no conflicts) */}
                 <div className="space-y-3">
-                  <Label htmlFor="custom-field-input" className="text-left block text-lg font-medium text-gray-700">
+                  <Label htmlFor="custom-field-wiz" className="text-left block text-lg font-medium text-gray-700">
                     Custom Field Name
                   </Label>
                   <Input
-                    id="custom-field-input"
+                    id="custom-field-wiz"
                     placeholder="listing"
-                    value={customFieldName}
-                    onChange={(e) => setCustomFieldName(e.target.value)}
+                    value={customFieldNameWiz}
+                    onChange={(e) => setCustomFieldNameWiz(e.target.value)}
                     className="text-lg p-4 h-auto"
                   />
-                  <p className="text-xs text-gray-500">Value: "{customFieldName}"</p>
+                  <p className="text-xs text-gray-500">Value: "{customFieldNameWiz}"</p>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
                     <div className="text-sm text-blue-700 text-left">
                       <p className="font-medium mb-2">💡 Setup Instructions:</p>
@@ -1001,8 +986,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                         showQuantitySelector,
                         showCartIcon,
                         convertCartToBookmarks,
-                        formEmbedUrl: "PASTE_YOUR_GOHIGHLEVEL_FORM_CODE_HERE",
-                        customFieldName: "listing"
+                        formEmbedUrl: formEmbedUrlWiz || "PASTE_YOUR_GOHIGHLEVEL_FORM_CODE_HERE",
+                        customFieldName: customFieldNameWiz
                       };
                       const configJson = JSON.stringify(config, null, 2);
                       const blob = new Blob([configJson], { type: 'application/json' });
