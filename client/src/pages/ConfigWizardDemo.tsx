@@ -50,6 +50,10 @@ export default function ConfigWizardDemo() {
 
   // Component toggles
   const [showPrice, setShowPrice] = useState<boolean>(true);
+  const [showBuyNowButton, setShowBuyNowButton] = useState<boolean>(true);
+  const [showAddToCartButton, setShowAddToCartButton] = useState<boolean>(true);
+  const [showQuantitySelector, setShowQuantitySelector] = useState<boolean>(true);
+  const [showCartIcon, setShowCartIcon] = useState<boolean>(true);
   const [showDescription, setShowDescription] = useState<boolean>(false);
   const [showMetadata, setShowMetadata] = useState<boolean>(false);
   const [showMaps, setShowMaps] = useState<boolean>(false);
@@ -102,10 +106,7 @@ export default function ConfigWizardDemo() {
     }
   ]);
   
-  // Button hiding options
-  const [showBuyNowButton, setShowBuyNowButton] = useState<boolean>(true);
-  const [showAddToCartButton, setShowAddToCartButton] = useState<boolean>(true);
-  const [showQuantitySelector, setShowQuantitySelector] = useState<boolean>(true);
+
 
   // Parse embed code for popup dimensions
   const parsedEmbedData = useMemo(() => {
@@ -1015,26 +1016,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
               </div>
 
-              <div className="border border-slate-200 rounded-lg p-4 bg-white">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-purple-50 p-2 rounded-md">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600">
-                        <path d="M9 12l2 2 4-4"/>
-                        <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/>
-                        <path d="M3 13v6c0 .552.448 1 1 1h16c.552 0 1-.448 1-1v-6"/>
-                      </svg>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border border-slate-200 rounded-lg p-4 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-purple-50 p-2 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600">
+                          <path d="M9 12l2 2 4-4"/>
+                          <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/>
+                          <path d="M3 13v6c0 .552.448 1 1 1h16c.552 0 1-.448 1-1v-6"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium">Show Quantity Selector</h3>
+                        <p className="text-xs text-slate-500">Display quantity input and controls</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-sm font-medium">Show Quantity Selector</h3>
-                      <p className="text-xs text-slate-500">Display quantity input and controls</p>
-                    </div>
+                    <Switch 
+                      checked={showQuantitySelector}
+                      onCheckedChange={setShowQuantitySelector}
+                      id="show-quantity" 
+                    />
                   </div>
-                  <Switch 
-                    checked={showQuantitySelector}
-                    onCheckedChange={setShowQuantitySelector}
-                    id="show-quantity" 
-                  />
+                </div>
+
+                <div className="border border-slate-200 rounded-lg p-4 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-orange-50 p-2 rounded-md">
+                        <img 
+                          src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7GXYJ1VCkI8/media/6836acff9bd24392ee734932.svg" 
+                          alt="Cart Icon" 
+                          className="w-4 h-4"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium">Show Cart Icon</h3>
+                        <p className="text-xs text-slate-500">Display navigation cart icon</p>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={showCartIcon}
+                      onCheckedChange={setShowCartIcon}
+                      id="show-cart-icon" 
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1173,6 +1199,23 @@ body:not(.hl-builder) .hl-quantity-input-container,
 body:not(.hl-builder) .pdp-quantity-container,
 body:not(.hl-builder) .hl-quantity-input,
 body:not(.hl-builder) .action-icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showCartIcon ? `
+
+/* Hide Cart Icon - Comprehensive targeting */
+body:not(.hl-builder) .nav-cart-icon,
+body:not(.hl-builder) .nav-cart-button,
+body:not(.hl-builder) .items-cart,
+body:not(.hl-builder) .cart-search-desktop,
+body:not(.hl-builder) .nav-cart-wrapper,
+body:not(.hl-builder) svg[width="20"][height="20"][viewBox="0 0 20 20"] path[d*="M1.66699 1.66675"],
+body:not(.hl-builder) button.items-cart,
+body:not(.hl-builder) [class*="cart-button"],
+body:not(.hl-builder) [class*="nav-cart"],
+body:not(.hl-builder) svg[clip-path*="clip0_1655_15551"],
+body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7GXYJ1VCkI8/media/6836acff9bd24392ee734932.svg"] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
