@@ -535,9 +535,11 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     onChange={(e) => setCustomFieldName(e.target.value)}
                     className="text-lg p-4 h-auto"
                   />
-                  <p className="text-sm text-gray-600 text-left">
-                    The hidden field name that will store the directory listing identifier
-                  </p>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+                    <p className="text-sm text-blue-700 text-left">
+                      💡 The hidden field name that will store the directory listing identifier
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
