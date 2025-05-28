@@ -561,12 +561,12 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <Label htmlFor="form-embed" className="text-left block text-lg font-medium text-gray-700">
                     {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
                   </Label>
-                  <Textarea
+                  <Input
                     id="form-embed"
                     placeholder="Paste your GoHighLevel form embed code here..."
                     value={formEmbedUrl}
                     onChange={(e) => setFormEmbedUrl(e.target.value)}
-                    className="min-h-[120px] text-sm"
+                    className="h-32 text-sm"
                   />
                   <p className="text-xs text-gray-500">Current value: "{formEmbedUrl}"</p>
                 </div>
