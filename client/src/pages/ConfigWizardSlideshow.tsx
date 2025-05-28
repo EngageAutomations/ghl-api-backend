@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy, Monitor } from 'lucide-react';
 
 interface SlideProps {
   children: React.ReactNode;
@@ -521,12 +521,24 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
               </div>
             )}
             
-            {/* Form Configuration - Only show for popup and embed */}
-            {(integrationMethod === 'popup' || integrationMethod === 'embed') && (
+            {/* Popup Configuration */}
+            {integrationMethod === 'popup' && (
               <div className="space-y-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center justify-center space-x-3">
+                    <div className="bg-blue-600 text-white p-2 rounded-md">
+                      <Monitor className="w-5 h-5" />
+                    </div>
+                    <div className="text-center">
+                      <h4 className="font-medium text-blue-800">Action Button Popup Setup</h4>
+                      <p className="text-sm text-blue-700 mt-1">Display forms in an overlay popup window</p>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="space-y-3">
                   <Label htmlFor="form-embed" className="text-left block text-lg font-medium text-gray-700">
-                    {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
+                    GoHighLevel Iframe Embed Code
                   </Label>
                   <Textarea
                     id="form-embed"
@@ -536,28 +548,61 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     className="min-h-[120px] text-sm"
                   />
                 </div>
+              </div>
+            )}
 
-                <div className="space-y-3">
-                  <Label htmlFor="field-name" className="text-left block text-lg font-medium text-gray-700">
-                    Custom Field Name
-                  </Label>
-                  <Input
-                    id="field-name"
-                    placeholder="listing"
-                    value={customFieldName}
-                    onChange={(e) => setCustomFieldName(e.target.value)}
-                    className="text-lg p-4 h-auto"
-                  />
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
-                    <div className="text-sm text-blue-700 text-left">
-                      <p className="font-medium mb-2">💡 Setup Instructions:</p>
-                      <ol className="space-y-1">
-                        <li>1. Create a single line custom field in High Level</li>
-                        <li>2. Place the field in the form and make it hidden</li>
-                        <li>3. Add the field name here</li>
-                        <li>4. When a visitor fills out your form, you will know which listing the form was on</li>
-                      </ol>
+            {/* Embed Configuration */}
+            {integrationMethod === 'embed' && (
+              <div className="space-y-6">
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center justify-center space-x-3">
+                    <div className="bg-purple-600 text-white p-2 rounded-md">
+                      <Code className="w-5 h-5" />
                     </div>
+                    <div className="text-center">
+                      <h4 className="font-medium text-purple-800">Embedded Form Setup</h4>
+                      <p className="text-sm text-purple-700 mt-1">Embed forms directly into your listing pages</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <Label htmlFor="form-embed" className="text-left block text-lg font-medium text-gray-700">
+                    GoHighLevel Form Embed Code
+                  </Label>
+                  <Textarea
+                    id="form-embed"
+                    placeholder="Paste your GoHighLevel form embed code here..."
+                    value={formEmbedUrl}
+                    onChange={(e) => setFormEmbedUrl(e.target.value)}
+                    className="min-h-[120px] text-sm"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Common Custom Field Configuration for both popup and embed */}
+            {(integrationMethod === 'popup' || integrationMethod === 'embed') && (
+              <div className="space-y-3">
+                <Label htmlFor="field-name" className="text-left block text-lg font-medium text-gray-700">
+                  Custom Field Name
+                </Label>
+                <Input
+                  id="field-name"
+                  placeholder="listing"
+                  value={customFieldName}
+                  onChange={(e) => setCustomFieldName(e.target.value)}
+                  className="text-lg p-4 h-auto"
+                />
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+                  <div className="text-sm text-blue-700 text-left">
+                    <p className="font-medium mb-2">💡 Setup Instructions:</p>
+                    <ol className="space-y-1">
+                      <li>1. Create a single line custom field in High Level</li>
+                      <li>2. Place the field in the form and make it hidden</li>
+                      <li>3. Add the field name here</li>
+                      <li>4. When a visitor fills out your form, you will know which listing the form was on</li>
+                    </ol>
                   </div>
                 </div>
               </div>
