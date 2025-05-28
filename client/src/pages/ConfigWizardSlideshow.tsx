@@ -15,7 +15,9 @@ interface SlideProps {
 function Slide({ children, className = "" }: SlideProps) {
   return (
     <div className={`min-h-[600px] flex flex-col justify-center items-center p-8 ${className}`}>
-      {children}
+      <div className="w-full max-w-6xl mx-auto bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl p-8 shadow-lg">
+        {children}
+      </div>
     </div>
   );
 }
