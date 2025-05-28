@@ -536,9 +536,15 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     className="text-lg p-4 h-auto"
                   />
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
-                    <p className="text-sm text-blue-700 text-left">
-                      💡 The hidden field name that will store the directory listing identifier
-                    </p>
+                    <div className="text-sm text-blue-700 text-left">
+                      <p className="font-medium mb-2">💡 Setup Instructions:</p>
+                      <ol className="space-y-1">
+                        <li>1. Create a single line custom field in High Level</li>
+                        <li>2. Place the field in the form and make it hidden</li>
+                        <li>3. Add the field name here</li>
+                        <li>4. When a visitor fills out your form, you will know which listing the form was on</li>
+                      </ol>
+                    </div>
                   </div>
                 </div>
               </div>
