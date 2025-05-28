@@ -37,6 +37,7 @@ export default function ConfigWizardSlideshow() {
   const [showBuyNowButton, setShowBuyNowButton] = useState(true);
   const [showAddToCartButton, setShowAddToCartButton] = useState(true);
   const [showQuantitySelector, setShowQuantitySelector] = useState(true);
+  const [showCartIcon, setShowCartIcon] = useState(true);
 
   // Handle file drop
   const handleDrop = (e: React.DragEvent) => {
@@ -552,7 +553,7 @@ export default function ConfigWizardSlideshow() {
         </div>
 
         {/* GoHighLevel Options Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -664,6 +665,38 @@ export default function ConfigWizardSlideshow() {
               )}
             </CardContent>
           </Card>
+
+          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-orange-50 p-2 rounded-md">
+                    <img 
+                      src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7GXYJ1VCkI8/media/6836acff9bd24392ee734932.svg" 
+                      alt="Cart Icon" 
+                      className="w-6 h-6"
+                    />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-medium">Show Cart Icon</h3>
+                    <p className="text-sm text-gray-500">Display navigation cart icon</p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={showCartIcon}
+                  onCheckedChange={setShowCartIcon}
+                  id="show-cart-icon" 
+                />
+              </div>
+              {!showCartIcon && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-left">
+                  <p className="text-sm text-red-700">
+                    ⚠ Cart icon will be hidden from navigation
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Configuration Summary */}
@@ -680,13 +713,14 @@ export default function ConfigWizardSlideshow() {
                   {showBuyNowButton && <p>• Buy now button functionality</p>}
                   {showAddToCartButton && <p>• Add to cart functionality</p>}
                   {showQuantitySelector && <p>• Quantity selection controls</p>}
-                  {!showPrice && !showBuyNowButton && !showAddToCartButton && !showQuantitySelector && (
+                  {showCartIcon && <p>• Cart icon in navigation</p>}
+                  {!showPrice && !showBuyNowButton && !showAddToCartButton && !showQuantitySelector && !showCartIcon && (
                     <p className="text-green-600 italic">No ecommerce features enabled - Pure directory mode</p>
                   )}
                 </div>
               </div>
 
-              {(!showPrice || !showBuyNowButton || !showAddToCartButton || !showQuantitySelector) && (
+              {(!showPrice || !showBuyNowButton || !showAddToCartButton || !showQuantitySelector || !showCartIcon) && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <h4 className="font-medium text-red-800 mb-2">Hidden Features:</h4>
                   <div className="text-sm text-red-700 space-y-1">
@@ -694,6 +728,7 @@ export default function ConfigWizardSlideshow() {
                     {!showBuyNowButton && <p>• Buy now button (direct purchase disabled)</p>}
                     {!showAddToCartButton && <p>• Add to cart button (cart functionality disabled)</p>}
                     {!showQuantitySelector && <p>• Quantity selector (quantity selection disabled)</p>}
+                    {!showCartIcon && <p>• Cart icon (navigation cart icon hidden)</p>}
                   </div>
                 </div>
               )}
@@ -889,16 +924,84 @@ export default function ConfigWizardSlideshow() {
       </div>
     </Slide>,
 
-    // Slide 5: Generate Code (placeholder for now)
-    <Slide key="generate-code" className="bg-gradient-to-br from-orange-50 to-amber-100">
-      <div className="text-center max-w-2xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Generate Integration Code</h2>
-        <p className="text-lg text-gray-600 mb-8">
-          Your customized GoHighLevel integration is ready
-        </p>
-        <div className="bg-white/80 backdrop-blur-sm rounded-lg p-8 border border-orange-200">
-          <p className="text-gray-600">Code generation and download options will appear here...</p>
+    // Slide 6: Generate Code
+    <Slide key="generate-code" className="bg-gradient-to-br from-green-50 to-emerald-100">
+      <div className="text-center max-w-4xl mx-auto">
+        <div className="mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mb-6">
+            <Code className="w-10 h-10 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Your Integration Code is Ready!</h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Copy the code below and paste it into your GoHighLevel page's header section
+          </p>
         </div>
+
+        {/* Generated CSS Code */}
+        <Card className="bg-white/90 backdrop-blur-sm border border-green-200 text-left">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">GoHighLevel CSS Integration</h3>
+              <Button
+                onClick={() => {
+                  const cssCode = generateFinalCSS();
+                  navigator.clipboard.writeText(cssCode);
+                }}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copy Code
+              </Button>
+            </div>
+            
+            <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
+              <pre className="text-sm whitespace-pre-wrap">
+                {generateFinalCSS()}
+              </pre>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Configuration Summary */}
+        <Card className="bg-white/80 backdrop-blur-sm border border-green-200 mt-6">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Configuration Summary</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+              {/* Directory Settings */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Directory Settings</h4>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div>📁 Directory Name: {directoryName || 'My Directory'}</div>
+                  <div>🖼️ Logo: {logoFile ? logoFile.name : 'Default logo'}</div>
+                  <div>🔗 Integration: {integrationMethod}</div>
+                </div>
+              </div>
+
+              {/* GoHighLevel Options */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Page Elements</h4>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div>💰 Price Display: {showPrice ? 'Visible' : 'Hidden'}</div>
+                  <div>🛒 Buy Now Button: {showBuyNowButton ? 'Visible' : 'Hidden'}</div>
+                  <div>➕ Add to Cart: {showAddToCartButton ? 'Visible' : 'Hidden'}</div>
+                  <div>🔢 Quantity Selector: {showQuantitySelector ? 'Visible' : 'Hidden'}</div>
+                  <div>🛍️ Cart Icon: {showCartIcon ? 'Visible' : 'Hidden'}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhancement Components */}
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <h4 className="font-medium text-gray-900 mb-3">Enhancement Components</h4>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div>📝 Expanded Description: {showDescription ? 'Enabled' : 'Disabled'}</div>
+                <div>📊 Metadata Bar: {showMetadata ? 'Enabled' : 'Disabled'}</div>
+                <div>🗺️ Google Maps: {showMaps ? 'Enabled' : 'Disabled'}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </Slide>
   ];
