@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy, Monitor } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy, Monitor, Zap } from 'lucide-react';
 
 interface SlideProps {
   children: React.ReactNode;
@@ -830,7 +830,131 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
       </div>
     </Slide>,
 
-    // Slide 6: Generate Code
+    // Slide 6: Configuration Summary
+    <Slide key="configuration-summary" className="bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="text-center max-w-4xl mx-auto">
+        <div className="mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-6">
+            <FileText className="w-10 h-10 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Configuration Summary</h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Review your settings before generating the final code
+          </p>
+        </div>
+
+        {/* Configuration Summary */}
+        <Card className="bg-white border border-blue-200 max-w-4xl mx-auto">
+          <CardContent className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+              {/* Directory Settings */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-4 flex items-center">
+                  <Building2 className="w-5 h-5 mr-2 text-blue-600" />
+                  Directory Settings
+                </h4>
+                <div className="space-y-3 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <span className="w-6 text-center">📁</span>
+                    <span className="ml-2"><strong>Name:</strong> {directoryName || 'My Directory'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-6 text-center">🖼️</span>
+                    <span className="ml-2"><strong>Logo:</strong> {logoFile ? logoFile.name : 'Default logo'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-6 text-center">🔗</span>
+                    <span className="ml-2"><strong>Integration:</strong> {integrationMethod}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* GoHighLevel Options */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-4 flex items-center">
+                  <Settings className="w-5 h-5 mr-2 text-blue-600" />
+                  Page Elements
+                </h4>
+                <div className="space-y-3 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <span className="w-6 text-center">💰</span>
+                    <span className="ml-2"><strong>Price Display:</strong> {showPrice ? 'Visible' : 'Hidden'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-6 text-center">🛒</span>
+                    <span className="ml-2"><strong>Buy Now Button:</strong> {showBuyNowButton ? 'Visible' : 'Hidden'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-6 text-center">➕</span>
+                    <span className="ml-2"><strong>Add to Cart:</strong> {showAddToCartButton ? 'Visible' : 'Hidden'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-6 text-center">🔢</span>
+                    <span className="ml-2"><strong>Quantity Selector:</strong> {showQuantitySelector ? 'Visible' : 'Hidden'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-6 text-center">🛍️</span>
+                    <span className="ml-2"><strong>Cart Icon:</strong> {showCartIcon ? 'Visible' : 'Hidden'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Enhancement Components */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-4 flex items-center">
+                  <Zap className="w-5 h-5 mr-2 text-blue-600" />
+                  Enhancement Components
+                </h4>
+                <div className="space-y-3 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <span className="w-6 text-center">📝</span>
+                    <span className="ml-2"><strong>Expanded Description:</strong> {showDescription ? 'Enabled' : 'Disabled'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-6 text-center">📊</span>
+                    <span className="ml-2"><strong>Metadata Bar:</strong> {showMetadata ? 'Enabled' : 'Disabled'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-6 text-center">🗺️</span>
+                    <span className="ml-2"><strong>Google Maps:</strong> {showMaps ? 'Enabled' : 'Disabled'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Summary Stats */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {[showDescription, showMetadata, showMaps].filter(Boolean).length}
+                  </div>
+                  <div className="text-sm text-blue-800">Enhanced Components</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {[showPrice, showBuyNowButton, showAddToCartButton, showQuantitySelector, showCartIcon].filter(Boolean).length}
+                  </div>
+                  <div className="text-sm text-blue-800">Visible Elements</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {
+                      [showDescription, showMetadata, showMaps].filter(Boolean).length === 0 ? 'Basic' :
+                      [showDescription, showMetadata, showMaps].filter(Boolean).length === 1 ? 'Enhanced' :
+                      [showDescription, showMetadata, showMaps].filter(Boolean).length === 2 ? 'Advanced' : 'Premium'
+                    }
+                  </div>
+                  <div className="text-sm text-blue-800">Configuration Level</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </Slide>,
+
+    // Slide 7: Generate Code
     <Slide key="generate-code" className="bg-gradient-to-br from-green-50 to-emerald-100">
       <div className="text-center max-w-4xl mx-auto">
         <div className="mb-8">
@@ -868,46 +992,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
           </CardContent>
         </Card>
 
-        {/* Configuration Summary */}
-        <Card className="bg-white/80 backdrop-blur-sm border border-green-200 mt-6">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Configuration Summary</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-              {/* Directory Settings */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-3">Directory Settings</h4>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div>📁 Directory Name: {directoryName || 'My Directory'}</div>
-                  <div>🖼️ Logo: {logoFile ? logoFile.name : 'Default logo'}</div>
-                  <div>🔗 Integration: {integrationMethod}</div>
-                </div>
-              </div>
 
-              {/* GoHighLevel Options */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-3">Page Elements</h4>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div>💰 Price Display: {showPrice ? 'Visible' : 'Hidden'}</div>
-                  <div>🛒 Buy Now Button: {showBuyNowButton ? 'Visible' : 'Hidden'}</div>
-                  <div>➕ Add to Cart: {showAddToCartButton ? 'Visible' : 'Hidden'}</div>
-                  <div>🔢 Quantity Selector: {showQuantitySelector ? 'Visible' : 'Hidden'}</div>
-                  <div>🛍️ Cart Icon: {showCartIcon ? 'Visible' : 'Hidden'}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Enhancement Components */}
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <h4 className="font-medium text-gray-900 mb-3">Enhancement Components</h4>
-              <div className="space-y-2 text-sm text-gray-600">
-                <div>📝 Expanded Description: {showDescription ? 'Enabled' : 'Disabled'}</div>
-                <div>📊 Metadata Bar: {showMetadata ? 'Enabled' : 'Disabled'}</div>
-                <div>🗺️ Google Maps: {showMaps ? 'Enabled' : 'Disabled'}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </Slide>
   ];
