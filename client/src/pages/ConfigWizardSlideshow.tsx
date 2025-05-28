@@ -30,7 +30,8 @@ export default function ConfigWizardSlideshow() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [buttonType, setButtonType] = useState<'popup' | 'redirect' | 'download' | 'embed'>('popup');
-  const [formEmbedUrl, setFormEmbedUrl] = useState('');
+  const [popupFormEmbedUrl, setPopupFormEmbedUrl] = useState('');
+  const [embedFormEmbedUrl, setEmbedFormEmbedUrl] = useState('');
   const [customFieldName, setCustomFieldName] = useState('listing');
   const [showDescription, setShowDescription] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
@@ -538,17 +539,6 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   </div>
                 </div>
                 
-                {/* DEBUG TEST */}
-                <div className="mb-4 p-4 border-2 border-red-500 bg-red-50 rounded-lg">
-                  <p className="text-red-700 font-bold mb-2">🔧 TEST INPUT:</p>
-                  <input 
-                    type="text" 
-                    placeholder="Can you type here?" 
-                    className="w-full p-2 border border-red-400 rounded"
-                    onChange={(e) => console.log('Test input:', e.target.value)}
-                  />
-                </div>
-
                 <div className="space-y-3">
                   <Label htmlFor="form-embed-popup" className="text-left block text-lg font-medium text-gray-700">
                     GoHighLevel Iframe Embed Code
@@ -556,18 +546,11 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <textarea
                     id="form-embed-popup"
                     placeholder="Paste your GoHighLevel form embed code here..."
-                    defaultValue={formEmbedUrl}
-                    onChange={(e) => {
-                      console.log('Textarea change event triggered:', e.target.value);
-                      setFormEmbedUrl(e.target.value);
-                    }}
+                    defaultValue={popupFormEmbedUrl}
+                    onChange={(e) => setPopupFormEmbedUrl(e.target.value)}
                     className="w-full min-h-[120px] text-sm p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={5}
-                    onFocus={() => console.log('Textarea focused')}
-                    onBlur={() => console.log('Textarea blurred')}
-                    onClick={() => console.log('Textarea clicked')}
                   />
-                  <p className="text-sm text-gray-500">Current value: "{formEmbedUrl}"</p>
                 </div>
               </div>
             )}
@@ -594,8 +577,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <textarea
                     id="form-embed-direct"
                     placeholder="Paste your GoHighLevel form embed code here..."
-                    defaultValue={formEmbedUrl}
-                    onChange={(e) => setFormEmbedUrl(e.target.value)}
+                    defaultValue={embedFormEmbedUrl}
+                    onChange={(e) => setEmbedFormEmbedUrl(e.target.value)}
                     className="w-full min-h-[120px] text-sm p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={5}
                   />
