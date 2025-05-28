@@ -32,7 +32,8 @@ export default function ConfigWizardSlideshow() {
   const [buttonType, setButtonType] = useState<'popup' | 'redirect' | 'download' | 'embed'>('popup');
   const [popupFormEmbedUrl, setPopupFormEmbedUrl] = useState('');
   const [embedFormEmbedUrl, setEmbedFormEmbedUrl] = useState('');
-  const [customFieldName, setCustomFieldName] = useState('listing');
+  const [popupCustomFieldName, setPopupCustomFieldName] = useState('listing');
+  const [embedCustomFieldName, setEmbedCustomFieldName] = useState('listing');
   const [showDescription, setShowDescription] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
   const [showMaps, setShowMaps] = useState(false);
@@ -586,18 +587,46 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
               </div>
             )}
 
-            {/* Common Custom Field Configuration for popup and embed */}
-            {(integrationMethod === 'popup' || integrationMethod === 'embed') && (
+            {/* Custom Field Configuration for popup */}
+            {integrationMethod === 'popup' && (
               <div className="space-y-3">
-                <Label htmlFor="field-name" className="text-left block text-lg font-medium text-gray-700">
+                <Label htmlFor="popup-field-name" className="text-left block text-lg font-medium text-gray-700">
                   Custom Field Name
                 </Label>
                 <input
-                  id="field-name"
+                  id="popup-field-name"
                   type="text"
                   placeholder="listing"
-                  defaultValue={customFieldName}
-                  onChange={(e) => setCustomFieldName(e.target.value)}
+                  defaultValue={popupCustomFieldName}
+                  onChange={(e) => setPopupCustomFieldName(e.target.value)}
+                  className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+                  <div className="text-sm text-blue-700 text-left">
+                    <p className="font-medium mb-2">💡 Setup Instructions:</p>
+                    <ol className="space-y-1">
+                      <li>1. Create a single line custom field in High Level</li>
+                      <li>2. Place the field in the form and make it hidden</li>
+                      <li>3. Add the field name here</li>
+                      <li>4. When a visitor fills out your form, you will know which listing the form was on</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Custom Field Configuration for embed */}
+            {integrationMethod === 'embed' && (
+              <div className="space-y-3">
+                <Label htmlFor="embed-field-name" className="text-left block text-lg font-medium text-gray-700">
+                  Custom Field Name
+                </Label>
+                <input
+                  id="embed-field-name"
+                  type="text"
+                  placeholder="listing"
+                  defaultValue={embedCustomFieldName}
+                  onChange={(e) => setEmbedCustomFieldName(e.target.value)}
                   className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
