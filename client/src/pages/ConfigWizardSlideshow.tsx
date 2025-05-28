@@ -556,7 +556,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <textarea
                     id="form-embed-popup"
                     placeholder="Paste your GoHighLevel form embed code here..."
-                    value={formEmbedUrl}
+                    defaultValue={formEmbedUrl}
                     onChange={(e) => {
                       console.log('Textarea change event triggered:', e.target.value);
                       setFormEmbedUrl(e.target.value);
@@ -594,7 +594,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <textarea
                     id="form-embed-direct"
                     placeholder="Paste your GoHighLevel form embed code here..."
-                    value={formEmbedUrl}
+                    defaultValue={formEmbedUrl}
                     onChange={(e) => setFormEmbedUrl(e.target.value)}
                     className="w-full min-h-[120px] text-sm p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={5}
@@ -613,7 +613,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   id="field-name"
                   type="text"
                   placeholder="listing"
-                  value={customFieldName}
+                  defaultValue={customFieldName}
                   onChange={(e) => setCustomFieldName(e.target.value)}
                   className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
