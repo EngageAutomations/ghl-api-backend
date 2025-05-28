@@ -352,9 +352,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
 
               {/* Logo Upload Field */}
               <div className="space-y-3">
-                <Label className="text-left block text-lg font-medium text-gray-700">
-                  Logo Upload (Optional)
-                </Label>
+                <Label className="text-left block text-lg font-medium text-gray-700">Add Your Logo</Label>
                 <div className="space-y-2">
                   {/* Drag and Drop Area */}
                   <div
@@ -828,76 +826,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
           </Card>
         </div>
 
-        {/* Configuration Summary */}
-        <Card className="bg-white/80 backdrop-blur-sm border border-purple-200 max-w-2xl mx-auto">
-          <CardContent className="p-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">Selected Components</h3>
-            
-            {/* Active Components List */}
-            <div className="space-y-4">
-              {showDescription && (
-                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                  <div className="flex items-center space-x-3">
-                    <AlignLeft className="w-5 h-5 text-indigo-600" />
-                    <div className="text-left">
-                      <h4 className="font-medium text-indigo-800">Expanded Description</h4>
-                      <p className="text-sm text-indigo-700">
-                        URL-based content system with custom HTML support and fade-in animations
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
 
-              {showMetadata && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center space-x-3">
-                    <FileText className="w-5 h-5 text-green-600" />
-                    <div className="text-left">
-                      <h4 className="font-medium text-green-800">Metadata Bar</h4>
-                      <p className="text-sm text-green-700">
-                        Business contact information with phone, email, website, and location icons
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {showMaps && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <div className="flex items-center space-x-3">
-                    <MapPin className="w-5 h-5 text-orange-600" />
-                    <div className="text-left">
-                      <h4 className="font-medium text-orange-800">Google Maps Widget</h4>
-                      <p className="text-sm text-orange-700">
-                        Interactive Google Maps integration for location display
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {!showDescription && !showMetadata && !showMaps && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                  <p className="text-gray-600">No additional components selected. Your integration will include basic functionality only.</p>
-                </div>
-              )}
-            </div>
-
-            {/* Feature Summary */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-              <h4 className="text-sm font-medium text-blue-800 mb-2">Components Summary:</h4>
-              <div className="text-sm text-blue-700">
-                <p><strong>Active Components:</strong> {[showDescription && 'Expanded Description', showMetadata && 'Metadata Bar', showMaps && 'Google Maps'].filter(Boolean).join(', ') || 'None'}</p>
-                <p><strong>Enhancement Level:</strong> {
-                  [showDescription, showMetadata, showMaps].filter(Boolean).length === 0 ? 'Basic' :
-                  [showDescription, showMetadata, showMaps].filter(Boolean).length === 1 ? 'Enhanced' :
-                  [showDescription, showMetadata, showMaps].filter(Boolean).length === 2 ? 'Advanced' : 'Premium'
-                }</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </Slide>,
 
