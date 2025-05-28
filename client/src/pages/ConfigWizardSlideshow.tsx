@@ -580,12 +580,14 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     value={formEmbedUrl}
                     onChange={(e) => setFormEmbedUrl(e.target.value)}
                     className="min-h-[120px] text-sm"
+                    disabled={false}
+                    readOnly={false}
                   />
                 </div>
               </div>
             )}
 
-            {/* Common Custom Field Configuration for both popup and embed */}
+            {/* Common Custom Field Configuration for popup and embed */}
             {(integrationMethod === 'popup' || integrationMethod === 'embed') && (
               <div className="space-y-3">
                 <Label htmlFor="field-name" className="text-left block text-lg font-medium text-gray-700">
@@ -597,6 +599,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   value={customFieldName}
                   onChange={(e) => setCustomFieldName(e.target.value)}
                   className="text-lg p-4 h-auto"
+                  disabled={false}
+                  readOnly={false}
                 />
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
                   <div className="text-sm text-blue-700 text-left">
