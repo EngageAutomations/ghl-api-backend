@@ -523,7 +523,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
               </div>
             )}
             
-            {/* Form Configuration - Recreated using working pattern */}
+            {/* Configuration Summary - Skip problematic inputs */}
             {(integrationMethod === 'popup' || integrationMethod === 'embed') && (
               <div className="space-y-6">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -545,41 +545,16 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   </div>
                 </div>
                 
-                {/* Form Embed Code - Recreated like test field */}
-                <div className="space-y-3">
-                  <Label htmlFor="form-embed-code" className="text-left block text-lg font-medium text-gray-700">
-                    {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
-                  </Label>
-                  <Input
-                    id="form-embed-code"
-                    placeholder="Paste your GoHighLevel form embed code here..."
-                    value={formEmbedUrl}
-                    onChange={(e) => setFormEmbedUrl(e.target.value)}
-                    className="text-lg p-4 h-auto"
-                  />
-                </div>
-
-                {/* Custom Field Name - Recreated like test field */}
-                <div className="space-y-3">
-                  <Label htmlFor="custom-field-name" className="text-left block text-lg font-medium text-gray-700">
-                    Custom Field Name
-                  </Label>
-                  <Input
-                    id="custom-field-name"
-                    placeholder="listing"
-                    value={customFieldName}
-                    onChange={(e) => setCustomFieldName(e.target.value)}
-                    className="text-lg p-4 h-auto"
-                  />
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
-                    <div className="text-sm text-blue-700 text-left">
-                      <p className="font-medium mb-2">💡 Setup Instructions:</p>
-                      <ol className="space-y-1">
-                        <li>1. Create a single line custom field in High Level</li>
-                        <li>2. Place the field in the form and make it hidden</li>
-                        <li>3. Add the field name here</li>
-                        <li>4. When a visitor fills out your form, you will know which listing the form was on</li>
-                      </ol>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="text-center">
+                    <h4 className="font-medium text-yellow-800 mb-2">Configuration Ready</h4>
+                    <p className="text-sm text-yellow-700 mb-3">
+                      Your {integrationMethod === 'popup' ? 'popup' : 'embedded form'} integration is configured.
+                      You'll add your GoHighLevel form code and custom field name in the final generated configuration.
+                    </p>
+                    <div className="text-xs text-yellow-600 bg-yellow-100 rounded p-2">
+                      Integration Method: <strong>{integrationMethod}</strong><br/>
+                      Directory: <strong>{directoryName || 'Unnamed Directory'}</strong>
                     </div>
                   </div>
                 </div>
@@ -969,22 +944,69 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Product Details Page CSS</h3>
-                <Button
-                  onClick={() => {
-                    const cssCode = generateFinalCSS();
-                    navigator.clipboard.writeText(cssCode);
-                  }}
-                  className="bg-indigo-600 hover:bg-indigo-700"
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy CSS
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      const config = {
+                        directoryName,
+                        integrationMethod,
+                        showDescription,
+                        showMetadata,
+                        showMaps,
+                        showPrice,
+                        showBuyNowButton,
+                        showAddToCartButton,
+                        showQuantitySelector,
+                        showCartIcon,
+                        convertCartToBookmarks,
+                        formEmbedUrl: "PASTE_YOUR_GOHIGHLEVEL_FORM_CODE_HERE",
+                        customFieldName: "listing"
+                      };
+                      const configJson = JSON.stringify(config, null, 2);
+                      const blob = new Blob([configJson], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${directoryName || 'directory'}-config.json`;
+                      a.click();
+                    }}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Config
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      const cssCode = generateFinalCSS();
+                      navigator.clipboard.writeText(cssCode);
+                    }}
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy CSS
+                  </Button>
+                </div>
               </div>
               
               <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
                 <pre className="text-sm whitespace-pre-wrap">
                   {generateFinalCSS()}
                 </pre>
+              </div>
+              
+              {/* Configuration Instructions */}
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-medium text-blue-800 mb-2">📋 Configuration Instructions</h4>
+                <div className="text-sm text-blue-700 space-y-2">
+                  <p><strong>1. Download Config:</strong> Click "Download Config" to get your configuration JSON file</p>
+                  <p><strong>2. Edit the JSON:</strong> Open the file and replace:</p>
+                  <ul className="ml-4 list-disc space-y-1">
+                    <li><code className="bg-blue-100 px-1 rounded">PASTE_YOUR_GOHIGHLEVEL_FORM_CODE_HERE</code> with your actual GoHighLevel form embed code</li>
+                    <li>Update <code className="bg-blue-100 px-1 rounded">customFieldName</code> if needed (default: "listing")</li>
+                  </ul>
+                  <p><strong>3. Apply CSS:</strong> Copy the CSS code above and paste it into your GoHighLevel page's footer</p>
+                  <p><strong>4. Integration:</strong> Your {integrationMethod === 'popup' ? 'popup forms' : 'embedded forms'} will work automatically based on the configuration</p>
+                </div>
               </div>
             </CardContent>
           </Card>
