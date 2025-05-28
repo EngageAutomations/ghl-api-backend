@@ -514,7 +514,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   </div>
                   <div className="text-center">
                     <h4 className="font-medium text-green-800">Action Button Setup</h4>
-                    <p className="text-sm text-green-700 mt-1">Attach a direct download link to your listings.</p>
+                    <p className="text-sm text-green-700 mt-1">Add external links to your listings
+</p>
                   </div>
                 </div>
               </div>
@@ -529,10 +530,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   </Label>
                   <Textarea
                     id="form-embed"
-                    placeholder={integrationMethod === 'popup' 
-                      ? '<iframe src="https://link.msgsndr.com/form/..." width="500" height="600"></iframe>'
-                      : 'Paste your GoHighLevel form embed code here...'
-                    }
+                    placeholder="Paste your GoHighLevel form embed code here..."
                     value={formEmbedUrl}
                     onChange={(e) => setFormEmbedUrl(e.target.value)}
                     className="min-h-[120px] text-sm"
