@@ -4,7 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft } from 'lucide-react';
 
 interface SlideProps {
   children: React.ReactNode;
@@ -29,6 +30,9 @@ export default function ConfigWizardSlideshow() {
   const [buttonType, setButtonType] = useState<'popup' | 'redirect' | 'download' | 'embed'>('popup');
   const [formEmbedUrl, setFormEmbedUrl] = useState('');
   const [customFieldName, setCustomFieldName] = useState('listing');
+  const [showDescription, setShowDescription] = useState(true);
+  const [showMetadata, setShowMetadata] = useState(true);
+  const [showMaps, setShowMaps] = useState(false);
 
   // Handle file drop
   const handleDrop = (e: React.DragEvent) => {
@@ -530,7 +534,180 @@ export default function ConfigWizardSlideshow() {
       </div>
     </Slide>,
 
-    // Slide 4: Generate Code (placeholder for now)
+    // Slide 4: Page Components
+    <Slide key="page-components" className="bg-gradient-to-br from-purple-50 to-violet-100">
+      <div className="text-center max-w-4xl mx-auto">
+        <div className="mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-600 rounded-full mb-6">
+            <Layout className="w-10 h-10 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">GoHighLevel Page Components</h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Choose which components to display on your listings
+          </p>
+        </div>
+
+        {/* Component Toggle Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-white/80 backdrop-blur-sm border border-purple-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-indigo-50 p-2 rounded-md">
+                    <AlignLeft className="w-6 h-6 text-indigo-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-medium">Expanded Description</h3>
+                    <p className="text-sm text-gray-500">Rich content with images and HTML</p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={showDescription}
+                  onCheckedChange={setShowDescription}
+                  id="show-description" 
+                />
+              </div>
+              {showDescription && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-left">
+                  <p className="text-sm text-green-700">
+                    ✓ Enhanced product descriptions with custom HTML content and URL-based content system
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/80 backdrop-blur-sm border border-purple-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-green-50 p-2 rounded-md">
+                    <FileText className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-medium">Metadata Bar</h3>
+                    <p className="text-sm text-gray-500">Additional business information</p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={showMetadata}
+                  onCheckedChange={setShowMetadata}
+                  id="show-metadata" 
+                />
+              </div>
+              {showMetadata && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-left">
+                  <p className="text-sm text-green-700">
+                    ✓ Business contact information with icons and customizable styling
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/80 backdrop-blur-sm border border-purple-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-orange-50 p-2 rounded-md">
+                    <MapPin className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-medium">Google Maps Widget</h3>
+                    <p className="text-sm text-gray-500">Interactive location display</p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={showMaps}
+                  onCheckedChange={setShowMaps}
+                  id="show-maps" 
+                />
+              </div>
+              {showMaps && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-left">
+                  <p className="text-sm text-green-700">
+                    ✓ Embedded Google Maps for location-based businesses
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Configuration Summary */}
+        <Card className="bg-white/80 backdrop-blur-sm border border-purple-200 max-w-2xl mx-auto">
+          <CardContent className="p-8">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Selected Components</h3>
+            
+            {/* Active Components List */}
+            <div className="space-y-4">
+              {showDescription && (
+                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <AlignLeft className="w-5 h-5 text-indigo-600" />
+                    <div className="text-left">
+                      <h4 className="font-medium text-indigo-800">Expanded Description</h4>
+                      <p className="text-sm text-indigo-700">
+                        URL-based content system with custom HTML support and fade-in animations
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {showMetadata && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <FileText className="w-5 h-5 text-green-600" />
+                    <div className="text-left">
+                      <h4 className="font-medium text-green-800">Metadata Bar</h4>
+                      <p className="text-sm text-green-700">
+                        Business contact information with phone, email, website, and location icons
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {showMaps && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <MapPin className="w-5 h-5 text-orange-600" />
+                    <div className="text-left">
+                      <h4 className="font-medium text-orange-800">Google Maps Widget</h4>
+                      <p className="text-sm text-orange-700">
+                        Interactive Google Maps integration for location display
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {!showDescription && !showMetadata && !showMaps && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+                  <p className="text-gray-600">No additional components selected. Your integration will include basic functionality only.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Feature Summary */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+              <h4 className="text-sm font-medium text-blue-800 mb-2">Components Summary:</h4>
+              <div className="text-sm text-blue-700">
+                <p><strong>Active Components:</strong> {[showDescription && 'Expanded Description', showMetadata && 'Metadata Bar', showMaps && 'Google Maps'].filter(Boolean).join(', ') || 'None'}</p>
+                <p><strong>Enhancement Level:</strong> {
+                  [showDescription, showMetadata, showMaps].filter(Boolean).length === 0 ? 'Basic' :
+                  [showDescription, showMetadata, showMaps].filter(Boolean).length === 1 ? 'Enhanced' :
+                  [showDescription, showMetadata, showMaps].filter(Boolean).length === 2 ? 'Advanced' : 'Premium'
+                }</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </Slide>,
+
+    // Slide 5: Generate Code (placeholder for now)
     <Slide key="generate-code" className="bg-gradient-to-br from-orange-50 to-amber-100">
       <div className="text-center max-w-2xl mx-auto">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Generate Integration Code</h2>
