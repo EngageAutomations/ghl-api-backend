@@ -374,7 +374,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     className={`
-                      border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer
+                      border-2 border-dashed rounded-lg p-4 text-center transition-all cursor-pointer
                       ${isDragOver 
                         ? 'border-blue-500 bg-blue-50' 
                         : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
@@ -389,18 +389,10 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                       id="logo-upload"
                     />
                     <label htmlFor="logo-upload" className="cursor-pointer">
-                      <Upload className="w-10 h-10 text-gray-400 mx-auto mb-4" />
-                      <div className="space-y-2">
-                        <p className="text-lg font-medium text-gray-700">
-                          {isDragOver ? 'Drop your logo here' : 'Drag and drop your logo'}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          or click to browse files
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          PNG, JPG, SVG up to 5MB
-                        </p>
-                      </div>
+                      <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-gray-700">
+                        {isDragOver ? 'Drop logo here' : 'Upload logo'}
+                      </p>
                     </label>
                   </div>
                   {logoFile && (
@@ -411,57 +403,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                 </div>
               </div>
 
-              {/* Logo Preview */}
-              {logoUrl && (
-                <div className="space-y-3">
-                  <Label className="text-left block text-lg font-medium text-gray-700">
-                    Logo Preview
-                  </Label>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-center">
-                    <img
-                      src={logoUrl}
-                      alt="Logo Preview"
-                      className="max-h-16 max-w-full object-contain"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const errorDiv = document.createElement('div');
-                        errorDiv.className = 'text-red-500 text-sm';
-                        errorDiv.textContent = 'Unable to load image from this URL';
-                        target.parentNode?.appendChild(errorDiv);
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
 
-              {/* Info Card */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start space-x-3">
-                  <Upload className="w-5 h-5 text-blue-600 mt-0.5" />
-                  <div className="text-left">
-                    <h4 className="text-sm font-medium text-blue-800 mb-1">Logo Upload Tips:</h4>
-                    <ul className="text-sm text-blue-700 space-y-1">
-                      <li>• Use PNG or SVG format for best quality</li>
-                      <li>• Recommended size: 200x60px or similar ratio</li>
-                      <li>• File size should be under 5MB</li>
-                      <li>• JPG, PNG, and SVG formats are supported</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {/* Current Configuration Summary */}
-              {(directoryName || logoFile) && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-green-800 mb-2">Current Configuration:</h4>
-                  <div className="text-sm text-green-700 space-y-1 text-left">
-                    {directoryName && <p><strong>Directory:</strong> {directoryName}</p>}
-                    {logoFile && <p><strong>Logo:</strong> {logoFile.name} uploaded</p>}
-                    {!directoryName && <p className="text-green-600 italic">Enter a directory name to continue</p>}
-                  </div>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
