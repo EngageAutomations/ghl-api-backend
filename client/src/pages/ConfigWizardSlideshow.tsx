@@ -503,8 +503,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
         </div>
 
         {/* Configuration Card */}
-        <Card className="bg-white/80 backdrop-blur-sm max-w-2xl mx-auto">
-          <CardContent className="p-8">
+        <div className="max-w-2xl mx-auto">
+          <div>
             {/* Action Button Info */}
             {(integrationMethod === 'redirect' || integrationMethod === 'download') && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
@@ -595,8 +595,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
             )}
 
 
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </Slide>,
 
