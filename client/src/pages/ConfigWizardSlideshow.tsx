@@ -922,33 +922,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
               </div>
             </div>
 
-            {/* Summary Stats */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {[showDescription, showMetadata, showMaps].filter(Boolean).length}
-                  </div>
-                  <div className="text-sm text-blue-800">Enhanced Components</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {[showPrice, showBuyNowButton, showAddToCartButton, showQuantitySelector, showCartIcon].filter(Boolean).length}
-                  </div>
-                  <div className="text-sm text-blue-800">Visible Elements</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {
-                      [showDescription, showMetadata, showMaps].filter(Boolean).length === 0 ? 'Basic' :
-                      [showDescription, showMetadata, showMaps].filter(Boolean).length === 1 ? 'Enhanced' :
-                      [showDescription, showMetadata, showMaps].filter(Boolean).length === 2 ? 'Advanced' : 'Premium'
-                    }
-                  </div>
-                  <div className="text-sm text-blue-800">Configuration Level</div>
-                </div>
-              </div>
-            </div>
+
           </CardContent>
         </Card>
       </div>
