@@ -622,34 +622,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
               </div>
             )}
 
-            {/* Info cards for redirect and download */}
-            {buttonType === 'redirect' && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                <div className="flex items-center space-x-3">
-                  <ExternalLink className="w-6 h-6 text-green-600" />
-                  <div className="text-left">
-                    <h4 className="text-lg font-medium text-green-800">Redirect Button</h4>
-                    <p className="text-green-700 mt-2">
-                      Redirect URLs will be configured through your form submissions. The button will redirect users to external pages.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {buttonType === 'download' && (
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-                <div className="flex items-center space-x-3">
-                  <DownloadIcon className="w-6 h-6 text-orange-600" />
-                  <div className="text-left">
-                    <h4 className="text-lg font-medium text-orange-800">Direct Download Button</h4>
-                    <p className="text-orange-700 mt-2">
-                      Download URLs will be configured through your form submissions. The button will trigger direct file downloads.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
 
 
           </div>
