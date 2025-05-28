@@ -37,11 +37,28 @@ function ConfigWizard({ children }: { children: React.ReactNode }) {
 export default function ConfigWizardDemo() {
   // Form configuration state
   const [buttonType, setButtonType] = useState<string>('embed');
-  const [formEmbedUrl, setFormEmbedUrl] = useState<string>('<iframe src="https://link.msgsndr.com/form/abc123" width="500" height="600"></iframe>');
+  const [formEmbedUrl, setFormEmbedUrl] = useState<string>('');
   const [customFieldName, setCustomFieldName] = useState<string>('listing');
   const [previewColor, setPreviewColor] = useState<string>('#3b82f6');
   const [previewTextColor, setPreviewTextColor] = useState<string>('#ffffff');
   const [previewBorderRadius, setPreviewBorderRadius] = useState<number>(8);
+
+  // Load slideshow configuration if coming from slideshow
+  useEffect(() => {
+    const slideshowConfig = localStorage.getItem('slideshowConfig');
+    if (slideshowConfig) {
+      try {
+        const config = JSON.parse(slideshowConfig);
+        if (config.integrationMethod) {
+          setButtonType(config.integrationMethod);
+        }
+        // Clear the config after loading to prevent conflicts
+        localStorage.removeItem('slideshowConfig');
+      } catch (e) {
+        console.error('Failed to parse slideshow config:', e);
+      }
+    }
+  }, []);
   
   // Copy button states
   const [cssCodeCopied, setCssCodeCopied] = useState<boolean>(false);
