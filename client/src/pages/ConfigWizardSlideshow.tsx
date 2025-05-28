@@ -272,7 +272,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
           </p>
         </div>
 
-        <Card className="bg-white/80 backdrop-blur-sm border border-red-200 max-w-lg mx-auto">
+        <Card className="bg-white/80 backdrop-blur-sm border border-red-200 max-w-4xl mx-auto">
           <CardContent className="p-8">
             {!googleDriveConnected ? (
               <div className="text-center">
