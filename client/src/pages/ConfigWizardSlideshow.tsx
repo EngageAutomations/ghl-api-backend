@@ -508,11 +508,11 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
             {/* Action Button Info */}
             {(integrationMethod === 'redirect' || integrationMethod === 'download') && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-center space-x-3">
                   <div className="bg-green-600 text-white p-2 rounded-md">
                     <MousePointer className="w-5 h-5" />
                   </div>
-                  <div className="text-left">
+                  <div className="text-center">
                     <h4 className="font-medium text-green-800">Action Button Setup</h4>
                     <p className="text-sm text-green-700 mt-1">Attach a direct download link to your listings.</p>
                   </div>
