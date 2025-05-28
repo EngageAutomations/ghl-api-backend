@@ -542,14 +542,13 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <Label htmlFor="form-embed-popup" className="text-left block text-lg font-medium text-gray-700">
                     GoHighLevel Iframe Embed Code
                   </Label>
-                  <Textarea
+                  <textarea
                     id="form-embed-popup"
                     placeholder="Paste your GoHighLevel form embed code here..."
                     value={formEmbedUrl}
                     onChange={(e) => setFormEmbedUrl(e.target.value)}
-                    className="min-h-[120px] text-sm"
-                    disabled={false}
-                    readOnly={false}
+                    className="w-full min-h-[120px] text-sm p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={5}
                   />
                 </div>
               </div>
@@ -574,14 +573,13 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <Label htmlFor="form-embed-direct" className="text-left block text-lg font-medium text-gray-700">
                     GoHighLevel Form Embed Code
                   </Label>
-                  <Textarea
+                  <textarea
                     id="form-embed-direct"
                     placeholder="Paste your GoHighLevel form embed code here..."
                     value={formEmbedUrl}
                     onChange={(e) => setFormEmbedUrl(e.target.value)}
-                    className="min-h-[120px] text-sm"
-                    disabled={false}
-                    readOnly={false}
+                    className="w-full min-h-[120px] text-sm p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={5}
                   />
                 </div>
               </div>
@@ -593,14 +591,13 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                 <Label htmlFor="field-name" className="text-left block text-lg font-medium text-gray-700">
                   Custom Field Name
                 </Label>
-                <Input
+                <input
                   id="field-name"
+                  type="text"
                   placeholder="listing"
                   value={customFieldName}
                   onChange={(e) => setCustomFieldName(e.target.value)}
-                  className="text-lg p-4 h-auto"
-                  disabled={false}
-                  readOnly={false}
+                  className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
                   <div className="text-sm text-blue-700 text-left">
