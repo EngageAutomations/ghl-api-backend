@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy } from 'lucide-react';
 
 interface SlideProps {
   children: React.ReactNode;
@@ -38,6 +38,122 @@ export default function ConfigWizardSlideshow() {
   const [showAddToCartButton, setShowAddToCartButton] = useState(true);
   const [showQuantitySelector, setShowQuantitySelector] = useState(true);
   const [showCartIcon, setShowCartIcon] = useState(true);
+  const [integrationMethod, setIntegrationMethod] = useState('popup');
+
+  // CSS Generation Function
+  const generateFinalCSS = () => {
+    let css = `<style>
+/* GoHighLevel Essential Fixes - Always Applied */
+/* Nuclear truncation fix - Apply first to prevent any truncation */
+body:not(.hl-builder) * { 
+  text-overflow: unset !important; 
+  -webkit-line-clamp: unset !important; 
+  white-space: normal !important;
+  overflow: visible !important;
+}
+
+/* Remove title truncation */
+body:not(.hl-builder) [class*="product-title"],
+body:not(.hl-builder) [class*="product-name"],
+body:not(.hl-builder) .hl-product-detail-product-name {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}`;
+
+    // Add element hiding CSS based on toggles
+    if (!showPrice) {
+      css += `
+
+/* Hide Price Display */
+body:not(.hl-builder) .cstore-product-detail [class*="price"],
+body:not(.hl-builder) .product-detail-container [class*="price"],
+body:not(.hl-builder) .hl-product-price,
+body:not(.hl-builder) .hl-product-detail-product-price {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}`;
+    }
+
+    if (!showBuyNowButton) {
+      css += `
+
+/* Hide Buy Now Button */
+body:not(.hl-builder) .cstore-product-detail [class*="buy-now"],
+body:not(.hl-builder) .product-detail-container [class*="buy-now"],
+body:not(.hl-builder) .hl-buy-now-button,
+body:not(.hl-builder) button[class*="buy-now"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}`;
+    }
+
+    if (!showAddToCartButton) {
+      css += `
+
+/* Hide Add to Cart Button */
+body:not(.hl-builder) .cstore-product-detail [class*="add-to-cart"],
+body:not(.hl-builder) .product-detail-container [class*="add-to-cart"],
+body:not(.hl-builder) .hl-add-to-cart-button,
+body:not(.hl-builder) button[class*="add-to-cart"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}`;
+    }
+
+    if (!showQuantitySelector) {
+      css += `
+
+/* Hide Quantity Selector */
+body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
+body:not(.hl-builder) .product-detail-container [class*="qty"],
+body:not(.hl-builder) .cstore-product-detail input[type="number"],
+body:not(.hl-builder) input[class*="quantity"],
+body:not(.hl-builder) input[class*="qty"],
+body:not(.hl-builder) .quantity-container,
+body:not(.hl-builder) .hl-quantity-input-container,
+body:not(.hl-builder) .pdp-quantity-container,
+body:not(.hl-builder) .hl-quantity-input,
+body:not(.hl-builder) .action-icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}`;
+    }
+
+    if (!showCartIcon) {
+      css += `
+
+/* Hide Cart Icon - Comprehensive targeting */
+body:not(.hl-builder) .nav-cart-icon,
+body:not(.hl-builder) .nav-cart-button,
+body:not(.hl-builder) .items-cart,
+body:not(.hl-builder) .cart-search-desktop,
+body:not(.hl-builder) .nav-cart-wrapper,
+body:not(.hl-builder) svg[width="20"][height="20"][viewBox="0 0 20 20"] path[d*="M1.66699 1.66675"],
+body:not(.hl-builder) button.items-cart,
+body:not(.hl-builder) [class*="cart-button"],
+body:not(.hl-builder) [class*="nav-cart"],
+body:not(.hl-builder) svg[clip-path*="clip0_1655_15551"],
+body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7GXYJ1VCkI8/media/6836acff9bd24392ee734932.svg"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}`;
+    }
+
+    css += `
+</style>`;
+
+    return css;
+  };
 
   // Handle file drop
   const handleDrop = (e: React.DragEvent) => {
@@ -377,9 +493,9 @@ export default function ConfigWizardSlideshow() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card 
             className={`cursor-pointer transition-all border-2 ${
-              buttonType === 'popup' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
+              integrationMethod === 'popup' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
             }`}
-            onClick={() => setButtonType('popup')}
+            onClick={() => setIntegrationMethod('popup')}
           >
             <CardContent className="p-6">
               <div className="flex items-center space-x-3 mb-3">
@@ -396,9 +512,9 @@ export default function ConfigWizardSlideshow() {
 
           <Card 
             className={`cursor-pointer transition-all border-2 ${
-              buttonType === 'redirect' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
+              integrationMethod === 'redirect' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
             }`}
-            onClick={() => setButtonType('redirect')}
+            onClick={() => setIntegrationMethod('redirect')}
           >
             <CardContent className="p-6">
               <div className="flex items-center space-x-3 mb-3">
@@ -415,9 +531,9 @@ export default function ConfigWizardSlideshow() {
 
           <Card 
             className={`cursor-pointer transition-all border-2 ${
-              buttonType === 'download' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
+              integrationMethod === 'download' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
             }`}
-            onClick={() => setButtonType('download')}
+            onClick={() => setIntegrationMethod('download')}
           >
             <CardContent className="p-6">
               <div className="flex items-center space-x-3 mb-3">
@@ -434,9 +550,9 @@ export default function ConfigWizardSlideshow() {
 
           <Card 
             className={`cursor-pointer transition-all border-2 ${
-              buttonType === 'embed' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
+              integrationMethod === 'embed' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
             }`}
-            onClick={() => setButtonType('embed')}
+            onClick={() => setIntegrationMethod('embed')}
           >
             <CardContent className="p-6">
               <div className="flex items-center space-x-3 mb-3">
@@ -456,7 +572,7 @@ export default function ConfigWizardSlideshow() {
         <Card className="bg-white/80 backdrop-blur-sm border border-green-200 max-w-2xl mx-auto">
           <CardContent className="p-8">
             {/* Form Configuration - Only show for popup and embed */}
-            {(buttonType === 'popup' || buttonType === 'embed') && (
+            {(integrationMethod === 'popup' || integrationMethod === 'embed') && (
               <div className="space-y-6">
                 <div className="space-y-3">
                   <Label htmlFor="form-embed" className="text-left block text-lg font-medium text-gray-700">
