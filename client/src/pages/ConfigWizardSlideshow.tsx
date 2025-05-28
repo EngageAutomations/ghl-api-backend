@@ -286,15 +286,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     Store and manage your directory images with Google Drive integration. 
                     Your images will be organized in a dedicated "Directory Images" folder.
                   </p>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <h4 className="text-sm font-medium text-blue-800 mb-2">Benefits:</h4>
-                    <ul className="text-sm text-blue-700 text-left space-y-1">
-                      <li>• Centralized image storage and management</li>
-                      <li>• Easy sharing and collaboration</li>
-                      <li>• Automatic backup and sync</li>
-                      <li>• Access from anywhere</li>
-                    </ul>
-                  </div>
+
                 </div>
                 <Button 
                   onClick={() => setGoogleDriveConnected(true)}
