@@ -547,7 +547,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <textarea
                     id="form-embed-popup"
                     placeholder="Paste your GoHighLevel form embed code here..."
-                    defaultValue={popupFormEmbedUrl}
+                    value={popupFormEmbedUrl}
                     onChange={(e) => setPopupFormEmbedUrl(e.target.value)}
                     className="w-full min-h-[120px] text-sm p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={5}
@@ -578,7 +578,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <textarea
                     id="form-embed-direct"
                     placeholder="Paste your GoHighLevel form embed code here..."
-                    defaultValue={embedFormEmbedUrl}
+                    value={embedFormEmbedUrl}
                     onChange={(e) => setEmbedFormEmbedUrl(e.target.value)}
                     className="w-full min-h-[120px] text-sm p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={5}
@@ -597,7 +597,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   id="popup-field-name"
                   type="text"
                   placeholder="listing"
-                  defaultValue={popupCustomFieldName}
+                  value={popupCustomFieldName}
                   onChange={(e) => setPopupCustomFieldName(e.target.value)}
                   className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -625,7 +625,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   id="embed-field-name"
                   type="text"
                   placeholder="listing"
-                  defaultValue={embedCustomFieldName}
+                  value={embedCustomFieldName}
                   onChange={(e) => setEmbedCustomFieldName(e.target.value)}
                   className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
