@@ -688,13 +688,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   id="show-price" 
                 />
               </div>
-              {!showPrice && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-left">
-                  <p className="text-sm text-red-700">
-                    ⚠ Price information will be hidden from customers
-                  </p>
-                </div>
-              )}
+
             </CardContent>
           </Card>
 
@@ -716,13 +710,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   id="show-buy-now" 
                 />
               </div>
-              {!showBuyNowButton && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-left">
-                  <p className="text-sm text-red-700">
-                    ⚠ Buy now functionality will be disabled
-                  </p>
-                </div>
-              )}
+
             </CardContent>
           </Card>
 
@@ -744,13 +732,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   id="show-add-cart" 
                 />
               </div>
-              {!showAddToCartButton && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-left">
-                  <p className="text-sm text-red-700">
-                    ⚠ Add to cart functionality will be disabled
-                  </p>
-                </div>
-              )}
+
             </CardContent>
           </Card>
 
@@ -772,13 +754,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   id="show-quantity" 
                 />
               </div>
-              {!showQuantitySelector && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-left">
-                  <p className="text-sm text-red-700">
-                    ⚠ Quantity selection will be disabled
-                  </p>
-                </div>
-              )}
+
             </CardContent>
           </Card>
 
