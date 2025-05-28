@@ -32,6 +32,7 @@ export default function ConfigWizardSlideshow() {
   const [buttonType, setButtonType] = useState<'popup' | 'redirect' | 'download' | 'embed'>('popup');
   const [formEmbedUrl, setFormEmbedUrl] = useState('');
   const [embedCode, setEmbedCode] = useState('');
+  const [testFormCode, setTestFormCode] = useState('');
   const [customFieldName, setCustomFieldName] = useState('listing');
   const [showDescription, setShowDescription] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
@@ -559,7 +560,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <p className="text-xs text-green-600">Value: "{directoryName}"</p>
                 </div>
 
-                {/* Form Embed Code - Using new embedCode state to avoid conflicts */}
+                {/* Form Embed Code - Using completely new variable */}
                 <div className="space-y-3">
                   <Label htmlFor="form-embed-input" className="text-left block text-lg font-medium text-gray-700">
                     {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
@@ -567,14 +568,14 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <Input
                     id="form-embed-input"
                     placeholder="Paste your GoHighLevel form embed code here..."
-                    value={embedCode}
-                    onChange={(e) => setEmbedCode(e.target.value)}
+                    value={testFormCode}
+                    onChange={(e) => setTestFormCode(e.target.value)}
                     className="text-lg p-4 h-auto"
                   />
-                  <p className="text-xs text-gray-500">Value: "{embedCode}"</p>
+                  <p className="text-xs text-gray-500">Value: "{testFormCode}"</p>
                 </div>
 
-                {/* Custom Field Name - Exact copy of directory name field pattern */}
+                {/* Custom Field Name - Test if this works */}
                 <div className="space-y-3">
                   <Label htmlFor="custom-field-input" className="text-left block text-lg font-medium text-gray-700">
                     Custom Field Name
@@ -586,6 +587,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     onChange={(e) => setCustomFieldName(e.target.value)}
                     className="text-lg p-4 h-auto"
                   />
+                  <p className="text-xs text-gray-500">Value: "{customFieldName}"</p>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
                     <div className="text-sm text-blue-700 text-left">
                       <p className="font-medium mb-2">💡 Setup Instructions:</p>
