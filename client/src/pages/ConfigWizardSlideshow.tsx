@@ -782,37 +782,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-orange-50 p-2 rounded-md">
-                    <img 
-                      src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7GXYJ1VCkI8/media/6836acff9bd24392ee734932.svg" 
-                      alt="Cart Icon" 
-                      className="w-6 h-6"
-                    />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Show Cart Icon</h3>
-                    <p className="text-sm text-gray-500">Display navigation cart icon</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={showCartIcon}
-                  onCheckedChange={setShowCartIcon}
-                  id="show-cart-icon" 
-                />
-              </div>
-              {!showCartIcon && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-left">
-                  <p className="text-sm text-red-700">
-                    ⚠ Cart icon will be hidden from navigation
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+
         </div>
 
         {/* Configuration Summary */}
@@ -829,14 +799,13 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   {showBuyNowButton && <p>• Buy now button functionality</p>}
                   {showAddToCartButton && <p>• Add to cart functionality</p>}
                   {showQuantitySelector && <p>• Quantity selection controls</p>}
-                  {showCartIcon && <p>• Cart icon in navigation</p>}
-                  {!showPrice && !showBuyNowButton && !showAddToCartButton && !showQuantitySelector && !showCartIcon && (
+                  {!showPrice && !showBuyNowButton && !showAddToCartButton && !showQuantitySelector && (
                     <p className="text-green-600 italic">No ecommerce features enabled - Pure directory mode</p>
                   )}
                 </div>
               </div>
 
-              {(!showPrice || !showBuyNowButton || !showAddToCartButton || !showQuantitySelector || !showCartIcon) && (
+              {(!showPrice || !showBuyNowButton || !showAddToCartButton || !showQuantitySelector) && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <h4 className="font-medium text-red-800 mb-2">Hidden Features:</h4>
                   <div className="text-sm text-red-700 space-y-1">
@@ -844,7 +813,6 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     {!showBuyNowButton && <p>• Buy now button (direct purchase disabled)</p>}
                     {!showAddToCartButton && <p>• Add to cart button (cart functionality disabled)</p>}
                     {!showQuantitySelector && <p>• Quantity selector (quantity selection disabled)</p>}
-                    {!showCartIcon && <p>• Cart icon (navigation cart icon hidden)</p>}
                   </div>
                 </div>
               )}
