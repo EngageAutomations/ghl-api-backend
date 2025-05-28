@@ -505,6 +505,21 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
         {/* Configuration Card */}
         <Card className="bg-white/80 backdrop-blur-sm border border-green-200 max-w-2xl mx-auto">
           <CardContent className="p-8">
+            {/* Action Button Info */}
+            {(integrationMethod === 'redirect' || integrationMethod === 'download') && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-green-600 text-white p-2 rounded-md">
+                    <MousePointer className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <h4 className="font-medium text-green-800">Action Button Setup</h4>
+                    <p className="text-sm text-green-700 mt-1">Send your visitors to another website with your action button</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Form Configuration - Only show for popup and embed */}
             {(integrationMethod === 'popup' || integrationMethod === 'embed') && (
               <div className="space-y-6">
