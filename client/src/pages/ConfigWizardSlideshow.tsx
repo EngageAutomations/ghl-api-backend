@@ -545,40 +545,42 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   </div>
                 </div>
                 
-                {/* Redirect to Working Config Wizard for Text Inputs */}
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
-                  <div className="text-center">
-                    <h4 className="font-medium text-amber-800 mb-3">Complete Form Configuration</h4>
-                    <p className="text-sm text-amber-700 mb-4">
-                      To add your GoHighLevel form embed code and custom field name, please use our working configuration wizard.
-                    </p>
-                    <Button
-                      onClick={() => {
-                        // Save current slideshow state
-                        const slideshowConfig = {
-                          directoryName,
-                          integrationMethod,
-                          showDescription,
-                          showMetadata,
-                          showMaps,
-                          showPrice,
-                          showBuyNowButton,
-                          showAddToCartButton,
-                          showQuantitySelector,
-                          showCartIcon,
-                          convertCartToBookmarks
-                        };
-                        localStorage.setItem('slideshowConfig', JSON.stringify(slideshowConfig));
-                        window.open('/config', '_blank');
-                      }}
-                      className="bg-amber-600 hover:bg-amber-700 text-white"
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Open Form Configuration
-                    </Button>
-                    <p className="text-xs text-amber-600 mt-2">
-                      This opens our working wizard in a new tab where you can enter your form details
-                    </p>
+                {/* Form Embed Code - Exact copy of directory name field pattern */}
+                <div className="space-y-3">
+                  <Label htmlFor="form-embed-input" className="text-left block text-lg font-medium text-gray-700">
+                    {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
+                  </Label>
+                  <Input
+                    id="form-embed-input"
+                    placeholder="Paste your GoHighLevel form embed code here..."
+                    value={formEmbedUrl}
+                    onChange={(e) => setFormEmbedUrl(e.target.value)}
+                    className="text-lg p-4 h-auto"
+                  />
+                </div>
+
+                {/* Custom Field Name - Exact copy of directory name field pattern */}
+                <div className="space-y-3">
+                  <Label htmlFor="custom-field-input" className="text-left block text-lg font-medium text-gray-700">
+                    Custom Field Name
+                  </Label>
+                  <Input
+                    id="custom-field-input"
+                    placeholder="listing"
+                    value={customFieldName}
+                    onChange={(e) => setCustomFieldName(e.target.value)}
+                    className="text-lg p-4 h-auto"
+                  />
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+                    <div className="text-sm text-blue-700 text-left">
+                      <p className="font-medium mb-2">💡 Setup Instructions:</p>
+                      <ol className="space-y-1">
+                        <li>1. Create a single line custom field in High Level</li>
+                        <li>2. Place the field in the form and make it hidden</li>
+                        <li>3. Add the field name here</li>
+                        <li>4. When a visitor fills out your form, you will know which listing the form was on</li>
+                      </ol>
+                    </div>
                   </div>
                 </div>
               </div>
