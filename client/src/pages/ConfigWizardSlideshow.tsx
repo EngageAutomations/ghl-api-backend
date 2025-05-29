@@ -565,7 +565,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     onFocus={() => console.log('Input focused')}
                     className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="text-xs text-gray-500">Value: "{wizardFormData.embedCode}"</p>
+                  <p className="text-xs text-gray-500">Value: "{wizardFormData.embedCode}" (Length: {wizardFormData.embedCode.length})</p>
                 </div>
 
                 {/* Custom Field Name - Completely rebuilt from scratch */}
