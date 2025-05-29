@@ -554,9 +554,10 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
                   </label>
                   <input
+                    key="embed-input"
                     type="text"
                     placeholder="Paste your GoHighLevel form embed code here..."
-                    value={wizardFormData.embedCode}
+                    defaultValue={wizardFormData.embedCode}
                     onChange={(e) => {
                       console.log('Input change detected:', e.target.value);
                       setWizardFormData(prev => ({...prev, embedCode: e.target.value}));
@@ -574,9 +575,10 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     Custom Field Name
                   </label>
                   <input
+                    key="field-input"
                     type="text"
                     placeholder="listing"
-                    value={wizardFormData.fieldName}
+                    defaultValue={wizardFormData.fieldName}
                     onChange={(e) => setWizardFormData(prev => ({...prev, fieldName: e.target.value}))}
                     className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
