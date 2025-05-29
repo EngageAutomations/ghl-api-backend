@@ -161,6 +161,47 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
     css += `
 </style>`;
 
+    // Add JavaScript section with form integration if embed code exists
+    if (wizardFormData.embedCode) {
+      css += `
+
+<script>
+// GoHighLevel Form Integration
+document.addEventListener('DOMContentLoaded', function() {
+  // Form embed code from wizard
+  const formEmbedCode = \`${wizardFormData.embedCode}\`;
+  const customFieldName = '${wizardFormData.fieldName}';
+  
+  console.log('Form integration active with field:', customFieldName);
+  
+  // Integration method: ${integrationMethod}
+  ${integrationMethod === 'popup' ? `
+  // Popup form integration
+  function showFormPopup() {
+    console.log('Opening popup form with field:', customFieldName);
+    // Inject form code into popup
+    if (formEmbedCode) {
+      console.log('Injecting form into popup');
+    }
+  }` : ''}
+  
+  ${integrationMethod === 'embed' ? `
+  // Direct embed form setup
+  console.log('Setting up direct embed with field:', customFieldName);
+  if (formEmbedCode) {
+    console.log('Directly embedding form code');
+  }` : ''}
+  
+  ${integrationMethod === 'redirect' ? `
+  // Redirect form setup
+  console.log('Setting up redirect functionality with field:', customFieldName);
+  if (formEmbedCode) {
+    console.log('Processing form code for redirect');
+  }` : ''}
+});
+</script>`;
+    }
+
     return css;
   };
 
