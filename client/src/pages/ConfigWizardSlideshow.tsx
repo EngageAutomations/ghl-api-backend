@@ -30,8 +30,11 @@ export default function ConfigWizardSlideshow() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [buttonType, setButtonType] = useState<'popup' | 'redirect' | 'download' | 'embed'>('popup');
-  const [formEmbedUrlWiz, setFormEmbedUrlWiz] = useState('');
-  const [customFieldNameWiz, setCustomFieldNameWiz] = useState('listing');
+  // Completely isolated form state - no external dependencies
+  const [wizardFormData, setWizardFormData] = useState({
+    embedCode: '',
+    fieldName: 'listing'
+  });
   const [showDescription, setShowDescription] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
   const [showMaps, setShowMaps] = useState(false);
@@ -545,34 +548,34 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   </div>
                 </div>
                 
-                {/* Form Embed Code - Using formEmbedUrlWiz (no conflicts) */}
+                {/* Form Embed Code - Completely rebuilt from scratch */}
                 <div className="space-y-3">
-                  <Label htmlFor="form-embed-wiz" className="text-left block text-lg font-medium text-gray-700">
+                  <label className="text-left block text-lg font-medium text-gray-700">
                     {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
-                  </Label>
-                  <Input
-                    id="form-embed-wiz"
+                  </label>
+                  <input
+                    type="text"
                     placeholder="Paste your GoHighLevel form embed code here..."
-                    value={formEmbedUrlWiz}
-                    onChange={(e) => setFormEmbedUrlWiz(e.target.value)}
-                    className="text-lg p-4 h-auto"
+                    value={wizardFormData.embedCode}
+                    onChange={(e) => setWizardFormData(prev => ({...prev, embedCode: e.target.value}))}
+                    className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="text-xs text-gray-500">Value: "{formEmbedUrlWiz}"</p>
+                  <p className="text-xs text-gray-500">Value: "{wizardFormData.embedCode}"</p>
                 </div>
 
-                {/* Custom Field Name - Using customFieldNameWiz (no conflicts) */}
+                {/* Custom Field Name - Completely rebuilt from scratch */}
                 <div className="space-y-3">
-                  <Label htmlFor="custom-field-wiz" className="text-left block text-lg font-medium text-gray-700">
+                  <label className="text-left block text-lg font-medium text-gray-700">
                     Custom Field Name
-                  </Label>
-                  <Input
-                    id="custom-field-wiz"
+                  </label>
+                  <input
+                    type="text"
                     placeholder="listing"
-                    value={customFieldNameWiz}
-                    onChange={(e) => setCustomFieldNameWiz(e.target.value)}
-                    className="text-lg p-4 h-auto"
+                    value={wizardFormData.fieldName}
+                    onChange={(e) => setWizardFormData(prev => ({...prev, fieldName: e.target.value}))}
+                    className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="text-xs text-gray-500">Value: "{customFieldNameWiz}"</p>
+                  <p className="text-xs text-gray-500">Value: "{wizardFormData.fieldName}"</p>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
                     <div className="text-sm text-blue-700 text-left">
                       <p className="font-medium mb-2">💡 Setup Instructions:</p>
@@ -986,8 +989,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                         showQuantitySelector,
                         showCartIcon,
                         convertCartToBookmarks,
-                        formEmbedUrl: formEmbedUrlWiz || "PASTE_YOUR_GOHIGHLEVEL_FORM_CODE_HERE",
-                        customFieldName: customFieldNameWiz
+                        formEmbedUrl: wizardFormData.embedCode || "PASTE_YOUR_GOHIGHLEVEL_FORM_CODE_HERE",
+                        customFieldName: wizardFormData.fieldName
                       };
                       const configJson = JSON.stringify(config, null, 2);
                       const blob = new Blob([configJson], { type: 'application/json' });
