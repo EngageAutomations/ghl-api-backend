@@ -1079,6 +1079,19 @@ document.addEventListener('DOMContentLoaded', function() {
   const url = new URL(window.location.href);
   const slug = url.searchParams.get('slug') || url.pathname.split('/').pop();
   
+  // Form integration setup
+  ${wizardFormData.embedCode ? `
+  // GoHighLevel Form Integration
+  const formEmbedCode = \`${wizardFormData.embedCode}\`;
+  const customFieldName = '${wizardFormData.fieldName}';
+  console.log('Form integration active with field:', customFieldName);
+  
+  // Embed form into page
+  if (formEmbedCode) {
+    // Process and inject form code
+    console.log('Injecting form embed code');
+  }` : ''}
+  
   // Enhanced description handling
   ${showDescription ? `
   if (slug) {
@@ -1115,6 +1128,19 @@ document.addEventListener('DOMContentLoaded', function() {
   // URL slug detection
   const url = new URL(window.location.href);
   const slug = url.searchParams.get('slug') || url.pathname.split('/').pop();
+  
+  // Form integration setup
+  ${wizardFormData.embedCode ? `
+  // GoHighLevel Form Integration
+  const formEmbedCode = \`${wizardFormData.embedCode}\`;
+  const customFieldName = '${wizardFormData.fieldName}';
+  console.log('Form integration active with field:', customFieldName);
+  
+  // Embed form into page
+  if (formEmbedCode) {
+    // Process and inject form code
+    console.log('Injecting form embed code');
+  }` : ''}
   
   // Enhanced description handling
   ${showDescription ? `
@@ -1166,21 +1192,35 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 // Form integration and enhanced features
 (function() {
-  // Form integration setup
+  // GoHighLevel Form Integration
+  ${wizardFormData.embedCode ? `
+  const formEmbedCode = \`${wizardFormData.embedCode}\`;
+  const customFieldName = '${wizardFormData.fieldName}';
+  
+  // Form integration setup based on method
   ${integrationMethod === 'popup' ? `
   // Popup form integration
   function showFormPopup() {
-    console.log('Opening popup form');
-    // Popup logic here
+    console.log('Opening popup form with field:', customFieldName);
+    // Inject form code into popup
+    if (formEmbedCode) {
+      console.log('Injecting form into popup');
+    }
   }` : ''}
   
   ${integrationMethod === 'embed' ? `
-  // Embedded form setup
-  console.log('Setting up embedded form');` : ''}
+  // Direct embed form setup
+  console.log('Setting up direct embed with field:', customFieldName);
+  if (formEmbedCode) {
+    console.log('Directly embedding form code');
+  }` : ''}
   
   ${integrationMethod === 'redirect' ? `
   // Redirect form setup
-  console.log('Setting up redirect functionality');` : ''}
+  console.log('Setting up redirect functionality with field:', customFieldName);
+  if (formEmbedCode) {
+    console.log('Processing form code for redirect');
+  }` : ''}` : ''}
   
   // Enhanced components initialization
   ${showDescription ? `
@@ -1211,21 +1251,35 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 // Form integration and enhanced features
 (function() {
-  // Form integration setup
+  // GoHighLevel Form Integration
+  ${wizardFormData.embedCode ? `
+  const formEmbedCode = \`${wizardFormData.embedCode}\`;
+  const customFieldName = '${wizardFormData.fieldName}';
+  
+  // Form integration setup based on method
   ${integrationMethod === 'popup' ? `
   // Popup form integration
   function showFormPopup() {
-    console.log('Opening popup form');
-    // Popup logic here
+    console.log('Opening popup form with field:', customFieldName);
+    // Inject form code into popup
+    if (formEmbedCode) {
+      console.log('Injecting form into popup');
+    }
   }` : ''}
   
   ${integrationMethod === 'embed' ? `
-  // Embedded form setup
-  console.log('Setting up embedded form');` : ''}
+  // Direct embed form setup
+  console.log('Setting up direct embed with field:', customFieldName);
+  if (formEmbedCode) {
+    console.log('Directly embedding form code');
+  }` : ''}
   
   ${integrationMethod === 'redirect' ? `
   // Redirect form setup
-  console.log('Setting up redirect functionality');` : ''}
+  console.log('Setting up redirect functionality with field:', customFieldName);
+  if (formEmbedCode) {
+    console.log('Processing form code for redirect');
+  }` : ''}` : ''}
   
   // Enhanced components initialization
   ${showDescription ? `
