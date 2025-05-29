@@ -1071,16 +1071,18 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                 <h3 className="text-lg font-semibold text-gray-900">Header Code</h3>
                 <Button
                   onClick={() => {
-                    const headerCode = `<!-- Enhanced Product Details Header -->
+                    let headerCode = `<!-- Enhanced Product Details Header -->
 <script>
 // Enhanced product page functionality
 document.addEventListener('DOMContentLoaded', function() {
   // URL slug detection
   const url = new URL(window.location.href);
   const slug = url.searchParams.get('slug') || url.pathname.split('/').pop();
-  
-  // Form integration setup
-  ${wizardFormData.embedCode ? `
+`;
+
+                    // Add form integration if embed code exists
+                    if (wizardFormData.embedCode) {
+                      headerCode += `
   // GoHighLevel Form Integration
   const formEmbedCode = \`${wizardFormData.embedCode}\`;
   const customFieldName = '${wizardFormData.fieldName}';
@@ -1090,24 +1092,37 @@ document.addEventListener('DOMContentLoaded', function() {
   if (formEmbedCode) {
     // Process and inject form code
     console.log('Injecting form embed code');
-  }` : ''}
+  }`;
+                    }
+
+                    // Add enhanced features
+                    if (showDescription) {
+                      headerCode += `
   
   // Enhanced description handling
-  ${showDescription ? `
   if (slug) {
     // Load enhanced description content
     console.log('Loading enhanced description for:', slug);
-  }` : ''}
+  }`;
+                    }
+
+                    if (showMetadata) {
+                      headerCode += `
   
   // Metadata bar setup
-  ${showMetadata ? `
   // Initialize metadata display
-  console.log('Setting up metadata bar');` : ''}
+  console.log('Setting up metadata bar');`;
+                    }
+
+                    if (showMaps) {
+                      headerCode += `
   
   // Google Maps integration
-  ${showMaps ? `
   // Initialize Google Maps widget
-  console.log('Loading Google Maps widget');` : ''}
+  console.log('Loading Google Maps widget');`;
+                    }
+
+                    headerCode += `
 });
 </script>`;
                     navigator.clipboard.writeText(headerCode);
@@ -1121,16 +1136,19 @@ document.addEventListener('DOMContentLoaded', function() {
               
               <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
                 <pre className="text-sm whitespace-pre-wrap">
-{`<!-- Enhanced Product Details Header -->
+{(() => {
+  let displayCode = `<!-- Enhanced Product Details Header -->
 <script>
 // Enhanced product page functionality
 document.addEventListener('DOMContentLoaded', function() {
   // URL slug detection
   const url = new URL(window.location.href);
   const slug = url.searchParams.get('slug') || url.pathname.split('/').pop();
-  
-  // Form integration setup
-  ${wizardFormData.embedCode ? `
+`;
+
+  // Add form integration if embed code exists
+  if (wizardFormData.embedCode) {
+    displayCode += `
   // GoHighLevel Form Integration
   const formEmbedCode = \`${wizardFormData.embedCode}\`;
   const customFieldName = '${wizardFormData.fieldName}';
@@ -1140,26 +1158,41 @@ document.addEventListener('DOMContentLoaded', function() {
   if (formEmbedCode) {
     // Process and inject form code
     console.log('Injecting form embed code');
-  }` : ''}
+  }`;
+  }
+
+  // Add enhanced features
+  if (showDescription) {
+    displayCode += `
   
   // Enhanced description handling
-  ${showDescription ? `
   if (slug) {
     // Load enhanced description content
     console.log('Loading enhanced description for:', slug);
-  }` : ''}
+  }`;
+  }
+
+  if (showMetadata) {
+    displayCode += `
   
   // Metadata bar setup
-  ${showMetadata ? `
   // Initialize metadata display
-  console.log('Setting up metadata bar');` : ''}
+  console.log('Setting up metadata bar');`;
+  }
+
+  if (showMaps) {
+    displayCode += `
   
   // Google Maps integration
-  ${showMaps ? `
   // Initialize Google Maps widget
-  console.log('Loading Google Maps widget');` : ''}
+  console.log('Loading Google Maps widget');`;
+  }
+
+  displayCode += `
 });
-</script>`}
+</script>`;
+  return displayCode;
+})()}
                 </pre>
               </div>
             </CardContent>
@@ -1188,17 +1221,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h3 className="text-lg font-semibold text-gray-900">Footer Code</h3>
                 <Button
                   onClick={() => {
-                    const footerCode = `<!-- Enhanced Product Details Footer -->
+                    let footerCode = `<!-- Enhanced Product Details Footer -->
 <script>
 // Form integration and enhanced features
 (function() {
-  // GoHighLevel Form Integration
-  ${wizardFormData.embedCode ? `
+`;
+
+                    // Add form integration if embed code exists
+                    if (wizardFormData.embedCode) {
+                      footerCode += `  // GoHighLevel Form Integration
   const formEmbedCode = \`${wizardFormData.embedCode}\`;
   const customFieldName = '${wizardFormData.fieldName}';
   
-  // Form integration setup based on method
-  ${integrationMethod === 'popup' ? `
+  // Form integration setup based on method`;
+
+                      if (integrationMethod === 'popup') {
+                        footerCode += `
   // Popup form integration
   function showFormPopup() {
     console.log('Opening popup form with field:', customFieldName);
@@ -1206,34 +1244,51 @@ document.addEventListener('DOMContentLoaded', function() {
     if (formEmbedCode) {
       console.log('Injecting form into popup');
     }
-  }` : ''}
-  
-  ${integrationMethod === 'embed' ? `
+  }`;
+                      }
+
+                      if (integrationMethod === 'embed') {
+                        footerCode += `
   // Direct embed form setup
   console.log('Setting up direct embed with field:', customFieldName);
   if (formEmbedCode) {
     console.log('Directly embedding form code');
-  }` : ''}
-  
-  ${integrationMethod === 'redirect' ? `
+  }`;
+                      }
+
+                      if (integrationMethod === 'redirect') {
+                        footerCode += `
   // Redirect form setup
   console.log('Setting up redirect functionality with field:', customFieldName);
   if (formEmbedCode) {
     console.log('Processing form code for redirect');
-  }` : ''}` : ''}
+  }`;
+                      }
+                    }
+
+                    // Add enhanced features
+                    if (showDescription) {
+                      footerCode += `
   
-  // Enhanced components initialization
-  ${showDescription ? `
   // Enhanced description functionality
-  console.log('Initializing enhanced descriptions');` : ''}
+  console.log('Initializing enhanced descriptions');`;
+                    }
+
+                    if (showMetadata) {
+                      footerCode += `
   
-  ${showMetadata ? `
   // Metadata bar functionality
-  console.log('Initializing metadata bar');` : ''}
+  console.log('Initializing metadata bar');`;
+                    }
+
+                    if (showMaps) {
+                      footerCode += `
   
-  ${showMaps ? `
   // Google Maps functionality
-  console.log('Initializing Google Maps');` : ''}
+  console.log('Initializing Google Maps');`;
+                    }
+
+                    footerCode += `
 })();
 </script>`;
                     navigator.clipboard.writeText(footerCode);
@@ -1247,17 +1302,23 @@ document.addEventListener('DOMContentLoaded', function() {
               
               <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
                 <pre className="text-sm whitespace-pre-wrap">
-{`<!-- Enhanced Product Details Footer -->
+{(() => {
+  let displayFooterCode = `<!-- Enhanced Product Details Footer -->
 <script>
 // Form integration and enhanced features
 (function() {
-  // GoHighLevel Form Integration
-  ${wizardFormData.embedCode ? `
+`;
+
+  // Add form integration if embed code exists
+  if (wizardFormData.embedCode) {
+    displayFooterCode += `  // GoHighLevel Form Integration
   const formEmbedCode = \`${wizardFormData.embedCode}\`;
   const customFieldName = '${wizardFormData.fieldName}';
   
-  // Form integration setup based on method
-  ${integrationMethod === 'popup' ? `
+  // Form integration setup based on method`;
+
+    if (integrationMethod === 'popup') {
+      displayFooterCode += `
   // Popup form integration
   function showFormPopup() {
     console.log('Opening popup form with field:', customFieldName);
@@ -1265,36 +1326,55 @@ document.addEventListener('DOMContentLoaded', function() {
     if (formEmbedCode) {
       console.log('Injecting form into popup');
     }
-  }` : ''}
-  
-  ${integrationMethod === 'embed' ? `
+  }`;
+    }
+
+    if (integrationMethod === 'embed') {
+      displayFooterCode += `
   // Direct embed form setup
   console.log('Setting up direct embed with field:', customFieldName);
   if (formEmbedCode) {
     console.log('Directly embedding form code');
-  }` : ''}
-  
-  ${integrationMethod === 'redirect' ? `
+  }`;
+    }
+
+    if (integrationMethod === 'redirect') {
+      displayFooterCode += `
   // Redirect form setup
   console.log('Setting up redirect functionality with field:', customFieldName);
   if (formEmbedCode) {
     console.log('Processing form code for redirect');
-  }` : ''}` : ''}
+  }`;
+    }
+  }
+
+  // Add enhanced features
+  if (showDescription) {
+    displayFooterCode += `
   
-  // Enhanced components initialization
-  ${showDescription ? `
   // Enhanced description functionality
-  console.log('Initializing enhanced descriptions');` : ''}
+  console.log('Initializing enhanced descriptions');`;
+  }
+
+  if (showMetadata) {
+    displayFooterCode += `
   
-  ${showMetadata ? `
   // Metadata bar functionality
-  console.log('Initializing metadata bar');` : ''}
+  console.log('Initializing metadata bar');`;
+  }
+
+  if (showMaps) {
+    displayFooterCode += `
   
-  ${showMaps ? `
   // Google Maps functionality
-  console.log('Initializing Google Maps');` : ''}
+  console.log('Initializing Google Maps');`;
+  }
+
+  displayFooterCode += `
 })();
-</script>`}
+</script>`;
+  return displayFooterCode;
+})()}
                 </pre>
               </div>
             </CardContent>
