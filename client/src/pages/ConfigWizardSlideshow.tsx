@@ -35,6 +35,9 @@ export default function ConfigWizardSlideshow() {
     embedCode: '',
     fieldName: 'listing'
   });
+
+  // Force re-render of inputs when slide changes
+  const [inputKey, setInputKey] = useState(0);
   const [showDescription, setShowDescription] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
   const [showMaps, setShowMaps] = useState(false);
@@ -554,16 +557,13 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
                   </label>
                   <input
-                    key="embed-input"
+                    key={`embed-input-${inputKey}`}
                     type="text"
                     placeholder="Paste your GoHighLevel form embed code here..."
                     defaultValue={wizardFormData.embedCode}
                     onChange={(e) => {
-                      console.log('Input change detected:', e.target.value);
                       setWizardFormData(prev => ({...prev, embedCode: e.target.value}));
                     }}
-                    onKeyDown={(e) => console.log('Key pressed:', e.key)}
-                    onFocus={() => console.log('Input focused')}
                     className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <p className="text-xs text-gray-500">Value: "{wizardFormData.embedCode}" (Length: {wizardFormData.embedCode.length})</p>
@@ -575,7 +575,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     Custom Field Name
                   </label>
                   <input
-                    key="field-input"
+                    key={`field-input-${inputKey}`}
                     type="text"
                     placeholder="listing"
                     defaultValue={wizardFormData.fieldName}
@@ -1429,14 +1429,17 @@ body:not(.hl-builder) button[class*="cart"]:before {
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setInputKey(prev => prev + 1); // Force input refresh
   };
 
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    setInputKey(prev => prev + 1); // Force input refresh
   };
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
+    setInputKey(prev => prev + 1); // Force input refresh
   };
 
   return (
