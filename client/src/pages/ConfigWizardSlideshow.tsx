@@ -557,7 +557,12 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     type="text"
                     placeholder="Paste your GoHighLevel form embed code here..."
                     value={wizardFormData.embedCode}
-                    onChange={(e) => setWizardFormData(prev => ({...prev, embedCode: e.target.value}))}
+                    onChange={(e) => {
+                      console.log('Input change detected:', e.target.value);
+                      setWizardFormData(prev => ({...prev, embedCode: e.target.value}));
+                    }}
+                    onKeyDown={(e) => console.log('Key pressed:', e.key)}
+                    onFocus={() => console.log('Input focused')}
                     className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <p className="text-xs text-gray-500">Value: "{wizardFormData.embedCode}"</p>
