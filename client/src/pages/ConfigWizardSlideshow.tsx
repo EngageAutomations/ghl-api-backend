@@ -81,7 +81,7 @@ export default function ConfigWizardSlideshow() {
     if (wizardFormData.embedCode && wizardFormData.embedCode.trim()) {
       if (integrationMethod === 'popup') {
         // Generate popup template using wizard function
-        const popupCode = generateActionButtonPopup({
+        const popupResult = generateActionButtonPopup({
           buttonText: 'Get More Info',
           buttonColor: '#3b82f6',
           buttonTextColor: '#ffffff',
@@ -92,6 +92,12 @@ export default function ConfigWizardSlideshow() {
           showAddToCartButton,
           showQuantitySelector
         });
+        
+        // Handle popup generation errors gracefully
+        const popupCode = popupResult.isValid ? popupResult : {
+          headerCode: '/* Could not generate popup code - please check your form URL */',
+          footerCode: '/* Could not generate popup code - please check your form URL */'
+        };
         
         // Generate expanded description code if enabled
         const expandedDescCode = generateExpandedDescriptionCode({
