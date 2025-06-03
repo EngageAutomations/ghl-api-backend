@@ -1419,8 +1419,126 @@ body:not(.hl-builder) .quantity-container {
       </div>
     </Slide>,
 
-    // Slide 8: Summary
+    // Slide 8: Form Preview
     <Slide key={8}>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-indigo-500 text-white p-4 rounded-full mr-4">
+              <FileText className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Generated Form Preview</h1>
+              <p className="text-lg text-slate-600">Your directory will create forms with these fields</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Form Fields Preview */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-slate-900 mb-4">Form Fields</h3>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 max-h-96 overflow-y-auto">
+              {(() => {
+                const config = generateDirectoryConfig();
+                const formFields = generateFormFields(config);
+                
+                return formFields.map((field, index) => (
+                  <div key={index} className={`mb-4 pb-4 ${index < formFields.length - 1 ? 'border-b border-slate-200' : ''}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <label className="font-medium text-slate-700">
+                        {field.label}
+                        {field.required && <span className="text-red-500 ml-1">*</span>}
+                      </label>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        field.required ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {field.required ? 'Required' : 'Optional'}
+                      </span>
+                    </div>
+                    
+                    {field.type === 'textarea' ? (
+                      <textarea 
+                        placeholder={field.placeholder}
+                        className="w-full p-2 border border-slate-300 rounded text-sm"
+                        rows={2}
+                        disabled
+                      />
+                    ) : field.type === 'hidden' ? (
+                      <div className="text-xs text-slate-500 italic">
+                        Hidden field: {field.name}
+                      </div>
+                    ) : (
+                      <input 
+                        type={field.type}
+                        placeholder={field.placeholder}
+                        className="w-full p-2 border border-slate-300 rounded text-sm"
+                        disabled
+                      />
+                    )}
+                    
+                    {field.description && (
+                      <p className="text-xs text-slate-500 mt-1">{field.description}</p>
+                    )}
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+
+          {/* Configuration Summary */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-slate-900 mb-4">Configuration Summary</h3>
+            
+            <div className="space-y-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium text-blue-800 mb-2">Required Fields (Always Included)</h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• Product/Service Name</li>
+                  <li>• Basic Description</li>
+                  <li>• Product Image (Google Drive URL)</li>
+                  <li>• SEO Title & Description</li>
+                  <li>• URL Slug</li>
+                </ul>
+              </div>
+              
+              {(showDescription || showMetadata || showMaps) && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h4 className="font-medium text-green-800 mb-2">Optional Features (Based on Selection)</h4>
+                  <ul className="text-sm text-green-700 space-y-1">
+                    {showDescription && <li>• Detailed Description</li>}
+                    {showMaps && <li>• Business Address (for Google Maps)</li>}
+                    {showMetadata && metadataFields.length > 0 && (
+                      <li>• Metadata Fields: {metadataFields.map(f => f.label).join(', ')}</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+              
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <h4 className="font-medium text-purple-800 mb-2">Integration Settings</h4>
+                <ul className="text-sm text-purple-700 space-y-1">
+                  <li>• Custom Field: {customFieldName}</li>
+                  <li>• Button Type: {buttonType}</li>
+                  <li>• Total Fields: {generateFormFields(generateDirectoryConfig()).length}</li>
+                </ul>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={() => goToSlide(9)}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              Continue to Summary
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 9: Summary
+    <Slide key={9}>
       <div className="text-center space-y-6">
         <div className="flex items-center justify-center mb-8">
           <div className="bg-green-500 text-white p-4 rounded-full mr-4">
