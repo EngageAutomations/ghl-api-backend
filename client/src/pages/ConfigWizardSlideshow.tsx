@@ -7,6 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy, Monitor, Zap } from 'lucide-react';
 
+// Import wizard's proven code generation functions
+import { generateActionButtonPopup } from '@/lib/custom-popup-generator';
+import { generateEmbeddedFormCode } from '@/lib/embedded-form-generator';
+import { generateExpandedDescriptionCode } from '@/lib/expanded-description-generator';
+import { generateMetadataBarCode } from '@/lib/metadata-bar-generator';
+
 interface SlideProps {
   children: React.ReactNode;
   className?: string;
@@ -49,11 +55,250 @@ export default function ConfigWizardSlideshow() {
   const [integrationMethod, setIntegrationMethod] = useState('popup');
   const [convertCartToBookmarks, setConvertCartToBookmarks] = useState(false);
 
-  // CSS Generation Function
-  const generateFinalCSS = () => {
+  // Helper function to extract form URL from embed code
+  const extractFormUrl = (embedCode: string) => {
+    if (!embedCode) return '';
+    
+    // If it's already a clean URL/ID, return as is
+    if (!embedCode.includes('<iframe')) {
+      return embedCode;
+    }
+    
+    // Extract src from iframe
+    const srcMatch = embedCode.match(/src=["']([^"']+)["']/);
+    if (srcMatch) {
+      const fullUrl = srcMatch[1];
+      // Extract form ID from URL (last part of path)
+      const urlParts = fullUrl.split('/');
+      return urlParts[urlParts.length - 1] || fullUrl;
+    }
+    
+    return embedCode;
+  };
+
+  // Generate code using wizard's proven logic
+  const generateCodeForSelection = () => {
+    if (wizardFormData.embedCode && wizardFormData.embedCode.trim()) {
+      if (integrationMethod === 'popup') {
+        // Generate popup template using wizard function
+        const popupCode = generateActionButtonPopup({
+          buttonText: 'Get More Info',
+          buttonColor: '#3b82f6',
+          buttonTextColor: '#ffffff',
+          buttonBorderRadius: 8,
+          customFieldName: wizardFormData.fieldName || 'listing',
+          formUrl: wizardFormData.embedCode,
+          showBuyNowButton,
+          showAddToCartButton,
+          showQuantitySelector
+        });
+        
+        // Generate expanded description code if enabled
+        const expandedDescCode = generateExpandedDescriptionCode({
+          enabled: showDescription,
+          content: `<h2>Product Details</h2>
+<p>This is enhanced content that appears below the main product details.</p>
+<p><strong>Key Features:</strong></p>
+<ul>
+  <li>Professional quality and service</li>
+  <li>Local expertise and knowledge</li>
+  <li>Competitive pricing and value</li>
+</ul>`,
+          fadeInAnimation: true,
+          customClass: 'expanded-description'
+        });
+
+        // Generate metadata bar code if enabled
+        const metadataCode = generateMetadataBarCode({
+          enabled: showMetadata,
+          position: 'bottom',
+          fields: [
+            {
+              id: 'phone',
+              label: 'Phone',
+              icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
+              defaultValue: '(555) 123-4567'
+            },
+            {
+              id: 'hours',
+              label: 'Hours',
+              icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
+              defaultValue: 'Mon-Fri 9AM-6PM'
+            },
+            {
+              id: 'location',
+              label: 'Address',
+              icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
+              defaultValue: '123 Main St, City, State'
+            }
+          ],
+          customClass: 'listing-metadata-bar',
+          backgroundColor: 'transparent',
+          textColor: '#374151',
+          borderRadius: 0,
+          fontFamily: 'system-ui, sans-serif',
+          showMaps: showMaps
+        });
+
+        return {
+          headerCode: (popupCode.headerCode || '/* Paste GoHighLevel iframe embed code to generate popup CSS */') + 
+                     (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
+                     (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
+          footerCode: (popupCode.footerCode || '/* Paste GoHighLevel iframe embed code to generate popup JavaScript */') + 
+                     (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '') +
+                     (metadataCode.jsCode ? '\n\n' + metadataCode.jsCode : '')
+        };
+      } else {
+        // Extract clean form URL/ID from iframe if needed
+        const cleanFormUrl = extractFormUrl(wizardFormData.embedCode);
+        
+        // Generate embedded form template using wizard function
+        const embeddedFormCode = generateEmbeddedFormCode({
+          formUrl: cleanFormUrl,
+          animationType: "fade-squeeze",
+          borderRadius: 8,
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          customFieldName: wizardFormData.fieldName || 'listing',
+          metadataFields: []
+        });
+
+        // Generate expanded description code if enabled
+        const expandedDescCode = generateExpandedDescriptionCode({
+          enabled: showDescription,
+          content: `<h2>Product Details</h2>
+<p>This is enhanced content that appears below the main product details.</p>
+<p><strong>Key Features:</strong></p>
+<ul>
+  <li>Professional quality and service</li>
+  <li>Local expertise and knowledge</li>
+  <li>Competitive pricing and value</li>
+</ul>`,
+          fadeInAnimation: true,
+          customClass: 'expanded-description'
+        });
+
+        // Generate metadata bar code if enabled
+        const metadataCode = generateMetadataBarCode({
+          enabled: showMetadata,
+          position: 'bottom',
+          fields: [
+            {
+              id: 'phone',
+              label: 'Phone',
+              icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
+              defaultValue: '(555) 123-4567'
+            },
+            {
+              id: 'hours',
+              label: 'Hours',
+              icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
+              defaultValue: 'Mon-Fri 9AM-6PM'
+            },
+            {
+              id: 'location',
+              label: 'Address',
+              icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
+              defaultValue: '123 Main St, City, State'
+            }
+          ],
+          customClass: 'listing-metadata-bar',
+          backgroundColor: 'transparent',
+          textColor: '#374151',
+          borderRadius: 0,
+          fontFamily: 'system-ui, sans-serif',
+          showMaps: showMaps
+        });
+
+        return {
+          headerCode: embeddedFormCode.cssCode + 
+                     (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
+                     (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
+          footerCode: embeddedFormCode.jsCode + 
+                     (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '') +
+                     (metadataCode.jsCode ? '\n\n' + metadataCode.jsCode : '')
+        };
+      }
+    } else {
+      // Generate directory listing template when no form URL is provided
+      // Generate expanded description code if enabled
+      const expandedDescCode = generateExpandedDescriptionCode({
+        enabled: showDescription,
+        content: `<h2>Product Details</h2>
+<p>This is enhanced content that appears below the main product details.</p>
+<p><strong>Key Features:</strong></p>
+<ul>
+  <li>Professional quality and service</li>
+  <li>Local expertise and knowledge</li>
+  <li>Competitive pricing and value</li>
+</ul>`,
+        fadeInAnimation: true,
+        customClass: 'expanded-description'
+      });
+
+      // Generate metadata bar code if enabled
+      const metadataCode = generateMetadataBarCode({
+        enabled: showMetadata,
+        position: 'bottom',
+        fields: [
+          {
+            id: 'phone',
+            label: 'Phone',
+            icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
+            defaultValue: '(555) 123-4567'
+          },
+          {
+            id: 'hours',
+            label: 'Hours',
+            icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
+            defaultValue: 'Mon-Fri 9AM-6PM'
+          },
+          {
+            id: 'location',
+            label: 'Address',
+            icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
+            defaultValue: '123 Main St, City, State'
+          }
+        ],
+        customClass: 'listing-metadata-bar',
+        backgroundColor: 'transparent',
+        textColor: '#374151',
+        borderRadius: 0,
+        fontFamily: 'system-ui, sans-serif',
+        showMaps: showMaps
+      });
+
+      return {
+        headerCode: `/* Directory Listing CSS */
+.ghl-listing-button {
+  background-color: #3b82f6;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+}` + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
+    (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
+        footerCode: `<script>
+// Directory Integration Script
+document.addEventListener('DOMContentLoaded', function() {
+  const forms = document.querySelectorAll('form');
+  forms.forEach(form => {
+    const hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = '${wizardFormData.fieldName || 'listing'}';
+    hiddenField.value = window.location.pathname.split('/').pop();
+    form.appendChild(hiddenField);
+  });
+});
+</script>` + (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '') +
+         (metadataCode.jsCode ? '\n\n' + metadataCode.jsCode : '')
+      };
+    }
+  };
+
+  // Base CSS for element hiding
+  const generateElementHidingCSS = () => {
     let css = `<style>
 /* GoHighLevel Essential Fixes - Always Applied */
-/* Nuclear truncation fix - Apply first to prevent any truncation */
 body:not(.hl-builder) * { 
   text-overflow: unset !important; 
   -webkit-line-clamp: unset !important; 
@@ -61,7 +306,6 @@ body:not(.hl-builder) * {
   overflow: visible !important;
 }
 
-/* Remove title truncation */
 body:not(.hl-builder) [class*="product-title"],
 body:not(.hl-builder) [class*="product-name"],
 body:not(.hl-builder) .hl-product-detail-product-name {
@@ -161,48 +405,16 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
     css += `
 </style>`;
 
-    // Add JavaScript section with form integration if embed code exists
-    if (wizardFormData.embedCode) {
-      css += `
-
-<script>
-// GoHighLevel Form Integration
-document.addEventListener('DOMContentLoaded', function() {
-  // Form embed code from wizard
-  const formEmbedCode = \`${wizardFormData.embedCode}\`;
-  const customFieldName = '${wizardFormData.fieldName}';
-  
-  console.log('Form integration active with field:', customFieldName);
-  
-  // Integration method: ${integrationMethod}
-  ${integrationMethod === 'popup' ? `
-  // Popup form integration
-  function showFormPopup() {
-    console.log('Opening popup form with field:', customFieldName);
-    // Inject form code into popup
-    if (formEmbedCode) {
-      console.log('Injecting form into popup');
-    }
-  }` : ''}
-  
-  ${integrationMethod === 'embed' ? `
-  // Direct embed form setup
-  console.log('Setting up direct embed with field:', customFieldName);
-  if (formEmbedCode) {
-    console.log('Directly embedding form code');
-  }` : ''}
-  
-  ${integrationMethod === 'redirect' ? `
-  // Redirect form setup
-  console.log('Setting up redirect functionality with field:', customFieldName);
-  if (formEmbedCode) {
-    console.log('Processing form code for redirect');
-  }` : ''}
-});
-</script>`;
-    }
-
     return css;
+  };
+
+  // Main CSS generation function using wizard logic
+  const generateFinalCSS = () => {
+    const generatedCode = generateCodeForSelection();
+    const elementHidingCSS = generateElementHidingCSS();
+    
+    // Combine element hiding CSS with the wizard's advanced features
+    return elementHidingCSS + '\n\n' + generatedCode.headerCode + '\n\n' + generatedCode.footerCode;
   };
 
   // Handle file drop
