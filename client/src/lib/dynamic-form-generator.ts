@@ -64,7 +64,33 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
     description: 'Upload your image to Google Drive and paste the shareable link here'
   });
   
-  // SEO FIELDS - Always included for better search visibility
+  // OPTIONAL FIELDS - Based on configuration (in logical order)
+  
+  // Price Field (after basic info, before detailed content)
+  if (config.showPrice) {
+    fields.push({
+      name: 'price',
+      label: 'Price',
+      type: 'text',
+      required: false,
+      placeholder: '$99.99',
+      description: 'Enter the price for your product or service'
+    });
+  }
+  
+  // Expanded Description (after price, before SEO)
+  if (config.showDescription) {
+    fields.push({
+      name: 'expanded_description',
+      label: 'Detailed Description',
+      type: 'textarea',
+      required: false,
+      placeholder: 'Provide detailed information about your product or service',
+      description: 'Extended description with more details, features, and benefits'
+    });
+  }
+  
+  // SEO FIELDS - At the end for technical optimization
   fields.push({
     name: 'seo_title',
     label: 'SEO Title',
@@ -91,32 +117,6 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
     placeholder: 'url-friendly-name',
     description: 'Used in the URL for this listing (lowercase, hyphens only)'
   });
-  
-  // OPTIONAL FIELDS - Based on configuration
-  
-  // Price Field
-  if (config.showPrice) {
-    fields.push({
-      name: 'price',
-      label: 'Price',
-      type: 'text',
-      required: false,
-      placeholder: '$99.99',
-      description: 'Enter the price for your product or service'
-    });
-  }
-  
-  // Expanded Description
-  if (config.showDescription) {
-    fields.push({
-      name: 'expanded_description',
-      label: 'Detailed Description',
-      type: 'textarea',
-      required: false,
-      placeholder: 'Provide detailed information about your product or service',
-      description: 'Extended description with more details, features, and benefits'
-    });
-  }
   
   // Google Maps Address
   if (config.showMaps) {
