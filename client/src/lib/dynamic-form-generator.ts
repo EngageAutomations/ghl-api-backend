@@ -97,7 +97,7 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
     type: 'text',
     required: true,
     placeholder: 'SEO-optimized title for search engines',
-    description: 'This title will appear in search results and browser tabs'
+    description: 'Auto-fills from product name, customize for search optimization'
   });
   
   fields.push({
@@ -106,7 +106,7 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
     type: 'textarea',
     required: true,
     placeholder: 'Brief description for search engines (150-160 characters)',
-    description: 'This description will appear in search engine results'
+    description: 'Auto-fills from basic description, optimize for search results'
   });
   
   fields.push({
@@ -280,20 +280,43 @@ document.addEventListener('DOMContentLoaded', function() {
   const form = document.querySelector('.ghl-directory-form');
   const slugField = document.getElementById('url_slug');
   const nameField = document.getElementById('name');
+  const seoTitleField = document.getElementById('seo_title');
+  const descriptionField = document.getElementById('description');
+  const seoDescriptionField = document.getElementById('seo_description');
   const hiddenField = document.getElementById('${config.customFieldName}');
   
-  // Auto-generate slug from name
-  if (nameField && slugField) {
+  // Auto-generate slug and SEO title from name
+  if (nameField) {
     nameField.addEventListener('input', function() {
-      const slug = this.value
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      slugField.value = slug;
+      const productName = this.value;
       
-      // Update hidden tracking field
-      if (hiddenField) {
-        hiddenField.value = slug;
+      // Generate URL slug
+      if (slugField) {
+        const slug = productName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+        slugField.value = slug;
+        
+        // Update hidden tracking field
+        if (hiddenField) {
+          hiddenField.value = slug;
+        }
+      }
+      
+      // Auto-fill SEO title (only if empty)
+      if (seoTitleField && !seoTitleField.value.trim()) {
+        seoTitleField.value = productName;
+      }
+    });
+  }
+  
+  // Auto-copy basic description to SEO description
+  if (descriptionField && seoDescriptionField) {
+    descriptionField.addEventListener('input', function() {
+      // Only auto-fill if SEO description is empty
+      if (!seoDescriptionField.value.trim()) {
+        seoDescriptionField.value = this.value;
       }
     });
   }
