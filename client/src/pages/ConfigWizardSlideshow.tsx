@@ -156,6 +156,84 @@ export default function ConfigWizardSlideshow() {
     return embedCode;
   };
 
+  // Generate element hiding CSS (from original slideshow)
+  const generateElementHidingCSS = () => {
+    let css = `<style>
+/* GoHighLevel Essential Fixes - Always Applied */
+body:not(.hl-builder) * { 
+  text-overflow: unset !important; 
+  -webkit-line-clamp: unset !important; 
+  white-space: normal !important;
+  overflow: visible !important;
+}
+
+body:not(.hl-builder) [class*="product-title"],
+body:not(.hl-builder) [class*="product-name"],
+body:not(.hl-builder) .hl-product-detail-product-name {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}`;
+
+    // Add element hiding CSS based on feature toggles
+    if (!showBuyNowButton) {
+      css += `
+
+/* Hide Buy Now Button */
+body:not(.hl-builder) .cstore-product-detail [class*="buy-now"],
+body:not(.hl-builder) .product-detail-container [class*="buy-now"],
+body:not(.hl-builder) .hl-buy-now-button,
+body:not(.hl-builder) button[class*="buy-now"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}`;
+    }
+
+    if (!showAddToCartButton) {
+      css += `
+
+/* Hide Add to Cart Button */
+body:not(.hl-builder) .cstore-product-detail [class*="add-to-cart"],
+body:not(.hl-builder) .product-detail-container [class*="add-to-cart"],
+body:not(.hl-builder) .hl-add-to-cart-button,
+body:not(.hl-builder) button[class*="add-to-cart"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}`;
+    }
+
+    if (!showQuantitySelector) {
+      css += `
+
+/* Hide Quantity Selector */
+body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
+body:not(.hl-builder) .product-detail-container [class*="qty"],
+body:not(.hl-builder) .cstore-product-detail input[type="number"],
+body:not(.hl-builder) input[class*="quantity"],
+body:not(.hl-builder) input[class*="qty"],
+body:not(.hl-builder) .quantity-container,
+body:not(.hl-builder) .hl-quantity-input-container,
+body:not(.hl-builder) .pdp-quantity-container,
+body:not(.hl-builder) .hl-quantity-input,
+body:not(.hl-builder) .action-icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}`;
+    }
+
+    css += `
+</style>`;
+
+    return css;
+  };
+
   // Generate code based on selection (copied from config wizard)
   const generateCodeForSelection = () => {
     if (formEmbedUrl && formEmbedUrl.trim()) {
@@ -184,8 +262,12 @@ export default function ConfigWizardSlideshow() {
           showMaps: showMaps
         });
 
+        // Combine element hiding CSS with popup code
+        const elementHidingCSS = generateElementHidingCSS();
+        
         return {
-          headerCode: (popupCode.headerCode || '/* Paste GoHighLevel iframe embed code to generate popup CSS */') + 
+          headerCode: elementHidingCSS + '\n\n' + 
+                     (popupCode.headerCode || '/* Paste GoHighLevel iframe embed code to generate popup CSS */') + 
                      (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
                      (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
           footerCode: (popupCode.footerCode || '/* Paste GoHighLevel iframe embed code to generate popup JavaScript */') + 
@@ -227,8 +309,11 @@ export default function ConfigWizardSlideshow() {
           showMaps: showMaps
         });
 
+        // Combine element hiding CSS with embedded form code
+        const elementHidingCSS = generateElementHidingCSS();
+        
         return {
-          headerCode: embeddedFormCode.cssCode + 
+          headerCode: elementHidingCSS + '\n\n' + embeddedFormCode.cssCode + 
                      (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
                      (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
           footerCode: embeddedFormCode.jsCode + 
@@ -257,8 +342,13 @@ export default function ConfigWizardSlideshow() {
         showMaps: showMaps
       });
 
+      // Combine element hiding CSS with directory listing template
+      const elementHidingCSS = generateElementHidingCSS();
+      
       return {
-        headerCode: `<style>
+        headerCode: elementHidingCSS + `
+
+<style>
 /* GoHighLevel Directory Listing Enhancements */
 .ghl-listing-button {
   background-color: ${previewColor};
