@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Copy, Download, Check } from 'lucide-react';
+import { Copy, Download, Check, Loader2 } from 'lucide-react';
 import { generateFormFields, type DirectoryConfig } from '@/lib/dynamic-form-generator';
 
 interface FormData {
@@ -28,6 +28,7 @@ export default function DirectoryForm() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [generatedData, setGeneratedData] = useState<any>(null);
   const [embedCopied, setEmbedCopied] = useState(false);
+  const [isGeneratingBullets, setIsGeneratingBullets] = useState(false);
 
   // Load form configuration based on URL parameters
   useEffect(() => {
@@ -96,6 +97,7 @@ export default function DirectoryForm() {
       return;
     }
 
+    setIsGeneratingBullets(true);
     try {
       const response = await fetch('/api/ai/summarize', {
         method: 'POST',
@@ -117,13 +119,19 @@ export default function DirectoryForm() {
       }
 
       const data = await response.json();
+      console.log('AI response data:', data);
+      
       if (data.bulletPoints && data.bulletPoints.length > 0) {
         const bulletText = data.bulletPoints.map((point: string) => '• ' + point).join('\n');
         handleInputChange('description', bulletText);
+      } else {
+        alert('No bullet points were generated. Please try again or format manually.');
       }
     } catch (error) {
       console.error('AI Summarization error:', error);
       alert('AI summarization is temporarily unavailable. You can manually format your description using bullet points (• item).');
+    } finally {
+      setIsGeneratingBullets(false);
     }
   };
 
@@ -356,9 +364,17 @@ export default function DirectoryForm() {
                             variant="outline"
                             size="sm"
                             onClick={handleAISummarize}
+                            disabled={isGeneratingBullets}
                             className="mt-2"
                           >
-                            📝 Generate Bullet Points with AI
+                            {isGeneratingBullets ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Generating...
+                              </>
+                            ) : (
+                              'Generate Bullet Points with AI'
+                            )}
                           </Button>
                         )}
                       </div>

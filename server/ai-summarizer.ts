@@ -16,11 +16,11 @@ export async function generateBulletPoints(description: string): Promise<string[
       messages: [
         {
           role: "system",
-          content: "You are a product description expert. Convert the given product description into 3-5 clear, concise bullet points that highlight the key features and benefits. Each bullet point should be actionable and compelling. Return only the bullet points as a JSON array of strings."
+          content: "You are a product description expert. Convert the given product description into 3-5 clear, concise bullet points that highlight the key features and benefits. Each bullet point should be actionable and compelling. Return your response as JSON in this exact format: {\"bullet_points\": [\"point 1\", \"point 2\", \"point 3\"]}"
         },
         {
           role: "user",
-          content: `Convert this product description into bullet points: ${description}`
+          content: `Please convert this product description into bullet points: "${description}"`
         }
       ],
       response_format: { type: "json_object" },
@@ -28,7 +28,17 @@ export async function generateBulletPoints(description: string): Promise<string[
       temperature: 0.7
     });
 
-    const result = JSON.parse(response.choices[0].message.content || '{"bullet_points": []}');
+    const content = response.choices[0].message.content;
+    console.log('OpenAI response content:', content);
+    
+    if (!content) {
+      console.log('No content received from OpenAI');
+      return [];
+    }
+    
+    const result = JSON.parse(content);
+    console.log('Parsed result:', result);
+    
     return result.bullet_points || [];
   } catch (error) {
     console.error('Error generating bullet points:', error);
