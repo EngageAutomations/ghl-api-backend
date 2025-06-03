@@ -1296,7 +1296,55 @@ body:not(.hl-builder) [class*="show-more"],
 body:not(.hl-builder) [class*="read-more"],
 body:not(.hl-builder) .show-more {
   display: none !important;
-}
+}${!showPrice ? `
+
+/* Hide Price Display */
+body:not(.hl-builder) .cstore-product-detail [class*="price"],
+body:not(.hl-builder) .product-detail-container [class*="price"],
+body:not(.hl-builder) .hl-product-price,
+body:not(.hl-builder) .hl-product-detail-product-price,
+body:not(.hl-builder) p.hl-product-detail-product-price {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showBuyNowButton ? `
+
+/* Hide Buy Now Button */
+body:not(.hl-builder) .cstore-product-detail [class*="buy-now"],
+body:not(.hl-builder) .product-detail-container [class*="buy-now"],
+body:not(.hl-builder) .hl-buy-now-button,
+body:not(.hl-builder) button[class*="buy-now"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showAddToCartButton ? `
+
+/* Hide Add to Cart Button */
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"],
+body:not(.hl-builder) #add-to-cart-btn,
+body:not(.hl-builder) .primary-btn {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showQuantitySelector ? `
+
+/* Hide Quantity Selector */
+body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
+body:not(.hl-builder) .product-detail-container [class*="qty"],
+body:not(.hl-builder) .cstore-product-detail input[type="number"],
+body:not(.hl-builder) input[class*="quantity"],
+body:not(.hl-builder) input[class*="qty"],
+body:not(.hl-builder) .quantity-container,
+body:not(.hl-builder) .hl-quantity-input-container,
+body:not(.hl-builder) .pdp-quantity-container,
+body:not(.hl-builder) .hl-quantity-input,
+body:not(.hl-builder) .action-icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}
 
 /* Scrolling fix - public pages only */
 body:not(.hl-builder) .fullSection, 
