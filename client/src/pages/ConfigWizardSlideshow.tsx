@@ -56,9 +56,12 @@ export default function ConfigWizardSlideshow() {
   const [showDescription, setShowDescription] = useState<boolean>(false);
   const [showMetadata, setShowMetadata] = useState<boolean>(false);
   const [showMaps, setShowMaps] = useState<boolean>(false);
+  const [showPrice, setShowPrice] = useState<boolean>(false);
   const [showBuyNowButton, setShowBuyNowButton] = useState<boolean>(false);
   const [showAddToCartButton, setShowAddToCartButton] = useState<boolean>(false);
   const [showQuantitySelector, setShowQuantitySelector] = useState<boolean>(false);
+  const [showCartIcon, setShowCartIcon] = useState<boolean>(true);
+  const [convertCartToBookmarks, setConvertCartToBookmarks] = useState<boolean>(false);
 
   // Expanded description settings
   const [expandedDescriptionContent, setExpandedDescriptionContent] = useState<string>(`<h2>Product Details</h2>
@@ -156,7 +159,7 @@ export default function ConfigWizardSlideshow() {
     return embedCode;
   };
 
-  // Generate element hiding CSS (from original slideshow)
+  // Generate element hiding CSS (comprehensive version from original slideshow)
   const generateElementHidingCSS = () => {
     let css = `<style>
 /* GoHighLevel Essential Fixes - Always Applied */
@@ -179,6 +182,21 @@ body:not(.hl-builder) .hl-product-detail-product-name {
 }`;
 
     // Add element hiding CSS based on feature toggles
+    if (!showPrice) {
+      css += `
+
+/* Hide Price Display */
+body:not(.hl-builder) .cstore-product-detail [class*="price"],
+body:not(.hl-builder) .product-detail-container [class*="price"],
+body:not(.hl-builder) .hl-product-price,
+body:not(.hl-builder) .hl-product-detail-product-price,
+body:not(.hl-builder) p.hl-product-detail-product-price {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}`;
+    }
+
     if (!showBuyNowButton) {
       css += `
 
@@ -200,7 +218,11 @@ body:not(.hl-builder) button[class*="buy-now"] {
 body:not(.hl-builder) .cstore-product-detail [class*="add-to-cart"],
 body:not(.hl-builder) .product-detail-container [class*="add-to-cart"],
 body:not(.hl-builder) .hl-add-to-cart-button,
-body:not(.hl-builder) button[class*="add-to-cart"] {
+body:not(.hl-builder) button[class*="add-to-cart"],
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"],
+body:not(.hl-builder) #add-to-cart-btn,
+body:not(.hl-builder) .primary-btn {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
@@ -222,6 +244,27 @@ body:not(.hl-builder) .hl-quantity-input-container,
 body:not(.hl-builder) .pdp-quantity-container,
 body:not(.hl-builder) .hl-quantity-input,
 body:not(.hl-builder) .action-icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}`;
+    }
+
+    if (!showCartIcon) {
+      css += `
+
+/* Hide Cart Icon - Comprehensive targeting */
+body:not(.hl-builder) .nav-cart-icon,
+body:not(.hl-builder) .nav-cart-button,
+body:not(.hl-builder) .items-cart,
+body:not(.hl-builder) .cart-search-desktop,
+body:not(.hl-builder) .nav-cart-wrapper,
+body:not(.hl-builder) svg[width="20"][height="20"][viewBox="0 0 20 20"] path[d*="M1.66699 1.66675"],
+body:not(.hl-builder) button.items-cart,
+body:not(.hl-builder) [class*="cart-button"],
+body:not(.hl-builder) [class*="nav-cart"],
+body:not(.hl-builder) svg[clip-path*="clip0_1655_15551"],
+body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7GXYJ1VCkI8/media/6836acff9bd24392ee734932.svg"] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
@@ -391,7 +434,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Generate final code
   const generatedCode = useMemo(() => {
     return generateCodeForSelection();
-  }, [buttonType, formEmbedUrl, customFieldName, previewColor, previewTextColor, previewBorderRadius, showDescription, showMetadata, showMaps, showBuyNowButton, showAddToCartButton, showQuantitySelector, expandedDescriptionContent, expandedDescFadeIn, expandedDescClass, metadataFields, metadataTextColor, metadataFont]);
+  }, [buttonType, formEmbedUrl, customFieldName, previewColor, previewTextColor, previewBorderRadius, showDescription, showMetadata, showMaps, showPrice, showBuyNowButton, showAddToCartButton, showQuantitySelector, showCartIcon, convertCartToBookmarks, expandedDescriptionContent, expandedDescFadeIn, expandedDescClass, metadataFields, metadataTextColor, metadataFont]);
 
   // File upload handlers
   const handleDrop = (e: React.DragEvent) => {
@@ -768,6 +811,29 @@ document.addEventListener('DOMContentLoaded', function() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
+                  <DollarSign className="w-5 h-5 text-green-500" />
+                  <h3 className="font-medium">Price Display</h3>
+                </div>
+                <Switch
+                  checked={showPrice}
+                  onCheckedChange={setShowPrice}
+                />
+              </div>
+              <p className="text-sm text-gray-500 mb-3">
+                Show/hide product prices on listings
+              </p>
+              {showPrice && (
+                <div className="text-sm text-green-600">
+                  ✓ Product prices will be visible
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
                   <ShoppingBag className="w-5 h-5 text-purple-500" />
                   <h3 className="font-medium">Buy Now Button</h3>
                 </div>
@@ -832,6 +898,29 @@ document.addEventListener('DOMContentLoaded', function() {
               )}
             </CardContent>
           </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <ShoppingCart className="w-5 h-5 text-blue-500" />
+                  <h3 className="font-medium">Cart Icon</h3>
+                </div>
+                <Switch
+                  checked={showCartIcon}
+                  onCheckedChange={setShowCartIcon}
+                />
+              </div>
+              <p className="text-sm text-gray-500 mb-3">
+                Show/hide navigation cart icon
+              </p>
+              {showCartIcon && (
+                <div className="text-sm text-green-600">
+                  ✓ Cart icon will be visible in navigation
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </Slide>,
@@ -891,9 +980,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <h4 className="font-medium text-green-900 mb-2">Element Hiding</h4>
               <ul className="text-green-800 space-y-1">
+                <li>• {showPrice ? 'Shows' : 'Hides'} product prices</li>
                 <li>• {showBuyNowButton ? 'Shows' : 'Hides'} buy now buttons</li>
                 <li>• {showAddToCartButton ? 'Shows' : 'Hides'} add to cart buttons</li>
                 <li>• {showQuantitySelector ? 'Shows' : 'Hides'} quantity selectors</li>
+                <li>• {showCartIcon ? 'Shows' : 'Hides'} navigation cart icon</li>
               </ul>
             </div>
           </div>
