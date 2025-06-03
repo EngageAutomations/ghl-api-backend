@@ -824,10 +824,272 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
 
         <div className="space-y-6">
-          {/* Header/CSS Code */}
+          {/* CSS Code Section */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-lg font-medium">Header Code (CSS)</Label>
+              <Label className="text-lg font-medium">CSS Code (Add to &lt;head&gt; section)</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const cssCode = `<style>
+/* GoHighLevel Essential Fixes - Always Applied */
+
+/* Nuclear truncation fix - Apply first to prevent any truncation */
+body:not(.hl-builder) * { 
+  text-overflow: unset !important; 
+  -webkit-line-clamp: unset !important; 
+  white-space: normal !important;
+  overflow: visible !important;
+}
+
+/* Remove title truncation and set width */
+body:not(.hl-builder) [class*="product-title"],
+body:not(.hl-builder) [class*="product-name"],
+body:not(.hl-builder) .hl-product-detail-product-name,
+body:not(.hl-builder) p.hl-product-detail-product-name.truncate-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+  width: 800px !important;
+  max-width: 800px !important;
+}
+
+/* Remove product description truncation */
+body:not(.hl-builder) [class*="product-description"],
+body:not(.hl-builder) #description,
+body:not(.hl-builder) .product-description {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Remove show more buttons */
+body:not(.hl-builder) .show-more-btn,
+body:not(.hl-builder) .read-more,
+body:not(.hl-builder) [class*="show-more"],
+body:not(.hl-builder) [class*="read-more"],
+body:not(.hl-builder) .show-more {
+  display: none !important;
+}
+
+/* Remove independent scrolling from description and gallery */
+body:not(.hl-builder) .product-image-container,
+body:not(.hl-builder) .hl-product-image-container,
+body:not(.hl-builder) .product-description-container {
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Scrolling fix - public pages only */
+body:not(.hl-builder) .fullSection, 
+body:not(.hl-builder) .c-section, 
+body:not(.hl-builder) .c-wrapper, 
+body:not(.hl-builder) .inner, 
+body:not(.hl-builder) .vertical,
+body:not(.hl-builder) [class*="fullSection"], 
+body:not(.hl-builder) [class*="c-section"], 
+body:not(.hl-builder) [class*="c-wrapper"],
+body:not(.hl-builder) [class*="section-"], 
+body:not(.hl-builder) [class*="row-"], 
+body:not(.hl-builder) [class*="col-"],
+body:not(.hl-builder) [class*="inner"] {
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+body:not(.hl-builder) { 
+  overflow-x: hidden !important; 
+  overflow-y: auto !important; 
+}${!showBuyNowButton ? `
+
+/* Hide Buy Now Button */
+body:not(.hl-builder) .cstore-product-detail button,
+body:not(.hl-builder) .hl-product-buy-button,
+body:not(.hl-builder) [class*="buy-now"],
+body:not(.hl-builder) #buy-now-btn,
+body:not(.hl-builder) .secondary-btn {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showAddToCartButton ? `
+
+/* Hide Add to Cart Button */
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"],
+body:not(.hl-builder) #add-to-cart-btn,
+body:not(.hl-builder) .primary-btn {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showPrice ? `
+
+/* Hide Price */
+body:not(.hl-builder) .cstore-product-detail [class*="price"],
+body:not(.hl-builder) .product-detail-container [class*="price"],
+body:not(.hl-builder) .hl-product-price,
+body:not(.hl-builder) .hl-product-detail-product-price,
+body:not(.hl-builder) p.hl-product-detail-product-price {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showQuantitySelector ? `
+
+/* Hide Quantity Selector */
+body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
+body:not(.hl-builder) .product-detail-container [class*="qty"],
+body:not(.hl-builder) .cstore-product-detail input[type="number"],
+body:not(.hl-builder) input[class*="quantity"],
+body:not(.hl-builder) input[class*="qty"],
+body:not(.hl-builder) .quantity-container,
+body:not(.hl-builder) .hl-quantity-input-container,
+body:not(.hl-builder) .pdp-quantity-container,
+body:not(.hl-builder) .hl-quantity-input,
+body:not(.hl-builder) .action-icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showCartIcon ? `
+
+/* Hide Cart Icon - Comprehensive targeting */
+body:not(.hl-builder) .nav-cart-icon,
+body:not(.hl-builder) .nav-cart-button,
+body:not(.hl-builder) .items-cart,
+body:not(.hl-builder) .cart-search-desktop,
+body:not(.hl-builder) .nav-cart-wrapper,
+body:not(.hl-builder) svg[width="20"][height="20"][viewBox="0 0 20 20"] path[d*="M1.66699 1.66675"],
+body:not(.hl-builder) button.items-cart,
+body:not(.hl-builder) [class*="cart-button"],
+body:not(.hl-builder) [class*="nav-cart"],
+body:not(.hl-builder) svg[clip-path*="clip0_1655_15551"],
+body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7GXYJ1VCkI8/media/6836acff9bd24392ee734932.svg"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}
+</style>`;
+                  copyToClipboard(cssCode, setCssCodeCopied);
+                }}
+                className="flex items-center space-x-2"
+              >
+                {cssCodeCopied ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-600" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span>Copy CSS</span>
+                  </>
+                )}
+              </Button>
+            </div>
+            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
+              <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
+{`<style>
+/* GoHighLevel Essential Fixes - Always Applied */
+
+/* Nuclear truncation fix - Apply first to prevent any truncation */
+body:not(.hl-builder) * { 
+  text-overflow: unset !important; 
+  -webkit-line-clamp: unset !important; 
+  white-space: normal !important;
+  overflow: visible !important;
+}
+
+/* Remove title truncation and set width */
+body:not(.hl-builder) [class*="product-title"],
+body:not(.hl-builder) [class*="product-name"],
+body:not(.hl-builder) .hl-product-detail-product-name,
+body:not(.hl-builder) p.hl-product-detail-product-name.truncate-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+  width: 800px !important;
+  max-width: 800px !important;
+}
+
+/* Remove product description truncation */
+body:not(.hl-builder) [class*="product-description"],
+body:not(.hl-builder) #description,
+body:not(.hl-builder) .product-description {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Remove show more buttons */
+body:not(.hl-builder) .show-more-btn,
+body:not(.hl-builder) .read-more,
+body:not(.hl-builder) [class*="show-more"],
+body:not(.hl-builder) [class*="read-more"],
+body:not(.hl-builder) .show-more {
+  display: none !important;
+}
+
+/* Scrolling fix - public pages only */
+body:not(.hl-builder) .fullSection, 
+body:not(.hl-builder) .c-section, 
+body:not(.hl-builder) .c-wrapper, 
+body:not(.hl-builder) .inner, 
+body:not(.hl-builder) .vertical {
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+body:not(.hl-builder) { 
+  overflow-x: hidden !important; 
+  overflow-y: auto !important; 
+}${!showBuyNowButton ? `
+
+/* Hide Buy Now Button */
+body:not(.hl-builder) .hl-product-buy-button,
+body:not(.hl-builder) [class*="buy-now"],
+body:not(.hl-builder) .secondary-btn {
+  display: none !important;
+}` : ''}${!showAddToCartButton ? `
+
+/* Hide Add to Cart Button */
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"],
+body:not(.hl-builder) .primary-btn {
+  display: none !important;
+}` : ''}${!showQuantitySelector ? `
+
+/* Hide Quantity Selector */
+body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) [class*="quantity"],
+body:not(.hl-builder) .quantity-container {
+  display: none !important;
+}` : ''}
+</style>`}
+              </pre>
+            </div>
+          </div>
+
+          {/* Header Code */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-lg font-medium">Header Code (Add to &lt;head&gt; section)</Label>
               <Button
                 variant="outline"
                 size="sm"
@@ -847,17 +1109,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 )}
               </Button>
             </div>
-            <Textarea
-              value={generatedCode.headerCode}
-              readOnly
-              className="min-h-[200px] font-mono text-sm bg-slate-50"
-            />
+            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
+              <pre className="text-sm whitespace-pre-wrap">{generatedCode.headerCode}</pre>
+            </div>
           </div>
 
-          {/* Footer/JS Code */}
+          {/* Footer Code */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-lg font-medium">Footer Code (JavaScript)</Label>
+              <Label className="text-lg font-medium">Footer Code (Add before &lt;/body&gt; tag)</Label>
               <Button
                 variant="outline"
                 size="sm"
@@ -877,11 +1137,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 )}
               </Button>
             </div>
-            <Textarea
-              value={generatedCode.footerCode}
-              readOnly
-              className="min-h-[200px] font-mono text-sm bg-slate-50"
-            />
+            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
+              <pre className="text-sm whitespace-pre-wrap">{generatedCode.footerCode}</pre>
+            </div>
           </div>
         </div>
       </div>
