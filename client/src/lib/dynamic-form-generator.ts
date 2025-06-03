@@ -175,6 +175,13 @@ export function generateFormHTML(config: DirectoryConfig): string {
       
       if (field.type === 'textarea') {
         html += `    <textarea name="${field.name}" id="${field.name}"${field.required ? ' required' : ''} placeholder="${field.placeholder || ''}">${field.name === 'seo_description' ? '' : ''}</textarea>\n`;
+        
+        // Add AI summarizer button for description field
+        if (field.name === 'description') {
+          html += `    <button type="button" class="ai-summarize-btn" onclick="summarizeDescription()" style="margin-top: 8px; padding: 6px 12px; background: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+        📝 Generate Bullet Points with AI
+      </button>\n`;
+        }
       } else {
         html += `    <input type="${field.type}" name="${field.name}" id="${field.name}"${field.required ? ' required' : ''} placeholder="${field.placeholder || ''}">\n`;
       }
@@ -320,6 +327,51 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+  
+  // AI Summarization function
+  window.summarizeDescription = async function() {
+    const descriptionField = document.getElementById('description');
+    if (!descriptionField || !descriptionField.value.trim()) {
+      alert('Please enter a description first');
+      return;
+    }
+    
+    const button = document.querySelector('.ai-summarize-btn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '⏳ Generating...';
+    button.disabled = true;
+    
+    try {
+      const response = await fetch('/api/ai/summarize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: descriptionField.value
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate bullet points');
+      }
+      
+      const data = await response.json();
+      if (data.bulletPoints && data.bulletPoints.length > 0) {
+        const bulletText = data.bulletPoints.map(point => '• ' + point).join('\\n');
+        descriptionField.value = bulletText;
+        
+        // Trigger input event to update SEO description
+        descriptionField.dispatchEvent(new Event('input'));
+      }
+    } catch (error) {
+      console.error('AI Summarization error:', error);
+      alert('Failed to generate bullet points. Please try again.');
+    } finally {
+      button.innerHTML = originalText;
+      button.disabled = false;
+    }
+  };
   
   // Form validation
   form.addEventListener('submit', function(e) {

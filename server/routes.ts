@@ -229,6 +229,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Summarization route
+  app.post("/api/ai/summarize", async (req, res) => {
+    try {
+      const { description } = req.body;
+      
+      if (!description || !description.trim()) {
+        return res.status(400).json({ success: false, error: "Description is required" });
+      }
+
+      const bulletPoints = await generateBulletPoints(description);
+      res.json({ success: true, bulletPoints });
+    } catch (error) {
+      console.error("AI Summarization error:", error);
+      res.status(500).json({ success: false, error: "Failed to generate bullet points" });
+    }
+  });
+
   // Listing Routes
   // Get all listings for a user
   app.get("/api/listings/user/:userId", async (req, res) => {
