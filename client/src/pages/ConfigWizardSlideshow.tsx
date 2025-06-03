@@ -856,10 +856,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Feature Toggles */}
-          <div className="space-y-6">
+          <div className="space-y-6 flex flex-col items-center">
             <h3 className="text-xl font-semibold text-slate-900">Features</h3>
             
-            <div className="space-y-4">
+            <div className="space-y-4 w-full max-w-md">
               <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <AlignLeft className="w-5 h-5 text-slate-600" />
