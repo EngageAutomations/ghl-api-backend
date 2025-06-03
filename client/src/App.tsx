@@ -13,6 +13,7 @@ import ConfigWizardSlideshow from "@/pages/ConfigWizardSlideshow";
 import ConfigTester from "@/pages/ConfigTester";
 import ImageStorageDemo from "@/pages/ImageStorageDemo";
 import DeveloperDashboard from "@/pages/DeveloperDashboard";
+import DirectoryForm from "@/pages/DirectoryForm";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
@@ -58,6 +59,11 @@ function Router() {
       {/* Public routes that don't require auth */}
       <Route path="/login">
         <Login />
+      </Route>
+      
+      {/* Directory Form - Public route */}
+      <Route path="/form/:locationId/:directoryName">
+        <DirectoryForm />
       </Route>
       
       {/* Root dashboard route */}

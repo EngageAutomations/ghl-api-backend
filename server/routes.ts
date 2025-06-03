@@ -246,6 +246,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Form Configuration Management
+  app.post("/api/form-config", async (req, res) => {
+    try {
+      const { locationId, directoryName, config, logoUrl, actionButtonColor } = req.body;
+      
+      if (!locationId || !directoryName || !config) {
+        return res.status(400).json({ success: false, error: "Missing required configuration data" });
+      }
+
+      // In a real implementation, save to database
+      // For now, return success with the configuration
+      const formConfig = {
+        locationId,
+        directoryName,
+        config,
+        logoUrl: logoUrl || null,
+        actionButtonColor: actionButtonColor || "#3b82f6",
+        formUrl: `${req.protocol}://${req.get('host')}/form/${locationId}/${directoryName}`,
+        embedCode: `<iframe src="${req.protocol}://${req.get('host')}/form/${locationId}/${directoryName}" width="100%" height="800" frameborder="0" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"></iframe>`,
+        createdAt: new Date().toISOString()
+      };
+
+      res.json({ success: true, formConfig });
+    } catch (error) {
+      console.error("Form configuration error:", error);
+      res.status(500).json({ success: false, error: "Failed to create form configuration" });
+    }
+  });
+
+  app.get("/api/form-config/:locationId/:directoryName", async (req, res) => {
+    try {
+      const { locationId, directoryName } = req.params;
+      
+      // In a real implementation, fetch from database
+      // For now, return a default configuration
+      const formConfig = {
+        locationId,
+        directoryName,
+        config: {
+          customFieldName: 'listing',
+          showDescription: true,
+          showMetadata: true,
+          showMaps: true,
+          showPrice: true,
+          metadataFields: [],
+          formEmbedUrl: '',
+          buttonType: 'popup'
+        },
+        logoUrl: null,
+        actionButtonColor: "#3b82f6"
+      };
+
+      res.json({ success: true, formConfig });
+    } catch (error) {
+      console.error("Form configuration fetch error:", error);
+      res.status(500).json({ success: false, error: "Failed to fetch form configuration" });
+    }
+  });
+
   // Listing Routes
   // Get all listings for a user
   app.get("/api/listings/user/:userId", async (req, res) => {
