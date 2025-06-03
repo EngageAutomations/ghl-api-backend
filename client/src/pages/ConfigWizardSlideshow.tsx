@@ -56,12 +56,9 @@ export default function ConfigWizardSlideshow() {
   const [showDescription, setShowDescription] = useState<boolean>(false);
   const [showMetadata, setShowMetadata] = useState<boolean>(false);
   const [showMaps, setShowMaps] = useState<boolean>(false);
-  const [showPrice, setShowPrice] = useState<boolean>(false);
   const [showBuyNowButton, setShowBuyNowButton] = useState<boolean>(false);
   const [showAddToCartButton, setShowAddToCartButton] = useState<boolean>(false);
   const [showQuantitySelector, setShowQuantitySelector] = useState<boolean>(false);
-  const [showCartIcon, setShowCartIcon] = useState<boolean>(true);
-  const [convertCartToBookmarks, setConvertCartToBookmarks] = useState<boolean>(false);
 
   // Expanded description settings
   const [expandedDescriptionContent, setExpandedDescriptionContent] = useState<string>(`<h2>Product Details</h2>
@@ -159,124 +156,6 @@ export default function ConfigWizardSlideshow() {
     return embedCode;
   };
 
-  // Generate element hiding CSS (comprehensive version from original slideshow)
-  const generateElementHidingCSS = () => {
-    let css = `<style>
-/* GoHighLevel Essential Fixes - Always Applied */
-body:not(.hl-builder) * { 
-  text-overflow: unset !important; 
-  -webkit-line-clamp: unset !important; 
-  white-space: normal !important;
-  overflow: visible !important;
-}
-
-body:not(.hl-builder) [class*="product-title"],
-body:not(.hl-builder) [class*="product-name"],
-body:not(.hl-builder) .hl-product-detail-product-name {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-  -webkit-line-clamp: unset !important;
-  max-height: none !important;
-  height: auto !important;
-}`;
-
-    // Add element hiding CSS based on feature toggles
-    if (!showPrice) {
-      css += `
-
-/* Hide Price Display */
-body:not(.hl-builder) .cstore-product-detail [class*="price"],
-body:not(.hl-builder) .product-detail-container [class*="price"],
-body:not(.hl-builder) .hl-product-price,
-body:not(.hl-builder) .hl-product-detail-product-price,
-body:not(.hl-builder) p.hl-product-detail-product-price {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
-
-    if (!showBuyNowButton) {
-      css += `
-
-/* Hide Buy Now Button */
-body:not(.hl-builder) .cstore-product-detail [class*="buy-now"],
-body:not(.hl-builder) .product-detail-container [class*="buy-now"],
-body:not(.hl-builder) .hl-buy-now-button,
-body:not(.hl-builder) button[class*="buy-now"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
-
-    if (!showAddToCartButton) {
-      css += `
-
-/* Hide Add to Cart Button */
-body:not(.hl-builder) .cstore-product-detail [class*="add-to-cart"],
-body:not(.hl-builder) .product-detail-container [class*="add-to-cart"],
-body:not(.hl-builder) .hl-add-to-cart-button,
-body:not(.hl-builder) button[class*="add-to-cart"],
-body:not(.hl-builder) .hl-product-cart-button,
-body:not(.hl-builder) [class*="add-cart"],
-body:not(.hl-builder) #add-to-cart-btn,
-body:not(.hl-builder) .primary-btn {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
-
-    if (!showQuantitySelector) {
-      css += `
-
-/* Hide Quantity Selector */
-body:not(.hl-builder) .hl-product-detail-selectors,
-body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
-body:not(.hl-builder) .product-detail-container [class*="qty"],
-body:not(.hl-builder) .cstore-product-detail input[type="number"],
-body:not(.hl-builder) input[class*="quantity"],
-body:not(.hl-builder) input[class*="qty"],
-body:not(.hl-builder) .quantity-container,
-body:not(.hl-builder) .hl-quantity-input-container,
-body:not(.hl-builder) .pdp-quantity-container,
-body:not(.hl-builder) .hl-quantity-input,
-body:not(.hl-builder) .action-icon {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
-
-    if (!showCartIcon) {
-      css += `
-
-/* Hide Cart Icon - Comprehensive targeting */
-body:not(.hl-builder) .nav-cart-icon,
-body:not(.hl-builder) .nav-cart-button,
-body:not(.hl-builder) .items-cart,
-body:not(.hl-builder) .cart-search-desktop,
-body:not(.hl-builder) .nav-cart-wrapper,
-body:not(.hl-builder) svg[width="20"][height="20"][viewBox="0 0 20 20"] path[d*="M1.66699 1.66675"],
-body:not(.hl-builder) button.items-cart,
-body:not(.hl-builder) [class*="cart-button"],
-body:not(.hl-builder) [class*="nav-cart"],
-body:not(.hl-builder) svg[clip-path*="clip0_1655_15551"],
-body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7GXYJ1VCkI8/media/6836acff9bd24392ee734932.svg"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
-
-    css += `
-</style>`;
-
-    return css;
-  };
-
   // Generate code based on selection (copied from config wizard)
   const generateCodeForSelection = () => {
     if (formEmbedUrl && formEmbedUrl.trim()) {
@@ -305,12 +184,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
           showMaps: showMaps
         });
 
-        // Combine element hiding CSS with popup code
-        const elementHidingCSS = generateElementHidingCSS();
-        
         return {
-          headerCode: elementHidingCSS + '\n\n' + 
-                     (popupCode.headerCode || '/* Paste GoHighLevel iframe embed code to generate popup CSS */') + 
+          headerCode: (popupCode.headerCode || '/* Paste GoHighLevel iframe embed code to generate popup CSS */') + 
                      (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
                      (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
           footerCode: (popupCode.footerCode || '/* Paste GoHighLevel iframe embed code to generate popup JavaScript */') + 
@@ -352,11 +227,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
           showMaps: showMaps
         });
 
-        // Combine element hiding CSS with embedded form code
-        const elementHidingCSS = generateElementHidingCSS();
-        
         return {
-          headerCode: elementHidingCSS + '\n\n' + embeddedFormCode.cssCode + 
+          headerCode: embeddedFormCode.cssCode + 
                      (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
                      (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
           footerCode: embeddedFormCode.jsCode + 
@@ -385,13 +257,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
         showMaps: showMaps
       });
 
-      // Combine element hiding CSS with directory listing template
-      const elementHidingCSS = generateElementHidingCSS();
-      
       return {
-        headerCode: elementHidingCSS + `
-
-<style>
+        headerCode: `<style>
 /* GoHighLevel Directory Listing Enhancements */
 .ghl-listing-button {
   background-color: ${previewColor};
@@ -434,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Generate final code
   const generatedCode = useMemo(() => {
     return generateCodeForSelection();
-  }, [buttonType, formEmbedUrl, customFieldName, previewColor, previewTextColor, previewBorderRadius, showDescription, showMetadata, showMaps, showPrice, showBuyNowButton, showAddToCartButton, showQuantitySelector, showCartIcon, convertCartToBookmarks, expandedDescriptionContent, expandedDescFadeIn, expandedDescClass, metadataFields, metadataTextColor, metadataFont]);
+  }, [buttonType, formEmbedUrl, customFieldName, previewColor, previewTextColor, previewBorderRadius, showDescription, showMetadata, showMaps, showBuyNowButton, showAddToCartButton, showQuantitySelector, expandedDescriptionContent, expandedDescFadeIn, expandedDescClass, metadataFields, metadataTextColor, metadataFont]);
 
   // File upload handlers
   const handleDrop = (e: React.DragEvent) => {
@@ -811,29 +678,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <DollarSign className="w-5 h-5 text-green-500" />
-                  <h3 className="font-medium">Price Display</h3>
-                </div>
-                <Switch
-                  checked={showPrice}
-                  onCheckedChange={setShowPrice}
-                />
-              </div>
-              <p className="text-sm text-gray-500 mb-3">
-                Show/hide product prices on listings
-              </p>
-              {showPrice && (
-                <div className="text-sm text-green-600">
-                  ✓ Product prices will be visible
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
                   <ShoppingBag className="w-5 h-5 text-purple-500" />
                   <h3 className="font-medium">Buy Now Button</h3>
                 </div>
@@ -898,110 +742,20 @@ document.addEventListener('DOMContentLoaded', function() {
               )}
             </CardContent>
           </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <ShoppingCart className="w-5 h-5 text-blue-500" />
-                  <h3 className="font-medium">Cart Icon</h3>
-                </div>
-                <Switch
-                  checked={showCartIcon}
-                  onCheckedChange={setShowCartIcon}
-                />
-              </div>
-              <p className="text-sm text-gray-500 mb-3">
-                Show/hide navigation cart icon
-              </p>
-              {showCartIcon && (
-                <div className="text-sm text-green-600">
-                  ✓ Cart icon will be visible in navigation
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </div>
     </Slide>,
 
-    // Slide 5: CSS Code
-    <Slide key="css-code">
-      <div className="space-y-6">
-        <div className="text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-4">
-            <FileText className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">CSS Code</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Your custom CSS for element hiding and essential GoHighLevel fixes.
-          </p>
-        </div>
-
-        <Card className="max-w-6xl mx-auto">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium flex items-center space-x-2">
-                <FileText className="w-5 h-5" />
-                <span>CSS Code</span>
-              </h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => copyToClipboard(generateElementHidingCSS(), setCssCodeCopied)}
-                className="flex items-center space-x-2"
-              >
-                <Copy className="w-4 h-4" />
-                <span>{cssCodeCopied ? 'Copied!' : 'Copy'}</span>
-              </Button>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <pre className="text-sm overflow-x-auto max-h-96 whitespace-pre-wrap">
-                <code>{generateElementHidingCSS()}</code>
-              </pre>
-            </div>
-            <p className="text-sm text-gray-500 mt-2">
-              Paste this CSS code in the CSS section of your GoHighLevel page for element hiding and essential fixes.
-            </p>
-          </CardContent>
-        </Card>
-
-        <div className="max-w-4xl mx-auto">
-          <h3 className="font-medium mb-4">What this CSS does:</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">Essential Fixes</h4>
-              <ul className="text-blue-800 space-y-1">
-                <li>• Prevents text truncation</li>
-                <li>• Fixes product title display</li>
-                <li>• Removes line clamping</li>
-              </ul>
-            </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-medium text-green-900 mb-2">Element Hiding</h4>
-              <ul className="text-green-800 space-y-1">
-                <li>• {showPrice ? 'Shows' : 'Hides'} product prices</li>
-                <li>• {showBuyNowButton ? 'Shows' : 'Hides'} buy now buttons</li>
-                <li>• {showAddToCartButton ? 'Shows' : 'Hides'} add to cart buttons</li>
-                <li>• {showQuantitySelector ? 'Shows' : 'Hides'} quantity selectors</li>
-                <li>• {showCartIcon ? 'Shows' : 'Hides'} navigation cart icon</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Slide>,
-
-    // Slide 6: Generated Code
+    // Slide 5: Generated Code
     <Slide key="generated-code">
       <div className="space-y-6">
         <div className="text-center">
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center mb-4">
             <Code className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Header & Footer Code</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Generated Code</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Your advanced integration code with action buttons, forms, and enhanced features.
+            Your custom CSS and JavaScript code is ready. Copy these snippets to your GoHighLevel pages.
           </p>
         </div>
 
@@ -1012,7 +766,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-medium flex items-center space-x-2">
                   <FileText className="w-5 h-5" />
-                  <span>Header Code</span>
+                  <span>Header Code (CSS)</span>
                 </h3>
                 <Button
                   variant="outline"
@@ -1041,7 +795,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-medium flex items-center space-x-2">
                   <Code className="w-5 h-5" />
-                  <span>Footer Code</span>
+                  <span>Footer Code (JavaScript)</span>
                 </h3>
                 <Button
                   variant="outline"
