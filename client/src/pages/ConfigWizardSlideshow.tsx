@@ -516,12 +516,12 @@ document.addEventListener('DOMContentLoaded', function() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button
               variant={buttonType === 'popup' ? 'default' : 'outline'}
-              className={`h-auto p-4 justify-start ${
+              className={`h-auto p-4 justify-start overflow-hidden ${
                 buttonType === 'popup' ? 'bg-blue-50 border-blue-500 text-blue-900 hover:bg-blue-100' : 'hover:border-slate-400'
               }`}
               onClick={() => setButtonType('popup')}
             >
-              <div className="flex items-center space-x-3 w-full">
+              <div className="flex items-start space-x-3 w-full min-w-0">
                 <div className="bg-blue-500 text-white p-2 rounded-md flex-shrink-0">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
@@ -529,63 +529,63 @@ document.addEventListener('DOMContentLoaded', function() {
                     <path d="M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
                   </svg>
                 </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Action Button (Popup)</h3>
-                  <p className="text-sm text-slate-500">Opens form in a popup overlay</p>
+                <div className="text-left min-w-0 flex-1">
+                  <h3 className="font-medium text-sm leading-tight">Action Button (Popup)</h3>
+                  <p className="text-xs text-slate-500 leading-tight mt-1">Opens form in popup overlay</p>
                 </div>
               </div>
             </Button>
 
             <Button
               variant={buttonType === 'redirect' ? 'default' : 'outline'}
-              className={`h-auto p-4 justify-start ${
+              className={`h-auto p-4 justify-start overflow-hidden ${
                 buttonType === 'redirect' ? 'bg-green-50 border-green-500 text-green-900 hover:bg-green-100' : 'hover:border-slate-400'
               }`}
               onClick={() => setButtonType('redirect')}
             >
-              <div className="flex items-center space-x-3 w-full">
+              <div className="flex items-start space-x-3 w-full min-w-0">
                 <div className="bg-green-500 text-white p-2 rounded-md flex-shrink-0">
                   <ExternalLink className="w-4 h-4" />
                 </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Action Button (Redirect)</h3>
-                  <p className="text-sm text-slate-500">Redirects to external form page</p>
+                <div className="text-left min-w-0 flex-1">
+                  <h3 className="font-medium text-sm leading-tight">Action Button (Redirect)</h3>
+                  <p className="text-xs text-slate-500 leading-tight mt-1">Redirects to external form page</p>
                 </div>
               </div>
             </Button>
 
             <Button
               variant={buttonType === 'download' ? 'default' : 'outline'}
-              className={`h-auto p-4 justify-start ${
+              className={`h-auto p-4 justify-start overflow-hidden ${
                 buttonType === 'download' ? 'bg-orange-50 border-orange-500 text-orange-900 hover:bg-orange-100' : 'hover:border-slate-400'
               }`}
               onClick={() => setButtonType('download')}
             >
-              <div className="flex items-center space-x-3 w-full">
+              <div className="flex items-start space-x-3 w-full min-w-0">
                 <div className="bg-orange-500 text-white p-2 rounded-md flex-shrink-0">
                   <Download className="w-4 h-4" />
                 </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Action Button (Download)</h3>
-                  <p className="text-sm text-slate-500">Downloads file directly</p>
+                <div className="text-left min-w-0 flex-1">
+                  <h3 className="font-medium text-sm leading-tight">Action Button (Download)</h3>
+                  <p className="text-xs text-slate-500 leading-tight mt-1">Downloads file directly</p>
                 </div>
               </div>
             </Button>
 
             <Button
               variant={buttonType === 'embed' ? 'default' : 'outline'}
-              className={`h-auto p-4 justify-start ${
+              className={`h-auto p-4 justify-start overflow-hidden ${
                 buttonType === 'embed' ? 'bg-purple-50 border-purple-500 text-purple-900 hover:bg-purple-100' : 'hover:border-slate-400'
               }`}
               onClick={() => setButtonType('embed')}
             >
-              <div className="flex items-center space-x-3 w-full">
+              <div className="flex items-start space-x-3 w-full min-w-0">
                 <div className="bg-purple-500 text-white p-2 rounded-md flex-shrink-0">
                   <Code className="w-4 h-4" />
                 </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Embedded Form</h3>
-                  <p className="text-sm text-slate-500">Displays form directly on page</p>
+                <div className="text-left min-w-0 flex-1">
+                  <h3 className="font-medium text-sm leading-tight">Embedded Form</h3>
+                  <p className="text-xs text-slate-500 leading-tight mt-1">Displays form directly on page</p>
                 </div>
               </div>
             </Button>
