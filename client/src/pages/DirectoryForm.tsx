@@ -108,6 +108,11 @@ export default function DirectoryForm() {
       });
 
       if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.error?.includes('API key')) {
+          alert('AI summarization is currently unavailable. Please format your description manually using bullet points.');
+          return;
+        }
         throw new Error('Failed to generate bullet points');
       }
 
@@ -118,7 +123,7 @@ export default function DirectoryForm() {
       }
     } catch (error) {
       console.error('AI Summarization error:', error);
-      alert('Failed to generate bullet points. Please try again.');
+      alert('AI summarization is temporarily unavailable. You can manually format your description using bullet points (• item).');
     }
   };
 
