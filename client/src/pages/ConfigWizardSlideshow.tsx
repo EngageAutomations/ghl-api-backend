@@ -15,6 +15,7 @@ import { generateEmbeddedFormCode } from '@/lib/embedded-form-generator';
 import { generateExpandedDescriptionCode } from '@/lib/expanded-description-generator';
 import { generateMetadataBarCode, MetadataField } from '@/lib/metadata-bar-generator';
 import { generateFormFields, generateFormHTML, generateFormCSS, DirectoryConfig } from '@/lib/dynamic-form-generator';
+import DirectoryForm from '@/pages/DirectoryForm';
 
 interface SlideProps {
   children: React.ReactNode;
@@ -1498,54 +1499,18 @@ body:not(.hl-builder) .quantity-container {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Form Fields Preview */}
+          {/* Working Form Preview */}
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-slate-900 mb-4">Form Fields</h3>
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 max-h-96 overflow-y-auto">
-              {(() => {
-                const config = generateDirectoryConfig();
-                const formFields = generateFormFields(config);
-                
-                return formFields.map((field, index) => (
-                  <div key={index} className={`mb-4 pb-4 ${index < formFields.length - 1 ? 'border-b border-slate-200' : ''}`}>
-                    <div className="flex justify-between items-start mb-2">
-                      <label className="font-medium text-slate-700">
-                        {field.label}
-                        {field.required && <span className="text-red-500 ml-1">*</span>}
-                      </label>
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        field.required ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        {field.required ? 'Required' : 'Optional'}
-                      </span>
-                    </div>
-                    
-                    {field.type === 'textarea' ? (
-                      <textarea 
-                        placeholder={field.placeholder}
-                        className="w-full p-2 border border-slate-300 rounded text-sm"
-                        rows={2}
-                        disabled
-                      />
-                    ) : field.type === 'hidden' ? (
-                      <div className="text-xs text-slate-500 italic">
-                        Hidden field: {field.name}
-                      </div>
-                    ) : (
-                      <input 
-                        type={field.type}
-                        placeholder={field.placeholder}
-                        className="w-full p-2 border border-slate-300 rounded text-sm"
-                        disabled
-                      />
-                    )}
-                    
-                    {field.description && (
-                      <p className="text-xs text-slate-500 mt-1">{field.description}</p>
-                    )}
-                  </div>
-                ));
-              })()}
+            <h3 className="text-xl font-semibold text-slate-900 mb-4">Live Working Form</h3>
+            <div className="bg-white border border-slate-200 rounded-lg overflow-hidden max-h-96 overflow-y-auto">
+              <div className="scale-75 origin-top-left" style={{ width: '133.33%', height: '133.33%' }}>
+                <DirectoryForm />
+              </div>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                <strong>Live Form:</strong> This is the actual working form with AI summarizer, auto-fill functionality, and real database persistence. Test all features including the "Generate Bullet Points with AI" button.
+              </p>
             </div>
           </div>
 
