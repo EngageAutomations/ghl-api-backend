@@ -721,6 +721,118 @@ document.addEventListener('DOMContentLoaded', function() {
               )}
             </div>
           )}
+
+          {/* Additional Configuration for redirect and download */}
+          {(buttonType === 'redirect' || buttonType === 'download') && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="target-url">
+                  {buttonType === 'redirect' ? 'Redirect URL' : 'Download URL'}
+                </Label>
+                <Input
+                  id="target-url"
+                  placeholder={buttonType === 'redirect' ? 'https://example.com/contact' : 'https://example.com/brochure.pdf'}
+                  value={formEmbedUrl}
+                  onChange={(e) => setFormEmbedUrl(e.target.value)}
+                />
+                <p className="text-sm text-slate-500">
+                  {buttonType === 'redirect' 
+                    ? 'URL where users will be redirected when clicking the button'
+                    : 'Direct link to the file that users will download'
+                  }
+                </p>
+              </div>
+
+              {/* Button Styling Controls for redirect and download */}
+              <div className="space-y-4 bg-slate-50 p-4 rounded-lg">
+                <h4 className="font-medium text-slate-900">Button Styling</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="button-text-alt">Button Text</Label>
+                    <Input
+                      id="button-text-alt"
+                      value={buttonText}
+                      onChange={(e) => setButtonText(e.target.value)}
+                      placeholder={buttonType === 'redirect' ? 'Contact Us' : 'Download Now'}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="button-color-alt">Button Color</Label>
+                    <div className="flex space-x-2">
+                      <Input
+                        id="button-color-alt"
+                        type="color"
+                        value={previewColor}
+                        onChange={(e) => setPreviewColor(e.target.value)}
+                        className="w-16 h-10 p-1"
+                      />
+                      <Input
+                        value={previewColor}
+                        onChange={(e) => setPreviewColor(e.target.value)}
+                        placeholder="#3b82f6"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="text-color-alt">Text Color</Label>
+                    <div className="flex space-x-2">
+                      <Input
+                        id="text-color-alt"
+                        type="color"
+                        value={previewTextColor}
+                        onChange={(e) => setPreviewTextColor(e.target.value)}
+                        className="w-16 h-10 p-1"
+                      />
+                      <Input
+                        value={previewTextColor}
+                        onChange={(e) => setPreviewTextColor(e.target.value)}
+                        placeholder="#ffffff"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="border-radius-alt">Border Radius: {previewBorderRadius}px</Label>
+                    <input
+                      id="border-radius-alt"
+                      type="range"
+                      min="0"
+                      max="50"
+                      value={previewBorderRadius}
+                      onChange={(e) => setPreviewBorderRadius(Number(e.target.value))}
+                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                  </div>
+                </div>
+                
+                {/* Button Preview */}
+                <div className="space-y-2">
+                  <Label>Button Preview</Label>
+                  <div className="p-4 bg-white border border-slate-200 rounded-lg">
+                    <button
+                      style={{
+                        backgroundColor: previewColor,
+                        color: previewTextColor,
+                        borderRadius: `${previewBorderRadius}px`,
+                        padding: '0.75rem 1.5rem',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontWeight: '500',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {buttonText || (buttonType === 'redirect' ? 'Contact Us' : 'Download Now')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Slide>,
