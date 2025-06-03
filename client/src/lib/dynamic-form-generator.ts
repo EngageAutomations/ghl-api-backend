@@ -112,10 +112,10 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
   fields.push({
     name: 'url_slug',
     label: 'URL Slug',
-    type: 'text',
+    type: 'hidden',
     required: true,
     placeholder: 'url-friendly-name',
-    description: 'Used in the URL for this listing (lowercase, hyphens only)'
+    description: 'Automatically generated from product name (lowercase, hyphens only)'
   });
   
   // Google Maps Address
