@@ -1053,7 +1053,7 @@ body:not(.hl-builder) [class*="inner"] {
 body:not(.hl-builder) { 
   overflow-x: hidden !important; 
   overflow-y: auto !important; 
-}${!showBuyNowButton ? `
+}${showBuyNowButton === false ? `
 
 /* Hide Buy Now Button */
 body:not(.hl-builder) .cstore-product-detail button,
@@ -1064,7 +1064,7 @@ body:not(.hl-builder) .secondary-btn {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
-}` : ''}${!showAddToCartButton ? `
+}` : ''}${showAddToCartButton === false ? `
 
 /* Hide Add to Cart Button */
 body:not(.hl-builder) .hl-product-cart-button,
@@ -1074,7 +1074,7 @@ body:not(.hl-builder) .primary-btn {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
-}` : ''}${!showPrice ? `
+}` : ''}${showPrice === false ? `
 
 /* Hide Price */
 body:not(.hl-builder) .cstore-product-detail [class*="price"],
@@ -1085,7 +1085,7 @@ body:not(.hl-builder) p.hl-product-detail-product-price {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
-}` : ''}${!showQuantitySelector ? `
+}` : ''}${showQuantitySelector === false ? `
 
 /* Hide Quantity Selector */
 body:not(.hl-builder) .hl-product-detail-selectors,
@@ -1102,7 +1102,7 @@ body:not(.hl-builder) .action-icon {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
-}` : ''}${!showCartIcon ? `
+}` : ''}${showCartIcon === false ? `
 
 /* Hide Cart Icon - Comprehensive targeting */
 body:not(.hl-builder) .nav-cart-icon,
@@ -1201,21 +1201,21 @@ body:not(.hl-builder) .vertical {
 body:not(.hl-builder) { 
   overflow-x: hidden !important; 
   overflow-y: auto !important; 
-}${!showBuyNowButton ? `
+}${showBuyNowButton === false ? `
 
 /* Hide Buy Now Button */
 body:not(.hl-builder) .hl-product-buy-button,
 body:not(.hl-builder) [class*="buy-now"],
 body:not(.hl-builder) .secondary-btn {
   display: none !important;
-}` : ''}${!showAddToCartButton ? `
+}` : ''}${showAddToCartButton === false ? `
 
 /* Hide Add to Cart Button */
 body:not(.hl-builder) .hl-product-cart-button,
 body:not(.hl-builder) [class*="add-cart"],
 body:not(.hl-builder) .primary-btn {
   display: none !important;
-}` : ''}${!showQuantitySelector ? `
+}` : ''}${showQuantitySelector === false ? `
 
 /* Hide Quantity Selector */
 body:not(.hl-builder) .hl-product-detail-selectors,
