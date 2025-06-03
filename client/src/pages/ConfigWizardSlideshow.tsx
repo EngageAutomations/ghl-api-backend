@@ -827,7 +827,7 @@ document.addEventListener('DOMContentLoaded', function() {
           {/* CSS Code Section */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-lg font-medium">CSS Code (Add to &lt;head&gt; section)</Label>
+              <Label className="text-lg font-medium">CSS Code (Add to Custom CSS section)</Label>
               <Button
                 variant="outline"
                 size="sm"
