@@ -1,17 +1,18 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
 import { Switch } from '@/components/ui/switch';
-import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy, Monitor, Zap } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, Copy, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash } from 'lucide-react';
 
-// Import wizard's proven code generation functions
+// Import proven code generation functions from config wizard
+import { parseEmbedCode, ParsedEmbedData } from '@/lib/embed-parser';
 import { generateActionButtonPopup } from '@/lib/custom-popup-generator';
 import { generateEmbeddedFormCode } from '@/lib/embedded-form-generator';
 import { generateExpandedDescriptionCode } from '@/lib/expanded-description-generator';
-import { generateMetadataBarCode } from '@/lib/metadata-bar-generator';
+import { generateMetadataBarCode, MetadataField } from '@/lib/metadata-bar-generator';
 
 interface SlideProps {
   children: React.ReactNode;
@@ -30,32 +31,111 @@ function Slide({ children, className = "" }: SlideProps) {
 
 export default function ConfigWizardSlideshow() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  
+  // Slideshow-specific state
   const [googleDriveConnected, setGoogleDriveConnected] = useState(false);
   const [directoryName, setDirectoryName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [buttonType, setButtonType] = useState<'popup' | 'redirect' | 'download' | 'embed'>('popup');
-  // Completely isolated form state - no external dependencies
-  const [wizardFormData, setWizardFormData] = useState({
-    embedCode: '',
-    fieldName: 'listing'
-  });
+  
+  // Form configuration state (copied from config wizard)
+  const [buttonType, setButtonType] = useState<string>('popup');
+  const [formEmbedUrl, setFormEmbedUrl] = useState<string>('');
+  const [customFieldName, setCustomFieldName] = useState<string>('listing');
+  const [previewColor, setPreviewColor] = useState<string>('#3b82f6');
+  const [previewTextColor, setPreviewTextColor] = useState<string>('#ffffff');
+  const [previewBorderRadius, setPreviewBorderRadius] = useState<number>(8);
 
-  // Force re-render of inputs when slide changes
-  const [inputKey, setInputKey] = useState(0);
-  const [showDescription, setShowDescription] = useState(false);
-  const [showMetadata, setShowMetadata] = useState(false);
-  const [showMaps, setShowMaps] = useState(false);
-  const [showPrice, setShowPrice] = useState(false);
-  const [showBuyNowButton, setShowBuyNowButton] = useState(false);
-  const [showAddToCartButton, setShowAddToCartButton] = useState(false);
-  const [showQuantitySelector, setShowQuantitySelector] = useState(false);
-  const [showCartIcon, setShowCartIcon] = useState(true);
-  const [integrationMethod, setIntegrationMethod] = useState('popup');
-  const [convertCartToBookmarks, setConvertCartToBookmarks] = useState(false);
+  // Copy button states
+  const [cssCodeCopied, setCssCodeCopied] = useState<boolean>(false);
+  const [headerCodeCopied, setHeaderCodeCopied] = useState<boolean>(false);
+  const [footerCodeCopied, setFooterCodeCopied] = useState<boolean>(false);
 
-  // Helper function to extract form URL from embed code
+  // Feature toggles (copied from config wizard)
+  const [showDescription, setShowDescription] = useState<boolean>(false);
+  const [showMetadata, setShowMetadata] = useState<boolean>(false);
+  const [showMaps, setShowMaps] = useState<boolean>(false);
+  const [showBuyNowButton, setShowBuyNowButton] = useState<boolean>(false);
+  const [showAddToCartButton, setShowAddToCartButton] = useState<boolean>(false);
+  const [showQuantitySelector, setShowQuantitySelector] = useState<boolean>(false);
+
+  // Expanded description settings
+  const [expandedDescriptionContent, setExpandedDescriptionContent] = useState<string>(`<h2>Product Details</h2>
+<p>This is enhanced content that appears below the main product details.</p>
+<p><strong>Key Features:</strong></p>
+<ul>
+  <li>Professional quality and service</li>
+  <li>Local expertise and knowledge</li>
+  <li>Competitive pricing and value</li>
+</ul>`);
+  const [expandedDescFadeIn, setExpandedDescFadeIn] = useState<boolean>(true);
+  const [expandedDescClass, setExpandedDescClass] = useState<string>('expanded-description');
+
+  // Metadata settings
+  const [metadataTextColor, setMetadataTextColor] = useState<string>('#374151');
+  const [metadataFont, setMetadataFont] = useState<string>('system-ui, sans-serif');
+  const [metadataFields, setMetadataFields] = useState<MetadataField[]>([
+    {
+      id: 'phone',
+      label: 'Phone',
+      icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
+      defaultValue: '(555) 123-4567'
+    },
+    {
+      id: 'hours',
+      label: 'Hours',
+      icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
+      defaultValue: 'Mon-Fri 9AM-6PM'
+    },
+    {
+      id: 'location',
+      label: 'Address',
+      icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
+      defaultValue: '123 Main St, City, State'
+    },
+    {
+      id: 'website',
+      label: 'Website',
+      icon: '<path fillRule="evenodd" d="M4.083 9h1.946c.089-1.546.383-2.97.837-4.118A6.004 6.004 0 004.083 9zM10 2a8 8 0 100 16 8 8 0 000-16zm0 2c-.076 0-.232.032-.465.262-.238.234-.497.623-.737 1.182-.389.907-.673 2.142-.766 3.556h3.936c-.093-1.414-.377-2.649-.766-3.556-.24-.56-.5-.948-.737-1.182C10.232 4.032 10.076 4 10 4zm3.971 5c-.089-1.546-.383-2.97-.837-4.118A6.004 6.004 0 0115.917 9h-1.946zm-2.003 2H8.032c.093 1.414.377 2.649.766 3.556.24.56.5.948.737 1.182.233.23.389.262.465.262.076 0 .232-.032.465-.262.238-.234.498-.623.737-1.182.389-.907.673-2.142.766-3.556zm1.166 4.118c.454-1.147.748-2.572.837-4.118h1.946a6.004 6.004 0 01-2.783 4.118zm-6.268 0C6.412 13.97 6.118 12.546 6.03 11H4.083a6.004 6.004 0 002.783 4.118z" clipRule="evenodd"/>',
+      defaultValue: 'https://example.com'
+    }
+  ]);
+
+  // Parse embed code for popup dimensions (copied from config wizard)
+  const parsedEmbedData = useMemo(() => {
+    if (buttonType === 'popup' && formEmbedUrl) {
+      return parseEmbedCode(formEmbedUrl);
+    }
+    return null;
+  }, [buttonType, formEmbedUrl]);
+
+  // Generate custom action button popup code (copied from config wizard)
+  const generateFullPopupCode = () => {
+    if (buttonType === 'popup' && formEmbedUrl) {
+      const result = generateActionButtonPopup({
+        buttonText: 'Get More Info',
+        buttonColor: previewColor,
+        buttonTextColor: previewTextColor,
+        buttonBorderRadius: previewBorderRadius,
+        customFieldName: customFieldName || 'listing',
+        formUrl: formEmbedUrl,
+        showBuyNowButton,
+        showAddToCartButton,
+        showQuantitySelector
+      });
+      
+      if (result.isValid) {
+        return {
+          headerCode: result.headerCode,
+          footerCode: result.footerCode
+        };
+      }
+    }
+    return { headerCode: '', footerCode: '' };
+  };
+
+  // Extract form URL from iframe embed code (copied from config wizard)
   const extractFormUrl = (embedCode: string) => {
     if (!embedCode) return '';
     
@@ -76,82 +156,31 @@ export default function ConfigWizardSlideshow() {
     return embedCode;
   };
 
-  // Generate custom action button popup code (matches config wizard exactly)
-  const generateFullPopupCode = () => {
-    if (integrationMethod === 'popup' && wizardFormData.embedCode) {
-      const result = generateActionButtonPopup({
-        buttonText: 'Get More Info',
-        buttonColor: '#3b82f6',
-        buttonTextColor: '#ffffff',
-        buttonBorderRadius: 8,
-        customFieldName: wizardFormData.fieldName || 'listing',
-        formUrl: wizardFormData.embedCode,
-        showBuyNowButton,
-        showAddToCartButton,
-        showQuantitySelector
-      });
-      
-      if (result.isValid) {
-        return {
-          headerCode: result.headerCode,
-          footerCode: result.footerCode
-        };
-      }
-    }
-    return { headerCode: '', footerCode: '' };
-  };
-
-  // Generate code using wizard's proven logic
+  // Generate code based on selection (copied from config wizard)
   const generateCodeForSelection = () => {
-    if (wizardFormData.embedCode && wizardFormData.embedCode.trim()) {
-      if (integrationMethod === 'popup') {
-        // Generate popup template with 100px spacing (matches config wizard)
+    if (formEmbedUrl && formEmbedUrl.trim()) {
+      if (buttonType === 'popup') {
+        // Generate popup template with 100px spacing
         const popupCode = generateFullPopupCode();
         
         // Generate expanded description code if enabled
         const expandedDescCode = generateExpandedDescriptionCode({
           enabled: showDescription,
-          content: `<h2>Product Details</h2>
-<p>This is enhanced content that appears below the main product details.</p>
-<p><strong>Key Features:</strong></p>
-<ul>
-  <li>Professional quality and service</li>
-  <li>Local expertise and knowledge</li>
-  <li>Competitive pricing and value</li>
-</ul>`,
-          fadeInAnimation: true,
-          customClass: 'expanded-description'
+          content: expandedDescriptionContent,
+          fadeInAnimation: expandedDescFadeIn,
+          customClass: expandedDescClass
         });
 
         // Generate metadata bar code if enabled
         const metadataCode = generateMetadataBarCode({
           enabled: showMetadata,
           position: 'bottom',
-          fields: [
-            {
-              id: 'phone',
-              label: 'Phone',
-              icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
-              defaultValue: '(555) 123-4567'
-            },
-            {
-              id: 'hours',
-              label: 'Hours',
-              icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
-              defaultValue: 'Mon-Fri 9AM-6PM'
-            },
-            {
-              id: 'location',
-              label: 'Address',
-              icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
-              defaultValue: '123 Main St, City, State'
-            }
-          ],
+          fields: metadataFields,
           customClass: 'listing-metadata-bar',
           backgroundColor: 'transparent',
-          textColor: '#374151',
+          textColor: metadataTextColor,
           borderRadius: 0,
-          fontFamily: 'system-ui, sans-serif',
+          fontFamily: metadataFont,
           showMaps: showMaps
         });
 
@@ -165,62 +194,36 @@ export default function ConfigWizardSlideshow() {
         };
       } else {
         // Extract clean form URL/ID from iframe if needed
-        const cleanFormUrl = extractFormUrl(wizardFormData.embedCode);
+        const cleanFormUrl = extractFormUrl(formEmbedUrl);
         
-        // Generate embedded form template using wizard function
+        // Generate embedded form template (default when form URL is provided)
         const embeddedFormCode = generateEmbeddedFormCode({
           formUrl: cleanFormUrl,
           animationType: "fade-squeeze",
-          borderRadius: 8,
+          borderRadius: previewBorderRadius,
           boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-          customFieldName: wizardFormData.fieldName || 'listing',
+          customFieldName: customFieldName || 'listing',
           metadataFields: []
         });
 
         // Generate expanded description code if enabled
         const expandedDescCode = generateExpandedDescriptionCode({
           enabled: showDescription,
-          content: `<h2>Product Details</h2>
-<p>This is enhanced content that appears below the main product details.</p>
-<p><strong>Key Features:</strong></p>
-<ul>
-  <li>Professional quality and service</li>
-  <li>Local expertise and knowledge</li>
-  <li>Competitive pricing and value</li>
-</ul>`,
-          fadeInAnimation: true,
-          customClass: 'expanded-description'
+          content: expandedDescriptionContent,
+          fadeInAnimation: expandedDescFadeIn,
+          customClass: expandedDescClass
         });
 
         // Generate metadata bar code if enabled
         const metadataCode = generateMetadataBarCode({
           enabled: showMetadata,
           position: 'bottom',
-          fields: [
-            {
-              id: 'phone',
-              label: 'Phone',
-              icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
-              defaultValue: '(555) 123-4567'
-            },
-            {
-              id: 'hours',
-              label: 'Hours',
-              icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
-              defaultValue: 'Mon-Fri 9AM-6PM'
-            },
-            {
-              id: 'location',
-              label: 'Address',
-              icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
-              defaultValue: '123 Main St, City, State'
-            }
-          ],
+          fields: metadataFields,
           customClass: 'listing-metadata-bar',
           backgroundColor: 'transparent',
-          textColor: '#374151',
+          textColor: metadataTextColor,
           borderRadius: 0,
-          fontFamily: 'system-ui, sans-serif',
+          fontFamily: metadataFont,
           showMaps: showMaps
         });
 
@@ -234,63 +237,37 @@ export default function ConfigWizardSlideshow() {
         };
       }
     } else {
-      // Generate directory listing template when no form URL is provided
-      // Generate expanded description code if enabled
+      // Default directory listing template when no form URL is provided
       const expandedDescCode = generateExpandedDescriptionCode({
         enabled: showDescription,
-        content: `<h2>Product Details</h2>
-<p>This is enhanced content that appears below the main product details.</p>
-<p><strong>Key Features:</strong></p>
-<ul>
-  <li>Professional quality and service</li>
-  <li>Local expertise and knowledge</li>
-  <li>Competitive pricing and value</li>
-</ul>`,
-        fadeInAnimation: true,
-        customClass: 'expanded-description'
+        content: expandedDescriptionContent,
+        fadeInAnimation: expandedDescFadeIn,
+        customClass: expandedDescClass
       });
 
-      // Generate metadata bar code if enabled
       const metadataCode = generateMetadataBarCode({
         enabled: showMetadata,
         position: 'bottom',
-        fields: [
-          {
-            id: 'phone',
-            label: 'Phone',
-            icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
-            defaultValue: '(555) 123-4567'
-          },
-          {
-            id: 'hours',
-            label: 'Hours',
-            icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
-            defaultValue: 'Mon-Fri 9AM-6PM'
-          },
-          {
-            id: 'location',
-            label: 'Address',
-            icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
-            defaultValue: '123 Main St, City, State'
-          }
-        ],
+        fields: metadataFields,
         customClass: 'listing-metadata-bar',
         backgroundColor: 'transparent',
-        textColor: '#374151',
+        textColor: metadataTextColor,
         borderRadius: 0,
-        fontFamily: 'system-ui, sans-serif',
+        fontFamily: metadataFont,
         showMaps: showMaps
       });
 
       return {
-        headerCode: `/* Directory Listing CSS */
+        headerCode: `<style>
+/* GoHighLevel Directory Listing Enhancements */
 .ghl-listing-button {
-  background-color: #3b82f6;
-  color: #ffffff;
-  border-radius: 8px;
+  background-color: ${previewColor};
+  color: ${previewTextColor};
+  border-radius: ${previewBorderRadius}px;
   padding: 0.5rem 1rem;
   transition: all 0.2s ease;
-}` + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
+}
+</style>` + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
     (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
         footerCode: `<script>
 // Directory Integration Script
@@ -299,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
   forms.forEach(form => {
     const hiddenField = document.createElement('input');
     hiddenField.type = 'hidden';
-    hiddenField.name = '${wizardFormData.fieldName || 'listing'}';
+    hiddenField.name = '${customFieldName}';
     hiddenField.value = window.location.pathname.split('/').pop();
     form.appendChild(hiddenField);
   });
@@ -310,129 +287,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  // Base CSS for element hiding
-  const generateElementHidingCSS = () => {
-    let css = `<style>
-/* GoHighLevel Essential Fixes - Always Applied */
-body:not(.hl-builder) * { 
-  text-overflow: unset !important; 
-  -webkit-line-clamp: unset !important; 
-  white-space: normal !important;
-  overflow: visible !important;
-}
-
-body:not(.hl-builder) [class*="product-title"],
-body:not(.hl-builder) [class*="product-name"],
-body:not(.hl-builder) .hl-product-detail-product-name {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-  -webkit-line-clamp: unset !important;
-  max-height: none !important;
-  height: auto !important;
-}`;
-
-    // Add element hiding CSS based on toggles
-    if (!showPrice) {
-      css += `
-
-/* Hide Price Display */
-body:not(.hl-builder) .cstore-product-detail [class*="price"],
-body:not(.hl-builder) .product-detail-container [class*="price"],
-body:not(.hl-builder) .hl-product-price,
-body:not(.hl-builder) .hl-product-detail-product-price {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
+  // Copy to clipboard helper
+  const copyToClipboard = async (text: string, setCopied: (value: boolean) => void) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
     }
-
-    if (!showBuyNowButton) {
-      css += `
-
-/* Hide Buy Now Button */
-body:not(.hl-builder) .cstore-product-detail [class*="buy-now"],
-body:not(.hl-builder) .product-detail-container [class*="buy-now"],
-body:not(.hl-builder) .hl-buy-now-button,
-body:not(.hl-builder) button[class*="buy-now"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
-
-    if (!showAddToCartButton) {
-      css += `
-
-/* Hide Add to Cart Button */
-body:not(.hl-builder) .cstore-product-detail [class*="add-to-cart"],
-body:not(.hl-builder) .product-detail-container [class*="add-to-cart"],
-body:not(.hl-builder) .hl-add-to-cart-button,
-body:not(.hl-builder) button[class*="add-to-cart"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
-
-    if (!showQuantitySelector) {
-      css += `
-
-/* Hide Quantity Selector */
-body:not(.hl-builder) .hl-product-detail-selectors,
-body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
-body:not(.hl-builder) .product-detail-container [class*="qty"],
-body:not(.hl-builder) .cstore-product-detail input[type="number"],
-body:not(.hl-builder) input[class*="quantity"],
-body:not(.hl-builder) input[class*="qty"],
-body:not(.hl-builder) .quantity-container,
-body:not(.hl-builder) .hl-quantity-input-container,
-body:not(.hl-builder) .pdp-quantity-container,
-body:not(.hl-builder) .hl-quantity-input,
-body:not(.hl-builder) .action-icon {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
-
-    if (!showCartIcon) {
-      css += `
-
-/* Hide Cart Icon - Comprehensive targeting */
-body:not(.hl-builder) .nav-cart-icon,
-body:not(.hl-builder) .nav-cart-button,
-body:not(.hl-builder) .items-cart,
-body:not(.hl-builder) .cart-search-desktop,
-body:not(.hl-builder) .nav-cart-wrapper,
-body:not(.hl-builder) svg[width="20"][height="20"][viewBox="0 0 20 20"] path[d*="M1.66699 1.66675"],
-body:not(.hl-builder) button.items-cart,
-body:not(.hl-builder) [class*="cart-button"],
-body:not(.hl-builder) [class*="nav-cart"],
-body:not(.hl-builder) svg[clip-path*="clip0_1655_15551"],
-body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7GXYJ1VCkI8/media/6836acff9bd24392ee734932.svg"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
-
-    css += `
-</style>`;
-
-    return css;
   };
 
-  // Main CSS generation function using wizard logic
-  const generateFinalCSS = () => {
-    const generatedCode = generateCodeForSelection();
-    const elementHidingCSS = generateElementHidingCSS();
-    
-    // Combine element hiding CSS with the wizard's advanced features
-    return elementHidingCSS + '\n\n' + generatedCode.headerCode + '\n\n' + generatedCode.footerCode;
-  };
+  // Generate final code
+  const generatedCode = useMemo(() => {
+    return generateCodeForSelection();
+  }, [buttonType, formEmbedUrl, customFieldName, previewColor, previewTextColor, previewBorderRadius, showDescription, showMetadata, showMaps, showBuyNowButton, showAddToCartButton, showQuantitySelector, expandedDescriptionContent, expandedDescFadeIn, expandedDescClass, metadataFields, metadataTextColor, metadataFont]);
 
-  // Handle file drop
+  // File upload handlers
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
@@ -442,13 +313,11 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
     
     if (imageFile) {
       setLogoFile(imageFile);
-      // Create a preview URL for the dropped file
       const url = URL.createObjectURL(imageFile);
       setLogoUrl(url);
     }
   };
 
-  // Handle file input change
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('image/')) {
@@ -458,1458 +327,597 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
     }
   };
 
-  // Handle drag events
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragEvents = (e: React.DragEvent, isDragOver: boolean) => {
     e.preventDefault();
-    setIsDragOver(true);
+    setIsDragOver(isDragOver);
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
+  // Navigation handlers
+  const goToNextSlide = () => {
+    if (currentSlide < slides.length - 1) {
+      setCurrentSlide(prev => prev + 1);
+    }
   };
 
-  const slides = useMemo(() => {
-    const baseSlides: JSX.Element[] = [
-    // Slide 0: Get Started
-    <Slide key="get-started" className="bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="text-center max-w-2xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-6">
-            <Rocket className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            GoHighLevel Marketplace Extension
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Transform your GoHighLevel marketplace with advanced form generation, 
-            metadata displays, and enhanced customer experiences.
+  const goToPrevSlide = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(prev => prev - 1);
+    }
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
+
+  // Define slides
+  const slides = [
+    // Slide 1: Welcome
+    <Slide key="welcome">
+      <div className="text-center space-y-6">
+        <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+          <Rocket className="w-10 h-10 text-white" />
+        </div>
+        <div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome to GoHighLevel CSS Generator</h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Create professional directory listings with advanced form integration, 
+            enhanced UI elements, and custom styling options.
           </p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-blue-200 bg-white/70 backdrop-blur-sm">
-            <CardContent className="p-6 text-center">
-              <Settings className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Easy Configuration</h3>
-              <p className="text-sm text-gray-600">Simple wizard-driven setup process</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-blue-200 bg-white/70 backdrop-blur-sm">
-            <CardContent className="p-6 text-center">
-              <FileText className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Rich Content</h3>
-              <p className="text-sm text-gray-600">Enhanced descriptions and metadata</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-blue-200 bg-white/70 backdrop-blur-sm">
-            <CardContent className="p-6 text-center">
-              <Download className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Ready to Deploy</h3>
-              <p className="text-sm text-gray-600">Generated code ready for integration</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 border border-blue-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">What You'll Create:</h3>
-          <ul className="text-left text-gray-700 space-y-2">
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Dynamic form integration with embedded popups or redirects
-            </li>
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Rich product descriptions with custom content management
-            </li>
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Business metadata displays with icons and contact information
-            </li>
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Google Maps integration for location-based listings
-            </li>
-          </ul>
-        </div>
-      </div>
-    </Slide>,
-
-    // Slide 1: Google Drive Connection
-    <Slide key="google-drive" className="bg-gradient-to-br from-red-50 to-pink-100">
-      <div className="text-center max-w-2xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-red-500 rounded-full mb-6">
-            <FolderOpen className="w-10 h-10 text-white" />
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl mx-auto">
+          <h3 className="font-semibold text-blue-900 mb-2">What You'll Build:</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-blue-800">
+            <div className="flex items-center space-x-2">
+              <Code className="w-4 h-4" />
+              <span>Action Button Popups</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <FileText className="w-4 h-4" />
+              <span>Embedded Forms</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <MapPin className="w-4 h-4" />
+              <span>Metadata Bars with Maps</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <AlignLeft className="w-4 h-4" />
+              <span>Expanded Descriptions</span>
+            </div>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Connect Google Drive</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Connect your Google Drive for image storage and management
-          </p>
-        </div>
-
-        <div className="text-center">
-          {!googleDriveConnected ? (
-            <div>
-              <Button 
-                onClick={() => setGoogleDriveConnected(true)}
-                className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 text-lg"
-              >
-                Connect Google Drive
-              </Button>
-            </div>
-          ) : (
-            <div>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-                <div className="flex items-center justify-center mb-4">
-                  <svg className="w-8 h-8 text-green-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                  </svg>
-                  <h3 className="text-xl font-semibold text-green-800">Google Drive Connected!</h3>
-                </div>
-                <p className="text-green-700 mb-4">
-                  Your Google Drive is now connected and ready to use.
-                </p>
-                <div className="bg-white rounded-lg p-4 border border-green-200">
-                  <p className="text-sm text-green-800">
-                    <strong>Storage Location:</strong> Directory Images folder<br/>
-                    <strong>Status:</strong> Ready for image uploads<br/>
-                    <strong>Access:</strong> Full read/write permissions
-                  </p>
-                </div>
-              </div>
-              <Button 
-                onClick={() => setGoogleDriveConnected(false)}
-                variant="outline"
-                className="border-red-300 text-red-600 hover:bg-red-50"
-              >
-                Disconnect
-              </Button>
-            </div>
-          )}
         </div>
       </div>
     </Slide>,
 
     // Slide 2: Directory Setup
-    <Slide key="directory-setup" className="bg-gradient-to-br from-blue-50 to-cyan-100">
-      <div className="text-center max-w-2xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-6">
-            <Building2 className="w-10 h-10 text-white" />
+    <Slide key="directory-setup">
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-xl flex items-center justify-center mb-4">
+            <Building2 className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Directory Setup</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Name your directory and set up basic information
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Directory Information</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Set up your directory name and logo to personalize your listings.
           </p>
         </div>
 
-        <Card className="bg-white/80 backdrop-blur-sm border border-blue-200 max-w-lg mx-auto">
-          <CardContent className="p-8">
-            <div className="space-y-6">
-              {/* Directory Name Field */}
-              <div className="space-y-3">
-                <Label htmlFor="directory-name" className="text-left block text-lg font-medium text-gray-700">
-                  Directory Name
-                </Label>
-                <Input
-                  id="directory-name"
-                  placeholder="My Business Directory"
-                  value={directoryName}
-                  onChange={(e) => setDirectoryName(e.target.value)}
-                  className="text-lg p-4 h-auto"
-                />
-                <p className="text-sm text-gray-600 text-left">
-                  Give your directory a memorable name for organization
-                </p>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Directory Name */}
+          <div className="space-y-4">
+            <Label htmlFor="directory-name" className="text-sm font-medium">Directory Name</Label>
+            <Input
+              id="directory-name"
+              placeholder="My Business Directory"
+              value={directoryName}
+              onChange={(e) => setDirectoryName(e.target.value)}
+              className="w-full"
+            />
+            <p className="text-sm text-gray-500">This will appear in your generated code as a reference.</p>
+          </div>
 
-              {/* Logo Upload Field */}
-              <div className="space-y-3">
-                <Label className="text-left block text-lg font-medium text-gray-700">Add Your Logo</Label>
+          {/* Logo Upload */}
+          <div className="space-y-4">
+            <Label className="text-sm font-medium">Directory Logo</Label>
+            <div
+              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                isDragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300'
+              }`}
+              onDrop={handleDrop}
+              onDragOver={(e) => handleDragEvents(e, true)}
+              onDragLeave={(e) => handleDragEvents(e, false)}
+            >
+              {logoFile ? (
                 <div className="space-y-2">
-                  {/* Drag and Drop Area */}
-                  <div
-                    onDrop={handleDrop}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    className={`
-                      border-2 border-dashed rounded-lg p-4 text-center transition-all cursor-pointer
-                      ${isDragOver 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
-                      }
-                    `}
-                  >
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="logo-upload"
-                    />
-                    <label htmlFor="logo-upload" className="cursor-pointer">
-                      <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-gray-700">
-                        {isDragOver ? 'Drop logo here' : 'Upload logo'}
-                      </p>
-                    </label>
-                  </div>
-                  {logoFile && (
-                    <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
-                      ✓ Uploaded: {logoFile.name} ({(logoFile.size / 1024).toFixed(1)}KB)
-                    </div>
-                  )}
+                  <img src={logoUrl} alt="Logo preview" className="mx-auto h-16 w-16 object-cover rounded" />
+                  <p className="text-sm text-gray-600">{logoFile.name}</p>
                 </div>
-              </div>
-
-
+              ) : (
+                <div className="space-y-2">
+                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="text-sm text-gray-600">Drop an image here or click to browse</p>
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+                id="logo-upload"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={() => document.getElementById('logo-upload')?.click()}
+              >
+                Choose File
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </Slide>,
 
     // Slide 3: Integration Method
-    <Slide key="integration-method" className="bg-gradient-to-br from-green-50 to-emerald-100">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mb-6">
-            <Settings className="w-10 h-10 text-white" />
+    <Slide key="integration-method">
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-4">
+            <Settings className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Integration Method</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Select how you want to integrate GoHighLevel forms
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Choose Integration Method</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Select how you want to integrate GoHighLevel forms into your directory listings.
           </p>
         </div>
 
-        {/* Integration Options Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card 
-            className={`cursor-pointer transition-all border-2 ${
-              integrationMethod === 'popup' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
+          <div 
+            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+              buttonType === 'popup' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300'
             }`}
-            onClick={() => setIntegrationMethod('popup')}
+            onClick={() => setButtonType('popup')}
           >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="bg-blue-500 text-white p-2 rounded-md">
-                  <MousePointer className="w-6 h-6" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Action Button (Popup)</h3>
-                  <p className="text-sm text-gray-500">Opens form in a popup overlay</p>
-                </div>
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-500 text-white p-2 rounded-md">
+                <ExternalLink className="w-5 h-5" />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <h3 className="font-medium">Action Button (Popup)</h3>
+                <p className="text-sm text-gray-500">Opens form in a popup overlay</p>
+              </div>
+            </div>
+          </div>
 
-          <Card 
-            className={`cursor-pointer transition-all border-2 ${
-              integrationMethod === 'embed' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
+          <div 
+            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+              buttonType === 'embed' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
             }`}
-            onClick={() => setIntegrationMethod('embed')}
+            onClick={() => setButtonType('embed')}
           >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="bg-purple-500 text-white p-2 rounded-md">
-                  <Code className="w-6 h-6" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Embedded Form</h3>
-                  <p className="text-sm text-gray-500">Displays form directly on page</p>
-                </div>
+            <div className="flex items-center space-x-3">
+              <div className="bg-green-500 text-white p-2 rounded-md">
+                <Code className="w-5 h-5" />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <h3 className="font-medium">Embedded Form</h3>
+                <p className="text-sm text-gray-500">Shows form directly on page</p>
+              </div>
+            </div>
+          </div>
 
-          <Card 
-            className={`cursor-pointer transition-all border-2 ${
-              integrationMethod === 'redirect' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
+          <div 
+            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+              buttonType === 'redirect' ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white hover:border-gray-300'
             }`}
-            onClick={() => setIntegrationMethod('redirect')}
+            onClick={() => setButtonType('redirect')}
           >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="bg-green-500 text-white p-2 rounded-md">
-                  <ExternalLink className="w-6 h-6" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Action Button (Redirect)</h3>
-                  <p className="text-sm text-gray-500">Redirects to external form page</p>
-                </div>
+            <div className="flex items-center space-x-3">
+              <div className="bg-orange-500 text-white p-2 rounded-md">
+                <ExternalLink className="w-5 h-5" />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <h3 className="font-medium">Redirect Button</h3>
+                <p className="text-sm text-gray-500">Redirects to external form</p>
+              </div>
+            </div>
+          </div>
 
-          <Card 
-            className={`cursor-pointer transition-all border-2 ${
-              integrationMethod === 'download' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
+          <div 
+            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+              buttonType === 'download' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white hover:border-gray-300'
             }`}
-            onClick={() => setIntegrationMethod('download')}
+            onClick={() => setButtonType('download')}
           >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="bg-orange-500 text-white p-2 rounded-md">
-                  <DownloadIcon className="w-6 h-6" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Action Button (Download)</h3>
-                  <p className="text-sm text-gray-500">Downloads file directly</p>
-                </div>
+            <div className="flex items-center space-x-3">
+              <div className="bg-purple-500 text-white p-2 rounded-md">
+                <Download className="w-5 h-5" />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <h3 className="font-medium">Download Link</h3>
+                <p className="text-sm text-gray-500">Triggers file download</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Configuration Card */}
-        <div className="max-w-2xl mx-auto text-center">
-          <div>
-            {/* Redirect Action Button Info */}
-            {integrationMethod === 'redirect' && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                <div className="flex items-center space-x-3">
-                  <ExternalLink className="w-6 h-6 text-green-600" />
-                  <div className="text-left">
-                    <h4 className="text-lg font-medium text-green-800">Redirect Button</h4>
-                    <p className="text-green-700 mt-2">
-                      Redirect URLs will be configured through your form submissions. The button will redirect users to external pages.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+        {/* Form URL Input */}
+        <div className="max-w-2xl mx-auto space-y-4">
+          <Label htmlFor="form-url" className="text-sm font-medium">
+            {buttonType === 'popup' ? 'GoHighLevel Form URL or Embed Code' : 
+             buttonType === 'embed' ? 'GoHighLevel Form URL or Embed Code' :
+             buttonType === 'redirect' ? 'External Form URL' :
+             'Download File URL'}
+          </Label>
+          <Input
+            id="form-url"
+            placeholder={
+              buttonType === 'popup' ? 'Paste your GoHighLevel iframe embed code or form URL' :
+              buttonType === 'embed' ? 'Paste your GoHighLevel iframe embed code or form URL' :
+              buttonType === 'redirect' ? 'https://your-external-form.com' :
+              'https://your-download-link.com/file.pdf'
+            }
+            value={formEmbedUrl}
+            onChange={(e) => setFormEmbedUrl(e.target.value)}
+            className="w-full"
+          />
+          <p className="text-sm text-gray-500">
+            {buttonType === 'popup' || buttonType === 'embed' 
+              ? 'You can paste either the full iframe embed code or just the form URL.'
+              : 'Enter the complete URL where users should be redirected.'
+            }
+          </p>
+        </div>
 
-            {/* Download Action Button Info */}
-            {integrationMethod === 'download' && (
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-                <div className="flex items-center space-x-3">
-                  <DownloadIcon className="w-6 h-6 text-orange-600" />
-                  <div className="text-left">
-                    <h4 className="text-lg font-medium text-orange-800">Direct Download Button</h4>
-                    <p className="text-orange-700 mt-2">
-                      Download URLs will be configured through your form submissions. The button will trigger direct file downloads.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Configuration Summary - Skip problematic inputs */}
-            {(integrationMethod === 'popup' || integrationMethod === 'embed') && (
-              <div className="space-y-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                  <div className="flex items-center justify-center space-x-3">
-                    <div className="bg-blue-600 text-white p-2 rounded-md">
-                      {integrationMethod === 'popup' ? <Monitor className="w-5 h-5" /> : <Code className="w-5 h-5" />}
-                    </div>
-                    <div className="text-center">
-                      <h4 className="font-medium text-blue-800">
-                        {integrationMethod === 'popup' ? 'Action Button Popup Setup' : 'Embedded Form Setup'}
-                      </h4>
-                      <p className="text-sm text-blue-700 mt-1">
-                        {integrationMethod === 'popup' 
-                          ? 'Display forms in an overlay popup window' 
-                          : 'Embed forms directly into your listing pages'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Form Embed Code - Completely rebuilt from scratch */}
-                <div className="space-y-3">
-                  <label className="text-left block text-lg font-medium text-gray-700">
-                    {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
-                  </label>
-                  <input
-                    key={`embed-input-${inputKey}`}
-                    type="text"
-                    placeholder="Paste your GoHighLevel form embed code here..."
-                    defaultValue={wizardFormData.embedCode}
-                    onChange={(e) => {
-                      setWizardFormData(prev => ({...prev, embedCode: e.target.value}));
-                    }}
-                    className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="text-xs text-gray-500">Value: "{wizardFormData.embedCode}" (Length: {wizardFormData.embedCode.length})</p>
-                </div>
-
-                {/* Custom Field Name - Completely rebuilt from scratch */}
-                <div className="space-y-3">
-                  <label className="text-left block text-lg font-medium text-gray-700">
-                    Custom Field Name
-                  </label>
-                  <input
-                    key={`field-input-${inputKey}`}
-                    type="text"
-                    placeholder="listing"
-                    defaultValue={wizardFormData.fieldName}
-                    onChange={(e) => setWizardFormData(prev => ({...prev, fieldName: e.target.value}))}
-                    className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="text-xs text-gray-500">Value: "{wizardFormData.fieldName}"</p>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
-                    <div className="text-sm text-blue-700 text-left">
-                      <p className="font-medium mb-2">💡 Setup Instructions:</p>
-                      <ol className="space-y-1">
-                        <li>1. Create a single line custom field in High Level</li>
-                        <li>2. Place the field in the form and make it hidden</li>
-                        <li>3. Add the field name here</li>
-                        <li>4. When a visitor fills out your form, you will know which listing the form was on</li>
-                      </ol>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-
-
-
-          </div>
+        {/* Custom Field Name */}
+        <div className="max-w-2xl mx-auto space-y-4">
+          <Label htmlFor="field-name" className="text-sm font-medium">Custom Field Name</Label>
+          <Input
+            id="field-name"
+            placeholder="listing"
+            value={customFieldName}
+            onChange={(e) => setCustomFieldName(e.target.value)}
+            className="w-full"
+          />
+          <p className="text-sm text-gray-500">
+            This field will automatically capture the listing identifier for tracking purposes.
+          </p>
         </div>
       </div>
     </Slide>,
 
-    // Slide 4: GoHighLevel Page Options
-    <Slide key="ghl-page-options" className="bg-gradient-to-br from-indigo-50 to-blue-100">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-600 rounded-full mb-6">
-            <Settings className="w-10 h-10 text-white" />
+    // Slide 4: Feature Options
+    <Slide key="feature-options">
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mb-4">
+            <Hash className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">GoHighLevel Page Options</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Control which ecommerce elements to show or hide on your marketplace pages
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Feature Options</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Enable additional features to enhance your directory listings.
           </p>
         </div>
 
-        {/* GoHighLevel Options Grid - 2x2 Square Formation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto">
-          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {/* Enhanced Description */}
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-blue-50 p-2 rounded-md">
-                    <DollarSign className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Show Listing Price</h3>
-                    <p className="text-sm text-gray-500">Display product pricing information</p>
-                  </div>
+                  <AlignLeft className="w-5 h-5 text-blue-500" />
+                  <h3 className="font-medium">Enhanced Description</h3>
                 </div>
-                <Switch 
-                  checked={showPrice}
-                  onCheckedChange={setShowPrice}
-                  id="show-price" 
-                />
-              </div>
-
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-red-50 p-2 rounded-md">
-                    <ShoppingBag className="w-6 h-6 text-red-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Show Buy Now Button</h3>
-                    <p className="text-sm text-gray-500">Display GoHighLevel's buy now button</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={showBuyNowButton}
-                  onCheckedChange={setShowBuyNowButton}
-                  id="show-buy-now" 
-                />
-              </div>
-
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-yellow-50 p-2 rounded-md">
-                    <ShoppingCart className="w-6 h-6 text-yellow-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Convert Cart To Bookmarks</h3>
-                    <p className="text-sm text-gray-500">Converts the cart feature into a book marking system.</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={convertCartToBookmarks}
-                  onCheckedChange={setConvertCartToBookmarks}
-                  id="convert-cart-bookmarks" 
-                />
-              </div>
-
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-purple-50 p-2 rounded-md">
-                    <Hash className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Show Quantity Selector</h3>
-                    <p className="text-sm text-gray-500">Display quantity input and controls</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={showQuantitySelector}
-                  onCheckedChange={setShowQuantitySelector}
-                  id="show-quantity" 
-                />
-              </div>
-
-            </CardContent>
-          </Card>
-
-
-        </div>
-
-
-      </div>
-    </Slide>,
-
-    // Slide 5: Directory Components
-    <Slide key="directory-components" className="bg-gradient-to-br from-purple-50 to-violet-100">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-600 rounded-full mb-6">
-            <Layout className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Directory Enhancement Components</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Add enhanced components to make your directory more engaging
-          </p>
-        </div>
-
-        {/* Component Toggle Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-white/80 backdrop-blur-sm border border-purple-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-indigo-50 p-2 rounded-md">
-                    <AlignLeft className="w-6 h-6 text-indigo-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Expanded Description</h3>
-                    <p className="text-sm text-gray-500">Rich content with images and HTML</p>
-                  </div>
-                </div>
-                <Switch 
+                <Switch
                   checked={showDescription}
                   onCheckedChange={setShowDescription}
-                  id="show-description" 
                 />
               </div>
+              <p className="text-sm text-gray-500 mb-3">
+                Add expandable content sections below listings
+              </p>
               {showDescription && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-left">
-                  <p className="text-sm text-green-700">
-                    ✓ Enhanced product descriptions with custom HTML content and URL-based content system
-                  </p>
+                <div className="text-sm text-green-600">
+                  ✓ Enhanced content will be added
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 backdrop-blur-sm border border-purple-200">
+          {/* Metadata Bar */}
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-green-50 p-2 rounded-md">
-                    <FileText className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Metadata Bar</h3>
-                    <p className="text-sm text-gray-500">Additional business information</p>
-                  </div>
+                  <Hash className="w-5 h-5 text-green-500" />
+                  <h3 className="font-medium">Metadata Bar</h3>
                 </div>
-                <Switch 
+                <Switch
                   checked={showMetadata}
                   onCheckedChange={setShowMetadata}
-                  id="show-metadata" 
                 />
               </div>
+              <p className="text-sm text-gray-500 mb-3">
+                Display contact info, hours, and location
+              </p>
               {showMetadata && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-left">
-                  <p className="text-sm text-green-700">
-                    ✓ Business contact information with icons and customizable styling
-                  </p>
+                <div className="text-sm text-green-600">
+                  ✓ Contact info bar will be added
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 backdrop-blur-sm border border-purple-200">
+          {/* Google Maps */}
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-orange-50 p-2 rounded-md">
-                    <MapPin className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Google Maps Widget</h3>
-                    <p className="text-sm text-gray-500">Interactive location display</p>
-                  </div>
+                  <MapPin className="w-5 h-5 text-red-500" />
+                  <h3 className="font-medium">Google Maps</h3>
                 </div>
-                <Switch 
+                <Switch
                   checked={showMaps}
                   onCheckedChange={setShowMaps}
-                  id="show-maps" 
                 />
               </div>
+              <p className="text-sm text-gray-500 mb-3">
+                Enable location-based mapping features
+              </p>
               {showMaps && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-left">
-                  <p className="text-sm text-green-700">
-                    ✓ Embedded Google Maps for location-based businesses
-                  </p>
+                <div className="text-sm text-green-600">
+                  ✓ Maps integration will be added
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* E-commerce Options */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <ShoppingBag className="w-5 h-5 text-purple-500" />
+                  <h3 className="font-medium">Buy Now Button</h3>
+                </div>
+                <Switch
+                  checked={showBuyNowButton}
+                  onCheckedChange={setShowBuyNowButton}
+                />
+              </div>
+              <p className="text-sm text-gray-500 mb-3">
+                Show/hide buy now buttons on listings
+              </p>
+              {showBuyNowButton && (
+                <div className="text-sm text-green-600">
+                  ✓ Buy now buttons will be visible
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <ShoppingCart className="w-5 h-5 text-indigo-500" />
+                  <h3 className="font-medium">Add to Cart</h3>
+                </div>
+                <Switch
+                  checked={showAddToCartButton}
+                  onCheckedChange={setShowAddToCartButton}
+                />
+              </div>
+              <p className="text-sm text-gray-500 mb-3">
+                Show/hide add to cart functionality
+              </p>
+              {showAddToCartButton && (
+                <div className="text-sm text-green-600">
+                  ✓ Add to cart buttons will be visible
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <Hash className="w-5 h-5 text-yellow-500" />
+                  <h3 className="font-medium">Quantity Selector</h3>
+                </div>
+                <Switch
+                  checked={showQuantitySelector}
+                  onCheckedChange={setShowQuantitySelector}
+                />
+              </div>
+              <p className="text-sm text-gray-500 mb-3">
+                Show/hide quantity selection controls
+              </p>
+              {showQuantitySelector && (
+                <div className="text-sm text-green-600">
+                  ✓ Quantity selectors will be visible
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
-
-
       </div>
     </Slide>,
 
-    // Slide 6: Configuration Summary
-    <Slide key="configuration-summary" className="bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-6">
-            <FileText className="w-10 h-10 text-white" />
+    // Slide 5: Generated Code
+    <Slide key="generated-code">
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center mb-4">
+            <Code className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Configuration Summary</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Review your settings before generating the final code
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Generated Code</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Your custom CSS and JavaScript code is ready. Copy these snippets to your GoHighLevel pages.
           </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
+          {/* Header Code */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-medium flex items-center space-x-2">
+                  <FileText className="w-5 h-5" />
+                  <span>Header Code (CSS)</span>
+                </h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(generatedCode.headerCode, setHeaderCodeCopied)}
+                  className="flex items-center space-x-2"
+                >
+                  <Copy className="w-4 h-4" />
+                  <span>{headerCodeCopied ? 'Copied!' : 'Copy'}</span>
+                </Button>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <pre className="text-sm overflow-x-auto max-h-96 whitespace-pre-wrap">
+                  <code>{generatedCode.headerCode}</code>
+                </pre>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                Paste this code in the Header Tracking Code section of your GoHighLevel page.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Footer Code */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-medium flex items-center space-x-2">
+                  <Code className="w-5 h-5" />
+                  <span>Footer Code (JavaScript)</span>
+                </h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(generatedCode.footerCode, setFooterCodeCopied)}
+                  className="flex items-center space-x-2"
+                >
+                  <Copy className="w-4 h-4" />
+                  <span>{footerCodeCopied ? 'Copied!' : 'Copy'}</span>
+                </Button>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <pre className="text-sm overflow-x-auto max-h-96 whitespace-pre-wrap">
+                  <code>{generatedCode.footerCode}</code>
+                </pre>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                Paste this code in the Footer Tracking Code section of your GoHighLevel page.
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Configuration Summary */}
-        <Card className="bg-white border border-blue-200 max-w-4xl mx-auto">
-          <CardContent className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-              {/* Directory Settings */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-4 flex items-center">
-                  <Building2 className="w-5 h-5 mr-2 text-blue-600" />
-                  Directory Settings
-                </h4>
-                <div className="space-y-3 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">📁</span>
-                    <span className="ml-2"><strong>Name:</strong> {directoryName || 'My Directory'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🖼️</span>
-                    <span className="ml-2"><strong>Logo:</strong> {logoFile ? logoFile.name : 'Default logo'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🔗</span>
-                    <span className="ml-2"><strong>Integration:</strong> {integrationMethod}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* GoHighLevel Options */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-4 flex items-center">
-                  <Settings className="w-5 h-5 mr-2 text-blue-600" />
-                  Page Elements
-                </h4>
-                <div className="space-y-3 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">💰</span>
-                    <span className="ml-2"><strong>Price Display:</strong> {showPrice ? 'Visible' : 'Hidden'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🛒</span>
-                    <span className="ml-2"><strong>Buy Now Button:</strong> {showBuyNowButton ? 'Visible' : 'Hidden'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">➕</span>
-                    <span className="ml-2"><strong>Add to Cart:</strong> {showAddToCartButton ? 'Visible' : 'Hidden'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🔢</span>
-                    <span className="ml-2"><strong>Quantity Selector:</strong> {showQuantitySelector ? 'Visible' : 'Hidden'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🛍️</span>
-                    <span className="ml-2"><strong>Cart Icon:</strong> {showCartIcon ? 'Visible' : 'Hidden'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Enhancement Components */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-4 flex items-center">
-                  <Zap className="w-5 h-5 mr-2 text-blue-600" />
-                  Enhancement Components
-                </h4>
-                <div className="space-y-3 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">📝</span>
-                    <span className="ml-2"><strong>Expanded Description:</strong> {showDescription ? 'Enabled' : 'Disabled'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">📊</span>
-                    <span className="ml-2"><strong>Metadata Bar:</strong> {showMetadata ? 'Enabled' : 'Disabled'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🗺️</span>
-                    <span className="ml-2"><strong>Google Maps:</strong> {showMaps ? 'Enabled' : 'Disabled'}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-
-          </CardContent>
-        </Card>
-      </div>
-    </Slide>,
-
-    // Slide 7: Generate Code
-    <Slide key="generate-code" className="bg-gradient-to-br from-green-50 to-emerald-100">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mb-6">
-            <Code className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Your Integration Code is Ready!</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Copy the code below and paste it into your GoHighLevel page's header section
-          </p>
-        </div>
-
-        {/* Generated CSS Code */}
-        <Card className="bg-white/90 backdrop-blur-sm border border-green-200 text-left">
+        <Card className="max-w-4xl mx-auto">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">GoHighLevel CSS Integration</h3>
-              <Button
-                onClick={() => {
-                  const cssCode = generateFinalCSS();
-                  navigator.clipboard.writeText(cssCode);
-                }}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copy Code
-              </Button>
-            </div>
-            
-            <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
-              <pre className="text-sm whitespace-pre-wrap">
-                {generateFinalCSS()}
-              </pre>
+            <h3 className="font-medium mb-4">Configuration Summary</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <span className="text-gray-500">Directory:</span>
+                <div className="font-medium">{directoryName || 'Not specified'}</div>
+              </div>
+              <div>
+                <span className="text-gray-500">Integration:</span>
+                <div className="font-medium capitalize">{buttonType}</div>
+              </div>
+              <div>
+                <span className="text-gray-500">Enhanced Description:</span>
+                <div className="font-medium">{showDescription ? 'Enabled' : 'Disabled'}</div>
+              </div>
+              <div>
+                <span className="text-gray-500">Metadata Bar:</span>
+                <div className="font-medium">{showMetadata ? 'Enabled' : 'Disabled'}</div>
+              </div>
             </div>
           </CardContent>
         </Card>
-
-
       </div>
     </Slide>
   ];
 
-    // Add conditional slides based on configuration options
-    
-    // 1. Product Details Page CSS - Always after Configuration Summary
-    baseSlides.splice(-1, 0,
-      <Slide key="product-details-css" className="bg-gradient-to-br from-indigo-50 to-blue-100">
-        <div className="text-center max-w-4xl mx-auto">
-          <div className="mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-600 rounded-full mb-6">
-              <Code className="w-10 h-10 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Product Details Page CSS</h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Main CSS code for your product details pages
-            </p>
-          </div>
-
-          <Card className="bg-white border border-indigo-200 text-left">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Product Details Page CSS</h3>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => {
-                      const config = {
-                        directoryName,
-                        integrationMethod,
-                        showDescription,
-                        showMetadata,
-                        showMaps,
-                        showPrice,
-                        showBuyNowButton,
-                        showAddToCartButton,
-                        showQuantitySelector,
-                        showCartIcon,
-                        convertCartToBookmarks,
-                        formEmbedUrl: wizardFormData.embedCode || "PASTE_YOUR_GOHIGHLEVEL_FORM_CODE_HERE",
-                        customFieldName: wizardFormData.fieldName
-                      };
-                      const configJson = JSON.stringify(config, null, 2);
-                      const blob = new Blob([configJson], { type: 'application/json' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `${directoryName || 'directory'}-config.json`;
-                      a.click();
-                    }}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Config
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      const cssCode = generateFinalCSS();
-                      navigator.clipboard.writeText(cssCode);
-                    }}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy CSS
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
-                <pre className="text-sm whitespace-pre-wrap">
-                  {generateFinalCSS()}
-                </pre>
-              </div>
-              
-              {/* Configuration Instructions */}
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-medium text-blue-800 mb-2">📋 Configuration Instructions</h4>
-                <div className="text-sm text-blue-700 space-y-2">
-                  <p><strong>1. Download Config:</strong> Click "Download Config" to get your configuration JSON file</p>
-                  <p><strong>2. Edit the JSON:</strong> Open the file and replace:</p>
-                  <ul className="ml-4 list-disc space-y-1">
-                    <li><code className="bg-blue-100 px-1 rounded">PASTE_YOUR_GOHIGHLEVEL_FORM_CODE_HERE</code> with your actual GoHighLevel form embed code</li>
-                    <li>Update <code className="bg-blue-100 px-1 rounded">customFieldName</code> if needed (default: "listing")</li>
-                  </ul>
-                  <p><strong>3. Apply CSS:</strong> Copy the CSS code above and paste it into your GoHighLevel page's footer</p>
-                  <p><strong>4. Integration:</strong> Your {integrationMethod === 'popup' ? 'popup forms' : 'embedded forms'} will work automatically based on the configuration</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </Slide>
-    );
-
-    // 2. Product Details Page Header - Always after CSS
-    baseSlides.splice(-1, 0,
-      <Slide key="product-details-header" className="bg-gradient-to-br from-emerald-50 to-green-100">
-        <div className="text-center max-w-4xl mx-auto">
-          <div className="mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-600 rounded-full mb-6">
-              <FileText className="w-10 h-10 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Product Details Page Header</h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Header code for enhanced product page functionality
-            </p>
-          </div>
-
-          <Card className="bg-white border border-emerald-200 text-left">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Header Code</h3>
-                <Button
-                  onClick={() => {
-                    let headerCode = `<!-- Enhanced Product Details Header -->
-<script>
-// Enhanced product page functionality
-document.addEventListener('DOMContentLoaded', function() {
-  // URL slug detection
-  const url = new URL(window.location.href);
-  const slug = url.searchParams.get('slug') || url.pathname.split('/').pop();
-`;
-
-                    // Add form integration if embed code exists
-                    if (wizardFormData.embedCode) {
-                      headerCode += `
-  // GoHighLevel Form Integration
-  const formEmbedCode = \`${wizardFormData.embedCode}\`;
-  const customFieldName = '${wizardFormData.fieldName}';
-  console.log('Form integration active with field:', customFieldName);
-  
-  // Embed form into page
-  if (formEmbedCode) {
-    // Process and inject form code
-    console.log('Injecting form embed code');
-  }`;
-                    }
-
-                    // Add enhanced features
-                    if (showDescription) {
-                      headerCode += `
-  
-  // Enhanced description handling
-  if (slug) {
-    // Load enhanced description content
-    console.log('Loading enhanced description for:', slug);
-  }`;
-                    }
-
-                    if (showMetadata) {
-                      headerCode += `
-  
-  // Metadata bar setup
-  // Initialize metadata display
-  console.log('Setting up metadata bar');`;
-                    }
-
-                    if (showMaps) {
-                      headerCode += `
-  
-  // Google Maps integration
-  // Initialize Google Maps widget
-  console.log('Loading Google Maps widget');`;
-                    }
-
-                    headerCode += `
-});
-</script>`;
-                    navigator.clipboard.writeText(headerCode);
-                  }}
-                  className="bg-emerald-600 hover:bg-emerald-700"
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy Header
-                </Button>
-              </div>
-              
-              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
-                <pre className="text-sm whitespace-pre-wrap">
-{(() => {
-  let displayCode = `<!-- Enhanced Product Details Header -->
-<script>
-// Enhanced product page functionality
-document.addEventListener('DOMContentLoaded', function() {
-  // URL slug detection
-  const url = new URL(window.location.href);
-  const slug = url.searchParams.get('slug') || url.pathname.split('/').pop();
-`;
-
-  // Add form integration if embed code exists
-  if (wizardFormData.embedCode) {
-    displayCode += `
-  // GoHighLevel Form Integration
-  const formEmbedCode = \`${wizardFormData.embedCode}\`;
-  const customFieldName = '${wizardFormData.fieldName}';
-  console.log('Form integration active with field:', customFieldName);
-  
-  // Embed form into page
-  if (formEmbedCode) {
-    // Process and inject form code
-    console.log('Injecting form embed code');
-  }`;
-  }
-
-  // Add enhanced features
-  if (showDescription) {
-    displayCode += `
-  
-  // Enhanced description handling
-  if (slug) {
-    // Load enhanced description content
-    console.log('Loading enhanced description for:', slug);
-  }`;
-  }
-
-  if (showMetadata) {
-    displayCode += `
-  
-  // Metadata bar setup
-  // Initialize metadata display
-  console.log('Setting up metadata bar');`;
-  }
-
-  if (showMaps) {
-    displayCode += `
-  
-  // Google Maps integration
-  // Initialize Google Maps widget
-  console.log('Loading Google Maps widget');`;
-  }
-
-  displayCode += `
-});
-</script>`;
-  return displayCode;
-})()}
-                </pre>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </Slide>
-    );
-
-    // 3. Product Details Page Footer - Always after Header
-    baseSlides.splice(-1, 0,
-      <Slide key="product-details-footer" className="bg-gradient-to-br from-purple-50 to-violet-100">
-        <div className="text-center max-w-4xl mx-auto">
-          <div className="mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-600 rounded-full mb-6">
-              <Layout className="w-10 h-10 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Product Details Page Footer</h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Footer code for form integration and enhanced features
-            </p>
-          </div>
-
-          <Card className="bg-white border border-purple-200 text-left">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Footer Code</h3>
-                <Button
-                  onClick={() => {
-                    let footerCode = `<!-- Enhanced Product Details Footer -->
-<script>
-// Form integration and enhanced features
-(function() {
-`;
-
-                    // Add form integration if embed code exists
-                    if (wizardFormData.embedCode) {
-                      footerCode += `  // GoHighLevel Form Integration
-  const formEmbedCode = \`${wizardFormData.embedCode}\`;
-  const customFieldName = '${wizardFormData.fieldName}';
-  
-  // Form integration setup based on method`;
-
-                      if (integrationMethod === 'popup') {
-                        footerCode += `
-  // Popup form integration
-  function showFormPopup() {
-    console.log('Opening popup form with field:', customFieldName);
-    // Inject form code into popup
-    if (formEmbedCode) {
-      console.log('Injecting form into popup');
-    }
-  }`;
-                      }
-
-                      if (integrationMethod === 'embed') {
-                        footerCode += `
-  // Direct embed form setup
-  console.log('Setting up direct embed with field:', customFieldName);
-  if (formEmbedCode) {
-    console.log('Directly embedding form code');
-  }`;
-                      }
-
-                      if (integrationMethod === 'redirect') {
-                        footerCode += `
-  // Redirect form setup
-  console.log('Setting up redirect functionality with field:', customFieldName);
-  if (formEmbedCode) {
-    console.log('Processing form code for redirect');
-  }`;
-                      }
-                    }
-
-                    // Add enhanced features
-                    if (showDescription) {
-                      footerCode += `
-  
-  // Enhanced description functionality
-  console.log('Initializing enhanced descriptions');`;
-                    }
-
-                    if (showMetadata) {
-                      footerCode += `
-  
-  // Metadata bar functionality
-  console.log('Initializing metadata bar');`;
-                    }
-
-                    if (showMaps) {
-                      footerCode += `
-  
-  // Google Maps functionality
-  console.log('Initializing Google Maps');`;
-                    }
-
-                    footerCode += `
-})();
-</script>`;
-                    navigator.clipboard.writeText(footerCode);
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy Footer
-                </Button>
-              </div>
-              
-              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
-                <pre className="text-sm whitespace-pre-wrap">
-{(() => {
-  let displayFooterCode = `<!-- Enhanced Product Details Footer -->
-<script>
-// Form integration and enhanced features
-(function() {
-`;
-
-  // Add form integration if embed code exists
-  if (wizardFormData.embedCode) {
-    displayFooterCode += `  // GoHighLevel Form Integration
-  const formEmbedCode = \`${wizardFormData.embedCode}\`;
-  const customFieldName = '${wizardFormData.fieldName}';
-  
-  // Form integration setup based on method`;
-
-    if (integrationMethod === 'popup') {
-      displayFooterCode += `
-  // Popup form integration
-  function showFormPopup() {
-    console.log('Opening popup form with field:', customFieldName);
-    // Inject form code into popup
-    if (formEmbedCode) {
-      console.log('Injecting form into popup');
-    }
-  }`;
-    }
-
-    if (integrationMethod === 'embed') {
-      displayFooterCode += `
-  // Direct embed form setup
-  console.log('Setting up direct embed with field:', customFieldName);
-  if (formEmbedCode) {
-    console.log('Directly embedding form code');
-  }`;
-    }
-
-    if (integrationMethod === 'redirect') {
-      displayFooterCode += `
-  // Redirect form setup
-  console.log('Setting up redirect functionality with field:', customFieldName);
-  if (formEmbedCode) {
-    console.log('Processing form code for redirect');
-  }`;
-    }
-  }
-
-  // Add enhanced features
-  if (showDescription) {
-    displayFooterCode += `
-  
-  // Enhanced description functionality
-  console.log('Initializing enhanced descriptions');`;
-  }
-
-  if (showMetadata) {
-    displayFooterCode += `
-  
-  // Metadata bar functionality
-  console.log('Initializing metadata bar');`;
-  }
-
-  if (showMaps) {
-    displayFooterCode += `
-  
-  // Google Maps functionality
-  console.log('Initializing Google Maps');`;
-  }
-
-  displayFooterCode += `
-})();
-</script>`;
-  return displayFooterCode;
-})()}
-                </pre>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </Slide>
-    );
-
-    // 4. Cart Bookmark CSS - Only if cart bookmark feature is enabled
-    if (convertCartToBookmarks) {
-      baseSlides.splice(-1, 0, 
-        <Slide key="cart-bookmarks-css" className="bg-gradient-to-br from-orange-50 to-amber-100">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-orange-600 rounded-full mb-6">
-                <ShoppingCart className="w-10 h-10 text-white" />
-              </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Cart Bookmark CSS Setup</h2>
-              <p className="text-lg text-gray-600 mb-8">
-                Additional CSS code required for cart-related pages
-              </p>
-            </div>
-
-            {/* Instructions */}
-            <Card className="bg-white border border-orange-200 mb-6">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Implementation Instructions</h3>
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-                  <p className="text-orange-800 text-sm">
-                    <strong>Important:</strong> The following CSS must be added to specific pages in addition to the main CSS code.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Cart Symbol Pages CSS */}
-            <Card className="bg-white border border-orange-200 mb-6">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Cart Symbol Pages CSS</h3>
-                  <Button
-                    onClick={() => {
-                      const cartSymbolCSS = `<style>
-/* Cart to Bookmark Conversion - Cart Symbol Pages */
-body:not(.hl-builder) .nav-cart-icon:before,
-body:not(.hl-builder) .cart-search-desktop:before,
-body:not(.hl-builder) .items-cart:before {
-  content: "🔖" !important;
-  font-size: 16px !important;
-}
-
-/* Replace cart text with bookmark text */
-body:not(.hl-builder) .nav-cart-icon span,
-body:not(.hl-builder) .cart-search-desktop span {
-  font-size: 0 !important;
-}
-
-body:not(.hl-builder) .nav-cart-icon span:after,
-body:not(.hl-builder) .cart-search-desktop span:after {
-  content: "Bookmarks" !important;
-  font-size: 14px !important;
-}
-</style>`;
-                      navigator.clipboard.writeText(cartSymbolCSS);
-                    }}
-                    className="bg-orange-600 hover:bg-orange-700 text-white"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy CSS
-                  </Button>
-                </div>
-                
-                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-64 overflow-y-auto">
-                  <pre className="text-sm whitespace-pre-wrap">
-{`<style>
-/* Cart to Bookmark Conversion - Cart Symbol Pages */
-body:not(.hl-builder) .nav-cart-icon:before,
-body:not(.hl-builder) .cart-search-desktop:before,
-body:not(.hl-builder) .items-cart:before {
-  content: "🔖" !important;
-  font-size: 16px !important;
-}
-
-/* Replace cart text with bookmark text */
-body:not(.hl-builder) .nav-cart-icon span,
-body:not(.hl-builder) .cart-search-desktop span {
-  font-size: 0 !important;
-}
-
-body:not(.hl-builder) .nav-cart-icon span:after,
-body:not(.hl-builder) .cart-search-desktop span:after {
-  content: "Bookmarks" !important;
-  font-size: 14px !important;
-}
-</style>`}
-                  </pre>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Cart Page CSS */}
-            <Card className="bg-white border border-orange-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Cart Page CSS</h3>
-                  <Button
-                    onClick={() => {
-                      const cartPageCSS = `<style>
-/* Cart to Bookmark Conversion - Cart Page */
-body:not(.hl-builder) .cart-page h1,
-body:not(.hl-builder) .cart-container h1,
-body:not(.hl-builder) [class*="cart-title"] {
-  font-size: 0 !important;
-}
-
-body:not(.hl-builder) .cart-page h1:after,
-body:not(.hl-builder) .cart-container h1:after,
-body:not(.hl-builder) [class*="cart-title"]:after {
-  content: "Your Bookmarks" !important;
-  font-size: 24px !important;
-  font-weight: bold !important;
-}
-
-/* Change add to cart buttons to bookmark buttons */
-body:not(.hl-builder) [class*="add-to-cart"],
-body:not(.hl-builder) button[class*="cart"] {
-  background: #f59e0b !important;
-}
-
-body:not(.hl-builder) [class*="add-to-cart"]:before,
-body:not(.hl-builder) button[class*="cart"]:before {
-  content: "🔖 Add to Bookmarks" !important;
-  font-size: 0 !important;
-}
-</style>`;
-                      navigator.clipboard.writeText(cartPageCSS);
-                    }}
-                    className="bg-orange-600 hover:bg-orange-700 text-white"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy CSS
-                  </Button>
-                </div>
-                
-                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-64 overflow-y-auto">
-                  <pre className="text-sm whitespace-pre-wrap">
-{`<style>
-/* Cart to Bookmark Conversion - Cart Page */
-body:not(.hl-builder) .cart-page h1,
-body:not(.hl-builder) .cart-container h1,
-body:not(.hl-builder) [class*="cart-title"] {
-  font-size: 0 !important;
-}
-
-body:not(.hl-builder) .cart-page h1:after,
-body:not(.hl-builder) .cart-container h1:after,
-body:not(.hl-builder) [class*="cart-title"]:after {
-  content: "Your Bookmarks" !important;
-  font-size: 24px !important;
-  font-weight: bold !important;
-}
-
-/* Change add to cart buttons to bookmark buttons */
-body:not(.hl-builder) [class*="add-to-cart"],
-body:not(.hl-builder) button[class*="cart"] {
-  background: #f59e0b !important;
-}
-
-body:not(.hl-builder) [class*="add-to-cart"]:before,
-body:not(.hl-builder) button[class*="cart"]:before {
-  content: "🔖 Add to Bookmarks" !important;
-  font-size: 0 !important;
-}
-</style>`}
-                  </pre>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </Slide>
-      );
-    }
-
-    return baseSlides;
-  }, [convertCartToBookmarks, directoryName, logoFile, integrationMethod, showPrice, showBuyNowButton, showAddToCartButton, showQuantitySelector, showCartIcon, showDescription, showMetadata, showMaps]);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-    setInputKey(prev => prev + 1); // Force input refresh
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-    setInputKey(prev => prev + 1); // Force input refresh
-  };
-
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-    setInputKey(prev => prev + 1); // Force input refresh
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-25"></div>
+      
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <h1 className="text-xl font-semibold text-gray-900">
-            GoHighLevel Configuration Wizard
-          </h1>
-          
-          {/* Progress indicator */}
-          <div className="flex items-center space-x-2">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  index === currentSlide 
-                    ? 'bg-blue-600' 
-                    : index < currentSlide 
-                      ? 'bg-green-500' 
+      <div className="relative z-10 bg-white/80 backdrop-blur-sm border-b border-white/20">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <Rocket className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">GoHighLevel CSS Generator</h1>
+                <p className="text-sm text-gray-500">Slideshow Configuration Wizard</p>
+              </div>
+            </div>
+
+            {/* Progress Indicators */}
+            <div className="flex items-center space-x-2">
+              {slides.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`w-3 h-3 rounded-full transition-all ${
+                    index === currentSlide
+                      ? 'bg-blue-500 scale-110'
+                      : index < currentSlide
+                      ? 'bg-green-500'
                       : 'bg-gray-300'
-                }`}
-              />
-            ))}
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-hidden">
-        <div className="max-w-6xl mx-auto">
-          {slides[currentSlide]}
-        </div>
+      <div className="relative z-10">
+        {slides[currentSlide]}
       </div>
 
-      {/* Navigation Footer */}
-      <div className="bg-white border-t border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <Button
-            variant="outline"
-            onClick={prevSlide}
-            disabled={currentSlide === 0}
-            className="flex items-center space-x-2"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span>Previous</span>
-          </Button>
-
-          <div className="text-sm text-gray-500">
-            Step {currentSlide + 1} of {slides.length}
-          </div>
-
-          {currentSlide === slides.length - 1 ? (
-            <Button className="flex items-center space-x-2 bg-green-600 hover:bg-green-700">
-              <Download className="w-4 h-4" />
-              <span>Download Code</span>
-            </Button>
-          ) : (
+      {/* Navigation */}
+      <div className="relative z-10 bg-white/80 backdrop-blur-sm border-t border-white/20">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
             <Button
-              onClick={nextSlide}
+              variant="outline"
+              onClick={goToPrevSlide}
+              disabled={currentSlide === 0}
+              className="flex items-center space-x-2"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Previous</span>
+            </Button>
+
+            <div className="flex items-center space-x-4 text-sm text-gray-500">
+              <span>Step {currentSlide + 1} of {slides.length}</span>
+            </div>
+
+            <Button
+              onClick={goToNextSlide}
+              disabled={currentSlide === slides.length - 1}
               className="flex items-center space-x-2"
             >
               <span>Next</span>
               <ChevronRight className="w-4 h-4" />
             </Button>
-          )}
+          </div>
         </div>
       </div>
     </div>
