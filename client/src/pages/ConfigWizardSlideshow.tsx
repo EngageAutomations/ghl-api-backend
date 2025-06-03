@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, Copy, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, Copy, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Check, X } from 'lucide-react';
 
 // Import proven code generation functions from config wizard
 import { parseEmbedCode, ParsedEmbedData } from '@/lib/embed-parser';
@@ -39,8 +40,8 @@ export default function ConfigWizardSlideshow() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   
-  // Form configuration state (copied from config wizard)
-  const [buttonType, setButtonType] = useState<string>('popup');
+  // Form configuration state - exact copy from config wizard
+  const [buttonType, setButtonType] = useState<string>('embed');
   const [formEmbedUrl, setFormEmbedUrl] = useState<string>('');
   const [customFieldName, setCustomFieldName] = useState<string>('listing');
   const [previewColor, setPreviewColor] = useState<string>('#3b82f6');
@@ -52,29 +53,35 @@ export default function ConfigWizardSlideshow() {
   const [headerCodeCopied, setHeaderCodeCopied] = useState<boolean>(false);
   const [footerCodeCopied, setFooterCodeCopied] = useState<boolean>(false);
 
-  // Feature toggles (copied from config wizard)
+  // Component toggles - exact copy from config wizard
+  const [showPrice, setShowPrice] = useState<boolean>(true);
+  const [showBuyNowButton, setShowBuyNowButton] = useState<boolean>(true);
+  const [showAddToCartButton, setShowAddToCartButton] = useState<boolean>(true);
+  const [showQuantitySelector, setShowQuantitySelector] = useState<boolean>(true);
+  const [showCartIcon, setShowCartIcon] = useState<boolean>(true);
   const [showDescription, setShowDescription] = useState<boolean>(false);
   const [showMetadata, setShowMetadata] = useState<boolean>(false);
   const [showMaps, setShowMaps] = useState<boolean>(false);
-  const [showBuyNowButton, setShowBuyNowButton] = useState<boolean>(false);
-  const [showAddToCartButton, setShowAddToCartButton] = useState<boolean>(false);
-  const [showQuantitySelector, setShowQuantitySelector] = useState<boolean>(false);
-
-  // Expanded description settings
-  const [expandedDescriptionContent, setExpandedDescriptionContent] = useState<string>(`<h2>Product Details</h2>
-<p>This is enhanced content that appears below the main product details.</p>
-<p><strong>Key Features:</strong></p>
-<ul>
-  <li>Professional quality and service</li>
-  <li>Local expertise and knowledge</li>
-  <li>Competitive pricing and value</li>
-</ul>`);
-  const [expandedDescFadeIn, setExpandedDescFadeIn] = useState<boolean>(true);
-  const [expandedDescClass, setExpandedDescClass] = useState<string>('expanded-description');
-
-  // Metadata settings
-  const [metadataTextColor, setMetadataTextColor] = useState<string>('#374151');
-  const [metadataFont, setMetadataFont] = useState<string>('system-ui, sans-serif');
+  
+  // Expanded description configuration - exact copy from config wizard
+  const [expandedDescriptionContent, setExpandedDescriptionContent] = useState(`<h2>Product Details</h2>
+<p>This is the default content that will appear on all listings unless you specify custom content for specific URLs.</p>
+<p><strong>To add custom content for specific listings:</strong></p>
+<ol>
+  <li>Edit the expandedDescriptions object in the generated code</li>
+  <li>Add entries like: <code>'your-listing-slug': '&lt;h2&gt;Custom Content&lt;/h2&gt;&lt;p&gt;Specific details...&lt;/p&gt;'</code></li>
+  <li>The system will automatically show the right content based on the URL</li>
+</ol>
+<p>This expanded description appears below the main product details and provides additional space for comprehensive information that helps customers make informed decisions.</p>`);
+  const [expandedDescFadeIn, setExpandedDescFadeIn] = useState(true);
+  const [expandedDescClass, setExpandedDescClass] = useState('expanded-description');
+  
+  // Button text state
+  const [buttonText, setButtonText] = useState('Get More Info');
+  
+  // Metadata bar configuration - exact copy from config wizard
+  const [metadataTextColor, setMetadataTextColor] = useState('#374151');
+  const [metadataFont, setMetadataFont] = useState('system-ui, sans-serif');
   const [metadataFields, setMetadataFields] = useState<MetadataField[]>([
     {
       id: 'phone',
@@ -102,7 +109,7 @@ export default function ConfigWizardSlideshow() {
     }
   ]);
 
-  // Parse embed code for popup dimensions (copied from config wizard)
+  // Parse embed code for popup dimensions - exact copy from config wizard
   const parsedEmbedData = useMemo(() => {
     if (buttonType === 'popup' && formEmbedUrl) {
       return parseEmbedCode(formEmbedUrl);
@@ -110,7 +117,7 @@ export default function ConfigWizardSlideshow() {
     return null;
   }, [buttonType, formEmbedUrl]);
 
-  // Generate custom action button popup code (copied from config wizard)
+  // Generate custom action button popup code - exact copy from config wizard
   const generateFullPopupCode = () => {
     if (buttonType === 'popup' && formEmbedUrl) {
       const result = generateActionButtonPopup({
@@ -135,7 +142,7 @@ export default function ConfigWizardSlideshow() {
     return { headerCode: '', footerCode: '' };
   };
 
-  // Extract form URL from iframe embed code (copied from config wizard)
+  // Extract form URL from iframe embed code - exact copy from config wizard
   const extractFormUrl = (embedCode: string) => {
     if (!embedCode) return '';
     
@@ -156,7 +163,7 @@ export default function ConfigWizardSlideshow() {
     return embedCode;
   };
 
-  // Generate code based on selection (copied from config wizard)
+  // Generate code based on selection - exact copy from config wizard
   const generateCodeForSelection = () => {
     if (formEmbedUrl && formEmbedUrl.trim()) {
       if (buttonType === 'popup') {
@@ -237,7 +244,8 @@ export default function ConfigWizardSlideshow() {
         };
       }
     } else {
-      // Default directory listing template when no form URL is provided
+      // Generate directory listing template when no form URL is provided
+      // Generate expanded description code if enabled
       const expandedDescCode = generateExpandedDescriptionCode({
         enabled: showDescription,
         content: expandedDescriptionContent,
@@ -245,6 +253,7 @@ export default function ConfigWizardSlideshow() {
         customClass: expandedDescClass
       });
 
+      // Generate metadata bar code if enabled
       const metadataCode = generateMetadataBarCode({
         enabled: showMetadata,
         position: 'bottom',
@@ -258,16 +267,14 @@ export default function ConfigWizardSlideshow() {
       });
 
       return {
-        headerCode: `<style>
-/* GoHighLevel Directory Listing Enhancements */
+        headerCode: `/* Directory Listing CSS */
 .ghl-listing-button {
   background-color: ${previewColor};
   color: ${previewTextColor};
   border-radius: ${previewBorderRadius}px;
   padding: 0.5rem 1rem;
   transition: all 0.2s ease;
-}
-</style>` + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
+}` + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
     (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
         footerCode: `<script>
 // Directory Integration Script
@@ -276,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
   forms.forEach(form => {
     const hiddenField = document.createElement('input');
     hiddenField.type = 'hidden';
-    hiddenField.name = '${customFieldName}';
+    hiddenField.name = '${customFieldName || 'listing'}';
     hiddenField.value = window.location.pathname.split('/').pop();
     form.appendChild(hiddenField);
   });
@@ -287,21 +294,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  // Copy to clipboard helper
-  const copyToClipboard = async (text: string, setCopied: (value: boolean) => void) => {
+  const generatedCode = useMemo(() => generateCodeForSelection(), [
+    formEmbedUrl, 
+    buttonType, 
+    customFieldName, 
+    previewBorderRadius, 
+    previewColor, 
+    previewTextColor,
+    showPrice,
+    showBuyNowButton,
+    showAddToCartButton,
+    showQuantitySelector,
+    showDescription,
+    expandedDescriptionContent,
+    expandedDescFadeIn,
+    expandedDescClass,
+    showMetadata,
+    metadataTextColor,
+    metadataFont,
+    metadataFields
+  ]);
+
+  // Helper function for copying text with visual feedback - exact copy from config wizard
+  const copyToClipboard = async (text: string, setCopiedState: (value: boolean) => void) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedState(true);
+      setTimeout(() => setCopiedState(false), 2000);
     } catch (err) {
-      console.error('Failed to copy text: ', err);
+      console.error('Failed to copy:', err);
+      // Fallback method
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopiedState(true);
+      setTimeout(() => setCopiedState(false), 2000);
     }
   };
-
-  // Generate final code
-  const generatedCode = useMemo(() => {
-    return generateCodeForSelection();
-  }, [buttonType, formEmbedUrl, customFieldName, previewColor, previewTextColor, previewBorderRadius, showDescription, showMetadata, showMaps, showBuyNowButton, showAddToCartButton, showQuantitySelector, expandedDescriptionContent, expandedDescFadeIn, expandedDescClass, metadataFields, metadataTextColor, metadataFont]);
 
   // File upload handlers
   const handleDrop = (e: React.DragEvent) => {
@@ -313,146 +345,152 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (imageFile) {
       setLogoFile(imageFile);
-      const url = URL.createObjectURL(imageFile);
-      setLogoUrl(url);
+      setLogoUrl(URL.createObjectURL(imageFile));
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setLogoFile(file);
-      const url = URL.createObjectURL(file);
-      setLogoUrl(url);
-    }
-  };
-
-  const handleDragEvents = (e: React.DragEvent, isDragOver: boolean) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragOver(isDragOver);
+    setIsDragOver(true);
   };
 
-  // Navigation handlers
-  const goToNextSlide = () => {
-    if (currentSlide < slides.length - 1) {
-      setCurrentSlide(prev => prev + 1);
-    }
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
   };
 
-  const goToPrevSlide = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(prev => prev - 1);
-    }
+  // Slide navigation
+  const nextSlide = () => {
+    setCurrentSlide(prev => Math.min(prev + 1, totalSlides - 1));
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide(prev => Math.max(prev - 1, 0));
   };
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
   };
 
-  // Define slides
+  const totalSlides = 6;
+
   const slides = [
-    // Slide 1: Welcome
-    <Slide key="welcome">
+    // Slide 1: Google Drive Connection
+    <Slide key={0}>
       <div className="text-center space-y-6">
-        <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
-          <Rocket className="w-10 h-10 text-white" />
-        </div>
-        <div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome to GoHighLevel CSS Generator</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Create professional directory listings with advanced form integration, 
-            enhanced UI elements, and custom styling options.
-          </p>
-        </div>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl mx-auto">
-          <h3 className="font-semibold text-blue-900 mb-2">What You'll Build:</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-blue-800">
-            <div className="flex items-center space-x-2">
-              <Code className="w-4 h-4" />
-              <span>Action Button Popups</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <FileText className="w-4 h-4" />
-              <span>Embedded Forms</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <MapPin className="w-4 h-4" />
-              <span>Metadata Bars with Maps</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <AlignLeft className="w-4 h-4" />
-              <span>Expanded Descriptions</span>
-            </div>
+        <div className="flex items-center justify-center mb-8">
+          <div className="bg-blue-500 text-white p-4 rounded-full mr-4">
+            <FolderOpen className="w-8 h-8" />
           </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Connect Google Drive</h1>
+            <p className="text-lg text-slate-600">Secure storage for your directory images</p>
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto space-y-6">
+          {!googleDriveConnected ? (
+            <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 bg-slate-50">
+              <div className="text-center">
+                <div className="bg-blue-100 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+                  <svg className="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">Connect Your Google Drive</h3>
+                <p className="text-slate-600 mb-6">
+                  Store and manage your directory images with Google Drive integration. Your images will be saved in a dedicated "Directory Images" folder.
+                </p>
+                <Button 
+                  onClick={() => setGoogleDriveConnected(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+                >
+                  <ExternalLink className="w-5 h-5 mr-2" />
+                  Connect Google Drive
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+              <div className="flex items-center justify-center">
+                <div className="bg-green-100 p-3 rounded-full mr-4">
+                  <Check className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-green-800">Google Drive Connected</h3>
+                  <p className="text-green-700">Your images will be stored in the "Directory Images" folder</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Slide>,
 
     // Slide 2: Directory Setup
-    <Slide key="directory-setup">
+    <Slide key={1}>
       <div className="space-y-6">
-        <div className="text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-xl flex items-center justify-center mb-4">
-            <Building2 className="w-8 h-8 text-white" />
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-purple-500 text-white p-4 rounded-full mr-4">
+              <Building2 className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Directory Setup</h1>
+              <p className="text-lg text-slate-600">Configure your directory information</p>
+            </div>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Directory Information</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Set up your directory name and logo to personalize your listings.
-          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Directory Name */}
+        <div className="max-w-2xl mx-auto space-y-6">
           <div className="space-y-4">
-            <Label htmlFor="directory-name" className="text-sm font-medium">Directory Name</Label>
-            <Input
-              id="directory-name"
-              placeholder="My Business Directory"
-              value={directoryName}
-              onChange={(e) => setDirectoryName(e.target.value)}
-              className="w-full"
-            />
-            <p className="text-sm text-gray-500">This will appear in your generated code as a reference.</p>
-          </div>
-
-          {/* Logo Upload */}
-          <div className="space-y-4">
-            <Label className="text-sm font-medium">Directory Logo</Label>
-            <div
-              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                isDragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300'
-              }`}
-              onDrop={handleDrop}
-              onDragOver={(e) => handleDragEvents(e, true)}
-              onDragLeave={(e) => handleDragEvents(e, false)}
-            >
-              {logoFile ? (
-                <div className="space-y-2">
-                  <img src={logoUrl} alt="Logo preview" className="mx-auto h-16 w-16 object-cover rounded" />
-                  <p className="text-sm text-gray-600">{logoFile.name}</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="text-sm text-gray-600">Drop an image here or click to browse</p>
-                </div>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-                id="logo-upload"
+            <div className="space-y-2">
+              <Label htmlFor="directory-name" className="text-lg font-medium">Directory Name</Label>
+              <Input
+                id="directory-name"
+                placeholder="My Business Directory"
+                value={directoryName}
+                onChange={(e) => setDirectoryName(e.target.value)}
+                className="text-lg p-4"
               />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="mt-2"
-                onClick={() => document.getElementById('logo-upload')?.click()}
+              <p className="text-slate-500">Give your directory a memorable name for organization</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-lg font-medium">Logo Upload</Label>
+              <div 
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                  isDragOver ? 'border-blue-400 bg-blue-50' : 'border-slate-300 bg-slate-50'
+                }`}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
               >
-                Choose File
-              </Button>
+                {logoUrl ? (
+                  <div className="space-y-4">
+                    <img src={logoUrl} alt="Logo preview" className="max-w-32 max-h-32 mx-auto rounded-lg" />
+                    <p className="text-slate-600">Logo uploaded successfully</p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setLogoUrl('');
+                        setLogoFile(null);
+                      }}
+                    >
+                      Remove Logo
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <Upload className="w-12 h-12 text-slate-400 mx-auto" />
+                    <div>
+                      <p className="text-lg font-medium text-slate-700">Drop your logo here</p>
+                      <p className="text-slate-500">or click to browse files</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -460,424 +498,489 @@ document.addEventListener('DOMContentLoaded', function() {
     </Slide>,
 
     // Slide 3: Integration Method
-    <Slide key="integration-method">
+    <Slide key={2}>
       <div className="space-y-6">
-        <div className="text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-4">
-            <Settings className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Choose Integration Method</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Select how you want to integrate GoHighLevel forms into your directory listings.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
-          <div 
-            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-              buttonType === 'popup' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300'
-            }`}
-            onClick={() => setButtonType('popup')}
-          >
-            <div className="flex items-center space-x-3">
-              <div className="bg-blue-500 text-white p-2 rounded-md">
-                <ExternalLink className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-medium">Action Button (Popup)</h3>
-                <p className="text-sm text-gray-500">Opens form in a popup overlay</p>
-              </div>
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-green-500 text-white p-4 rounded-full mr-4">
+              <Settings className="w-8 h-8" />
             </div>
-          </div>
-
-          <div 
-            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-              buttonType === 'embed' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
-            }`}
-            onClick={() => setButtonType('embed')}
-          >
-            <div className="flex items-center space-x-3">
-              <div className="bg-green-500 text-white p-2 rounded-md">
-                <Code className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-medium">Embedded Form</h3>
-                <p className="text-sm text-gray-500">Shows form directly on page</p>
-              </div>
-            </div>
-          </div>
-
-          <div 
-            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-              buttonType === 'redirect' ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white hover:border-gray-300'
-            }`}
-            onClick={() => setButtonType('redirect')}
-          >
-            <div className="flex items-center space-x-3">
-              <div className="bg-orange-500 text-white p-2 rounded-md">
-                <ExternalLink className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-medium">Redirect Button</h3>
-                <p className="text-sm text-gray-500">Redirects to external form</p>
-              </div>
-            </div>
-          </div>
-
-          <div 
-            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-              buttonType === 'download' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white hover:border-gray-300'
-            }`}
-            onClick={() => setButtonType('download')}
-          >
-            <div className="flex items-center space-x-3">
-              <div className="bg-purple-500 text-white p-2 rounded-md">
-                <Download className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-medium">Download Link</h3>
-                <p className="text-sm text-gray-500">Triggers file download</p>
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Choose Integration Method</h1>
+              <p className="text-lg text-slate-600">Select how you want to integrate GoHighLevel forms</p>
             </div>
           </div>
         </div>
 
-        {/* Form URL Input */}
-        <div className="max-w-2xl mx-auto space-y-4">
-          <Label htmlFor="form-url" className="text-sm font-medium">
-            {buttonType === 'popup' ? 'GoHighLevel Form URL or Embed Code' : 
-             buttonType === 'embed' ? 'GoHighLevel Form URL or Embed Code' :
-             buttonType === 'redirect' ? 'External Form URL' :
-             'Download File URL'}
-          </Label>
-          <Input
-            id="form-url"
-            placeholder={
-              buttonType === 'popup' ? 'Paste your GoHighLevel iframe embed code or form URL' :
-              buttonType === 'embed' ? 'Paste your GoHighLevel iframe embed code or form URL' :
-              buttonType === 'redirect' ? 'https://your-external-form.com' :
-              'https://your-download-link.com/file.pdf'
-            }
-            value={formEmbedUrl}
-            onChange={(e) => setFormEmbedUrl(e.target.value)}
-            className="w-full"
-          />
-          <p className="text-sm text-gray-500">
-            {buttonType === 'popup' || buttonType === 'embed' 
-              ? 'You can paste either the full iframe embed code or just the form URL.'
-              : 'Enter the complete URL where users should be redirected.'
-            }
-          </p>
-        </div>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div 
+              className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                buttonType === 'popup' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'
+              }`}
+              onClick={() => setButtonType('popup')}
+            >
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-500 text-white p-2 rounded-md">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium">Action Button (Popup)</h3>
+                  <p className="text-sm text-slate-500">Opens form in a popup overlay</p>
+                </div>
+              </div>
+            </div>
 
-        {/* Custom Field Name */}
-        <div className="max-w-2xl mx-auto space-y-4">
-          <Label htmlFor="field-name" className="text-sm font-medium">Custom Field Name</Label>
-          <Input
-            id="field-name"
-            placeholder="listing"
-            value={customFieldName}
-            onChange={(e) => setCustomFieldName(e.target.value)}
-            className="w-full"
-          />
-          <p className="text-sm text-gray-500">
-            This field will automatically capture the listing identifier for tracking purposes.
-          </p>
+            <div 
+              className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                buttonType === 'redirect' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'
+              }`}
+              onClick={() => setButtonType('redirect')}
+            >
+              <div className="flex items-center space-x-3">
+                <div className="bg-green-500 text-white p-2 rounded-md">
+                  <ExternalLink className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-medium">Action Button (Redirect)</h3>
+                  <p className="text-sm text-slate-500">Redirects to external form page</p>
+                </div>
+              </div>
+            </div>
+
+            <div 
+              className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                buttonType === 'download' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'
+              }`}
+              onClick={() => setButtonType('download')}
+            >
+              <div className="flex items-center space-x-3">
+                <div className="bg-orange-500 text-white p-2 rounded-md">
+                  <Download className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-medium">Action Button (Download)</h3>
+                  <p className="text-sm text-slate-500">Downloads file directly</p>
+                </div>
+              </div>
+            </div>
+
+            <div 
+              className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                buttonType === 'embed' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'
+              }`}
+              onClick={() => setButtonType('embed')}
+            >
+              <div className="flex items-center space-x-3">
+                <div className="bg-purple-500 text-white p-2 rounded-md">
+                  <Code className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-medium">Embedded Form</h3>
+                  <p className="text-sm text-slate-500">Displays form directly on page</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Form Configuration - Only show for popup and embed */}
+          {(buttonType === 'popup' || buttonType === 'embed') && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="form-embed">
+                  {buttonType === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
+                </Label>
+                <Textarea
+                  id="form-embed"
+                  placeholder={buttonType === 'popup' 
+                    ? '<iframe src="https://link.msgsndr.com/form/..." width="500" height="600"></iframe>'
+                    : 'Paste your GoHighLevel form embed code here...'
+                  }
+                  value={formEmbedUrl}
+                  onChange={(e) => setFormEmbedUrl(e.target.value)}
+                  className="min-h-[100px]"
+                />
+                {buttonType === 'popup' && parsedEmbedData && (
+                  <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
+                    ✓ Form detected: {parsedEmbedData.width}×{parsedEmbedData.height}px 
+                    → Popup will be {parsedEmbedData.width + 100}×{parsedEmbedData.height + 100}px (+100px spacing)
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="custom-field">Custom Field Name</Label>
+                <Input
+                  id="custom-field"
+                  placeholder="listing"
+                  value={customFieldName}
+                  onChange={(e) => setCustomFieldName(e.target.value)}
+                />
+                <p className="text-sm text-slate-500">
+                  This field will be automatically populated with the current page/listing identifier
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Slide>,
 
-    // Slide 4: Feature Options
-    <Slide key="feature-options">
+    // Slide 4: Styling & Features
+    <Slide key={3}>
       <div className="space-y-6">
-        <div className="text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mb-4">
-            <Hash className="w-8 h-8 text-white" />
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-orange-500 text-white p-4 rounded-full mr-4">
+              <Settings className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Styling & Features</h1>
+              <p className="text-lg text-slate-600">Customize appearance and enable features</p>
+            </div>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Feature Options</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Enable additional features to enhance your directory listings.
-          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {/* Enhanced Description */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Feature Toggles */}
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold text-slate-900">Features</h3>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <AlignLeft className="w-5 h-5 text-blue-500" />
-                  <h3 className="font-medium">Enhanced Description</h3>
+                  <AlignLeft className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Expanded Description</Label>
+                    <p className="text-sm text-slate-500">Add detailed content below listings</p>
+                  </div>
                 </div>
                 <Switch
                   checked={showDescription}
                   onCheckedChange={setShowDescription}
                 />
               </div>
-              <p className="text-sm text-gray-500 mb-3">
-                Add expandable content sections below listings
-              </p>
-              {showDescription && (
-                <div className="text-sm text-green-600">
-                  ✓ Enhanced content will be added
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
-          {/* Metadata Bar */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <Hash className="w-5 h-5 text-green-500" />
-                  <h3 className="font-medium">Metadata Bar</h3>
+                  <Hash className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Metadata Bar</Label>
+                    <p className="text-sm text-slate-500">Show contact info and details</p>
+                  </div>
                 </div>
                 <Switch
                   checked={showMetadata}
                   onCheckedChange={setShowMetadata}
                 />
               </div>
-              <p className="text-sm text-gray-500 mb-3">
-                Display contact info, hours, and location
-              </p>
-              {showMetadata && (
-                <div className="text-sm text-green-600">
-                  ✓ Contact info bar will be added
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
-          {/* Google Maps */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <MapPin className="w-5 h-5 text-red-500" />
-                  <h3 className="font-medium">Google Maps</h3>
+                  <MapPin className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Maps Integration</Label>
+                    <p className="text-sm text-slate-500">Enable location mapping</p>
+                  </div>
                 </div>
                 <Switch
                   checked={showMaps}
                   onCheckedChange={setShowMaps}
                 />
               </div>
-              <p className="text-sm text-gray-500 mb-3">
-                Enable location-based mapping features
-              </p>
-              {showMaps && (
-                <div className="text-sm text-green-600">
-                  ✓ Maps integration will be added
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
-          {/* E-commerce Options */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <ShoppingBag className="w-5 h-5 text-purple-500" />
-                  <h3 className="font-medium">Buy Now Button</h3>
+                  <ShoppingBag className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Buy Now Button</Label>
+                    <p className="text-sm text-slate-500">Add purchase functionality</p>
+                  </div>
                 </div>
                 <Switch
                   checked={showBuyNowButton}
                   onCheckedChange={setShowBuyNowButton}
                 />
               </div>
-              <p className="text-sm text-gray-500 mb-3">
-                Show/hide buy now buttons on listings
-              </p>
-              {showBuyNowButton && (
-                <div className="text-sm text-green-600">
-                  ✓ Buy now buttons will be visible
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <ShoppingCart className="w-5 h-5 text-indigo-500" />
-                  <h3 className="font-medium">Add to Cart</h3>
+                  <ShoppingCart className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Add to Cart Button</Label>
+                    <p className="text-sm text-slate-500">Enable cart functionality</p>
+                  </div>
                 </div>
                 <Switch
                   checked={showAddToCartButton}
                   onCheckedChange={setShowAddToCartButton}
                 />
               </div>
-              <p className="text-sm text-gray-500 mb-3">
-                Show/hide add to cart functionality
-              </p>
-              {showAddToCartButton && (
-                <div className="text-sm text-green-600">
-                  ✓ Add to cart buttons will be visible
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <Hash className="w-5 h-5 text-yellow-500" />
-                  <h3 className="font-medium">Quantity Selector</h3>
+                  <Hash className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Quantity Selector</Label>
+                    <p className="text-sm text-slate-500">Allow quantity selection</p>
+                  </div>
                 </div>
                 <Switch
                   checked={showQuantitySelector}
                   onCheckedChange={setShowQuantitySelector}
                 />
               </div>
-              <p className="text-sm text-gray-500 mb-3">
-                Show/hide quantity selection controls
-              </p>
-              {showQuantitySelector && (
-                <div className="text-sm text-green-600">
-                  ✓ Quantity selectors will be visible
+            </div>
+          </div>
+
+          {/* Styling Options */}
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold text-slate-900">Styling</h3>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Button Color</Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="color"
+                    value={previewColor}
+                    onChange={(e) => setPreviewColor(e.target.value)}
+                    className="w-12 h-12 p-1 rounded border"
+                  />
+                  <Input
+                    value={previewColor}
+                    onChange={(e) => setPreviewColor(e.target.value)}
+                    placeholder="#3b82f6"
+                  />
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Text Color</Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="color"
+                    value={previewTextColor}
+                    onChange={(e) => setPreviewTextColor(e.target.value)}
+                    className="w-12 h-12 p-1 rounded border"
+                  />
+                  <Input
+                    value={previewTextColor}
+                    onChange={(e) => setPreviewTextColor(e.target.value)}
+                    placeholder="#ffffff"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Border Radius: {previewBorderRadius}px</Label>
+                <input
+                  type="range"
+                  min="0"
+                  max="24"
+                  value={previewBorderRadius}
+                  onChange={(e) => setPreviewBorderRadius(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Preview */}
+              <div className="border border-slate-200 rounded-lg p-4">
+                <Label className="text-sm text-slate-600 mb-2 block">Preview</Label>
+                <button
+                  style={{
+                    backgroundColor: previewColor,
+                    color: previewTextColor,
+                    borderRadius: `${previewBorderRadius}px`
+                  }}
+                  className="px-6 py-3 font-medium transition-opacity hover:opacity-90"
+                >
+                  Get More Info
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </Slide>,
 
     // Slide 5: Generated Code
-    <Slide key="generated-code">
+    <Slide key={4}>
       <div className="space-y-6">
-        <div className="text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center mb-4">
-            <Code className="w-8 h-8 text-white" />
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-green-500 text-white p-4 rounded-full mr-4">
+              <Code className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Generated Code</h1>
+              <p className="text-lg text-slate-600">Copy and paste into your website</p>
+            </div>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Generated Code</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Your custom CSS and JavaScript code is ready. Copy these snippets to your GoHighLevel pages.
-          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
-          {/* Header Code */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-medium flex items-center space-x-2">
-                  <FileText className="w-5 h-5" />
-                  <span>Header Code (CSS)</span>
-                </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(generatedCode.headerCode, setHeaderCodeCopied)}
-                  className="flex items-center space-x-2"
-                >
-                  <Copy className="w-4 h-4" />
-                  <span>{headerCodeCopied ? 'Copied!' : 'Copy'}</span>
-                </Button>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <pre className="text-sm overflow-x-auto max-h-96 whitespace-pre-wrap">
-                  <code>{generatedCode.headerCode}</code>
-                </pre>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                Paste this code in the Header Tracking Code section of your GoHighLevel page.
-              </p>
-            </CardContent>
-          </Card>
+        <div className="space-y-6">
+          {/* Header/CSS Code */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-lg font-medium">Header Code (CSS)</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyToClipboard(generatedCode.headerCode, setHeaderCodeCopied)}
+                className="flex items-center space-x-2"
+              >
+                {headerCodeCopied ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-600" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </Button>
+            </div>
+            <Textarea
+              value={generatedCode.headerCode}
+              readOnly
+              className="min-h-[200px] font-mono text-sm bg-slate-50"
+            />
+          </div>
 
-          {/* Footer Code */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-medium flex items-center space-x-2">
-                  <Code className="w-5 h-5" />
-                  <span>Footer Code (JavaScript)</span>
-                </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(generatedCode.footerCode, setFooterCodeCopied)}
-                  className="flex items-center space-x-2"
-                >
-                  <Copy className="w-4 h-4" />
-                  <span>{footerCodeCopied ? 'Copied!' : 'Copy'}</span>
-                </Button>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <pre className="text-sm overflow-x-auto max-h-96 whitespace-pre-wrap">
-                  <code>{generatedCode.footerCode}</code>
-                </pre>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                Paste this code in the Footer Tracking Code section of your GoHighLevel page.
-              </p>
-            </CardContent>
-          </Card>
+          {/* Footer/JS Code */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-lg font-medium">Footer Code (JavaScript)</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyToClipboard(generatedCode.footerCode, setFooterCodeCopied)}
+                className="flex items-center space-x-2"
+              >
+                {footerCodeCopied ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-600" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </Button>
+            </div>
+            <Textarea
+              value={generatedCode.footerCode}
+              readOnly
+              className="min-h-[200px] font-mono text-sm bg-slate-50"
+            />
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 6: Summary
+    <Slide key={5}>
+      <div className="text-center space-y-6">
+        <div className="flex items-center justify-center mb-8">
+          <div className="bg-green-500 text-white p-4 rounded-full mr-4">
+            <Rocket className="w-8 h-8" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Setup Complete!</h1>
+            <p className="text-lg text-slate-600">Your GoHighLevel integration is ready</p>
+          </div>
         </div>
 
-        {/* Configuration Summary */}
-        <Card className="max-w-4xl mx-auto">
-          <CardContent className="p-6">
-            <h3 className="font-medium mb-4">Configuration Summary</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <span className="text-gray-500">Directory:</span>
-                <div className="font-medium">{directoryName || 'Not specified'}</div>
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-green-800 mb-4">Configuration Summary</h3>
+            <div className="space-y-3 text-left">
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Directory Name:</span>
+                <span className="font-medium text-green-800">{directoryName || 'Not specified'}</span>
               </div>
-              <div>
-                <span className="text-gray-500">Integration:</span>
-                <div className="font-medium capitalize">{buttonType}</div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Integration Method:</span>
+                <span className="font-medium text-green-800 capitalize">{buttonType}</span>
               </div>
-              <div>
-                <span className="text-gray-500">Enhanced Description:</span>
-                <div className="font-medium">{showDescription ? 'Enabled' : 'Disabled'}</div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Google Drive:</span>
+                <span className="font-medium text-green-800">{googleDriveConnected ? 'Connected' : 'Not connected'}</span>
               </div>
-              <div>
-                <span className="text-gray-500">Metadata Bar:</span>
-                <div className="font-medium">{showMetadata ? 'Enabled' : 'Disabled'}</div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Expanded Description:</span>
+                <span className="font-medium text-green-800">{showDescription ? 'Enabled' : 'Disabled'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Metadata Bar:</span>
+                <span className="font-medium text-green-800">{showMetadata ? 'Enabled' : 'Disabled'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Maps:</span>
+                <span className="font-medium text-green-800">{showMaps ? 'Enabled' : 'Disabled'}</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-blue-800 mb-2">Next Steps</h3>
+            <ol className="text-left text-blue-700 space-y-2">
+              <li>1. Copy the header code to your website's &lt;head&gt; section</li>
+              <li>2. Copy the footer code before your closing &lt;/body&gt; tag</li>
+              <li>3. Test your integration on a live page</li>
+              <li>4. Customize content for specific listings as needed</li>
+            </ol>
+          </div>
+
+          <Button 
+            onClick={() => goToSlide(4)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+          >
+            <Code className="w-5 h-5 mr-2" />
+            View Generated Code
+          </Button>
+        </div>
       </div>
     </Slide>
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-25"></div>
-      
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
-      <div className="relative z-10 bg-white/80 backdrop-blur-sm border-b border-white/20">
+      <div className="bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Rocket className="w-6 h-6 text-white" />
+              <div className="bg-blue-600 text-white p-2 rounded-lg">
+                <Rocket className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">GoHighLevel CSS Generator</h1>
-                <p className="text-sm text-gray-500">Slideshow Configuration Wizard</p>
+                <h1 className="text-xl font-bold text-slate-900">GoHighLevel Integration Wizard</h1>
+                <p className="text-slate-600">Step {currentSlide + 1} of {totalSlides}</p>
               </div>
             </div>
-
-            {/* Progress Indicators */}
+            
+            {/* Progress bar */}
             <div className="flex items-center space-x-2">
-              {slides.map((_, index) => (
+              {Array.from({ length: totalSlides }, (_, index) => (
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
-                  className={`w-3 h-3 rounded-full transition-all ${
-                    index === currentSlide
-                      ? 'bg-blue-500 scale-110'
-                      : index < currentSlide
-                      ? 'bg-green-500'
-                      : 'bg-gray-300'
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    index === currentSlide 
+                      ? 'bg-blue-600' 
+                      : index < currentSlide 
+                        ? 'bg-green-500' 
+                        : 'bg-slate-300'
                   }`}
                 />
               ))}
@@ -886,38 +989,38 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="relative z-10">
+      {/* Slide Content */}
+      <div className="flex-1">
         {slides[currentSlide]}
       </div>
 
       {/* Navigation */}
-      <div className="relative z-10 bg-white/80 backdrop-blur-sm border-t border-white/20">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              onClick={goToPrevSlide}
-              disabled={currentSlide === 0}
-              className="flex items-center space-x-2"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span>Previous</span>
-            </Button>
+      <div className="bg-white border-t border-slate-200 p-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <Button
+            variant="outline"
+            onClick={prevSlide}
+            disabled={currentSlide === 0}
+            className="flex items-center space-x-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Previous</span>
+          </Button>
 
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <span>Step {currentSlide + 1} of {slides.length}</span>
-            </div>
-
-            <Button
-              onClick={goToNextSlide}
-              disabled={currentSlide === slides.length - 1}
-              className="flex items-center space-x-2"
-            >
-              <span>Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-slate-600">
+              {currentSlide + 1} of {totalSlides}
+            </span>
           </div>
+
+          <Button
+            onClick={nextSlide}
+            disabled={currentSlide === totalSlides - 1}
+            className="flex items-center space-x-2"
+          >
+            <span>Next</span>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
         </div>
       </div>
     </div>
