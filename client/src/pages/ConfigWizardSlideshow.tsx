@@ -646,27 +646,27 @@ document.addEventListener('DOMContentLoaded', function() {
             </Button>
 
             <Button
-              variant={buttonType === 'embed' ? 'default' : 'outline'}
+              variant={buttonType === 'popup' ? 'default' : 'outline'}
               className={`h-auto p-4 justify-start overflow-hidden ${
-                buttonType === 'embed' ? 'bg-purple-50 border-purple-500 text-purple-900 hover:bg-purple-100' : 'hover:border-slate-400'
+                buttonType === 'popup' ? 'bg-purple-50 border-purple-500 text-purple-900 hover:bg-purple-100' : 'hover:border-slate-400'
               }`}
-              onClick={() => setButtonType('embed')}
+              onClick={() => setButtonType('popup')}
             >
               <div className="flex items-start space-x-3 w-full min-w-0">
                 <div className="bg-purple-500 text-white p-2 rounded-md flex-shrink-0">
                   <Code className="w-4 h-4" />
                 </div>
                 <div className="text-left min-w-0 flex-1">
-                  <h3 className="font-medium text-sm leading-tight">Embedded Form</h3>
-                  <p className="text-xs text-slate-500 leading-tight mt-1">Displays form directly on page</p>
+                  <h3 className="font-medium text-sm leading-tight">Popup Form</h3>
+                  <p className="text-xs text-slate-500 leading-tight mt-1">Opens form in modal popup</p>
                 </div>
               </div>
             </Button>
             </div>
           </div>
 
-          {/* Form Configuration - Only show for popup and embed */}
-          {(buttonType === 'popup' || buttonType === 'embed') && (
+          {/* Form Configuration - Only show for popup */}
+          {buttonType === 'popup' && (
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="form-embed">
