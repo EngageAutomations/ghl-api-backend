@@ -513,8 +513,9 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
 
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 justify-items-center">
+              <Button
               variant={buttonType === 'popup' ? 'default' : 'outline'}
               className={`h-auto p-4 justify-start overflow-hidden ${
                 buttonType === 'popup' ? 'bg-blue-50 border-blue-500 text-blue-900 hover:bg-blue-100' : 'hover:border-slate-400'
@@ -589,6 +590,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
               </div>
             </Button>
+            </div>
           </div>
 
           {/* Form Configuration - Only show for popup and embed */}
