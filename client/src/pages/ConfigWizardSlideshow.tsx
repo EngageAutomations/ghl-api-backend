@@ -372,7 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setCurrentSlide(index);
   };
 
-  const totalSlides = 6;
+  const totalSlides = 8;
 
   const slides = [
     // Slide 1: Google Drive Connection
@@ -808,23 +808,22 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     </Slide>,
 
-    // Slide 5: Generated Code
+    // Slide 5: CSS Code
     <Slide key={4}>
       <div className="space-y-6">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="bg-green-500 text-white p-4 rounded-full mr-4">
+            <div className="bg-blue-500 text-white p-4 rounded-full mr-4">
               <Code className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Generated Code</h1>
-              <p className="text-lg text-slate-600">Copy and paste into your website</p>
+              <h1 className="text-3xl font-bold text-slate-900">CSS Code</h1>
+              <p className="text-lg text-slate-600">Add to Custom CSS section in GoHighLevel</p>
             </div>
           </div>
         </div>
 
         <div className="space-y-6">
-          {/* CSS Code Section */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-lg font-medium">CSS Code (Add to Custom CSS section)</Label>
@@ -1085,8 +1084,26 @@ body:not(.hl-builder) .quantity-container {
               </pre>
             </div>
           </div>
+        </div>
+      </div>
+    </Slide>,
 
-          {/* Header Code */}
+    // Slide 6: Header Code
+    <Slide key={5}>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-purple-500 text-white p-4 rounded-full mr-4">
+              <FileText className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Header Code</h1>
+              <p className="text-lg text-slate-600">Add to &lt;head&gt; section of your website</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-lg font-medium">Header Code (Add to &lt;head&gt; section)</Label>
@@ -1113,8 +1130,26 @@ body:not(.hl-builder) .quantity-container {
               <pre className="text-sm whitespace-pre-wrap">{generatedCode.headerCode}</pre>
             </div>
           </div>
+        </div>
+      </div>
+    </Slide>,
 
-          {/* Footer Code */}
+    // Slide 7: Footer Code
+    <Slide key={6}>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-orange-500 text-white p-4 rounded-full mr-4">
+              <Code className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Footer Code</h1>
+              <p className="text-lg text-slate-600">Add before &lt;/body&gt; tag on your website</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-lg font-medium">Footer Code (Add before &lt;/body&gt; tag)</Label>
@@ -1145,8 +1180,8 @@ body:not(.hl-builder) .quantity-container {
       </div>
     </Slide>,
 
-    // Slide 6: Summary
-    <Slide key={5}>
+    // Slide 8: Summary
+    <Slide key={7}>
       <div className="text-center space-y-6">
         <div className="flex items-center justify-center mb-8">
           <div className="bg-green-500 text-white p-4 rounded-full mr-4">
@@ -1204,7 +1239,7 @@ body:not(.hl-builder) .quantity-container {
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
           >
             <Code className="w-5 h-5 mr-2" />
-            View Generated Code
+            View CSS Code
           </Button>
         </div>
       </div>
