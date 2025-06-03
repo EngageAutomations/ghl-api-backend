@@ -995,7 +995,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                 )}
               </Button>
             </div>
-            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
+            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-80 overflow-auto">
               <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
 {`<style>
 /* GoHighLevel Essential Fixes - Always Applied */
@@ -1126,7 +1126,7 @@ body:not(.hl-builder) .quantity-container {
                 )}
               </Button>
             </div>
-            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
+            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-80 overflow-auto">
               <pre className="text-sm whitespace-pre-wrap">{generatedCode.headerCode}</pre>
             </div>
           </div>
@@ -1172,7 +1172,7 @@ body:not(.hl-builder) .quantity-container {
                 )}
               </Button>
             </div>
-            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
+            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-80 overflow-auto">
               <pre className="text-sm whitespace-pre-wrap">{generatedCode.footerCode}</pre>
             </div>
           </div>
