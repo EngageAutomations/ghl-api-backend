@@ -86,7 +86,7 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
       type: 'textarea',
       required: false,
       placeholder: 'Provide detailed information about your product or service',
-      description: 'Extended description with more details, features, and benefits'
+      description: 'Recommended for listings with embedded form'
     });
   }
   
