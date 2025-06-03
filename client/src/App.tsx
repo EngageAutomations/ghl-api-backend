@@ -111,6 +111,15 @@ function Router() {
           </AppLayout>
         </ProtectedRoute>
       </Route>
+
+      {/* Slideshow Wizard (alternative route) */}
+      <Route path="/slideshow">
+        <ProtectedRoute>
+          <AppLayout>
+            <ConfigWizardSlideshow />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
       
       {/* Config Tester Page */}
       <Route path="/config-tester">
