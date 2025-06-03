@@ -306,6 +306,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Real Form Submission Routes
+  app.post("/api/form-submit/:locationId/:directoryName", handleFormSubmission);
+  app.get("/api/form-submissions/:locationId/:directoryName", getFormSubmissions);
+  app.get("/api/download/uploads/*", downloadJSONFile);
+
   // Listing Routes
   // Get all listings for a user
   app.get("/api/listings/user/:userId", async (req, res) => {

@@ -127,39 +127,31 @@ export default function DirectoryForm() {
     setIsSubmitting(true);
 
     try {
-      // Generate GoHighLevel API-compatible data
-      const ghlData = {
-        product: {
-          name: formData.name,
-          description: formData.description,
-          images: formData.image ? [formData.image] : [],
-          price: formData.price ? parseFloat(formData.price.replace(/[^0-9.]/g, '')) * 100 : null, // Convert to cents
-          slug: formData.url_slug,
-          seo: {
-            title: formData.seo_title,
-            description: formData.seo_description
-          },
-          metadata: {
-            expanded_description: formData.expanded_description || '',
-            location_id: formConfig?.locationId,
-            directory_name: formConfig?.directoryName,
-            created_via: 'directory_form'
-          }
-        },
-        locationId: formConfig?.locationId,
-        submissionTime: new Date().toISOString()
-      };
+      if (!formConfig) {
+        throw new Error('Form configuration not loaded');
+      }
 
-      setGeneratedData(ghlData);
+      // Submit to real backend API
+      const response = await fetch(`/api/form-submit/${formConfig.locationId}/${formConfig.directoryName}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Submission failed');
+      }
+
+      const result = await response.json();
+      setGeneratedData(result.submission);
       setShowSuccess(true);
-      
-      // In a real implementation, you would send this to your backend
-      // which would then make the GoHighLevel API call
-      console.log('Generated GoHighLevel data:', ghlData);
       
     } catch (error) {
       console.error('Form submission error:', error);
-      alert('Failed to submit form. Please try again.');
+      alert(`Failed to submit form: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -227,18 +219,41 @@ export default function DirectoryForm() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h3 className="font-medium text-green-800 mb-2">Submission Details</h3>
+                  <div className="text-sm text-green-700 space-y-1">
+                    <p><strong>Submission ID:</strong> {generatedData?.submissionId || generatedData?.id}</p>
+                    <p><strong>Status:</strong> {generatedData?.status}</p>
+                    <p><strong>JSON File:</strong> Generated successfully</p>
+                  </div>
+                </div>
+                
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h3 className="font-medium text-blue-800 mb-2">GoHighLevel Ready</h3>
+                  <div className="text-sm text-blue-700">
+                    <p>Your listing data has been formatted for GoHighLevel API integration. Download the JSON file to import into your GoHighLevel account.</p>
+                  </div>
+                </div>
+              </div>
+
               <div>
-                <Label className="text-sm font-medium">Generated GoHighLevel Data</Label>
+                <Label className="text-sm font-medium">Generated Data Preview</Label>
                 <div className="mt-2 p-4 bg-slate-900 text-slate-100 rounded-lg text-sm overflow-auto max-h-40">
-                  <pre>{JSON.stringify(generatedData, null, 2)}</pre>
+                  <pre>{JSON.stringify(generatedData?.ghlData || generatedData, null, 2)}</pre>
                 </div>
               </div>
               
               <div className="flex gap-3">
-                <Button onClick={downloadData} className="flex-1">
-                  <Download className="w-4 h-4 mr-2" />
-                  Download JSON
-                </Button>
+                {generatedData?.downloadUrl && (
+                  <Button 
+                    onClick={() => window.open(generatedData.downloadUrl, '_blank')} 
+                    className="flex-1"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download JSON File
+                  </Button>
+                )}
                 <Button 
                   variant="outline" 
                   onClick={() => {
