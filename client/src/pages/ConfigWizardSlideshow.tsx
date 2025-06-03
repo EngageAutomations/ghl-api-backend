@@ -372,11 +372,76 @@ document.addEventListener('DOMContentLoaded', function() {
     setCurrentSlide(index);
   };
 
-  const totalSlides = 8;
+  const totalSlides = 9;
 
   const slides = [
-    // Slide 1: Google Drive Connection
+    // Slide 0: Welcome
     <Slide key={0}>
+      <div className="text-center space-y-8">
+        <div className="flex items-center justify-center mb-8">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-full mr-6">
+            <Rocket className="w-12 h-12" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900 mb-2">GoHighLevel Directory Wizard</h1>
+            <p className="text-xl text-slate-600">Transform your marketplace with custom integrations</p>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="text-center p-6 bg-blue-50 rounded-lg">
+              <div className="bg-blue-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Settings className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Easy Configuration</h3>
+              <p className="text-slate-600">Simple step-by-step setup with intuitive controls</p>
+            </div>
+
+            <div className="text-center p-6 bg-green-50 rounded-lg">
+              <div className="bg-green-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Code className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Generated Code</h3>
+              <p className="text-slate-600">Professional CSS, Header, and Footer code ready to use</p>
+            </div>
+
+            <div className="text-center p-6 bg-purple-50 rounded-lg">
+              <div className="bg-purple-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Building2 className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Professional Results</h3>
+              <p className="text-slate-600">Enterprise-level directory functionality</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-8">
+            <h3 className="text-xl font-semibold text-slate-900 mb-4 text-center">What You'll Get</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center space-x-3">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-slate-700">Custom CSS for element control</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-slate-700">Form integration code</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-slate-700">Google Drive integration</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-slate-700">Professional directory layout</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 1: Google Drive Connection
+    <Slide key={1}>
       <div className="text-center space-y-6">
         <div className="flex items-center justify-center mb-8">
           <div className="bg-blue-500 text-white p-4 rounded-full mr-4">
@@ -429,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </Slide>,
 
     // Slide 2: Directory Setup
-    <Slide key={1}>
+    <Slide key={2}>
       <div className="space-y-6">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
@@ -498,7 +563,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </Slide>,
 
     // Slide 3: Integration Method
-    <Slide key={2}>
+    <Slide key={3}>
       <div className="space-y-6">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
@@ -840,7 +905,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </Slide>,
 
     // Slide 4: Styling & Features
-    <Slide key={3}>
+    <Slide key={4}>
       <div className="space-y-6">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
@@ -952,7 +1017,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </Slide>,
 
     // Slide 5: CSS Code
-    <Slide key={4}>
+    <Slide key={5}>
       <div className="space-y-6">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
@@ -1232,7 +1297,7 @@ body:not(.hl-builder) .quantity-container {
     </Slide>,
 
     // Slide 6: Header Code
-    <Slide key={5}>
+    <Slide key={6}>
       <div className="space-y-6">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
