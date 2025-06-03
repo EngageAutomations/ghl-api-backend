@@ -854,9 +854,9 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="flex justify-center">
           {/* Feature Toggles */}
-          <div className="space-y-6 flex flex-col items-center ml-[450px]">
+          <div className="space-y-6 flex flex-col items-center">
             <h3 className="text-xl font-semibold text-slate-900">Features</h3>
             
             <div className="space-y-4 w-[550px]">
