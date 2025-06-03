@@ -836,16 +836,81 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     </Slide>,
 
-    // Slide 5: Generated Code
+    // Slide 5: CSS Code
+    <Slide key="css-code">
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-4">
+            <FileText className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">CSS Code</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Your custom CSS for element hiding and essential GoHighLevel fixes.
+          </p>
+        </div>
+
+        <Card className="max-w-6xl mx-auto">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-medium flex items-center space-x-2">
+                <FileText className="w-5 h-5" />
+                <span>CSS Code</span>
+              </h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyToClipboard(generateElementHidingCSS(), setCssCodeCopied)}
+                className="flex items-center space-x-2"
+              >
+                <Copy className="w-4 h-4" />
+                <span>{cssCodeCopied ? 'Copied!' : 'Copy'}</span>
+              </Button>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <pre className="text-sm overflow-x-auto max-h-96 whitespace-pre-wrap">
+                <code>{generateElementHidingCSS()}</code>
+              </pre>
+            </div>
+            <p className="text-sm text-gray-500 mt-2">
+              Paste this CSS code in the CSS section of your GoHighLevel page for element hiding and essential fixes.
+            </p>
+          </CardContent>
+        </Card>
+
+        <div className="max-w-4xl mx-auto">
+          <h3 className="font-medium mb-4">What this CSS does:</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-900 mb-2">Essential Fixes</h4>
+              <ul className="text-blue-800 space-y-1">
+                <li>• Prevents text truncation</li>
+                <li>• Fixes product title display</li>
+                <li>• Removes line clamping</li>
+              </ul>
+            </div>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 className="font-medium text-green-900 mb-2">Element Hiding</h4>
+              <ul className="text-green-800 space-y-1">
+                <li>• {showBuyNowButton ? 'Shows' : 'Hides'} buy now buttons</li>
+                <li>• {showAddToCartButton ? 'Shows' : 'Hides'} add to cart buttons</li>
+                <li>• {showQuantitySelector ? 'Shows' : 'Hides'} quantity selectors</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 6: Generated Code
     <Slide key="generated-code">
       <div className="space-y-6">
         <div className="text-center">
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center mb-4">
             <Code className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Generated Code</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Header & Footer Code</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Your custom CSS and JavaScript code is ready. Copy these snippets to your GoHighLevel pages.
+            Your advanced integration code with action buttons, forms, and enhanced features.
           </p>
         </div>
 
@@ -856,7 +921,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-medium flex items-center space-x-2">
                   <FileText className="w-5 h-5" />
-                  <span>Header Code (CSS)</span>
+                  <span>Header Code</span>
                 </h3>
                 <Button
                   variant="outline"
@@ -885,7 +950,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-medium flex items-center space-x-2">
                   <Code className="w-5 h-5" />
-                  <span>Footer Code (JavaScript)</span>
+                  <span>Footer Code</span>
                 </h3>
                 <Button
                   variant="outline"
