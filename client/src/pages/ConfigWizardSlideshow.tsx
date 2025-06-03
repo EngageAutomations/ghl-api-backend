@@ -171,6 +171,7 @@ export default function ConfigWizardSlideshow() {
       showDescription: showDescription,
       showMetadata: showMetadata,
       showMaps: showMaps,
+      showPrice: showPrice,
       metadataFields: metadataFields.map(field => field.label),
       formEmbedUrl: formEmbedUrl,
       buttonType: buttonType as 'popup' | 'redirect' | 'download'
@@ -1000,6 +1001,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
               <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                 <div className="flex items-center space-x-3">
+                  <DollarSign className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Show Price</Label>
+                    <p className="text-sm text-slate-500">Display pricing information</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={showPrice}
+                  onCheckedChange={setShowPrice}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center space-x-3">
                   <ShoppingBag className="w-5 h-5 text-slate-600" />
                   <div>
                     <Label className="font-medium">Buy Now Button</Label>
@@ -1502,10 +1517,11 @@ body:not(.hl-builder) .quantity-container {
                 </ul>
               </div>
               
-              {(showDescription || showMetadata || showMaps) && (
+              {(showDescription || showMetadata || showMaps || showPrice) && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <h4 className="font-medium text-green-800 mb-2">Optional Features (Based on Selection)</h4>
                   <ul className="text-sm text-green-700 space-y-1">
+                    {showPrice && <li>• Price Field</li>}
                     {showDescription && <li>• Detailed Description</li>}
                     {showMaps && <li>• Business Address (for Google Maps)</li>}
                     {showMetadata && metadataFields.length > 0 && (

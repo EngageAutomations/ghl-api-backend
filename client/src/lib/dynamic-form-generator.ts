@@ -20,6 +20,7 @@ export interface DirectoryConfig {
   showDescription: boolean;
   showMetadata: boolean;
   showMaps: boolean;
+  showPrice: boolean;
   
   // Metadata configuration
   metadataFields: string[];
@@ -92,6 +93,18 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
   });
   
   // OPTIONAL FIELDS - Based on configuration
+  
+  // Price Field
+  if (config.showPrice) {
+    fields.push({
+      name: 'price',
+      label: 'Price',
+      type: 'text',
+      required: false,
+      placeholder: '$99.99',
+      description: 'Enter the price for your product or service'
+    });
+  }
   
   // Expanded Description
   if (config.showDescription) {
