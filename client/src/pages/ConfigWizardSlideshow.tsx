@@ -14,6 +14,7 @@ import { generateActionButtonPopup } from '@/lib/custom-popup-generator';
 import { generateEmbeddedFormCode } from '@/lib/embedded-form-generator';
 import { generateExpandedDescriptionCode } from '@/lib/expanded-description-generator';
 import { generateMetadataBarCode, MetadataField } from '@/lib/metadata-bar-generator';
+import { generateFormFields, generateFormHTML, generateFormCSS, DirectoryConfig } from '@/lib/dynamic-form-generator';
 
 interface SlideProps {
   children: React.ReactNode;
@@ -161,6 +162,29 @@ export default function ConfigWizardSlideshow() {
     }
     
     return embedCode;
+  };
+
+  // Generate directory configuration for form creation
+  const generateDirectoryConfig = (): DirectoryConfig => {
+    return {
+      customFieldName: customFieldName || 'listing',
+      showDescription: showDescription,
+      showMetadata: showMetadata,
+      showMaps: showMaps,
+      metadataFields: metadataFields.map(field => field.label),
+      formEmbedUrl: formEmbedUrl,
+      buttonType: buttonType as 'popup' | 'redirect' | 'download'
+    };
+  };
+
+  // Generate complete form HTML with all configured fields
+  const generateDynamicForm = () => {
+    const config = generateDirectoryConfig();
+    return {
+      formHTML: generateFormHTML(config),
+      formCSS: generateFormCSS(),
+      formFields: generateFormFields(config)
+    };
   };
 
   // Generate code based on selection - exact copy from config wizard
@@ -372,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setCurrentSlide(index);
   };
 
-  const totalSlides = 9;
+  const totalSlides = 10;
 
   const slides = [
     // Slide 0: Welcome
