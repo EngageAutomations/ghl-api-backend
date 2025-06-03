@@ -944,73 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
           </div>
 
-          {/* Styling Options */}
-          <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-slate-900">Styling</h3>
-            
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Button Color</Label>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type="color"
-                    value={previewColor}
-                    onChange={(e) => setPreviewColor(e.target.value)}
-                    className="w-12 h-12 p-1 rounded border"
-                  />
-                  <Input
-                    value={previewColor}
-                    onChange={(e) => setPreviewColor(e.target.value)}
-                    placeholder="#3b82f6"
-                  />
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label>Text Color</Label>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type="color"
-                    value={previewTextColor}
-                    onChange={(e) => setPreviewTextColor(e.target.value)}
-                    className="w-12 h-12 p-1 rounded border"
-                  />
-                  <Input
-                    value={previewTextColor}
-                    onChange={(e) => setPreviewTextColor(e.target.value)}
-                    placeholder="#ffffff"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Border Radius: {previewBorderRadius}px</Label>
-                <input
-                  type="range"
-                  min="0"
-                  max="24"
-                  value={previewBorderRadius}
-                  onChange={(e) => setPreviewBorderRadius(Number(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Preview */}
-              <div className="border border-slate-200 rounded-lg p-4">
-                <Label className="text-sm text-slate-600 mb-2 block">Preview</Label>
-                <button
-                  style={{
-                    backgroundColor: previewColor,
-                    color: previewTextColor,
-                    borderRadius: `${previewBorderRadius}px`
-                  }}
-                  className="px-6 py-3 font-medium transition-opacity hover:opacity-90"
-                >
-                  Get More Info
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </Slide>,
