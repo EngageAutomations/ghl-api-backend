@@ -12,6 +12,7 @@ import {
 import { generateBulletPoints } from "./ai-summarizer";
 import { googleDriveService } from "./google-drive";
 import { runTestSuite, runFormTests, generateCode, getFeatureDocumentation, updateConfigurationCode } from "./dev-tools";
+import { handleFormSubmission, getFormSubmissions, downloadJSONFile } from "./form-submission-handler";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes

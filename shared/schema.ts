@@ -49,6 +49,51 @@ export const insertListingSchema = createInsertSchema(listings).omit({
 export type InsertListing = z.infer<typeof insertListingSchema>;
 export type Listing = typeof listings.$inferSelect;
 
+// Form Configurations schema
+export const formConfigurations = pgTable("form_configurations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  locationId: text("location_id").notNull(),
+  directoryName: text("directory_name").notNull(),
+  config: jsonb("config").notNull(), // DirectoryConfig object
+  logoUrl: text("logo_url"),
+  actionButtonColor: text("action_button_color").default("#3b82f6"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertFormConfigurationSchema = createInsertSchema(formConfigurations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertFormConfiguration = z.infer<typeof insertFormConfigurationSchema>;
+export type FormConfiguration = typeof formConfigurations.$inferSelect;
+
+// Form Submissions schema
+export const formSubmissions = pgTable("form_submissions", {
+  id: serial("id").primaryKey(),
+  formConfigId: integer("form_config_id").notNull(),
+  locationId: text("location_id").notNull(),
+  directoryName: text("directory_name").notNull(),
+  submissionData: jsonb("submission_data").notNull(), // Raw form data
+  ghlData: jsonb("ghl_data").notNull(), // GoHighLevel formatted data
+  jsonFileUrl: text("json_file_url"), // Generated JSON file path
+  status: text("status").default("pending"), // pending, processed, error
+  errorMessage: text("error_message"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+});
+
+export const insertFormSubmissionSchema = createInsertSchema(formSubmissions).omit({
+  id: true,
+  submittedAt: true,
+});
+
+export type InsertFormSubmission = z.infer<typeof insertFormSubmissionSchema>;
+export type FormSubmission = typeof formSubmissions.$inferSelect;
+
 // Designer configuration schema
 export const designerConfigs = pgTable("designer_configs", {
   id: serial("id").primaryKey(),

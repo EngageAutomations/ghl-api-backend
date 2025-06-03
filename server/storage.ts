@@ -3,7 +3,9 @@ import {
   designerConfigs, DesignerConfig, InsertDesignerConfig,
   portalDomains, PortalDomain, InsertPortalDomain,
   listings, Listing, InsertListing,
-  listingAddons, ListingAddon, InsertListingAddon
+  listingAddons, ListingAddon, InsertListingAddon,
+  formConfigurations, FormConfiguration, InsertFormConfiguration,
+  formSubmissions, FormSubmission, InsertFormSubmission
 } from "@shared/schema";
 
 // Storage interface with all CRUD methods
