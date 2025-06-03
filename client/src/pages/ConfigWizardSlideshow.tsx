@@ -1343,7 +1343,7 @@ body:not(.hl-builder) .quantity-container {
     </Slide>,
 
     // Slide 7: Footer Code
-    <Slide key={6}>
+    <Slide key={7}>
       <div className="space-y-6">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
@@ -1389,7 +1389,7 @@ body:not(.hl-builder) .quantity-container {
     </Slide>,
 
     // Slide 8: Summary
-    <Slide key={7}>
+    <Slide key={8}>
       <div className="text-center space-y-6">
         <div className="flex items-center justify-center mb-8">
           <div className="bg-green-500 text-white p-4 rounded-full mr-4">
@@ -1490,13 +1490,22 @@ body:not(.hl-builder) .quantity-container {
         </div>
       </div>
 
-      {/* Slide Content */}
-      <div className="flex-1">
-        {slides[currentSlide]}
+      {/* Slide Content with sliding animation */}
+      <div className="flex-1 overflow-hidden relative">
+        <div 
+          className="flex transition-transform duration-500 ease-in-out h-full"
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        >
+          {slides.map((slide, index) => (
+            <div key={index} className="w-full flex-shrink-0">
+              {slide}
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Navigation */}
-      <div className="bg-white border-t border-slate-200 p-4">
+      {/* Navigation with centered slide indicator */}
+      <div className="bg-white border-t border-slate-200 p-4 relative">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Button
             variant="outline"
@@ -1508,10 +1517,19 @@ body:not(.hl-builder) .quantity-container {
             <span>Previous</span>
           </Button>
 
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-slate-600">
-              {currentSlide + 1} of {totalSlides}
-            </span>
+          {/* Centered slide indicator */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center space-x-2">
+            {Array.from({ length: totalSlides }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => goToSlide(i)}
+                className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                  i === currentSlide 
+                    ? 'bg-blue-500 scale-110' 
+                    : 'bg-slate-300 hover:bg-slate-400'
+                }`}
+              />
+            ))}
           </div>
 
           <Button
