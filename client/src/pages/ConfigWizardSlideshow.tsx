@@ -76,28 +76,37 @@ export default function ConfigWizardSlideshow() {
     return embedCode;
   };
 
+  // Generate custom action button popup code (matches config wizard exactly)
+  const generateFullPopupCode = () => {
+    if (integrationMethod === 'popup' && wizardFormData.embedCode) {
+      const result = generateActionButtonPopup({
+        buttonText: 'Get More Info',
+        buttonColor: '#3b82f6',
+        buttonTextColor: '#ffffff',
+        buttonBorderRadius: 8,
+        customFieldName: wizardFormData.fieldName || 'listing',
+        formUrl: wizardFormData.embedCode,
+        showBuyNowButton,
+        showAddToCartButton,
+        showQuantitySelector
+      });
+      
+      if (result.isValid) {
+        return {
+          headerCode: result.headerCode,
+          footerCode: result.footerCode
+        };
+      }
+    }
+    return { headerCode: '', footerCode: '' };
+  };
+
   // Generate code using wizard's proven logic
   const generateCodeForSelection = () => {
     if (wizardFormData.embedCode && wizardFormData.embedCode.trim()) {
       if (integrationMethod === 'popup') {
-        // Generate popup template using wizard function
-        const popupResult = generateActionButtonPopup({
-          buttonText: 'Get More Info',
-          buttonColor: '#3b82f6',
-          buttonTextColor: '#ffffff',
-          buttonBorderRadius: 8,
-          customFieldName: wizardFormData.fieldName || 'listing',
-          formUrl: wizardFormData.embedCode,
-          showBuyNowButton,
-          showAddToCartButton,
-          showQuantitySelector
-        });
-        
-        // Handle popup generation errors gracefully
-        const popupCode = popupResult.isValid ? popupResult : {
-          headerCode: '/* Could not generate popup code - please check your form URL */',
-          footerCode: '/* Could not generate popup code - please check your form URL */'
-        };
+        // Generate popup template with 100px spacing (matches config wizard)
+        const popupCode = generateFullPopupCode();
         
         // Generate expanded description code if enabled
         const expandedDescCode = generateExpandedDescriptionCode({
