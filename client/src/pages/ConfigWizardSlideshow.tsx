@@ -41,7 +41,7 @@ export default function ConfigWizardSlideshow() {
   const [isDragOver, setIsDragOver] = useState(false);
   
   // Form configuration state - exact copy from config wizard
-  const [buttonType, setButtonType] = useState<string>('embed');
+  const [buttonType, setButtonType] = useState<string>('popup');
   const [formEmbedUrl, setFormEmbedUrl] = useState<string>('');
   const [customFieldName, setCustomFieldName] = useState<string>('listing');
   const [previewColor, setPreviewColor] = useState<string>('#3b82f6');
@@ -383,8 +383,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <Rocket className="w-12 h-12" />
           </div>
           <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">GoHighLevel Directory Wizard</h1>
-            <p className="text-xl text-slate-600">Transform your marketplace with custom integrations</p>
+            <h1 className="text-4xl font-bold text-slate-900 mb-2">eCommerce Directory Generator</h1>
+            <p className="text-xl text-slate-600">Create a customized product directory for your eCommerce site</p>
           </div>
         </div>
 
@@ -394,46 +394,53 @@ document.addEventListener('DOMContentLoaded', function() {
               <div className="bg-blue-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Settings className="w-8 h-8 text-blue-600" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Easy Configuration</h3>
-              <p className="text-slate-600">Simple step-by-step setup with intuitive controls</p>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Choose Your Directory Type</h3>
+              <p className="text-slate-600">Select layout and display options that fit your products</p>
             </div>
 
             <div className="text-center p-6 bg-green-50 rounded-lg">
               <div className="bg-green-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Code className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Generated Code</h3>
-              <p className="text-slate-600">Professional CSS, Header, and Footer code ready to use</p>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Custom Features</h3>
+              <p className="text-slate-600">Add maps, metadata, descriptions and other enhancements</p>
             </div>
 
             <div className="text-center p-6 bg-purple-50 rounded-lg">
               <div className="bg-purple-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Building2 className="w-8 h-8 text-purple-600" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Professional Results</h3>
-              <p className="text-slate-600">Enterprise-level directory functionality</p>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Copy & Deploy</h3>
+              <p className="text-slate-600">Get ready-to-use code for your website integration</p>
             </div>
           </div>
 
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-8">
-            <h3 className="text-xl font-semibold text-slate-900 mb-4 text-center">What You'll Get</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h3 className="text-xl font-semibold text-slate-900 mb-4 text-center">Your Directory Will Include</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="flex items-center space-x-3">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                <span className="text-slate-700">Custom CSS for element control</span>
+                <span className="text-slate-700">Product listings with dynamic forms</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                <span className="text-slate-700">Form integration code</span>
+                <span className="text-slate-700">Custom CSS for styling control</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                <span className="text-slate-700">Google Drive integration</span>
+                <span className="text-slate-700">Header and footer integration code</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
                 <span className="text-slate-700">Professional directory layout</span>
               </div>
+            </div>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-blue-800 text-sm text-center">
+                <strong>Note:</strong> Forms generated will connect to your GoHighLevel account, 
+                automatically creating products based on your selected features and configurations.
+              </p>
             </div>
           </div>
         </div>
