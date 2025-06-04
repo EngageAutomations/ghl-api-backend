@@ -1627,7 +1627,7 @@ body:not(.hl-builder) .quantity-container {
     </Slide>,
 
     // Slide 6: Header Code
-    <Slide key={6}>
+    <Slide key={6.1}>
       <div className="space-y-6">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
@@ -2094,17 +2094,17 @@ body:not(.hl-builder) .quantity-container {
   // Filter slides based on toggle states
   const slides = useMemo(() => {
     return allSlides.filter((slide, index) => {
-      // Always show slides 0-7 (core slides through Footer Code)
-      if (index <= 7) return true;
+      // Always show slides 0-8 (core slides through Footer Code)
+      if (index <= 8) return true;
       
-      // Slide 8: Cart Page Customization - only show if toggle is enabled
-      if (index === 8) return showCartCustomization;
+      // Array index 9: Cart Page Customization - only show if toggle is enabled
+      if (index === 9) return showCartCustomization;
       
-      // Slide 9: Price Removal - only show if toggle is enabled  
-      if (index === 9) return showPriceRemoval;
+      // Array index 10: Price Removal - only show if toggle is enabled  
+      if (index === 10) return showPriceRemoval;
       
       // Always show remaining slides (Form Preview, Summary)
-      if (index >= 10) return true;
+      if (index >= 11) return true;
       
       return false;
     });
