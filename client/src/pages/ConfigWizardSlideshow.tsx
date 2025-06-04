@@ -1860,33 +1860,7 @@ body:not(.hl-builder) .quantity-container {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-800 mb-3 flex items-center">
-                <DollarSign className="w-5 h-5 mr-2" />
-                With Pricing
-              </h4>
-              <ul className="text-sm text-blue-700 space-y-1">
-                <li>• Shows product prices</li>
-                <li>• Displays currency symbols</li>
-                <li>• E-commerce focused layout</li>
-                <li>• Direct purchase emphasis</li>
-              </ul>
-            </div>
-            
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h4 className="font-semibold text-red-800 mb-3 flex items-center">
-                <X className="w-5 h-5 mr-2" />
-                Without Pricing
-              </h4>
-              <ul className="text-sm text-red-700 space-y-1">
-                <li>• Hides all price information</li>
-                <li>• Clean, minimal appearance</li>
-                <li>• Lead generation focused</li>
-                <li>• Contact-first approach</li>
-              </ul>
-            </div>
-          </div>
+
 
 
         </div>
