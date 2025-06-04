@@ -797,6 +797,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Google Drive Credentials persistence endpoints
+  app.get("/api/google-drive/credentials", async (req, res) => {
+    try {
+      // For demo purposes, using userId 1. In production, get from session/auth
+      const userId = 1;
+      const credentials = await storage.getGoogleDriveCredentials(userId);
+      
+      if (credentials) {
+        // Return only safe data, not tokens
+        res.json({
+          email: credentials.email,
+          folderName: credentials.folderName,
+          isActive: credentials.isActive
+        });
+      } else {
+        res.status(404).json({ message: "No credentials found" });
+      }
+    } catch (error) {
+      console.error("Error fetching Google Drive credentials:", error);
+      res.status(500).json({ error: "Failed to fetch credentials" });
+    }
+  });
+
+  app.post("/api/google-drive/credentials", async (req, res) => {
+    try {
+      const { email, accessToken, refreshToken, expiryDate, folderName, folderId } = req.body;
+      
+      if (!email || !accessToken) {
+        return res.status(400).json({ error: "Email and access token are required" });
+      }
+
+      // For demo purposes, using userId 1. In production, get from session/auth
+      const userId = 1;
+      
+      const credentials = await storage.createGoogleDriveCredentials({
+        userId,
+        email,
+        accessToken,
+        refreshToken: refreshToken || null,
+        expiryDate: expiryDate ? new Date(expiryDate) : null,
+        folderName: folderName || 'Directory Images',
+        folderId: folderId || null,
+        isActive: true
+      });
+
+      res.status(201).json({
+        id: credentials.id,
+        email: credentials.email,
+        folderName: credentials.folderName,
+        isActive: credentials.isActive
+      });
+    } catch (error) {
+      console.error("Error saving Google Drive credentials:", error);
+      res.status(500).json({ error: "Failed to save credentials" });
+    }
+  });
+
+  app.put("/api/google-drive/credentials", async (req, res) => {
+    try {
+      const { email, accessToken, refreshToken, expiryDate, folderName, folderId } = req.body;
+      
+      // For demo purposes, using userId 1. In production, get from session/auth
+      const userId = 1;
+      
+      const credentials = await storage.updateGoogleDriveCredentials(userId, {
+        email,
+        accessToken,
+        refreshToken,
+        expiryDate: expiryDate ? new Date(expiryDate) : null,
+        folderName,
+        folderId
+      });
+
+      if (credentials) {
+        res.json({
+          id: credentials.id,
+          email: credentials.email,
+          folderName: credentials.folderName,
+          isActive: credentials.isActive
+        });
+      } else {
+        res.status(404).json({ message: "Credentials not found" });
+      }
+    } catch (error) {
+      console.error("Error updating Google Drive credentials:", error);
+      res.status(500).json({ error: "Failed to update credentials" });
+    }
+  });
+
+  app.delete("/api/google-drive/credentials", async (req, res) => {
+    try {
+      // For demo purposes, using userId 1. In production, get from session/auth
+      const userId = 1;
+      
+      const deactivated = await storage.deactivateGoogleDriveCredentials(userId);
+      
+      if (deactivated) {
+        res.json({ message: "Credentials deactivated successfully" });
+      } else {
+        res.status(404).json({ message: "No active credentials found" });
+      }
+    } catch (error) {
+      console.error("Error deactivating Google Drive credentials:", error);
+      res.status(500).json({ error: "Failed to deactivate credentials" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
