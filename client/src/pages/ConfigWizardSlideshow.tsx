@@ -1,17 +1,20 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
+import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy, Monitor, Zap } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, Copy, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Check, X } from 'lucide-react';
 
-// Import wizard's proven code generation functions
+// Import proven code generation functions from config wizard
+import { parseEmbedCode, ParsedEmbedData } from '@/lib/embed-parser';
 import { generateActionButtonPopup } from '@/lib/custom-popup-generator';
 import { generateEmbeddedFormCode } from '@/lib/embedded-form-generator';
 import { generateExpandedDescriptionCode } from '@/lib/expanded-description-generator';
-import { generateMetadataBarCode } from '@/lib/metadata-bar-generator';
+import { generateMetadataBarCode, MetadataField } from '@/lib/metadata-bar-generator';
+import { generateFormFields, generateFormHTML, generateFormCSS, DirectoryConfig } from '@/lib/dynamic-form-generator';
 import DirectoryForm from '@/pages/DirectoryForm';
 
 interface SlideProps {
@@ -21,8 +24,8 @@ interface SlideProps {
 
 function Slide({ children, className = "" }: SlideProps) {
   return (
-    <div className={`min-h-[600px] flex flex-col justify-center items-center p-8 ${className}`}>
-      <div className="w-full max-w-6xl mx-auto bg-white border border-white/30 rounded-2xl p-8 shadow-lg">
+    <div className={`h-[800px] flex flex-col justify-center items-center p-8 ${className}`}>
+      <div className="w-full max-w-6xl mx-auto bg-white border border-white/30 rounded-2xl p-8 shadow-lg h-full flex flex-col">
         {children}
       </div>
     </div>
@@ -31,32 +34,117 @@ function Slide({ children, className = "" }: SlideProps) {
 
 export default function ConfigWizardSlideshow() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  
+  // Slideshow-specific state
   const [googleDriveConnected, setGoogleDriveConnected] = useState(false);
   const [directoryName, setDirectoryName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [buttonType, setButtonType] = useState<'popup' | 'redirect' | 'download' | 'embed'>('popup');
-  // Completely isolated form state - no external dependencies
-  const [wizardFormData, setWizardFormData] = useState({
-    embedCode: '',
-    fieldName: 'listing'
-  });
+  
+  // Form configuration state - exact copy from config wizard
+  const [buttonType, setButtonType] = useState<string>('popup');
+  const [formEmbedUrl, setFormEmbedUrl] = useState<string>('');
+  const [customFieldName, setCustomFieldName] = useState<string>('listing');
+  const [previewColor, setPreviewColor] = useState<string>('#3b82f6');
+  const [previewTextColor, setPreviewTextColor] = useState<string>('#ffffff');
+  const [previewBorderRadius, setPreviewBorderRadius] = useState<number>(8);
 
-  // Force re-render of inputs when slide changes
-  const [inputKey, setInputKey] = useState(0);
-  const [showDescription, setShowDescription] = useState(false);
-  const [showMetadata, setShowMetadata] = useState(false);
-  const [showMaps, setShowMaps] = useState(false);
-  const [showPrice, setShowPrice] = useState(false);
-  const [showBuyNowButton, setShowBuyNowButton] = useState(false);
-  const [showAddToCartButton, setShowAddToCartButton] = useState(false);
-  const [showQuantitySelector, setShowQuantitySelector] = useState(false);
-  const [showCartIcon, setShowCartIcon] = useState(true);
-  const [integrationMethod, setIntegrationMethod] = useState('popup');
-  const [convertCartToBookmarks, setConvertCartToBookmarks] = useState(false);
+  // Copy button states
+  const [cssCodeCopied, setCssCodeCopied] = useState<boolean>(false);
+  const [headerCodeCopied, setHeaderCodeCopied] = useState<boolean>(false);
+  const [footerCodeCopied, setFooterCodeCopied] = useState<boolean>(false);
 
-  // Helper function to extract form URL from embed code
+  // Component toggles - exact copy from config wizard
+  const [showPrice, setShowPrice] = useState<boolean>(false);
+  const [showBuyNowButton, setShowBuyNowButton] = useState<boolean>(false);
+  const [showAddToCartButton, setShowAddToCartButton] = useState<boolean>(false);
+  const [showQuantitySelector, setShowQuantitySelector] = useState<boolean>(false);
+  const [showCartIcon, setShowCartIcon] = useState<boolean>(false);
+  const [showDescription, setShowDescription] = useState<boolean>(false);
+  const [showMetadata, setShowMetadata] = useState<boolean>(false);
+  const [showMaps, setShowMaps] = useState<boolean>(false);
+  
+  // Expanded description configuration - exact copy from config wizard
+  const [expandedDescriptionContent, setExpandedDescriptionContent] = useState(`<h2>Product Details</h2>
+<p>This is the default content that will appear on all listings unless you specify custom content for specific URLs.</p>
+<p><strong>To add custom content for specific listings:</strong></p>
+<ol>
+  <li>Edit the expandedDescriptions object in the generated code</li>
+  <li>Add entries like: <code>'your-listing-slug': '&lt;h2&gt;Custom Content&lt;/h2&gt;&lt;p&gt;Specific details...&lt;/p&gt;'</code></li>
+  <li>The system will automatically show the right content based on the URL</li>
+</ol>
+<p>This expanded description appears below the main product details and provides additional space for comprehensive information that helps customers make informed decisions.</p>`);
+  const [expandedDescFadeIn, setExpandedDescFadeIn] = useState(true);
+  const [expandedDescClass, setExpandedDescClass] = useState('expanded-description');
+  
+  // Button text state
+  const [buttonText, setButtonText] = useState('Get More Info');
+  
+  // Metadata bar configuration - exact copy from config wizard
+  const [metadataTextColor, setMetadataTextColor] = useState('#374151');
+  const [metadataFont, setMetadataFont] = useState('system-ui, sans-serif');
+  const [metadataFields, setMetadataFields] = useState<MetadataField[]>([
+    {
+      id: 'phone',
+      label: 'Phone',
+      icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
+      defaultValue: '(555) 123-4567'
+    },
+    {
+      id: 'hours',
+      label: 'Hours',
+      icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
+      defaultValue: 'Mon-Fri 9AM-6PM'
+    },
+    {
+      id: 'location',
+      label: 'Address',
+      icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
+      defaultValue: '123 Main St, City, State'
+    },
+    {
+      id: 'website',
+      label: 'Website',
+      icon: '<path fillRule="evenodd" d="M4.083 9h1.946c.089-1.546.383-2.97.837-4.118A6.004 6.004 0 004.083 9zM10 2a8 8 0 100 16 8 8 0 000-16zm0 2c-.076 0-.232.032-.465.262-.238.234-.497.623-.737 1.182-.389.907-.673 2.142-.766 3.556h3.936c-.093-1.414-.377-2.649-.766-3.556-.24-.56-.5-.948-.737-1.182C10.232 4.032 10.076 4 10 4zm3.971 5c-.089-1.546-.383-2.97-.837-4.118A6.004 6.004 0 0115.917 9h-1.946zm-2.003 2H8.032c.093 1.414.377 2.649.766 3.556.24.56.5.948.737 1.182.233.23.389.262.465.262.076 0 .232-.032.465-.262.238-.234.498-.623.737-1.182.389-.907.673-2.142.766-3.556zm1.166 4.118c.454-1.147.748-2.572.837-4.118h1.946a6.004 6.004 0 01-2.783 4.118zm-6.268 0C6.412 13.97 6.118 12.546 6.03 11H4.083a6.004 6.004 0 002.783 4.118z" clipRule="evenodd"/>',
+      defaultValue: 'https://example.com'
+    }
+  ]);
+
+  // Parse embed code for popup dimensions - exact copy from config wizard
+  const parsedEmbedData = useMemo(() => {
+    if (buttonType === 'popup' && formEmbedUrl) {
+      return parseEmbedCode(formEmbedUrl);
+    }
+    return null;
+  }, [buttonType, formEmbedUrl]);
+
+  // Generate custom action button popup code - exact copy from config wizard
+  const generateFullPopupCode = () => {
+    if (buttonType === 'popup' && formEmbedUrl) {
+      const result = generateActionButtonPopup({
+        buttonText: 'Get More Info',
+        buttonColor: previewColor,
+        buttonTextColor: previewTextColor,
+        buttonBorderRadius: previewBorderRadius,
+        customFieldName: customFieldName || 'listing',
+        formUrl: formEmbedUrl,
+        showBuyNowButton,
+        showAddToCartButton,
+        showQuantitySelector
+      });
+      
+      if (result.isValid) {
+        return {
+          headerCode: result.headerCode,
+          footerCode: result.footerCode
+        };
+      }
+    }
+    return { headerCode: '', footerCode: '' };
+  };
+
+  // Extract form URL from iframe embed code - exact copy from config wizard
   const extractFormUrl = (embedCode: string) => {
     if (!embedCode) return '';
     
@@ -77,82 +165,55 @@ export default function ConfigWizardSlideshow() {
     return embedCode;
   };
 
-  // Generate custom action button popup code (matches config wizard exactly)
-  const generateFullPopupCode = () => {
-    if (integrationMethod === 'popup' && wizardFormData.embedCode) {
-      const result = generateActionButtonPopup({
-        buttonText: 'Get More Info',
-        buttonColor: '#3b82f6',
-        buttonTextColor: '#ffffff',
-        buttonBorderRadius: 8,
-        customFieldName: wizardFormData.fieldName || 'listing',
-        formUrl: wizardFormData.embedCode,
-        showBuyNowButton,
-        showAddToCartButton,
-        showQuantitySelector
-      });
-      
-      if (result.isValid) {
-        return {
-          headerCode: result.headerCode,
-          footerCode: result.footerCode
-        };
-      }
-    }
-    return { headerCode: '', footerCode: '' };
+  // Generate directory configuration for form creation
+  const generateDirectoryConfig = (): DirectoryConfig => {
+    return {
+      customFieldName: customFieldName || 'listing',
+      showDescription: showDescription,
+      showMetadata: showMetadata,
+      showMaps: showMaps,
+      showPrice: showPrice,
+      metadataFields: metadataFields.map(field => field.label),
+      formEmbedUrl: formEmbedUrl,
+      buttonType: buttonType as 'popup' | 'redirect' | 'download'
+    };
   };
 
-  // Generate code using wizard's proven logic
+  // Generate complete form HTML with all configured fields
+  const generateDynamicForm = () => {
+    const config = generateDirectoryConfig();
+    return {
+      formHTML: generateFormHTML(config),
+      formCSS: generateFormCSS(),
+      formFields: generateFormFields(config)
+    };
+  };
+
+  // Generate code based on selection - exact copy from config wizard
   const generateCodeForSelection = () => {
-    if (wizardFormData.embedCode && wizardFormData.embedCode.trim()) {
-      if (integrationMethod === 'popup') {
-        // Generate popup template with 100px spacing (matches config wizard)
+    if (formEmbedUrl && formEmbedUrl.trim()) {
+      if (buttonType === 'popup') {
+        // Generate popup template with 100px spacing
         const popupCode = generateFullPopupCode();
         
         // Generate expanded description code if enabled
         const expandedDescCode = generateExpandedDescriptionCode({
           enabled: showDescription,
-          content: `<h2>Product Details</h2>
-<p>This is enhanced content that appears below the main product details.</p>
-<p><strong>Key Features:</strong></p>
-<ul>
-  <li>Professional quality and service</li>
-  <li>Local expertise and knowledge</li>
-  <li>Competitive pricing and value</li>
-</ul>`,
-          fadeInAnimation: true,
-          customClass: 'expanded-description'
+          content: expandedDescriptionContent,
+          fadeInAnimation: expandedDescFadeIn,
+          customClass: expandedDescClass
         });
 
         // Generate metadata bar code if enabled
         const metadataCode = generateMetadataBarCode({
           enabled: showMetadata,
           position: 'bottom',
-          fields: [
-            {
-              id: 'phone',
-              label: 'Phone',
-              icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
-              defaultValue: '(555) 123-4567'
-            },
-            {
-              id: 'hours',
-              label: 'Hours',
-              icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
-              defaultValue: 'Mon-Fri 9AM-6PM'
-            },
-            {
-              id: 'location',
-              label: 'Address',
-              icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
-              defaultValue: '123 Main St, City, State'
-            }
-          ],
+          fields: metadataFields,
           customClass: 'listing-metadata-bar',
           backgroundColor: 'transparent',
-          textColor: '#374151',
+          textColor: metadataTextColor,
           borderRadius: 0,
-          fontFamily: 'system-ui, sans-serif',
+          fontFamily: metadataFont,
           showMaps: showMaps
         });
 
@@ -166,62 +227,36 @@ export default function ConfigWizardSlideshow() {
         };
       } else {
         // Extract clean form URL/ID from iframe if needed
-        const cleanFormUrl = extractFormUrl(wizardFormData.embedCode);
+        const cleanFormUrl = extractFormUrl(formEmbedUrl);
         
-        // Generate embedded form template using wizard function
+        // Generate embedded form template (default when form URL is provided)
         const embeddedFormCode = generateEmbeddedFormCode({
           formUrl: cleanFormUrl,
           animationType: "fade-squeeze",
-          borderRadius: 8,
+          borderRadius: previewBorderRadius,
           boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-          customFieldName: wizardFormData.fieldName || 'listing',
+          customFieldName: customFieldName || 'listing',
           metadataFields: []
         });
 
         // Generate expanded description code if enabled
         const expandedDescCode = generateExpandedDescriptionCode({
           enabled: showDescription,
-          content: `<h2>Product Details</h2>
-<p>This is enhanced content that appears below the main product details.</p>
-<p><strong>Key Features:</strong></p>
-<ul>
-  <li>Professional quality and service</li>
-  <li>Local expertise and knowledge</li>
-  <li>Competitive pricing and value</li>
-</ul>`,
-          fadeInAnimation: true,
-          customClass: 'expanded-description'
+          content: expandedDescriptionContent,
+          fadeInAnimation: expandedDescFadeIn,
+          customClass: expandedDescClass
         });
 
         // Generate metadata bar code if enabled
         const metadataCode = generateMetadataBarCode({
           enabled: showMetadata,
           position: 'bottom',
-          fields: [
-            {
-              id: 'phone',
-              label: 'Phone',
-              icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
-              defaultValue: '(555) 123-4567'
-            },
-            {
-              id: 'hours',
-              label: 'Hours',
-              icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
-              defaultValue: 'Mon-Fri 9AM-6PM'
-            },
-            {
-              id: 'location',
-              label: 'Address',
-              icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
-              defaultValue: '123 Main St, City, State'
-            }
-          ],
+          fields: metadataFields,
           customClass: 'listing-metadata-bar',
           backgroundColor: 'transparent',
-          textColor: '#374151',
+          textColor: metadataTextColor,
           borderRadius: 0,
-          fontFamily: 'system-ui, sans-serif',
+          fontFamily: metadataFont,
           showMaps: showMaps
         });
 
@@ -239,56 +274,30 @@ export default function ConfigWizardSlideshow() {
       // Generate expanded description code if enabled
       const expandedDescCode = generateExpandedDescriptionCode({
         enabled: showDescription,
-        content: `<h2>Product Details</h2>
-<p>This is enhanced content that appears below the main product details.</p>
-<p><strong>Key Features:</strong></p>
-<ul>
-  <li>Professional quality and service</li>
-  <li>Local expertise and knowledge</li>
-  <li>Competitive pricing and value</li>
-</ul>`,
-        fadeInAnimation: true,
-        customClass: 'expanded-description'
+        content: expandedDescriptionContent,
+        fadeInAnimation: expandedDescFadeIn,
+        customClass: expandedDescClass
       });
 
       // Generate metadata bar code if enabled
       const metadataCode = generateMetadataBarCode({
         enabled: showMetadata,
         position: 'bottom',
-        fields: [
-          {
-            id: 'phone',
-            label: 'Phone',
-            icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
-            defaultValue: '(555) 123-4567'
-          },
-          {
-            id: 'hours',
-            label: 'Hours',
-            icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
-            defaultValue: 'Mon-Fri 9AM-6PM'
-          },
-          {
-            id: 'location',
-            label: 'Address',
-            icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
-            defaultValue: '123 Main St, City, State'
-          }
-        ],
+        fields: metadataFields,
         customClass: 'listing-metadata-bar',
         backgroundColor: 'transparent',
-        textColor: '#374151',
+        textColor: metadataTextColor,
         borderRadius: 0,
-        fontFamily: 'system-ui, sans-serif',
+        fontFamily: metadataFont,
         showMaps: showMaps
       });
 
       return {
         headerCode: `/* Directory Listing CSS */
 .ghl-listing-button {
-  background-color: #3b82f6;
-  color: #ffffff;
-  border-radius: 8px;
+  background-color: ${previewColor};
+  color: ${previewTextColor};
+  border-radius: ${previewBorderRadius}px;
   padding: 0.5rem 1rem;
   transition: all 0.2s ease;
 }` + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
@@ -300,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function() {
   forms.forEach(form => {
     const hiddenField = document.createElement('input');
     hiddenField.type = 'hidden';
-    hiddenField.name = '${wizardFormData.fieldName || 'listing'}';
+    hiddenField.name = '${customFieldName || 'listing'}';
     hiddenField.value = window.location.pathname.split('/').pop();
     form.appendChild(hiddenField);
   });
@@ -311,10 +320,776 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  // Base CSS for element hiding
-  const generateElementHidingCSS = () => {
-    let css = `<style>
+  const generatedCode = useMemo(() => generateCodeForSelection(), [
+    formEmbedUrl, 
+    buttonType, 
+    customFieldName, 
+    previewBorderRadius, 
+    previewColor, 
+    previewTextColor,
+    showPrice,
+    showBuyNowButton,
+    showAddToCartButton,
+    showQuantitySelector,
+    showDescription,
+    expandedDescriptionContent,
+    expandedDescFadeIn,
+    expandedDescClass,
+    showMetadata,
+    metadataTextColor,
+    metadataFont,
+    metadataFields
+  ]);
+
+  // Helper function for copying text with visual feedback - exact copy from config wizard
+  const copyToClipboard = async (text: string, setCopiedState: (value: boolean) => void) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedState(true);
+      setTimeout(() => setCopiedState(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      // Fallback method
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopiedState(true);
+      setTimeout(() => setCopiedState(false), 2000);
+    }
+  };
+
+  // File upload handlers
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    
+    if (imageFile) {
+      setLogoFile(imageFile);
+      setLogoUrl(URL.createObjectURL(imageFile));
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  // Slide navigation
+  const nextSlide = () => {
+    setCurrentSlide(prev => Math.min(prev + 1, totalSlides - 1));
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide(prev => Math.max(prev - 1, 0));
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
+
+  const totalSlides = 10;
+
+  const slides = [
+    // Slide 0: Welcome
+    <Slide key={0}>
+      <div className="text-center space-y-8">
+        <div className="flex items-center justify-center mb-8">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-full mr-6">
+            <Rocket className="w-12 h-12" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900 mb-2">eCommerce Directory Generator</h1>
+            <p className="text-xl text-slate-600">Create a customized product directory for your eCommerce site</p>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="text-center p-6 bg-blue-50 rounded-lg">
+              <div className="bg-blue-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Settings className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Choose Your Directory Type</h3>
+              <p className="text-slate-600">Select layout and display options that fit your products</p>
+            </div>
+
+            <div className="text-center p-6 bg-green-50 rounded-lg">
+              <div className="bg-green-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Code className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Custom Features</h3>
+              <p className="text-slate-600">Add maps, metadata, descriptions and other enhancements</p>
+            </div>
+
+            <div className="text-center p-6 bg-purple-50 rounded-lg">
+              <div className="bg-purple-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Building2 className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Copy & Deploy</h3>
+              <p className="text-slate-600">Get ready-to-use code for your website integration</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-8">
+            <h3 className="text-xl font-semibold text-slate-900 mb-4 text-center">Your Directory Will Include</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="flex items-center space-x-3">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-slate-700">Product listings with dynamic forms</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-slate-700">Custom CSS for styling control</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-slate-700">Header and footer integration code</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-slate-700">Professional directory layout</span>
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-blue-800 text-sm text-center">
+                <strong>Note:</strong> Forms generated will connect to your GoHighLevel account, 
+                automatically creating products based on your selected features and configurations.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 1: Google Drive Connection
+    <Slide key={1}>
+      <div className="text-center space-y-6">
+        <div className="flex items-center justify-center mb-8">
+          <div className="bg-blue-500 text-white p-4 rounded-full mr-4">
+            <FolderOpen className="w-8 h-8" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Connect Google Drive</h1>
+            <p className="text-lg text-slate-600">Secure storage for your directory images</p>
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto space-y-6">
+          {!googleDriveConnected ? (
+            <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 bg-slate-50">
+              <div className="text-center">
+                <div className="bg-blue-100 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+                  <svg className="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">Connect Your Google Drive</h3>
+                <p className="text-slate-600 mb-6">
+                  Store and manage your directory images with Google Drive integration. Your images will be saved in a dedicated "Directory Images" folder.
+                </p>
+                <Button 
+                  onClick={() => setGoogleDriveConnected(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+                >
+                  <ExternalLink className="w-5 h-5 mr-2" />
+                  Connect Google Drive
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+              <div className="flex items-center justify-center">
+                <div className="bg-green-100 p-3 rounded-full mr-4">
+                  <Check className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-green-800">Google Drive Connected</h3>
+                  <p className="text-green-700">Your images will be stored in the "Directory Images" folder</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 2: Directory Setup
+    <Slide key={2}>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-purple-500 text-white p-4 rounded-full mr-4">
+              <Building2 className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Directory Setup</h1>
+              <p className="text-lg text-slate-600">Configure your directory information</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="directory-name" className="text-lg font-medium">Directory Name</Label>
+              <Input
+                id="directory-name"
+                placeholder="My Business Directory"
+                value={directoryName}
+                onChange={(e) => setDirectoryName(e.target.value)}
+                className="text-lg p-4"
+              />
+              <p className="text-slate-500">Give your directory a memorable name for organization</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-lg font-medium">Logo Upload</Label>
+              <div 
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                  isDragOver ? 'border-blue-400 bg-blue-50' : 'border-slate-300 bg-slate-50'
+                }`}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+              >
+                {logoUrl ? (
+                  <div className="space-y-4">
+                    <img src={logoUrl} alt="Logo preview" className="max-w-32 max-h-32 mx-auto rounded-lg" />
+                    <p className="text-slate-600">Logo uploaded successfully</p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setLogoUrl('');
+                        setLogoFile(null);
+                      }}
+                    >
+                      Remove Logo
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <Upload className="w-12 h-12 text-slate-400 mx-auto" />
+                    <div>
+                      <p className="text-lg font-medium text-slate-700">Drop your logo here</p>
+                      <p className="text-slate-500">or click to browse files</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 3: Integration Method
+    <Slide key={3}>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-green-500 text-white p-4 rounded-full mr-4">
+              <Settings className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Choose Integration Method</h1>
+              <p className="text-lg text-slate-600">Select how you want to integrate GoHighLevel forms</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 justify-items-center">
+              <Button
+              variant={buttonType === 'popup' ? 'default' : 'outline'}
+              className={`h-auto p-4 justify-start overflow-hidden ${
+                buttonType === 'popup' ? 'bg-blue-50 border-blue-500 text-blue-900 hover:bg-blue-100' : 'hover:border-slate-400'
+              }`}
+              onClick={() => setButtonType('popup')}
+            >
+              <div className="flex items-start space-x-3 w-full min-w-0">
+                <div className="bg-blue-500 text-white p-2 rounded-md flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                  </svg>
+                </div>
+                <div className="text-left min-w-0 flex-1">
+                  <h3 className="font-medium text-sm leading-tight">Action Button (Popup)</h3>
+                  <p className="text-xs text-slate-500 leading-tight mt-1">Opens form in popup overlay</p>
+                </div>
+              </div>
+            </Button>
+
+            <Button
+              variant={buttonType === 'redirect' ? 'default' : 'outline'}
+              className={`h-auto p-4 justify-start overflow-hidden ${
+                buttonType === 'redirect' ? 'bg-green-50 border-green-500 text-green-900 hover:bg-green-100' : 'hover:border-slate-400'
+              }`}
+              onClick={() => setButtonType('redirect')}
+            >
+              <div className="flex items-start space-x-3 w-full min-w-0">
+                <div className="bg-green-500 text-white p-2 rounded-md flex-shrink-0">
+                  <ExternalLink className="w-4 h-4" />
+                </div>
+                <div className="text-left min-w-0 flex-1">
+                  <h3 className="font-medium text-sm leading-tight">Action Button (Redirect)</h3>
+                  <p className="text-xs text-slate-500 leading-tight mt-1">Redirects to external form page</p>
+                </div>
+              </div>
+            </Button>
+
+            <Button
+              variant={buttonType === 'download' ? 'default' : 'outline'}
+              className={`h-auto p-4 justify-start overflow-hidden ${
+                buttonType === 'download' ? 'bg-orange-50 border-orange-500 text-orange-900 hover:bg-orange-100' : 'hover:border-slate-400'
+              }`}
+              onClick={() => setButtonType('download')}
+            >
+              <div className="flex items-start space-x-3 w-full min-w-0">
+                <div className="bg-orange-500 text-white p-2 rounded-md flex-shrink-0">
+                  <Download className="w-4 h-4" />
+                </div>
+                <div className="text-left min-w-0 flex-1">
+                  <h3 className="font-medium text-sm leading-tight">Action Button (Download)</h3>
+                  <p className="text-xs text-slate-500 leading-tight mt-1">Downloads file directly</p>
+                </div>
+              </div>
+            </Button>
+
+            <Button
+              variant={buttonType === 'popup' ? 'default' : 'outline'}
+              className={`h-auto p-4 justify-start overflow-hidden ${
+                buttonType === 'popup' ? 'bg-purple-50 border-purple-500 text-purple-900 hover:bg-purple-100' : 'hover:border-slate-400'
+              }`}
+              onClick={() => setButtonType('popup')}
+            >
+              <div className="flex items-start space-x-3 w-full min-w-0">
+                <div className="bg-purple-500 text-white p-2 rounded-md flex-shrink-0">
+                  <Code className="w-4 h-4" />
+                </div>
+                <div className="text-left min-w-0 flex-1">
+                  <h3 className="font-medium text-sm leading-tight">Popup Form</h3>
+                  <p className="text-xs text-slate-500 leading-tight mt-1">Opens form in modal popup</p>
+                </div>
+              </div>
+            </Button>
+            </div>
+          </div>
+
+          {/* Form Configuration - Only show for popup */}
+          {buttonType === 'popup' && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="form-embed">
+                  {buttonType === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
+                </Label>
+                <Textarea
+                  id="form-embed"
+                  placeholder={buttonType === 'popup' 
+                    ? '<iframe src="https://link.msgsndr.com/form/..." width="500" height="600"></iframe>'
+                    : 'Paste your GoHighLevel form embed code here...'
+                  }
+                  value={formEmbedUrl}
+                  onChange={(e) => setFormEmbedUrl(e.target.value)}
+                  className="min-h-[100px]"
+                />
+                {buttonType === 'popup' && parsedEmbedData && (
+                  <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
+                    ✓ Form detected: {parsedEmbedData.width}×{parsedEmbedData.height}px 
+                    → Popup will be {parsedEmbedData.width + 100}×{parsedEmbedData.height + 100}px (+100px spacing)
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="custom-field">Custom Field Name</Label>
+                <Input
+                  id="custom-field"
+                  placeholder="listing"
+                  value={customFieldName}
+                  onChange={(e) => setCustomFieldName(e.target.value)}
+                />
+                <p className="text-sm text-slate-500">
+                  This field will be automatically populated with the current page/listing identifier
+                </p>
+              </div>
+
+              {/* Button Styling Controls - Show for all action button types */}
+              {(buttonType === 'popup' || buttonType === 'redirect' || buttonType === 'download') && (
+                <div className="space-y-4 bg-slate-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-slate-900">Button Styling</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="button-text">Button Text</Label>
+                      <Input
+                        id="button-text"
+                        value={buttonText}
+                        onChange={(e) => setButtonText(e.target.value)}
+                        placeholder="Get More Info"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="button-color">Button Color</Label>
+                      <div className="flex space-x-2">
+                        <Input
+                          id="button-color"
+                          type="color"
+                          value={previewColor}
+                          onChange={(e) => setPreviewColor(e.target.value)}
+                          className="w-16 h-10 p-1"
+                        />
+                        <Input
+                          value={previewColor}
+                          onChange={(e) => setPreviewColor(e.target.value)}
+                          placeholder="#3b82f6"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="text-color">Text Color</Label>
+                      <div className="flex space-x-2">
+                        <Input
+                          id="text-color"
+                          type="color"
+                          value={previewTextColor}
+                          onChange={(e) => setPreviewTextColor(e.target.value)}
+                          className="w-16 h-10 p-1"
+                        />
+                        <Input
+                          value={previewTextColor}
+                          onChange={(e) => setPreviewTextColor(e.target.value)}
+                          placeholder="#ffffff"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="border-radius">Border Radius: {previewBorderRadius}px</Label>
+                      <input
+                        id="border-radius"
+                        type="range"
+                        min="0"
+                        max="50"
+                        value={previewBorderRadius}
+                        onChange={(e) => setPreviewBorderRadius(Number(e.target.value))}
+                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Button Preview */}
+                  <div className="space-y-2">
+                    <Label>Button Preview</Label>
+                    <div className="p-4 bg-white border border-slate-200 rounded-lg">
+                      <button
+                        style={{
+                          backgroundColor: previewColor,
+                          color: previewTextColor,
+                          borderRadius: `${previewBorderRadius}px`,
+                          padding: '0.75rem 1.5rem',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontWeight: '500',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {buttonText || 'Get More Info'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Additional Configuration for redirect and download */}
+          {(buttonType === 'redirect' || buttonType === 'download') && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="target-url">
+                  {buttonType === 'redirect' ? 'Redirect URL' : 'Download URL'}
+                </Label>
+                <Input
+                  id="target-url"
+                  placeholder={buttonType === 'redirect' ? 'https://example.com/contact' : 'https://example.com/brochure.pdf'}
+                  value={formEmbedUrl}
+                  onChange={(e) => setFormEmbedUrl(e.target.value)}
+                />
+                <p className="text-sm text-slate-500">
+                  {buttonType === 'redirect' 
+                    ? 'URL where users will be redirected when clicking the button'
+                    : 'Direct link to the file that users will download'
+                  }
+                </p>
+              </div>
+
+              {/* Button Styling Controls for redirect and download */}
+              <div className="space-y-4 bg-slate-50 p-4 rounded-lg">
+                <h4 className="font-medium text-slate-900">Button Styling</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="button-text-alt">Button Text</Label>
+                    <Input
+                      id="button-text-alt"
+                      value={buttonText}
+                      onChange={(e) => setButtonText(e.target.value)}
+                      placeholder={buttonType === 'redirect' ? 'Contact Us' : 'Download Now'}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="button-color-alt">Button Color</Label>
+                    <div className="flex space-x-2">
+                      <Input
+                        id="button-color-alt"
+                        type="color"
+                        value={previewColor}
+                        onChange={(e) => setPreviewColor(e.target.value)}
+                        className="w-16 h-10 p-1"
+                      />
+                      <Input
+                        value={previewColor}
+                        onChange={(e) => setPreviewColor(e.target.value)}
+                        placeholder="#3b82f6"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="text-color-alt">Text Color</Label>
+                    <div className="flex space-x-2">
+                      <Input
+                        id="text-color-alt"
+                        type="color"
+                        value={previewTextColor}
+                        onChange={(e) => setPreviewTextColor(e.target.value)}
+                        className="w-16 h-10 p-1"
+                      />
+                      <Input
+                        value={previewTextColor}
+                        onChange={(e) => setPreviewTextColor(e.target.value)}
+                        placeholder="#ffffff"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="border-radius-alt">Border Radius: {previewBorderRadius}px</Label>
+                    <input
+                      id="border-radius-alt"
+                      type="range"
+                      min="0"
+                      max="50"
+                      value={previewBorderRadius}
+                      onChange={(e) => setPreviewBorderRadius(Number(e.target.value))}
+                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                  </div>
+                </div>
+                
+                {/* Button Preview */}
+                <div className="space-y-2">
+                  <Label>Button Preview</Label>
+                  <div className="p-4 bg-white border border-slate-200 rounded-lg">
+                    <button
+                      style={{
+                        backgroundColor: previewColor,
+                        color: previewTextColor,
+                        borderRadius: `${previewBorderRadius}px`,
+                        padding: '0.75rem 1.5rem',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontWeight: '500',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {buttonText || (buttonType === 'redirect' ? 'Contact Us' : 'Download Now')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 4: Styling & Features
+    <Slide key={4}>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-orange-500 text-white p-4 rounded-full mr-4">
+              <Settings className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Styling & Features</h1>
+              <p className="text-lg text-slate-600">Customize appearance and enable features</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-center">
+          {/* Feature Toggles */}
+          <div className="space-y-6 flex flex-col items-center">
+            <h3 className="text-xl font-semibold text-slate-900">Features</h3>
+            
+            <div className="space-y-4 w-[550px]">
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <AlignLeft className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Expanded Description</Label>
+                    <p className="text-sm text-slate-500">Add detailed content below listings</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={showDescription}
+                  onCheckedChange={setShowDescription}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <Hash className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Metadata Bar</Label>
+                    <p className="text-sm text-slate-500">Show contact info and details</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={showMetadata}
+                  onCheckedChange={setShowMetadata}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <MapPin className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Maps Integration</Label>
+                    <p className="text-sm text-slate-500">Enable location mapping</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={showMaps}
+                  onCheckedChange={setShowMaps}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <DollarSign className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Show Price</Label>
+                    <p className="text-sm text-slate-500">Display pricing information</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={showPrice}
+                  onCheckedChange={setShowPrice}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <ShoppingBag className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Buy Now Button</Label>
+                    <p className="text-sm text-slate-500">Add purchase functionality</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={showBuyNowButton}
+                  onCheckedChange={setShowBuyNowButton}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <ShoppingCart className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Add to Cart Button</Label>
+                    <p className="text-sm text-slate-500">Enable cart functionality</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={showAddToCartButton}
+                  onCheckedChange={setShowAddToCartButton}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <Hash className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Quantity Selector</Label>
+                    <p className="text-sm text-slate-500">Allow quantity selection</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={showQuantitySelector}
+                  onCheckedChange={setShowQuantitySelector}
+                />
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 5: CSS Code
+    <Slide key={5}>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-blue-500 text-white p-4 rounded-full mr-4">
+              <Code className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">CSS Code</h1>
+              <p className="text-lg text-slate-600">Add to Custom CSS section in GoHighLevel</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-lg font-medium">CSS Code (Add to Custom CSS section)</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const cssCode = `<style>
 /* GoHighLevel Essential Fixes - Always Applied */
+
+/* Nuclear truncation fix - Apply first to prevent any truncation */
 body:not(.hl-builder) * { 
   text-overflow: unset !important; 
   -webkit-line-clamp: unset !important; 
@@ -322,62 +1097,107 @@ body:not(.hl-builder) * {
   overflow: visible !important;
 }
 
+/* Remove title truncation and set width */
 body:not(.hl-builder) [class*="product-title"],
 body:not(.hl-builder) [class*="product-name"],
-body:not(.hl-builder) .hl-product-detail-product-name {
+body:not(.hl-builder) .hl-product-detail-product-name,
+body:not(.hl-builder) p.hl-product-detail-product-name.truncate-text {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
   -webkit-line-clamp: unset !important;
   max-height: none !important;
   height: auto !important;
-}`;
+  width: 800px !important;
+  max-width: 800px !important;
+}
 
-    // Add element hiding CSS based on toggles
-    if (!showPrice) {
-      css += `
+/* Remove product description truncation */
+body:not(.hl-builder) [class*="product-description"],
+body:not(.hl-builder) #description,
+body:not(.hl-builder) .product-description {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
 
-/* Hide Price Display */
+/* Remove show more buttons */
+body:not(.hl-builder) .show-more-btn,
+body:not(.hl-builder) .read-more,
+body:not(.hl-builder) [class*="show-more"],
+body:not(.hl-builder) [class*="read-more"],
+body:not(.hl-builder) .show-more {
+  display: none !important;
+}
+
+/* Remove independent scrolling from description and gallery */
+body:not(.hl-builder) .product-image-container,
+body:not(.hl-builder) .hl-product-image-container,
+body:not(.hl-builder) .product-description-container {
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Scrolling fix - public pages only */
+body:not(.hl-builder) .fullSection, 
+body:not(.hl-builder) .c-section, 
+body:not(.hl-builder) .c-wrapper, 
+body:not(.hl-builder) .inner, 
+body:not(.hl-builder) .vertical,
+body:not(.hl-builder) [class*="fullSection"], 
+body:not(.hl-builder) [class*="c-section"], 
+body:not(.hl-builder) [class*="c-wrapper"],
+body:not(.hl-builder) [class*="section-"], 
+body:not(.hl-builder) [class*="row-"], 
+body:not(.hl-builder) [class*="col-"],
+body:not(.hl-builder) [class*="inner"] {
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+body:not(.hl-builder) { 
+  overflow-x: hidden !important; 
+  overflow-y: auto !important; 
+}${showBuyNowButton === false ? `
+
+/* Hide Buy Now Button */
+body:not(.hl-builder) .cstore-product-detail button,
+body:not(.hl-builder) .hl-product-buy-button,
+body:not(.hl-builder) [class*="buy-now"],
+body:not(.hl-builder) #buy-now-btn,
+body:not(.hl-builder) .secondary-btn {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${showAddToCartButton === false ? `
+
+/* Hide Add to Cart Button */
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"],
+body:not(.hl-builder) #add-to-cart-btn,
+body:not(.hl-builder) .primary-btn {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${showPrice === false ? `
+
+/* Hide Price */
 body:not(.hl-builder) .cstore-product-detail [class*="price"],
 body:not(.hl-builder) .product-detail-container [class*="price"],
 body:not(.hl-builder) .hl-product-price,
-body:not(.hl-builder) .hl-product-detail-product-price {
+body:not(.hl-builder) .hl-product-detail-product-price,
+body:not(.hl-builder) p.hl-product-detail-product-price {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
-}`;
-    }
-
-    if (!showBuyNowButton) {
-      css += `
-
-/* Hide Buy Now Button */
-body:not(.hl-builder) .cstore-product-detail [class*="buy-now"],
-body:not(.hl-builder) .product-detail-container [class*="buy-now"],
-body:not(.hl-builder) .hl-buy-now-button,
-body:not(.hl-builder) button[class*="buy-now"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
-
-    if (!showAddToCartButton) {
-      css += `
-
-/* Hide Add to Cart Button */
-body:not(.hl-builder) .cstore-product-detail [class*="add-to-cart"],
-body:not(.hl-builder) .product-detail-container [class*="add-to-cart"],
-body:not(.hl-builder) .hl-add-to-cart-button,
-body:not(.hl-builder) button[class*="add-to-cart"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
-
-    if (!showQuantitySelector) {
-      css += `
+}` : ''}${showQuantitySelector === false ? `
 
 /* Hide Quantity Selector */
 body:not(.hl-builder) .hl-product-detail-selectors,
@@ -394,11 +1214,7 @@ body:not(.hl-builder) .action-icon {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
-}`;
-    }
-
-    if (!showCartIcon) {
-      css += `
+}` : ''}${showCartIcon === false ? `
 
 /* Hide Cart Icon - Comprehensive targeting */
 body:not(.hl-builder) .nav-cart-icon,
@@ -415,1497 +1231,460 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
-}`;
-    }
-
-    css += `
+}` : ''}
 </style>`;
-
-    return css;
-  };
-
-  // Main CSS generation function using wizard logic
-  const generateFinalCSS = () => {
-    const generatedCode = generateCodeForSelection();
-    const elementHidingCSS = generateElementHidingCSS();
-    
-    // Combine element hiding CSS with the wizard's advanced features
-    return elementHidingCSS + '\n\n' + generatedCode.headerCode + '\n\n' + generatedCode.footerCode;
-  };
-
-  // Handle file drop
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
-    
-    if (imageFile) {
-      setLogoFile(imageFile);
-      // Create a preview URL for the dropped file
-      const url = URL.createObjectURL(imageFile);
-      setLogoUrl(url);
-    }
-  };
-
-  // Handle file input change
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setLogoFile(file);
-      const url = URL.createObjectURL(file);
-      setLogoUrl(url);
-    }
-  };
-
-  // Handle drag events
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
-
-  const slides = useMemo(() => {
-    const baseSlides: JSX.Element[] = [
-    // Slide 0: Get Started
-    <Slide key="get-started" className="bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="text-center max-w-2xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-6">
-            <Rocket className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            GoHighLevel Marketplace Extension
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Transform your GoHighLevel marketplace with advanced form generation, 
-            metadata displays, and enhanced customer experiences.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-blue-200 bg-white/70 backdrop-blur-sm">
-            <CardContent className="p-6 text-center">
-              <Settings className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Easy Configuration</h3>
-              <p className="text-sm text-gray-600">Simple wizard-driven setup process</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-blue-200 bg-white/70 backdrop-blur-sm">
-            <CardContent className="p-6 text-center">
-              <FileText className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Rich Content</h3>
-              <p className="text-sm text-gray-600">Enhanced descriptions and metadata</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-blue-200 bg-white/70 backdrop-blur-sm">
-            <CardContent className="p-6 text-center">
-              <Download className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Ready to Deploy</h3>
-              <p className="text-sm text-gray-600">Generated code ready for integration</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 border border-blue-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">What You'll Create:</h3>
-          <ul className="text-left text-gray-700 space-y-2">
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Dynamic form integration with embedded popups or redirects
-            </li>
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Rich product descriptions with custom content management
-            </li>
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Business metadata displays with icons and contact information
-            </li>
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Google Maps integration for location-based listings
-            </li>
-          </ul>
-        </div>
-      </div>
-    </Slide>,
-
-    // Slide 1: Google Drive Connection
-    <Slide key="google-drive" className="bg-gradient-to-br from-red-50 to-pink-100">
-      <div className="text-center max-w-2xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-red-500 rounded-full mb-6">
-            <FolderOpen className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Connect Google Drive</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Connect your Google Drive for image storage and management
-          </p>
-        </div>
-
-        <div className="text-center">
-          {!googleDriveConnected ? (
-            <div>
-              <Button 
-                onClick={() => setGoogleDriveConnected(true)}
-                className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 text-lg"
-              >
-                Connect Google Drive
-              </Button>
-            </div>
-          ) : (
-            <div>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-                <div className="flex items-center justify-center mb-4">
-                  <svg className="w-8 h-8 text-green-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                  </svg>
-                  <h3 className="text-xl font-semibold text-green-800">Google Drive Connected!</h3>
-                </div>
-                <p className="text-green-700 mb-4">
-                  Your Google Drive is now connected and ready to use.
-                </p>
-                <div className="bg-white rounded-lg p-4 border border-green-200">
-                  <p className="text-sm text-green-800">
-                    <strong>Storage Location:</strong> Directory Images folder<br/>
-                    <strong>Status:</strong> Ready for image uploads<br/>
-                    <strong>Access:</strong> Full read/write permissions
-                  </p>
-                </div>
-              </div>
-              <Button 
-                onClick={() => setGoogleDriveConnected(false)}
-                variant="outline"
-                className="border-red-300 text-red-600 hover:bg-red-50"
-              >
-                Disconnect
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
-    </Slide>,
-
-    // Slide 2: Directory Setup
-    <Slide key="directory-setup" className="bg-gradient-to-br from-blue-50 to-cyan-100">
-      <div className="text-center max-w-2xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-6">
-            <Building2 className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Directory Setup</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Name your directory and set up basic information
-          </p>
-        </div>
-
-        <Card className="bg-white/80 backdrop-blur-sm border border-blue-200 max-w-lg mx-auto">
-          <CardContent className="p-8">
-            <div className="space-y-6">
-              {/* Directory Name Field */}
-              <div className="space-y-3">
-                <Label htmlFor="directory-name" className="text-left block text-lg font-medium text-gray-700">
-                  Directory Name
-                </Label>
-                <Input
-                  id="directory-name"
-                  placeholder="My Business Directory"
-                  value={directoryName}
-                  onChange={(e) => setDirectoryName(e.target.value)}
-                  className="text-lg p-4 h-auto"
-                />
-                <p className="text-sm text-gray-600 text-left">
-                  Give your directory a memorable name for organization
-                </p>
-              </div>
-
-              {/* Logo Upload Field */}
-              <div className="space-y-3">
-                <Label className="text-left block text-lg font-medium text-gray-700">Add Your Logo</Label>
-                <div className="space-y-2">
-                  {/* Drag and Drop Area */}
-                  <div
-                    onDrop={handleDrop}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    className={`
-                      border-2 border-dashed rounded-lg p-4 text-center transition-all cursor-pointer
-                      ${isDragOver 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
-                      }
-                    `}
-                  >
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="logo-upload"
-                    />
-                    <label htmlFor="logo-upload" className="cursor-pointer">
-                      <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-gray-700">
-                        {isDragOver ? 'Drop logo here' : 'Upload logo'}
-                      </p>
-                    </label>
-                  </div>
-                  {logoFile && (
-                    <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
-                      ✓ Uploaded: {logoFile.name} ({(logoFile.size / 1024).toFixed(1)}KB)
-                    </div>
-                  )}
-                </div>
-              </div>
-
-
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </Slide>,
-
-    // Slide 3: Integration Method
-    <Slide key="integration-method" className="bg-gradient-to-br from-green-50 to-emerald-100">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mb-6">
-            <Settings className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Integration Method</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Select how you want to integrate GoHighLevel forms
-          </p>
-        </div>
-
-        {/* Integration Options Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card 
-            className={`cursor-pointer transition-all border-2 ${
-              integrationMethod === 'popup' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
-            }`}
-            onClick={() => setIntegrationMethod('popup')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="bg-blue-500 text-white p-2 rounded-md">
-                  <MousePointer className="w-6 h-6" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Action Button (Popup)</h3>
-                  <p className="text-sm text-gray-500">Opens form in a popup overlay</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className={`cursor-pointer transition-all border-2 ${
-              integrationMethod === 'embed' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
-            }`}
-            onClick={() => setIntegrationMethod('embed')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="bg-purple-500 text-white p-2 rounded-md">
-                  <Code className="w-6 h-6" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Embedded Form</h3>
-                  <p className="text-sm text-gray-500">Displays form directly on page</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className={`cursor-pointer transition-all border-2 ${
-              integrationMethod === 'redirect' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
-            }`}
-            onClick={() => setIntegrationMethod('redirect')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="bg-green-500 text-white p-2 rounded-md">
-                  <ExternalLink className="w-6 h-6" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Action Button (Redirect)</h3>
-                  <p className="text-sm text-gray-500">Redirects to external form page</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className={`cursor-pointer transition-all border-2 ${
-              integrationMethod === 'download' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
-            }`}
-            onClick={() => setIntegrationMethod('download')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="bg-orange-500 text-white p-2 rounded-md">
-                  <DownloadIcon className="w-6 h-6" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Action Button (Download)</h3>
-                  <p className="text-sm text-gray-500">Downloads file directly</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Configuration Card */}
-        <div className="max-w-2xl mx-auto text-center">
-          <div>
-            {/* Redirect Action Button Info */}
-            {integrationMethod === 'redirect' && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                <div className="flex items-center space-x-3">
-                  <ExternalLink className="w-6 h-6 text-green-600" />
-                  <div className="text-left">
-                    <h4 className="text-lg font-medium text-green-800">Redirect Button</h4>
-                    <p className="text-green-700 mt-2">
-                      Redirect URLs will be configured through your form submissions. The button will redirect users to external pages.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Download Action Button Info */}
-            {integrationMethod === 'download' && (
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-                <div className="flex items-center space-x-3">
-                  <DownloadIcon className="w-6 h-6 text-orange-600" />
-                  <div className="text-left">
-                    <h4 className="text-lg font-medium text-orange-800">Direct Download Button</h4>
-                    <p className="text-orange-700 mt-2">
-                      Download URLs will be configured through your form submissions. The button will trigger direct file downloads.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Configuration Summary - Skip problematic inputs */}
-            {(integrationMethod === 'popup' || integrationMethod === 'embed') && (
-              <div className="space-y-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                  <div className="flex items-center justify-center space-x-3">
-                    <div className="bg-blue-600 text-white p-2 rounded-md">
-                      {integrationMethod === 'popup' ? <Monitor className="w-5 h-5" /> : <Code className="w-5 h-5" />}
-                    </div>
-                    <div className="text-center">
-                      <h4 className="font-medium text-blue-800">
-                        {integrationMethod === 'popup' ? 'Action Button Popup Setup' : 'Embedded Form Setup'}
-                      </h4>
-                      <p className="text-sm text-blue-700 mt-1">
-                        {integrationMethod === 'popup' 
-                          ? 'Display forms in an overlay popup window' 
-                          : 'Embed forms directly into your listing pages'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Form Embed Code - Completely rebuilt from scratch */}
-                <div className="space-y-3">
-                  <label className="text-left block text-lg font-medium text-gray-700">
-                    {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
-                  </label>
-                  <input
-                    key={`embed-input-${inputKey}`}
-                    type="text"
-                    placeholder="Paste your GoHighLevel form embed code here..."
-                    defaultValue={wizardFormData.embedCode}
-                    onChange={(e) => {
-                      setWizardFormData(prev => ({...prev, embedCode: e.target.value}));
-                    }}
-                    className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="text-xs text-gray-500">Value: "{wizardFormData.embedCode}" (Length: {wizardFormData.embedCode.length})</p>
-                </div>
-
-                {/* Custom Field Name - Completely rebuilt from scratch */}
-                <div className="space-y-3">
-                  <label className="text-left block text-lg font-medium text-gray-700">
-                    Custom Field Name
-                  </label>
-                  <input
-                    key={`field-input-${inputKey}`}
-                    type="text"
-                    placeholder="listing"
-                    defaultValue={wizardFormData.fieldName}
-                    onChange={(e) => setWizardFormData(prev => ({...prev, fieldName: e.target.value}))}
-                    className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="text-xs text-gray-500">Value: "{wizardFormData.fieldName}"</p>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
-                    <div className="text-sm text-blue-700 text-left">
-                      <p className="font-medium mb-2">💡 Setup Instructions:</p>
-                      <ol className="space-y-1">
-                        <li>1. Create a single line custom field in High Level</li>
-                        <li>2. Place the field in the form and make it hidden</li>
-                        <li>3. Add the field name here</li>
-                        <li>4. When a visitor fills out your form, you will know which listing the form was on</li>
-                      </ol>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-
-
-
-          </div>
-        </div>
-      </div>
-    </Slide>,
-
-    // Slide 4: GoHighLevel Page Options
-    <Slide key="ghl-page-options" className="bg-gradient-to-br from-indigo-50 to-blue-100">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-600 rounded-full mb-6">
-            <Settings className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">GoHighLevel Page Options</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Control which ecommerce elements to show or hide on your marketplace pages
-          </p>
-        </div>
-
-        {/* GoHighLevel Options Grid - 2x2 Square Formation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto">
-          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-blue-50 p-2 rounded-md">
-                    <DollarSign className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Show Listing Price</h3>
-                    <p className="text-sm text-gray-500">Display product pricing information</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={showPrice}
-                  onCheckedChange={setShowPrice}
-                  id="show-price" 
-                />
-              </div>
-
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-red-50 p-2 rounded-md">
-                    <ShoppingBag className="w-6 h-6 text-red-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Show Buy Now Button</h3>
-                    <p className="text-sm text-gray-500">Display GoHighLevel's buy now button</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={showBuyNowButton}
-                  onCheckedChange={setShowBuyNowButton}
-                  id="show-buy-now" 
-                />
-              </div>
-
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-yellow-50 p-2 rounded-md">
-                    <ShoppingCart className="w-6 h-6 text-yellow-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Convert Cart To Bookmarks</h3>
-                    <p className="text-sm text-gray-500">Converts the cart feature into a book marking system.</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={convertCartToBookmarks}
-                  onCheckedChange={setConvertCartToBookmarks}
-                  id="convert-cart-bookmarks" 
-                />
-              </div>
-
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-purple-50 p-2 rounded-md">
-                    <Hash className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Show Quantity Selector</h3>
-                    <p className="text-sm text-gray-500">Display quantity input and controls</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={showQuantitySelector}
-                  onCheckedChange={setShowQuantitySelector}
-                  id="show-quantity" 
-                />
-              </div>
-
-            </CardContent>
-          </Card>
-
-
-        </div>
-
-
-      </div>
-    </Slide>,
-
-    // Slide 5: Directory Components
-    <Slide key="directory-components" className="bg-gradient-to-br from-purple-50 to-violet-100">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-600 rounded-full mb-6">
-            <Layout className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Directory Enhancement Components</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Add enhanced components to make your directory more engaging
-          </p>
-        </div>
-
-        {/* Component Toggle Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-white/80 backdrop-blur-sm border border-purple-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-indigo-50 p-2 rounded-md">
-                    <AlignLeft className="w-6 h-6 text-indigo-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Expanded Description</h3>
-                    <p className="text-sm text-gray-500">Rich content with images and HTML</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={showDescription}
-                  onCheckedChange={setShowDescription}
-                  id="show-description" 
-                />
-              </div>
-              {showDescription && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-left">
-                  <p className="text-sm text-green-700">
-                    ✓ Enhanced product descriptions with custom HTML content and URL-based content system
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 backdrop-blur-sm border border-purple-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-green-50 p-2 rounded-md">
-                    <FileText className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Metadata Bar</h3>
-                    <p className="text-sm text-gray-500">Additional business information</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={showMetadata}
-                  onCheckedChange={setShowMetadata}
-                  id="show-metadata" 
-                />
-              </div>
-              {showMetadata && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-left">
-                  <p className="text-sm text-green-700">
-                    ✓ Business contact information with icons and customizable styling
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 backdrop-blur-sm border border-purple-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-orange-50 p-2 rounded-md">
-                    <MapPin className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Google Maps Widget</h3>
-                    <p className="text-sm text-gray-500">Interactive location display</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={showMaps}
-                  onCheckedChange={setShowMaps}
-                  id="show-maps" 
-                />
-              </div>
-              {showMaps && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-left">
-                  <p className="text-sm text-green-700">
-                    ✓ Embedded Google Maps for location-based businesses
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-
-      </div>
-    </Slide>,
-
-    // Slide 6: Configuration Summary
-    <Slide key="configuration-summary" className="bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-6">
-            <FileText className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Form Embed Code</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Working form preview and embed code for GoHighLevel integration
-          </p>
-        </div>
-
-        {/* Configuration Summary */}
-        <Card className="bg-white border border-blue-200 max-w-4xl mx-auto">
-          <CardContent className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-              {/* Directory Settings */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-4 flex items-center">
-                  <Building2 className="w-5 h-5 mr-2 text-blue-600" />
-                  Directory Settings
-                </h4>
-                <div className="space-y-3 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">📁</span>
-                    <span className="ml-2"><strong>Name:</strong> {directoryName || 'My Directory'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🖼️</span>
-                    <span className="ml-2"><strong>Logo:</strong> {logoFile ? logoFile.name : 'Default logo'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🔗</span>
-                    <span className="ml-2"><strong>Integration:</strong> {integrationMethod}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* GoHighLevel Options */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-4 flex items-center">
-                  <Settings className="w-5 h-5 mr-2 text-blue-600" />
-                  Page Elements
-                </h4>
-                <div className="space-y-3 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">💰</span>
-                    <span className="ml-2"><strong>Price Display:</strong> {showPrice ? 'Visible' : 'Hidden'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🛒</span>
-                    <span className="ml-2"><strong>Buy Now Button:</strong> {showBuyNowButton ? 'Visible' : 'Hidden'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">➕</span>
-                    <span className="ml-2"><strong>Add to Cart:</strong> {showAddToCartButton ? 'Visible' : 'Hidden'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🔢</span>
-                    <span className="ml-2"><strong>Quantity Selector:</strong> {showQuantitySelector ? 'Visible' : 'Hidden'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🛍️</span>
-                    <span className="ml-2"><strong>Cart Icon:</strong> {showCartIcon ? 'Visible' : 'Hidden'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Enhancement Components */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-4 flex items-center">
-                  <Zap className="w-5 h-5 mr-2 text-blue-600" />
-                  Enhancement Components
-                </h4>
-                <div className="space-y-3 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">📝</span>
-                    <span className="ml-2"><strong>Expanded Description:</strong> {showDescription ? 'Enabled' : 'Disabled'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">📊</span>
-                    <span className="ml-2"><strong>Metadata Bar:</strong> {showMetadata ? 'Enabled' : 'Disabled'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🗺️</span>
-                    <span className="ml-2"><strong>Google Maps:</strong> {showMaps ? 'Enabled' : 'Disabled'}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Form Embed Code Section */}
-        <Card className="bg-orange-50 border border-orange-200 max-w-4xl mx-auto mt-8">
-          <CardContent className="p-6">
-            <h4 className="font-medium text-orange-800 mb-3 flex items-center">
-              <Code className="w-5 h-5 mr-2" />
-              Form Embed Code
-            </h4>
-            <div className="space-y-3">
-              <div className="bg-white border border-orange-200 rounded p-3">
-                <code className="text-xs text-slate-700 break-all">
-                  {`<iframe src="${window.location.origin}/form/your-location-id/your-directory-name" width="100%" height="600" frameborder="0"></iframe>`}
-                </code>
-              </div>
-              <div className="space-y-2 text-sm text-orange-700">
-                <p>
-                  <strong>Usage:</strong> This code can be used to place the form on any webpage, but is recommended for internal use since any submission will lead to product creation.
-                </p>
-                <p>
-                  <strong>Best Practice:</strong> Use as a custom menu link within GoHighLevel for controlled access and better integration with your existing workflows.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </Slide>,
-
-    // Slide 7: Generate Code
-    <Slide key="generate-code" className="bg-gradient-to-br from-green-50 to-emerald-100">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mb-6">
-            <Code className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Your Integration Code is Ready!</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Copy the code below and paste it into your GoHighLevel page's header section
-          </p>
-        </div>
-
-        {/* Generated CSS Code */}
-        <Card className="bg-white/90 backdrop-blur-sm border border-green-200 text-left">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">GoHighLevel CSS Integration</h3>
-              <Button
-                onClick={() => {
-                  const cssCode = generateFinalCSS();
-                  navigator.clipboard.writeText(cssCode);
+                  copyToClipboard(cssCode, setCssCodeCopied);
                 }}
-                className="bg-green-600 hover:bg-green-700"
+                className="flex items-center space-x-2"
               >
-                <Copy className="w-4 h-4 mr-2" />
-                Copy Code
+                {cssCodeCopied ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-600" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span>Copy CSS</span>
+                  </>
+                )}
               </Button>
             </div>
-            
-            <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
-              <pre className="text-sm whitespace-pre-wrap">
-                {generateFinalCSS()}
+            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-80 overflow-auto">
+              <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
+{`<style>
+/* GoHighLevel Essential Fixes - Always Applied */
+
+/* Nuclear truncation fix - Apply first to prevent any truncation */
+body:not(.hl-builder) * { 
+  text-overflow: unset !important; 
+  -webkit-line-clamp: unset !important; 
+  white-space: normal !important;
+  overflow: visible !important;
+}
+
+/* Remove title truncation and set width */
+body:not(.hl-builder) [class*="product-title"],
+body:not(.hl-builder) [class*="product-name"],
+body:not(.hl-builder) .hl-product-detail-product-name,
+body:not(.hl-builder) p.hl-product-detail-product-name.truncate-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+  width: 800px !important;
+  max-width: 800px !important;
+}
+
+/* Remove product description truncation */
+body:not(.hl-builder) [class*="product-description"],
+body:not(.hl-builder) #description,
+body:not(.hl-builder) .product-description {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Remove show more buttons */
+body:not(.hl-builder) .show-more-btn,
+body:not(.hl-builder) .read-more,
+body:not(.hl-builder) [class*="show-more"],
+body:not(.hl-builder) [class*="read-more"],
+body:not(.hl-builder) .show-more {
+  display: none !important;
+}${!showPrice ? `
+
+/* Hide Price Display */
+body:not(.hl-builder) .cstore-product-detail [class*="price"],
+body:not(.hl-builder) .product-detail-container [class*="price"],
+body:not(.hl-builder) .hl-product-price,
+body:not(.hl-builder) .hl-product-detail-product-price,
+body:not(.hl-builder) p.hl-product-detail-product-price {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showBuyNowButton ? `
+
+/* Hide Buy Now Button */
+body:not(.hl-builder) .cstore-product-detail [class*="buy-now"],
+body:not(.hl-builder) .product-detail-container [class*="buy-now"],
+body:not(.hl-builder) .hl-buy-now-button,
+body:not(.hl-builder) button[class*="buy-now"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showAddToCartButton ? `
+
+/* Hide Add to Cart Button */
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"],
+body:not(.hl-builder) #add-to-cart-btn,
+body:not(.hl-builder) .primary-btn {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${!showQuantitySelector ? `
+
+/* Hide Quantity Selector */
+body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
+body:not(.hl-builder) .product-detail-container [class*="qty"],
+body:not(.hl-builder) .cstore-product-detail input[type="number"],
+body:not(.hl-builder) input[class*="quantity"],
+body:not(.hl-builder) input[class*="qty"],
+body:not(.hl-builder) .quantity-container,
+body:not(.hl-builder) .hl-quantity-input-container,
+body:not(.hl-builder) .pdp-quantity-container,
+body:not(.hl-builder) .hl-quantity-input,
+body:not(.hl-builder) .action-icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}
+
+/* Scrolling fix - public pages only */
+body:not(.hl-builder) .fullSection, 
+body:not(.hl-builder) .c-section, 
+body:not(.hl-builder) .c-wrapper, 
+body:not(.hl-builder) .inner, 
+body:not(.hl-builder) .vertical {
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+body:not(.hl-builder) { 
+  overflow-x: hidden !important; 
+  overflow-y: auto !important; 
+}${showBuyNowButton === false ? `
+
+/* Hide Buy Now Button */
+body:not(.hl-builder) .hl-product-buy-button,
+body:not(.hl-builder) [class*="buy-now"],
+body:not(.hl-builder) .secondary-btn {
+  display: none !important;
+}` : ''}${showAddToCartButton === false ? `
+
+/* Hide Add to Cart Button */
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"],
+body:not(.hl-builder) .primary-btn {
+  display: none !important;
+}` : ''}${showQuantitySelector === false ? `
+
+/* Hide Quantity Selector */
+body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) [class*="quantity"],
+body:not(.hl-builder) .quantity-container {
+  display: none !important;
+}` : ''}
+</style>`}
               </pre>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+      </div>
+    </Slide>,
 
+    // Slide 6: Header Code
+    <Slide key={6}>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-purple-500 text-white p-4 rounded-full mr-4">
+              <FileText className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Header Code</h1>
+              <p className="text-lg text-slate-600">Add to &lt;head&gt; section of your website</p>
+            </div>
+          </div>
+        </div>
 
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-lg font-medium">Header Code (Add to &lt;head&gt; section)</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyToClipboard(generatedCode.headerCode, setHeaderCodeCopied)}
+                className="flex items-center space-x-2"
+              >
+                {headerCodeCopied ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-600" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </Button>
+            </div>
+            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-80 overflow-auto">
+              <pre className="text-sm whitespace-pre-wrap">{generatedCode.headerCode}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 7: Footer Code
+    <Slide key={7}>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-orange-500 text-white p-4 rounded-full mr-4">
+              <Code className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Footer Code</h1>
+              <p className="text-lg text-slate-600">Add before &lt;/body&gt; tag on your website</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-lg font-medium">Footer Code (Add before &lt;/body&gt; tag)</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyToClipboard(generatedCode.footerCode, setFooterCodeCopied)}
+                className="flex items-center space-x-2"
+              >
+                {footerCodeCopied ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-600" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </Button>
+            </div>
+            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-80 overflow-auto">
+              <pre className="text-sm whitespace-pre-wrap">{generatedCode.footerCode}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 8: Form Preview
+    <Slide key={8}>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-indigo-500 text-white p-4 rounded-full mr-4">
+              <FileText className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Generated Form Preview</h1>
+              <p className="text-lg text-slate-600">Your directory will create forms with these fields</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Working Form Preview */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-slate-900 mb-4">Live Working Form</h3>
+            <div className="bg-white border border-slate-200 rounded-lg overflow-hidden max-h-96 overflow-y-auto">
+              <div className="scale-75 origin-top-left" style={{ width: '133.33%', height: '133.33%' }}>
+                <DirectoryForm />
+              </div>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                <strong>Live Form:</strong> This is the actual working form with AI summarizer, auto-fill functionality, and real database persistence. Test all features including the "Generate Bullet Points with AI" button.
+              </p>
+            </div>
+          </div>
+
+          {/* Configuration Summary */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-slate-900 mb-4">Configuration Summary</h3>
+            
+            <div className="space-y-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium text-blue-800 mb-2">Required Fields (Always Included)</h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• Product/Service Name</li>
+                  <li>• Basic Description</li>
+                  <li>• Product Image (Google Drive URL)</li>
+                  <li>• SEO Title & Description</li>
+                  <li>• URL Slug</li>
+                </ul>
+              </div>
+              
+              {(showDescription || showMetadata || showMaps || showPrice) && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h4 className="font-medium text-green-800 mb-2">Optional Features (Based on Selection)</h4>
+                  <ul className="text-sm text-green-700 space-y-1">
+                    {showPrice && <li>• Price Field</li>}
+                    {showDescription && <li>• Detailed Description</li>}
+                    {showMaps && <li>• Business Address (for Google Maps)</li>}
+                    {showMetadata && metadataFields.length > 0 && (
+                      <li>• Metadata Fields: {metadataFields.map(f => f.label).join(', ')}</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+              
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <h4 className="font-medium text-purple-800 mb-2">Integration Settings</h4>
+                <ul className="text-sm text-purple-700 space-y-1">
+                  <li>• Custom Field: {customFieldName}</li>
+                  <li>• Button Type: {buttonType}</li>
+                  <li>• Total Fields: {generateFormFields(generateDirectoryConfig()).length}</li>
+                </ul>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={() => goToSlide(9)}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              Continue to Summary
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 9: Summary
+    <Slide key={9}>
+      <div className="text-center space-y-6">
+        <div className="flex items-center justify-center mb-8">
+          <div className="bg-green-500 text-white p-4 rounded-full mr-4">
+            <Rocket className="w-8 h-8" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Setup Complete!</h1>
+            <p className="text-lg text-slate-600">Your GoHighLevel integration is ready</p>
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-green-800 mb-4">Configuration Summary</h3>
+            <div className="space-y-3 text-left">
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Directory Name:</span>
+                <span className="font-medium text-green-800">{directoryName || 'Not specified'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Integration Method:</span>
+                <span className="font-medium text-green-800 capitalize">{buttonType}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Google Drive:</span>
+                <span className="font-medium text-green-800">{googleDriveConnected ? 'Connected' : 'Not connected'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Expanded Description:</span>
+                <span className="font-medium text-green-800">{showDescription ? 'Enabled' : 'Disabled'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Metadata Bar:</span>
+                <span className="font-medium text-green-800">{showMetadata ? 'Enabled' : 'Disabled'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Maps:</span>
+                <span className="font-medium text-green-800">{showMaps ? 'Enabled' : 'Disabled'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-blue-800 mb-2">Next Steps</h3>
+            <ol className="text-left text-blue-700 space-y-2">
+              <li>1. Copy the header code to your website's &lt;head&gt; section</li>
+              <li>2. Copy the footer code before your closing &lt;/body&gt; tag</li>
+              <li>3. Test your integration on a live page</li>
+              <li>4. Customize content for specific listings as needed</li>
+            </ol>
+          </div>
+
+          <Button 
+            onClick={() => goToSlide(4)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+          >
+            <Code className="w-5 h-5 mr-2" />
+            View CSS Code
+          </Button>
+        </div>
       </div>
     </Slide>
   ];
 
-    // Add conditional slides based on configuration options
-    
-    // 1. Product Details Page CSS - Always after Configuration Summary
-    baseSlides.splice(-1, 0,
-      <Slide key="product-details-css" className="bg-gradient-to-br from-indigo-50 to-blue-100">
-        <div className="text-center max-w-4xl mx-auto">
-          <div className="mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-600 rounded-full mb-6">
-              <Code className="w-10 h-10 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Product Details Page CSS</h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Main CSS code for your product details pages
-            </p>
-          </div>
-
-          <Card className="bg-white border border-indigo-200 text-left">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Product Details Page CSS</h3>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => {
-                      const config = {
-                        directoryName,
-                        integrationMethod,
-                        showDescription,
-                        showMetadata,
-                        showMaps,
-                        showPrice,
-                        showBuyNowButton,
-                        showAddToCartButton,
-                        showQuantitySelector,
-                        showCartIcon,
-                        convertCartToBookmarks,
-                        formEmbedUrl: wizardFormData.embedCode || "PASTE_YOUR_GOHIGHLEVEL_FORM_CODE_HERE",
-                        customFieldName: wizardFormData.fieldName
-                      };
-                      const configJson = JSON.stringify(config, null, 2);
-                      const blob = new Blob([configJson], { type: 'application/json' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `${directoryName || 'directory'}-config.json`;
-                      a.click();
-                    }}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Config
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      const cssCode = generateFinalCSS();
-                      navigator.clipboard.writeText(cssCode);
-                    }}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy CSS
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
-                <pre className="text-sm whitespace-pre-wrap">
-                  {generateFinalCSS()}
-                </pre>
-              </div>
-              
-              {/* Configuration Instructions */}
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-medium text-blue-800 mb-2">📋 Configuration Instructions</h4>
-                <div className="text-sm text-blue-700 space-y-2">
-                  <p><strong>1. Download Config:</strong> Click "Download Config" to get your configuration JSON file</p>
-                  <p><strong>2. Edit the JSON:</strong> Open the file and replace:</p>
-                  <ul className="ml-4 list-disc space-y-1">
-                    <li><code className="bg-blue-100 px-1 rounded">PASTE_YOUR_GOHIGHLEVEL_FORM_CODE_HERE</code> with your actual GoHighLevel form embed code</li>
-                    <li>Update <code className="bg-blue-100 px-1 rounded">customFieldName</code> if needed (default: "listing")</li>
-                  </ul>
-                  <p><strong>3. Apply CSS:</strong> Copy the CSS code above and paste it into your GoHighLevel page's footer</p>
-                  <p><strong>4. Integration:</strong> Your {integrationMethod === 'popup' ? 'popup forms' : 'embedded forms'} will work automatically based on the configuration</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </Slide>
-    );
-
-    // 2. Product Details Page Header - Always after CSS
-    baseSlides.splice(-1, 0,
-      <Slide key="product-details-header" className="bg-gradient-to-br from-emerald-50 to-green-100">
-        <div className="text-center max-w-4xl mx-auto">
-          <div className="mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-600 rounded-full mb-6">
-              <FileText className="w-10 h-10 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Product Details Page Header</h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Header code for enhanced product page functionality
-            </p>
-          </div>
-
-          <Card className="bg-white border border-emerald-200 text-left">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Header Code</h3>
-                <Button
-                  onClick={() => {
-                    let headerCode = `<!-- Enhanced Product Details Header -->
-<script>
-// Enhanced product page functionality
-document.addEventListener('DOMContentLoaded', function() {
-  // URL slug detection
-  const url = new URL(window.location.href);
-  const slug = url.searchParams.get('slug') || url.pathname.split('/').pop();
-`;
-
-                    // Add form integration if embed code exists
-                    if (wizardFormData.embedCode) {
-                      headerCode += `
-  // GoHighLevel Form Integration
-  const formEmbedCode = \`${wizardFormData.embedCode}\`;
-  const customFieldName = '${wizardFormData.fieldName}';
-  console.log('Form integration active with field:', customFieldName);
-  
-  // Embed form into page
-  if (formEmbedCode) {
-    // Process and inject form code
-    console.log('Injecting form embed code');
-  }`;
-                    }
-
-                    // Add enhanced features
-                    if (showDescription) {
-                      headerCode += `
-  
-  // Enhanced description handling
-  if (slug) {
-    // Load enhanced description content
-    console.log('Loading enhanced description for:', slug);
-  }`;
-                    }
-
-                    if (showMetadata) {
-                      headerCode += `
-  
-  // Metadata bar setup
-  // Initialize metadata display
-  console.log('Setting up metadata bar');`;
-                    }
-
-                    if (showMaps) {
-                      headerCode += `
-  
-  // Google Maps integration
-  // Initialize Google Maps widget
-  console.log('Loading Google Maps widget');`;
-                    }
-
-                    headerCode += `
-});
-</script>`;
-                    navigator.clipboard.writeText(headerCode);
-                  }}
-                  className="bg-emerald-600 hover:bg-emerald-700"
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy Header
-                </Button>
-              </div>
-              
-              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
-                <pre className="text-sm whitespace-pre-wrap">
-{(() => {
-  let displayCode = `<!-- Enhanced Product Details Header -->
-<script>
-// Enhanced product page functionality
-document.addEventListener('DOMContentLoaded', function() {
-  // URL slug detection
-  const url = new URL(window.location.href);
-  const slug = url.searchParams.get('slug') || url.pathname.split('/').pop();
-`;
-
-  // Add form integration if embed code exists
-  if (wizardFormData.embedCode) {
-    displayCode += `
-  // GoHighLevel Form Integration
-  const formEmbedCode = \`${wizardFormData.embedCode}\`;
-  const customFieldName = '${wizardFormData.fieldName}';
-  console.log('Form integration active with field:', customFieldName);
-  
-  // Embed form into page
-  if (formEmbedCode) {
-    // Process and inject form code
-    console.log('Injecting form embed code');
-  }`;
-  }
-
-  // Add enhanced features
-  if (showDescription) {
-    displayCode += `
-  
-  // Enhanced description handling
-  if (slug) {
-    // Load enhanced description content
-    console.log('Loading enhanced description for:', slug);
-  }`;
-  }
-
-  if (showMetadata) {
-    displayCode += `
-  
-  // Metadata bar setup
-  // Initialize metadata display
-  console.log('Setting up metadata bar');`;
-  }
-
-  if (showMaps) {
-    displayCode += `
-  
-  // Google Maps integration
-  // Initialize Google Maps widget
-  console.log('Loading Google Maps widget');`;
-  }
-
-  displayCode += `
-});
-</script>`;
-  return displayCode;
-})()}
-                </pre>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </Slide>
-    );
-
-    // 3. Product Details Page Footer - Always after Header
-    baseSlides.splice(-1, 0,
-      <Slide key="product-details-footer" className="bg-gradient-to-br from-purple-50 to-violet-100">
-        <div className="text-center max-w-4xl mx-auto">
-          <div className="mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-600 rounded-full mb-6">
-              <Layout className="w-10 h-10 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Product Details Page Footer</h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Footer code for form integration and enhanced features
-            </p>
-          </div>
-
-          <Card className="bg-white border border-purple-200 text-left">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Footer Code</h3>
-                <Button
-                  onClick={() => {
-                    let footerCode = `<!-- Enhanced Product Details Footer -->
-<script>
-// Form integration and enhanced features
-(function() {
-`;
-
-                    // Add form integration if embed code exists
-                    if (wizardFormData.embedCode) {
-                      footerCode += `  // GoHighLevel Form Integration
-  const formEmbedCode = \`${wizardFormData.embedCode}\`;
-  const customFieldName = '${wizardFormData.fieldName}';
-  
-  // Form integration setup based on method`;
-
-                      if (integrationMethod === 'popup') {
-                        footerCode += `
-  // Popup form integration
-  function showFormPopup() {
-    console.log('Opening popup form with field:', customFieldName);
-    // Inject form code into popup
-    if (formEmbedCode) {
-      console.log('Injecting form into popup');
-    }
-  }`;
-                      }
-
-                      if (integrationMethod === 'embed') {
-                        footerCode += `
-  // Direct embed form setup
-  console.log('Setting up direct embed with field:', customFieldName);
-  if (formEmbedCode) {
-    console.log('Directly embedding form code');
-  }`;
-                      }
-
-                      if (integrationMethod === 'redirect') {
-                        footerCode += `
-  // Redirect form setup
-  console.log('Setting up redirect functionality with field:', customFieldName);
-  if (formEmbedCode) {
-    console.log('Processing form code for redirect');
-  }`;
-                      }
-                    }
-
-                    // Add enhanced features
-                    if (showDescription) {
-                      footerCode += `
-  
-  // Enhanced description functionality
-  console.log('Initializing enhanced descriptions');`;
-                    }
-
-                    if (showMetadata) {
-                      footerCode += `
-  
-  // Metadata bar functionality
-  console.log('Initializing metadata bar');`;
-                    }
-
-                    if (showMaps) {
-                      footerCode += `
-  
-  // Google Maps functionality
-  console.log('Initializing Google Maps');`;
-                    }
-
-                    footerCode += `
-})();
-</script>`;
-                    navigator.clipboard.writeText(footerCode);
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy Footer
-                </Button>
-              </div>
-              
-              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
-                <pre className="text-sm whitespace-pre-wrap">
-{(() => {
-  let displayFooterCode = `<!-- Enhanced Product Details Footer -->
-<script>
-// Form integration and enhanced features
-(function() {
-`;
-
-  // Add form integration if embed code exists
-  if (wizardFormData.embedCode) {
-    displayFooterCode += `  // GoHighLevel Form Integration
-  const formEmbedCode = \`${wizardFormData.embedCode}\`;
-  const customFieldName = '${wizardFormData.fieldName}';
-  
-  // Form integration setup based on method`;
-
-    if (integrationMethod === 'popup') {
-      displayFooterCode += `
-  // Popup form integration
-  function showFormPopup() {
-    console.log('Opening popup form with field:', customFieldName);
-    // Inject form code into popup
-    if (formEmbedCode) {
-      console.log('Injecting form into popup');
-    }
-  }`;
-    }
-
-    if (integrationMethod === 'embed') {
-      displayFooterCode += `
-  // Direct embed form setup
-  console.log('Setting up direct embed with field:', customFieldName);
-  if (formEmbedCode) {
-    console.log('Directly embedding form code');
-  }`;
-    }
-
-    if (integrationMethod === 'redirect') {
-      displayFooterCode += `
-  // Redirect form setup
-  console.log('Setting up redirect functionality with field:', customFieldName);
-  if (formEmbedCode) {
-    console.log('Processing form code for redirect');
-  }`;
-    }
-  }
-
-  // Add enhanced features
-  if (showDescription) {
-    displayFooterCode += `
-  
-  // Enhanced description functionality
-  console.log('Initializing enhanced descriptions');`;
-  }
-
-  if (showMetadata) {
-    displayFooterCode += `
-  
-  // Metadata bar functionality
-  console.log('Initializing metadata bar');`;
-  }
-
-  if (showMaps) {
-    displayFooterCode += `
-  
-  // Google Maps functionality
-  console.log('Initializing Google Maps');`;
-  }
-
-  displayFooterCode += `
-})();
-</script>`;
-  return displayFooterCode;
-})()}
-                </pre>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </Slide>
-    );
-
-    // 4. Cart Bookmark CSS - Only if cart bookmark feature is enabled
-    if (convertCartToBookmarks) {
-      baseSlides.splice(-1, 0, 
-        <Slide key="cart-bookmarks-css" className="bg-gradient-to-br from-orange-50 to-amber-100">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-orange-600 rounded-full mb-6">
-                <ShoppingCart className="w-10 h-10 text-white" />
-              </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Cart Bookmark CSS Setup</h2>
-              <p className="text-lg text-gray-600 mb-8">
-                Additional CSS code required for cart-related pages
-              </p>
-            </div>
-
-            {/* Instructions */}
-            <Card className="bg-white border border-orange-200 mb-6">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Implementation Instructions</h3>
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-                  <p className="text-orange-800 text-sm">
-                    <strong>Important:</strong> The following CSS must be added to specific pages in addition to the main CSS code.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Cart Symbol Pages CSS */}
-            <Card className="bg-white border border-orange-200 mb-6">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Cart Symbol Pages CSS</h3>
-                  <Button
-                    onClick={() => {
-                      const cartSymbolCSS = `<style>
-/* Cart to Bookmark Conversion - Cart Symbol Pages */
-body:not(.hl-builder) .nav-cart-icon:before,
-body:not(.hl-builder) .cart-search-desktop:before,
-body:not(.hl-builder) .items-cart:before {
-  content: "🔖" !important;
-  font-size: 16px !important;
-}
-
-/* Replace cart text with bookmark text */
-body:not(.hl-builder) .nav-cart-icon span,
-body:not(.hl-builder) .cart-search-desktop span {
-  font-size: 0 !important;
-}
-
-body:not(.hl-builder) .nav-cart-icon span:after,
-body:not(.hl-builder) .cart-search-desktop span:after {
-  content: "Bookmarks" !important;
-  font-size: 14px !important;
-}
-</style>`;
-                      navigator.clipboard.writeText(cartSymbolCSS);
-                    }}
-                    className="bg-orange-600 hover:bg-orange-700 text-white"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy CSS
-                  </Button>
-                </div>
-                
-                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-64 overflow-y-auto">
-                  <pre className="text-sm whitespace-pre-wrap">
-{`<style>
-/* Cart to Bookmark Conversion - Cart Symbol Pages */
-body:not(.hl-builder) .nav-cart-icon:before,
-body:not(.hl-builder) .cart-search-desktop:before,
-body:not(.hl-builder) .items-cart:before {
-  content: "🔖" !important;
-  font-size: 16px !important;
-}
-
-/* Replace cart text with bookmark text */
-body:not(.hl-builder) .nav-cart-icon span,
-body:not(.hl-builder) .cart-search-desktop span {
-  font-size: 0 !important;
-}
-
-body:not(.hl-builder) .nav-cart-icon span:after,
-body:not(.hl-builder) .cart-search-desktop span:after {
-  content: "Bookmarks" !important;
-  font-size: 14px !important;
-}
-</style>`}
-                  </pre>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Cart Page CSS */}
-            <Card className="bg-white border border-orange-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Cart Page CSS</h3>
-                  <Button
-                    onClick={() => {
-                      const cartPageCSS = `<style>
-/* Cart to Bookmark Conversion - Cart Page */
-body:not(.hl-builder) .cart-page h1,
-body:not(.hl-builder) .cart-container h1,
-body:not(.hl-builder) [class*="cart-title"] {
-  font-size: 0 !important;
-}
-
-body:not(.hl-builder) .cart-page h1:after,
-body:not(.hl-builder) .cart-container h1:after,
-body:not(.hl-builder) [class*="cart-title"]:after {
-  content: "Your Bookmarks" !important;
-  font-size: 24px !important;
-  font-weight: bold !important;
-}
-
-/* Change add to cart buttons to bookmark buttons */
-body:not(.hl-builder) [class*="add-to-cart"],
-body:not(.hl-builder) button[class*="cart"] {
-  background: #f59e0b !important;
-}
-
-body:not(.hl-builder) [class*="add-to-cart"]:before,
-body:not(.hl-builder) button[class*="cart"]:before {
-  content: "🔖 Add to Bookmarks" !important;
-  font-size: 0 !important;
-}
-</style>`;
-                      navigator.clipboard.writeText(cartPageCSS);
-                    }}
-                    className="bg-orange-600 hover:bg-orange-700 text-white"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy CSS
-                  </Button>
-                </div>
-                
-                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-64 overflow-y-auto">
-                  <pre className="text-sm whitespace-pre-wrap">
-{`<style>
-/* Cart to Bookmark Conversion - Cart Page */
-body:not(.hl-builder) .cart-page h1,
-body:not(.hl-builder) .cart-container h1,
-body:not(.hl-builder) [class*="cart-title"] {
-  font-size: 0 !important;
-}
-
-body:not(.hl-builder) .cart-page h1:after,
-body:not(.hl-builder) .cart-container h1:after,
-body:not(.hl-builder) [class*="cart-title"]:after {
-  content: "Your Bookmarks" !important;
-  font-size: 24px !important;
-  font-weight: bold !important;
-}
-
-/* Change add to cart buttons to bookmark buttons */
-body:not(.hl-builder) [class*="add-to-cart"],
-body:not(.hl-builder) button[class*="cart"] {
-  background: #f59e0b !important;
-}
-
-body:not(.hl-builder) [class*="add-to-cart"]:before,
-body:not(.hl-builder) button[class*="cart"]:before {
-  content: "🔖 Add to Bookmarks" !important;
-  font-size: 0 !important;
-}
-</style>`}
-                  </pre>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </Slide>
-      );
-    }
-
-    return baseSlides;
-  }, [convertCartToBookmarks, directoryName, logoFile, integrationMethod, showPrice, showBuyNowButton, showAddToCartButton, showQuantitySelector, showCartIcon, showDescription, showMetadata, showMaps]);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-    setInputKey(prev => prev + 1); // Force input refresh
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-    setInputKey(prev => prev + 1); // Force input refresh
-  };
-
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-    setInputKey(prev => prev + 1); // Force input refresh
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <h1 className="text-xl font-semibold text-gray-900">
-            GoHighLevel Configuration Wizard
-          </h1>
-          
-          {/* Progress indicator */}
-          <div className="flex items-center space-x-2">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  index === currentSlide 
-                    ? 'bg-blue-600' 
-                    : index < currentSlide 
-                      ? 'bg-green-500' 
-                      : 'bg-gray-300'
-                }`}
-              />
-            ))}
+      <div className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="bg-blue-600 text-white p-2 rounded-lg">
+                <Rocket className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-slate-900">GoHighLevel Integration Wizard</h1>
+                <p className="text-slate-600">Step {currentSlide + 1} of {totalSlides}</p>
+              </div>
+            </div>
+            
+            {/* Progress bar */}
+            <div className="flex items-center space-x-2">
+              {Array.from({ length: totalSlides }, (_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    index === currentSlide 
+                      ? 'bg-blue-600' 
+                      : index < currentSlide 
+                        ? 'bg-green-500' 
+                        : 'bg-slate-300'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-hidden">
-        <div className="max-w-6xl mx-auto">
-          {slides[currentSlide]}
+      {/* Slide Content with sliding animation */}
+      <div className="flex-1 overflow-hidden relative">
+        <div 
+          className="flex transition-transform duration-500 ease-in-out h-full"
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        >
+          {slides.map((slide, index) => (
+            <div key={index} className="w-full flex-shrink-0">
+              {slide}
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Navigation Footer */}
-      <div className="bg-white border-t border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between max-w-6xl mx-auto">
+      {/* Navigation with centered slide indicator */}
+      <div className="bg-white border-t border-slate-200 p-4 relative">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Button
             variant="outline"
             onClick={prevSlide}
@@ -1916,24 +1695,29 @@ body:not(.hl-builder) button[class*="cart"]:before {
             <span>Previous</span>
           </Button>
 
-          <div className="text-sm text-gray-500">
-            Step {currentSlide + 1} of {slides.length}
+          {/* Centered slide indicator */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center space-x-2">
+            {Array.from({ length: totalSlides }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => goToSlide(i)}
+                className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                  i === currentSlide 
+                    ? 'bg-blue-500 scale-110' 
+                    : 'bg-slate-300 hover:bg-slate-400'
+                }`}
+              />
+            ))}
           </div>
 
-          {currentSlide === slides.length - 1 ? (
-            <Button className="flex items-center space-x-2 bg-green-600 hover:bg-green-700">
-              <Download className="w-4 h-4" />
-              <span>Download Code</span>
-            </Button>
-          ) : (
-            <Button
-              onClick={nextSlide}
-              className="flex items-center space-x-2"
-            >
-              <span>Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          )}
+          <Button
+            onClick={nextSlide}
+            disabled={currentSlide === totalSlides - 1}
+            className="flex items-center space-x-2"
+          >
+            <span>Next</span>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
         </div>
       </div>
     </div>
