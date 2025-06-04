@@ -1888,56 +1888,7 @@ body:not(.hl-builder) .quantity-container {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-lg font-medium">Price Removal CSS (Add to Any Page Custom CSS)</Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => copyToClipboard(priceRemovalCssCode, setPriceRemovalCodeCopied)}
-                className="flex items-center space-x-2"
-              >
-                {priceRemovalCodeCopied ? (
-                  <>
-                    <Check className="w-4 h-4 text-green-600" />
-                    <span>Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    <span>Copy</span>
-                  </>
-                )}
-              </Button>
-            </div>
-            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-64 overflow-auto">
-              <pre className="text-sm whitespace-pre-wrap">{priceRemovalCssCode}</pre>
-            </div>
-          </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <Info className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="font-semibold text-amber-800 mb-2">Usage Instructions</h4>
-                <p className="text-amber-700 text-sm">
-                  Add this CSS to any page where you want to hide pricing information. This works on product listing pages, individual product pages, and any other pages that display pricing elements.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="font-semibold text-green-800 mb-2">Ready to Apply</h4>
-                <p className="text-green-700 text-sm">
-                  Copy the CSS code above and paste it into the Custom CSS section of any page where you want to remove pricing information. The changes will take effect immediately.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </Slide>,
