@@ -404,8 +404,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Slide 0: Welcome
     <Slide key={0}>
       <div className="text-center space-y-8">
-        <div className="flex items-center justify-center mb-8">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-full mr-6">
+        <div className="flex flex-col items-center justify-center mb-8">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-full mb-6">
             <Rocket className="w-12 h-12" />
           </div>
           <div>
