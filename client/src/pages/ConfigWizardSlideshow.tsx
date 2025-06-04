@@ -215,100 +215,14 @@ i[class*="cart"] > *,
 }`;
 
   // Price Removal CSS Code for hiding prices on any page
-  const priceRemovalCssCode = `/* Price Removal CSS - Use on any page */
-/* Hide all price elements across different GoHighLevel classes */
-.hl-product-price,
-.hl-price,
-.c-product-price,
-.c-price,
+  const priceRemovalCssCode = `/* Hide all price elements */
+.hl-product-detail-product-price,
 .product-price,
 .price,
 .pricing,
-.cost,
-.amount,
-[class*="price"],
-[class*="pricing"],
-[class*="cost"],
-[class*="amount"],
-.hl-product-detail .price,
-.hl-product-detail [class*="price"],
-.cstore-product-detail .price,
-.cstore-product-detail [class*="price"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
-/* Hide price containers and wrappers */
-.price-container,
-.price-wrapper,
-.pricing-container,
-.pricing-wrapper,
-.cost-container,
-.amount-container,
-[class*="price-container"],
-[class*="price-wrapper"],
-[class*="pricing-container"],
-[class*="pricing-wrapper"] {
-  display: none !important;
-}
-
-/* Hide currency symbols and price indicators */
-.currency,
-.dollar-sign,
-.price-symbol,
-[class*="currency"],
-[class*="dollar"],
-span:contains("$"),
-span:contains("€"),
-span:contains("£"),
-span:contains("¥") {
-  display: none !important;
-}
-
-/* Hide price-related text elements */
-p:contains("Price:"),
-p:contains("Cost:"),
-p:contains("Amount:"),
-div:contains("Price:"),
-div:contains("Cost:"),
-div:contains("Amount:"),
-span:contains("Price:"),
-span:contains("Cost:"),
-span:contains("Amount:") {
-  display: none !important;
-}
-
-/* Specific GoHighLevel product page price hiding */
-.hl-product-detail-price,
-.hl-product-price-container,
-.c-product-detail-price,
-.c-product-price-container,
-.product-detail-price,
-.product-price-container {
-  display: none !important;
-}
-
-/* Hide any remaining price elements with more specific selectors */
-*[id*="price"],
-*[id*="pricing"],
-*[id*="cost"],
-*[id*="amount"] {
-  display: none !important;
-}
-
-/* Clean up layout spacing where prices were removed */
-.product-details,
-.hl-product-details,
-.c-product-details {
-  gap: 0.5rem;
-}
-
-/* Ensure proper spacing after price removal */
-.product-info > *:empty,
-.hl-product-info > *:empty,
-.c-product-info > *:empty {
-  display: none;
+span[class*="price"],
+div[class*="price"] {
+    display: none !important;
 }`;
   
   // Metadata bar configuration - exact copy from config wizard
