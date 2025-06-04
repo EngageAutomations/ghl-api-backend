@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <Settings className="w-8 h-8 text-blue-600" />
               </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Choose Your Directory Type</h3>
-              <p className="text-slate-600">Select layout and display options that fit your products</p>
+              <p className="text-slate-600">Pick a layout and structure that matches your product listings</p>
             </div>
 
             <div className="text-center p-6 bg-green-50 rounded-lg">
@@ -429,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <Code className="w-8 h-8 text-green-600" />
               </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Custom Features</h3>
-              <p className="text-slate-600">Add maps, metadata, descriptions and other enhancements</p>
+              <p className="text-slate-600">Enable maps, rich descriptions, metadata, and other smart features</p>
             </div>
 
             <div className="text-center p-6 bg-purple-50 rounded-lg">
@@ -437,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <Building2 className="w-8 h-8 text-purple-600" />
               </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Copy & Deploy</h3>
-              <p className="text-slate-600">Get ready-to-use code for your website integration</p>
+              <p className="text-slate-600">Generate clean code to quickly embed your directory into any site</p>
             </div>
           </div>
 
