@@ -24,8 +24,8 @@ interface SlideProps {
 
 function Slide({ children, className = "" }: SlideProps) {
   return (
-    <div className={`h-[800px] flex flex-col justify-center items-center p-8 ${className}`}>
-      <div className="w-full max-w-6xl mx-auto bg-white border border-white/30 rounded-2xl p-8 shadow-lg h-full flex flex-col">
+    <div className={`min-h-[1000px] flex flex-col justify-center items-center p-8 ${className}`}>
+      <div className="w-full max-w-6xl mx-auto bg-white border border-white/30 rounded-2xl p-8 shadow-lg min-h-[900px] flex flex-col">
         {children}
       </div>
     </div>
@@ -1648,7 +1648,7 @@ body:not(.hl-builder) .quantity-container {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
