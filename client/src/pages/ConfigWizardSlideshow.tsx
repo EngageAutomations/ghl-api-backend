@@ -1850,13 +1850,8 @@ body:not(.hl-builder) .quantity-container {
             <h3 className="text-xl font-semibold text-slate-900 mb-4">Price Removal Options</h3>
             <div className="space-y-4 text-slate-700">
               <p>
-                Remove pricing information from your product listings and pages when you want to focus on lead generation rather than direct sales:
+                Add this CSS code to the product list page and any page where you would display featured listings. Use this code if pricing is irrelevant to your directory use case.
               </p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong>Hide all price elements</strong> - Removes prices, currency symbols, and pricing containers</li>
-                <li><strong>Clean layout spacing</strong> - Automatically adjusts spacing where prices were removed</li>
-                <li><strong>Universal compatibility</strong> - Works across different GoHighLevel page types and custom layouts</li>
-              </ul>
             </div>
           </div>
 
