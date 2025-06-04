@@ -1643,7 +1643,7 @@ body:not(.hl-builder) .quantity-container {
                 <Rocket className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-900">GoHighLevel Integration Wizard</h1>
+                <h1 className="text-xl font-bold text-slate-900">Directory Creation Wizard</h1>
                 <p className="text-slate-600">Step {currentSlide + 1} of {totalSlides}</p>
               </div>
             </div>
