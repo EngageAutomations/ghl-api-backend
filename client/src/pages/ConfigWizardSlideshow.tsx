@@ -2094,7 +2094,7 @@ body:not(.hl-builder) .quantity-container {
   // Filter slides based on toggle states
   const slides = useMemo(() => {
     return allSlides.filter((slide, index) => {
-      // Always show slides 0-7 (core slides)
+      // Always show slides 0-7 (core slides through Footer Code)
       if (index <= 7) return true;
       
       // Slide 8: Cart Page Customization - only show if toggle is enabled
@@ -2103,8 +2103,10 @@ body:not(.hl-builder) .quantity-container {
       // Slide 9: Price Removal - only show if toggle is enabled  
       if (index === 9) return showPriceRemoval;
       
-      // Always show remaining slides (final config slides)
-      return true;
+      // Always show remaining slides (Form Preview, Summary)
+      if (index >= 10) return true;
+      
+      return false;
     });
   }, [showCartCustomization, showPriceRemoval]);
 
