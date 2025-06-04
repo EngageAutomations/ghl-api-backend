@@ -1552,6 +1552,30 @@ body:not(.hl-builder) .quantity-container {
                   <li>• Total Fields: {generateFormFields(generateDirectoryConfig()).length}</li>
                 </ul>
               </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <h4 className="font-medium text-amber-800 mb-3">Form Embed Code</h4>
+                <div className="space-y-3">
+                  <p className="text-sm text-amber-700">Copy this HTML code to embed the form on your website:</p>
+                  <div className="relative">
+                    <div className="bg-slate-900 text-slate-100 p-3 rounded text-xs overflow-auto max-h-32">
+                      <code>{`<iframe src="${window.location.origin}/form/${directoryName || 'your-location'}/${directoryName || 'your-directory'}" width="100%" height="600" frameborder="0" style="border-radius: 8px;"></iframe>`}</code>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="absolute top-2 right-2 h-7 px-2"
+                      onClick={() => {
+                        const embedCode = `<iframe src="${window.location.origin}/form/${directoryName || 'your-location'}/${directoryName || 'your-directory'}" width="100%" height="600" frameborder="0" style="border-radius: 8px;"></iframe>`;
+                        navigator.clipboard.writeText(embedCode);
+                      }}
+                    >
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-amber-600">Replace 'your-location' and 'your-directory' with your actual values.</p>
+                </div>
+              </div>
             </div>
             
             <Button 
