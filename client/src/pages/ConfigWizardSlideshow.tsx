@@ -1519,17 +1519,7 @@ body:not(.hl-builder) .quantity-container {
             <h3 className="text-xl font-semibold text-slate-900 mb-4">Configuration Summary</h3>
             
             <div className="space-y-3">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-800 mb-2">Required Fields (Always Included)</h4>
-                <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• Product/Service Name</li>
-                  <li>• Basic Description</li>
-                  <li>• Product Image (Google Drive URL)</li>
-                  <li>• SEO Title & Description</li>
-                  <li>• URL Slug</li>
-                </ul>
-              </div>
-              
+
               {(showDescription || showMetadata || showMaps || showPrice) && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <h4 className="font-medium text-green-800 mb-2">Optional Features (Based on Selection)</h4>
