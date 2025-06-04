@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, Copy, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Check, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, Copy, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Check, X, CheckCircle, Info } from 'lucide-react';
 
 // Import proven code generation functions from config wizard
 import { parseEmbedCode, ParsedEmbedData } from '@/lib/embed-parser';
@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setCurrentSlide(index);
   };
 
-  const totalSlides = 10;
+  const totalSlides = 11;
 
   const slides = [
     // Slide 0: Welcome
@@ -1078,8 +1078,81 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     </Slide>,
 
-    // Slide 5: CSS Code
+    // Slide 5: Setup Complete
     <Slide key={5}>
+      <div className="space-y-8">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-6">
+            <div className="bg-green-500 text-white p-6 rounded-full mr-4">
+              <CheckCircle className="w-12 h-12" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-slate-900">Setup Complete!</h1>
+              <p className="text-xl text-slate-600 mt-2">Directory configuration is ready for implementation</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-gradient-to-br from-green-50 to-blue-50 border border-green-200 rounded-xl p-8">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-semibold text-slate-900 mb-3">Next Steps</h2>
+              <p className="text-lg text-slate-700">
+                Your directory wizard configuration is complete. Now it's time to implement the generated code.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-white p-6 rounded-lg border border-slate-200">
+                <div className="flex items-center mb-4">
+                  <div className="bg-orange-100 p-3 rounded-full mr-3">
+                    <ShoppingBag className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900">Open Your eCommerce Store</h3>
+                </div>
+                <p className="text-slate-600 mb-4">
+                  Navigate to your GoHighLevel eCommerce store and open any product details page where you want to add directory functionality.
+                </p>
+                <div className="bg-slate-50 p-3 rounded border text-sm text-slate-700">
+                  <strong>Tip:</strong> Choose a product page that will serve as your directory template
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-lg border border-slate-200">
+                <div className="flex items-center mb-4">
+                  <div className="bg-blue-100 p-3 rounded-full mr-3">
+                    <Code className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900">Add the Generated Code</h3>
+                </div>
+                <p className="text-slate-600 mb-4">
+                  Copy the CSS and JavaScript code from the next slides and paste them into your product page's custom code sections.
+                </p>
+                <div className="bg-slate-50 p-3 rounded border text-sm text-slate-700">
+                  <strong>Location:</strong> Custom CSS section & Footer Tracking Code
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="font-semibold text-blue-900 mb-2">Ready to Proceed</h4>
+                  <p className="text-blue-800">
+                    Click "Next" to view the CSS code that needs to be added to your Custom CSS section, 
+                    followed by the JavaScript code for your Footer Tracking Code section.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 6: CSS Code
+    <Slide key={6}>
       <div className="space-y-6">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
