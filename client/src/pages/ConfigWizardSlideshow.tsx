@@ -43,9 +43,6 @@ export default function ConfigWizardSlideshow() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   
-  // Slide completion tracking
-  const [completedSlides, setCompletedSlides] = useState<number[]>([]);
-  
   // Form configuration state - exact copy from config wizard
   const [buttonType, setButtonType] = useState<string>('popup');
   const [formEmbedUrl, setFormEmbedUrl] = useState<string>('');
@@ -84,28 +81,6 @@ export default function ConfigWizardSlideshow() {
   
   // Button text state
   const [buttonText, setButtonText] = useState('Get More Info');
-
-  // Slide validation functions
-  const isSlideCompleted = (slideIndex: number): boolean => {
-    return completedSlides.includes(slideIndex);
-  };
-
-  const canNavigateToSlide = (slideIndex: number): boolean => {
-    if (slideIndex === 0) return true; // Welcome slide always accessible
-    // Must complete all previous slides to access this slide
-    for (let i = 1; i < slideIndex; i++) {
-      if (!isSlideCompleted(i)) return false;
-    }
-    return true;
-  };
-
-  const markSlideCompleted = (slideIndex: number) => {
-    setCompletedSlides(prev => prev.includes(slideIndex) ? prev : [...prev, slideIndex]);
-  };
-
-  const markSlideIncomplete = (slideIndex: number) => {
-    setCompletedSlides(prev => prev.filter(num => num !== slideIndex));
-  };
   
   // Metadata bar configuration - exact copy from config wizard
   const [metadataTextColor, setMetadataTextColor] = useState('#374151');
@@ -503,7 +478,6 @@ document.addEventListener('DOMContentLoaded', function() {
                   onClick={() => {
                     setGoogleDriveConnected(true);
                     setGoogleDriveEmail('user@example.com'); // This would be set from actual OAuth flow
-                    markSlideCompleted(1); // Mark slide 1 (Google Drive) as completed
                   }}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
                 >
@@ -531,7 +505,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     onClick={() => {
                       setGoogleDriveConnected(false);
                       setGoogleDriveEmail('');
-                      markSlideIncomplete(1); // Remove slide 1 completion when switching
                     }}
                     className="text-slate-600 hover:text-slate-800"
                   >
@@ -582,15 +555,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 id="directory-name"
                 placeholder="My Business Directory"
                 value={directoryName}
-                onChange={(e) => {
-                  setDirectoryName(e.target.value);
-                  // Mark slide 2 as completed if directory name is provided
-                  if (e.target.value.trim()) {
-                    markSlideCompleted(2);
-                  } else {
-                    markSlideIncomplete(2);
-                  }
-                }}
+                onChange={(e) => setDirectoryName(e.target.value)}
                 className="text-lg p-4"
               />
               <p className="text-slate-500">Give your directory a memorable name for organization</p>
@@ -746,15 +711,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     : 'Paste your GoHighLevel form embed code here...'
                   }
                   value={formEmbedUrl}
-                  onChange={(e) => {
-                    setFormEmbedUrl(e.target.value);
-                    // Mark slide 3 as completed if form embed URL is provided
-                    if (e.target.value.trim()) {
-                      markSlideCompleted(3);
-                    } else {
-                      markSlideIncomplete(3);
-                    }
-                  }}
+                  onChange={(e) => setFormEmbedUrl(e.target.value)}
                   className="min-h-[100px]"
                 />
                 {buttonType === 'popup' && parsedEmbedData && (
@@ -1764,7 +1721,7 @@ body:not(.hl-builder) .quantity-container {
 
           <Button
             onClick={nextSlide}
-            disabled={currentSlide === totalSlides - 1 || !canNavigateToSlide(currentSlide + 1)}
+            disabled={currentSlide === totalSlides - 1}
             className="flex items-center space-x-2"
           >
             <span>Next</span>
