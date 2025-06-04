@@ -437,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <Building2 className="w-8 h-8 text-purple-600" />
               </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Copy & Deploy</h3>
-              <p className="text-slate-600">Generate clean code to quickly embed your directory into any site</p>
+              <p className="text-slate-600">Generate clean code to quickly deploy your directory!</p>
             </div>
           </div>
 
