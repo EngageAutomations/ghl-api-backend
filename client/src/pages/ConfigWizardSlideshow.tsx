@@ -2013,23 +2013,7 @@ body:not(.hl-builder) .quantity-container {
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-blue-800 mb-2">Next Steps</h3>
-            <ol className="text-left text-blue-700 space-y-2">
-              <li>1. Copy the header code to your website's &lt;head&gt; section</li>
-              <li>2. Copy the footer code before your closing &lt;/body&gt; tag</li>
-              <li>3. Test your integration on a live page</li>
-              <li>4. Customize content for specific listings as needed</li>
-            </ol>
-          </div>
 
-          <Button 
-            onClick={() => setCurrentSlide(4)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
-          >
-            <Code className="w-5 h-5 mr-2" />
-            View CSS Code
-          </Button>
         </div>
       </div>
     </Slide>
