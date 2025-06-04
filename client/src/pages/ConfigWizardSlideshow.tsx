@@ -38,11 +38,13 @@ export default function ConfigWizardSlideshow() {
   // Slideshow-specific state
   const [googleDriveConnected, setGoogleDriveConnected] = useState(false);
   const [googleDriveEmail, setGoogleDriveEmail] = useState('');
-  const [isCheckingGoogleDrive, setIsCheckingGoogleDrive] = useState(true);
   const [directoryName, setDirectoryName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  
+  // Slide completion tracking
+  const [completedSlides, setCompletedSlides] = useState<number[]>([]);
   
   // Form configuration state - exact copy from config wizard
   const [buttonType, setButtonType] = useState<string>('popup');
@@ -82,29 +84,6 @@ export default function ConfigWizardSlideshow() {
   
   // Button text state
   const [buttonText, setButtonText] = useState('Get More Info');
-
-  // Check for existing Google Drive credentials on component mount
-  useEffect(() => {
-    const checkGoogleDriveCredentials = async () => {
-      try {
-        setIsCheckingGoogleDrive(true);
-        const response = await fetch('/api/google-drive/credentials');
-        if (response.ok) {
-          const credentials = await response.json();
-          if (credentials && credentials.email) {
-            setGoogleDriveConnected(true);
-            setGoogleDriveEmail(credentials.email);
-          }
-        }
-      } catch (error) {
-        console.error('Error checking Google Drive credentials:', error);
-      } finally {
-        setIsCheckingGoogleDrive(false);
-      }
-    };
-
-    checkGoogleDriveCredentials();
-  }, []);
   
   // Metadata bar configuration - exact copy from config wizard
   const [metadataTextColor, setMetadataTextColor] = useState('#374151');
@@ -485,20 +464,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
 
         <div className="max-w-2xl mx-auto space-y-6">
-          {isCheckingGoogleDrive ? (
-            <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 bg-slate-50">
-              <div className="text-center">
-                <div className="bg-blue-100 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-                  <svg className="w-12 h-12 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">Checking Google Drive Connection</h3>
-                <p className="text-slate-600">Looking for previously connected accounts...</p>
-              </div>
-            </div>
-          ) : !googleDriveConnected ? (
+          {!googleDriveConnected ? (
             <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 bg-slate-50">
               <div className="text-center">
                 <div className="bg-blue-100 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
@@ -515,6 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   onClick={() => {
                     setGoogleDriveConnected(true);
                     setGoogleDriveEmail('user@example.com'); // This would be set from actual OAuth flow
+                    setCompletedSlides(prev => prev.includes(1) ? prev : [...prev, 1]); // Mark slide 1 (Google Drive) as completed
                   }}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
                 >
@@ -542,6 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     onClick={() => {
                       setGoogleDriveConnected(false);
                       setGoogleDriveEmail('');
+                      setCompletedSlides(prev => prev.filter(slideNum => slideNum !== 1)); // Remove slide 1 completion when switching
                     }}
                     className="text-slate-600 hover:text-slate-800"
                   >
