@@ -513,6 +513,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+
+
+
+
   // Generate dynamic slides based on toggle states
   const allSlides = [
     // Slide 0: Welcome
