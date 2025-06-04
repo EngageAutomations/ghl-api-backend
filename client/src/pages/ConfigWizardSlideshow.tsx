@@ -2117,22 +2117,7 @@ body:not(.hl-builder) .quantity-container {
     }
   }, [currentSlide, totalSlides]);
 
-  // Navigation functions
-  const nextSlide = () => {
-    if (currentSlide < totalSlides - 1) {
-      setCurrentSlide(currentSlide + 1);
-    }
-  };
 
-  const prevSlide = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
-    }
-  };
-
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
@@ -2202,7 +2187,7 @@ body:not(.hl-builder) .quantity-container {
             {Array.from({ length: totalSlides }, (_, i) => (
               <button
                 key={i}
-                onClick={() => goToSlide(i)}
+                onClick={() => setCurrentSlide(i)}
                 className={`w-3 h-3 rounded-full transition-all duration-200 ${
                   i === currentSlide 
                     ? 'bg-blue-500 scale-110' 
@@ -2213,7 +2198,7 @@ body:not(.hl-builder) .quantity-container {
           </div>
 
           <Button
-            onClick={nextSlide}
+            onClick={() => setCurrentSlide(prev => Math.min(prev + 1, totalSlides - 1))}
             disabled={currentSlide === totalSlides - 1}
             className="flex items-center space-x-2"
           >
