@@ -85,6 +85,7 @@ export default function ConfigWizardSlideshow() {
   // Copy button states for cart page CSS
   const [cartPageCodeCopied, setCartPageCodeCopied] = useState<boolean>(false);
   const [cartIconCodeCopied, setCartIconCodeCopied] = useState<boolean>(false);
+  const [priceRemovalCodeCopied, setPriceRemovalCodeCopied] = useState<boolean>(false);
 
   // Cart Page CSS Code for removing checkout buttons
   const cartPageCssCode = `/* Cart Page Customization CSS */
@@ -211,6 +212,103 @@ i[class*="cart"] > *,
     width: 14px;
     height: 18px;
   }
+}`;
+
+  // Price Removal CSS Code for hiding prices on any page
+  const priceRemovalCssCode = `/* Price Removal CSS - Use on any page */
+/* Hide all price elements across different GoHighLevel classes */
+.hl-product-price,
+.hl-price,
+.c-product-price,
+.c-price,
+.product-price,
+.price,
+.pricing,
+.cost,
+.amount,
+[class*="price"],
+[class*="pricing"],
+[class*="cost"],
+[class*="amount"],
+.hl-product-detail .price,
+.hl-product-detail [class*="price"],
+.cstore-product-detail .price,
+.cstore-product-detail [class*="price"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Hide price containers and wrappers */
+.price-container,
+.price-wrapper,
+.pricing-container,
+.pricing-wrapper,
+.cost-container,
+.amount-container,
+[class*="price-container"],
+[class*="price-wrapper"],
+[class*="pricing-container"],
+[class*="pricing-wrapper"] {
+  display: none !important;
+}
+
+/* Hide currency symbols and price indicators */
+.currency,
+.dollar-sign,
+.price-symbol,
+[class*="currency"],
+[class*="dollar"],
+span:contains("$"),
+span:contains("€"),
+span:contains("£"),
+span:contains("¥") {
+  display: none !important;
+}
+
+/* Hide price-related text elements */
+p:contains("Price:"),
+p:contains("Cost:"),
+p:contains("Amount:"),
+div:contains("Price:"),
+div:contains("Cost:"),
+div:contains("Amount:"),
+span:contains("Price:"),
+span:contains("Cost:"),
+span:contains("Amount:") {
+  display: none !important;
+}
+
+/* Specific GoHighLevel product page price hiding */
+.hl-product-detail-price,
+.hl-product-price-container,
+.c-product-detail-price,
+.c-product-price-container,
+.product-detail-price,
+.product-price-container {
+  display: none !important;
+}
+
+/* Hide any remaining price elements with more specific selectors */
+*[id*="price"],
+*[id*="pricing"],
+*[id*="cost"],
+*[id*="amount"] {
+  display: none !important;
+}
+
+/* Clean up layout spacing where prices were removed */
+.product-details,
+.hl-product-details,
+.c-product-details {
+  gap: 0.5rem;
+}
+
+/* Ensure proper spacing after price removal */
+.product-info > *:empty,
+.hl-product-info > *:empty,
+.c-product-info > *:empty {
+  display: none;
 }`;
   
   // Metadata bar configuration - exact copy from config wizard
@@ -530,7 +628,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setCurrentSlide(index);
   };
 
-  const totalSlides = 12;
+  const totalSlides = 13;
 
   const slides = [
     // Slide 0: Welcome
@@ -1711,7 +1809,7 @@ body:not(.hl-builder) .quantity-container {
               <ShoppingCart className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Cart Page Customization</h1>
+              <h1 className="text-3xl font-bold text-slate-900">Cart Page Customization (Optional)</h1>
               <p className="text-lg text-slate-600">Remove checkout buttons and transform cart icons</p>
             </div>
           </div>
@@ -1814,8 +1912,120 @@ body:not(.hl-builder) .quantity-container {
       </div>
     </Slide>,
 
-    // Slide 9: Form Preview
+    // Slide 9: Price Removal (Optional)
     <Slide key={9}>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-red-500 text-white p-4 rounded-full mr-4">
+              <DollarSign className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Price Removal (Optional)</h1>
+              <p className="text-lg text-slate-600">Hide pricing information from product pages</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-lg p-6">
+            <h3 className="text-xl font-semibold text-slate-900 mb-4">Price Removal Options</h3>
+            <div className="space-y-4 text-slate-700">
+              <p>
+                Remove pricing information from your product listings and pages when you want to focus on lead generation rather than direct sales:
+              </p>
+              <ul className="list-disc list-inside space-y-2 ml-4">
+                <li><strong>Hide all price elements</strong> - Removes prices, currency symbols, and pricing containers</li>
+                <li><strong>Clean layout spacing</strong> - Automatically adjusts spacing where prices were removed</li>
+                <li><strong>Universal compatibility</strong> - Works across different GoHighLevel page types and custom layouts</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-800 mb-3 flex items-center">
+                <DollarSign className="w-5 h-5 mr-2" />
+                With Pricing
+              </h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Shows product prices</li>
+                <li>• Displays currency symbols</li>
+                <li>• E-commerce focused layout</li>
+                <li>• Direct purchase emphasis</li>
+              </ul>
+            </div>
+            
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <h4 className="font-semibold text-red-800 mb-3 flex items-center">
+                <X className="w-5 h-5 mr-2" />
+                Without Pricing
+              </h4>
+              <ul className="text-sm text-red-700 space-y-1">
+                <li>• Hides all price information</li>
+                <li>• Clean, minimal appearance</li>
+                <li>• Lead generation focused</li>
+                <li>• Contact-first approach</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-lg font-medium">Price Removal CSS (Add to Any Page Custom CSS)</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyToClipboard(priceRemovalCssCode, setPriceRemovalCodeCopied)}
+                className="flex items-center space-x-2"
+              >
+                {priceRemovalCodeCopied ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-600" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </Button>
+            </div>
+            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-64 overflow-auto">
+              <pre className="text-sm whitespace-pre-wrap">{priceRemovalCssCode}</pre>
+            </div>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <Info className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-semibold text-amber-800 mb-2">Usage Instructions</h4>
+                <p className="text-amber-700 text-sm">
+                  Add this CSS to any page where you want to hide pricing information. This works on product listing pages, individual product pages, and any other pages that display pricing elements.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">Ready to Apply</h4>
+                <p className="text-green-700 text-sm">
+                  Copy the CSS code above and paste it into the Custom CSS section of any page where you want to remove pricing information. The changes will take effect immediately.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 10: Form Preview
+    <Slide key={10}>
       <div className="space-y-6">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
@@ -1897,8 +2107,8 @@ body:not(.hl-builder) .quantity-container {
       </div>
     </Slide>,
 
-    // Slide 10: Summary
-    <Slide key={10}>
+    // Slide 11: Summary
+    <Slide key={11}>
       <div className="text-center space-y-6">
         <div className="flex items-center justify-center mb-8">
           <div className="bg-green-500 text-white p-4 rounded-full mr-4">
