@@ -65,6 +65,8 @@ export default function ConfigWizardSlideshow() {
   const [showDescription, setShowDescription] = useState<boolean>(false);
   const [showMetadata, setShowMetadata] = useState<boolean>(false);
   const [showMaps, setShowMaps] = useState<boolean>(false);
+  const [showCartCustomization, setShowCartCustomization] = useState<boolean>(false);
+  const [showPriceRemoval, setShowPriceRemoval] = useState<boolean>(false);
   
   // Expanded description configuration - exact copy from config wizard
   const [expandedDescriptionContent, setExpandedDescriptionContent] = useState(`<h2>Product Details</h2>
@@ -522,9 +524,8 @@ document.addEventListener('DOMContentLoaded', function() {
     setCurrentSlide(index);
   };
 
-  const totalSlides = 13;
-
-  const slides = [
+  // Generate dynamic slides based on toggle states
+  const allSlides = [
     // Slide 0: Welcome
     <Slide key={0}>
       <div className="text-center space-y-8">
@@ -1191,6 +1192,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 <Switch
                   checked={showQuantitySelector}
                   onCheckedChange={setShowQuantitySelector}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <ShoppingCart className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Cart Page Customization</Label>
+                    <p className="text-sm text-slate-500">Remove checkout elements from cart</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={showCartCustomization}
+                  onCheckedChange={setShowCartCustomization}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <X className="w-5 h-5 text-slate-600" />
+                  <div>
+                    <Label className="font-medium">Price Removal</Label>
+                    <p className="text-sm text-slate-500">Hide pricing on product pages</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={showPriceRemoval}
+                  onCheckedChange={setShowPriceRemoval}
                 />
               </div>
             </div>
@@ -2066,6 +2095,25 @@ body:not(.hl-builder) .quantity-container {
       </div>
     </Slide>
   ];
+
+  // Filter slides based on toggle states
+  const slides = React.useMemo(() => {
+    return allSlides.filter((slide, index) => {
+      // Always show slides 0-7 (core slides)
+      if (index <= 7) return true;
+      
+      // Slide 8: Cart Page Customization - only show if toggle is enabled
+      if (index === 8) return showCartCustomization;
+      
+      // Slide 9: Price Removal - only show if toggle is enabled  
+      if (index === 9) return showPriceRemoval;
+      
+      // Always show remaining slides (final config slides)
+      return true;
+    });
+  }, [allSlides, showCartCustomization, showPriceRemoval]);
+
+  const totalSlides = slides.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
