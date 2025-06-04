@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
           <div>
             <h1 className="text-4xl font-bold text-slate-900 mb-2">Upgrade Your Ecommerce Store With Directory Features!</h1>
-            <p className="text-xl text-slate-600">Create a customized product directory for your eCommerce site</p>
+            <p className="text-xl text-slate-600">Turn your store into a powerful product discovery hub with maps, rich text, forms and surveys!</p>
           </div>
         </div>
 
