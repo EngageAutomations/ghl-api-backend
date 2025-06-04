@@ -441,34 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
           </div>
 
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-8">
-            <h3 className="text-xl font-semibold text-slate-900 mb-4 text-center">Your Directory Will Include</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="flex items-center space-x-3">
-                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                <span className="text-slate-700">Product listings with dynamic forms</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                <span className="text-slate-700">Custom CSS for styling control</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                <span className="text-slate-700">Header and footer integration code</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                <span className="text-slate-700">Professional directory layout</span>
-              </div>
-            </div>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-blue-800 text-sm text-center">
-                <strong>Note:</strong> Forms generated will connect to your GoHighLevel account, 
-                automatically creating products based on your selected features and configurations.
-              </p>
-            </div>
-          </div>
+
         </div>
       </div>
     </Slide>,
