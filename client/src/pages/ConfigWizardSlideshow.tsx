@@ -55,6 +55,7 @@ export default function ConfigWizardSlideshow() {
   const [cssCodeCopied, setCssCodeCopied] = useState<boolean>(false);
   const [headerCodeCopied, setHeaderCodeCopied] = useState<boolean>(false);
   const [footerCodeCopied, setFooterCodeCopied] = useState<boolean>(false);
+  const [heartPageCodeCopied, setHeartPageCodeCopied] = useState<boolean>(false);
 
   // Component toggles - exact copy from config wizard
   const [showPrice, setShowPrice] = useState<boolean>(false);
@@ -81,6 +82,158 @@ export default function ConfigWizardSlideshow() {
   
   // Button text state
   const [buttonText, setButtonText] = useState('Get More Info');
+  
+  // Heart Page CSS Code for removing checkout buttons and transforming cart icons
+  const heartPageCssCode = `/* Heart Page Customization CSS */
+/* Hide checkout buttons on heart/bookmark pages */
+.hl-cart-button,
+.hl-buy-now-button,
+.c-buy-now-btn,
+.c-add-to-cart-btn,
+button[class*="buy-now"],
+button[class*="add-to-cart"],
+button[class*="checkout"],
+.checkout-button,
+.buy-button,
+.cart-btn {
+  display: none !important;
+}
+
+/* Transform cart icons to bookmark icons */
+.hl-cart-icon,
+.cart-icon,
+[class*="cart-icon"],
+i[class*="cart"],
+.fa-shopping-cart,
+.shopping-cart-icon {
+  position: relative;
+  overflow: hidden;
+}
+
+.hl-cart-icon::before,
+.cart-icon::before,
+[class*="cart-icon"]::before,
+i[class*="cart"]::before,
+.fa-shopping-cart::before,
+.shopping-cart-icon::before {
+  content: "🔖" !important;
+  font-size: inherit;
+  color: inherit;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: inherit;
+  z-index: 10;
+}
+
+/* Hide original cart icon content */
+.hl-cart-icon > *,
+.cart-icon > *,
+[class*="cart-icon"] > *,
+i[class*="cart"] > *,
+.fa-shopping-cart > *,
+.shopping-cart-icon > * {
+  opacity: 0;
+}
+
+/* Alternative bookmark icon using CSS shapes for better compatibility */
+.heart-page-bookmark-icon {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 20px;
+}
+
+.heart-page-bookmark-icon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 20px;
+  background-color: currentColor;
+  clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%);
+}
+
+/* Hide quantity selectors and related e-commerce elements */
+.quantity-selector,
+.qty-selector,
+[class*="quantity"],
+.product-quantity,
+.hl-quantity {
+  display: none !important;
+}
+
+/* Style adjustments for cleaner bookmark interface */
+.product-actions,
+.hl-product-actions,
+.c-product-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* Heart page specific styling */
+body.heart-page .hl-product-detail,
+body.bookmark-page .hl-product-detail,
+[data-page-type="heart"] .hl-product-detail,
+[data-page-type="bookmark"] .hl-product-detail {
+  border: 2px solid #fbbf24;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  padding: 1rem;
+  margin: 0.5rem 0;
+}
+
+/* Add bookmark indicator */
+.heart-page .hl-product-detail::before,
+.bookmark-page .hl-product-detail::before,
+[data-page-type="heart"] .hl-product-detail::before,
+[data-page-type="bookmark"] .hl-product-detail::before {
+  content: "🔖 Bookmarked Item";
+  display: block;
+  font-size: 0.875rem;
+  color: #92400e;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .heart-page-bookmark-icon {
+    width: 14px;
+    height: 18px;
+  }
+  
+  .heart-page-bookmark-icon::before {
+    width: 14px;
+    height: 18px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .heart-page .hl-product-detail,
+  .bookmark-page .hl-product-detail,
+  [data-page-type="heart"] .hl-product-detail,
+  [data-page-type="bookmark"] .hl-product-detail {
+    border: 3px solid #000;
+    background: #fff;
+  }
+  
+  .heart-page .hl-product-detail::before,
+  .bookmark-page .hl-product-detail::before,
+  [data-page-type="heart"] .hl-product-detail::before,
+  [data-page-type="bookmark"] .hl-product-detail::before {
+    color: #000;
+  }
+}`;
   
   // Metadata bar configuration - exact copy from config wizard
   const [metadataTextColor, setMetadataTextColor] = useState('#374151');
@@ -399,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setCurrentSlide(index);
   };
 
-  const totalSlides = 11;
+  const totalSlides = 12;
 
   const slides = [
     // Slide 0: Welcome
@@ -1571,8 +1724,118 @@ body:not(.hl-builder) .quantity-container {
       </div>
     </Slide>,
 
-    // Slide 8: Form Preview
+    // Slide 8: Heart Page Customization
     <Slide key={8}>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-pink-500 text-white p-4 rounded-full mr-4">
+              <ShoppingCart className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Heart Page Customization</h1>
+              <p className="text-lg text-slate-600">Transform checkout buttons into bookmark functionality</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 rounded-lg p-6">
+            <h3 className="text-xl font-semibold text-slate-900 mb-4">What is Heart Page Customization?</h3>
+            <div className="space-y-4 text-slate-700">
+              <p>
+                The Heart Page allows users to save their favorite listings for later viewing. By adding special code to your heart page, you can:
+              </p>
+              <ul className="list-disc list-inside space-y-2 ml-4">
+                <li><strong>Remove checkout buttons</strong> - Hide "Buy Now" and "Add to Cart" buttons since users are just bookmarking items</li>
+                <li><strong>Transform cart icons</strong> - Change shopping cart icons to bookmark icons for better user experience</li>
+                <li><strong>Improve user flow</strong> - Create a cleaner, bookmark-focused interface on saved listings</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-800 mb-3 flex items-center">
+                <ShoppingCart className="w-5 h-5 mr-2" />
+                Standard Product Page
+              </h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Shows "Buy Now" button</li>
+                <li>• Shows "Add to Cart" button</li>
+                <li>• Shopping cart icon visible</li>
+                <li>• Full e-commerce functionality</li>
+              </ul>
+            </div>
+            
+            <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
+              <h4 className="font-semibold text-pink-800 mb-3 flex items-center">
+                <ShoppingBag className="w-5 h-5 mr-2" />
+                Heart Page (Bookmarked)
+              </h4>
+              <ul className="text-sm text-pink-700 space-y-1">
+                <li>• Hides "Buy Now" button</li>
+                <li>• Hides "Add to Cart" button</li>
+                <li>• Cart icon becomes bookmark icon</li>
+                <li>• Focus on browsing saved items</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
+            <h4 className="font-semibold text-amber-800 mb-3">Implementation Instructions</h4>
+            <div className="space-y-3 text-amber-700">
+              <p><strong>Step 1:</strong> Navigate to your Heart Page in GoHighLevel</p>
+              <p><strong>Step 2:</strong> Add the CSS code below to your Heart Page's Custom CSS section</p>
+              <p><strong>Step 3:</strong> The code will automatically hide checkout buttons and transform cart icons</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-lg font-medium">Heart Page CSS Code</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyToClipboard(heartPageCssCode, setHeartPageCodeCopied)}
+                className="flex items-center space-x-2"
+              >
+                {heartPageCodeCopied ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-600" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </Button>
+            </div>
+            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-64 overflow-auto">
+              <pre className="text-sm whitespace-pre-wrap">{heartPageCssCode}</pre>
+            </div>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">Ready to Apply</h4>
+                <p className="text-green-700 text-sm">
+                  Copy the CSS code above and paste it into your Heart Page's Custom CSS section. 
+                  The changes will take effect immediately, creating a better bookmarking experience for your users.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 9: Form Preview
+    <Slide key={9}>
       <div className="space-y-6">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
