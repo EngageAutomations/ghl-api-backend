@@ -511,18 +511,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setIsDragOver(false);
   };
 
-  // Slide navigation
-  const nextSlide = () => {
-    setCurrentSlide(prev => Math.min(prev + 1, totalSlides - 1));
-  };
 
-  const prevSlide = () => {
-    setCurrentSlide(prev => Math.max(prev - 1, 0));
-  };
-
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
 
   // Generate dynamic slides based on toggle states
   const allSlides = [
@@ -2097,7 +2086,7 @@ body:not(.hl-builder) .quantity-container {
   ];
 
   // Filter slides based on toggle states
-  const slides = React.useMemo(() => {
+  const slides = useMemo(() => {
     return allSlides.filter((slide, index) => {
       // Always show slides 0-7 (core slides)
       if (index <= 7) return true;
@@ -2111,9 +2100,18 @@ body:not(.hl-builder) .quantity-container {
       // Always show remaining slides (final config slides)
       return true;
     });
-  }, [allSlides, showCartCustomization, showPriceRemoval]);
+  }, [showCartCustomization, showPriceRemoval]);
 
   const totalSlides = slides.length;
+
+  // Adjust current slide if it becomes invalid due to filtering
+  useEffect(() => {
+    if (currentSlide >= totalSlides) {
+      setCurrentSlide(Math.max(0, totalSlides - 1));
+    }
+  }, [currentSlide, totalSlides]);
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
