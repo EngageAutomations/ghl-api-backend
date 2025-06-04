@@ -1108,7 +1108,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   <div className="bg-orange-100 p-3 rounded-full mr-3">
                     <ShoppingBag className="w-6 h-6 text-orange-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-900">Access The Product Details page</h3>
+                  <h3 className="font-semibold text-slate-900 text-[17px]">Access The Product Details page</h3>
                 </div>
                 <p className="text-slate-600 mb-4">
                   Navigate to your GoHighLevel eCommerce store and open any product details page where you want to add directory functionality.
