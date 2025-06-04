@@ -746,10 +746,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
               {/* Button Styling Controls - Show for all action button types */}
               {(buttonType === 'popup' || buttonType === 'redirect' || buttonType === 'download') && (
-                <div className="space-y-4 bg-slate-50 p-4 rounded-lg">
+                <div className="space-y-4 bg-slate-50 p-4 rounded-lg overflow-hidden">
                   <h4 className="font-medium text-slate-900">Button Styling</h4>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
                     <div className="space-y-2">
                       <Label htmlFor="button-text">Button Text</Label>
                       <Input
@@ -859,10 +859,10 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
 
               {/* Button Styling Controls for redirect and download */}
-              <div className="space-y-4 bg-slate-50 p-4 rounded-lg">
+              <div className="space-y-4 bg-slate-50 p-4 rounded-lg overflow-hidden">
                 <h4 className="font-medium text-slate-900">Button Styling</h4>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
                   <div className="space-y-2">
                     <Label htmlFor="button-text-alt">Button Text</Label>
                     <Input
