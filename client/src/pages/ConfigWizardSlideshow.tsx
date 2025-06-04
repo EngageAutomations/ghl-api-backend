@@ -1560,13 +1560,7 @@ body:not(.hl-builder) .quantity-container {
               </div>
             </div>
             
-            <Button 
-              onClick={() => goToSlide(9)}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
-            >
-              Continue to Summary
-              <ChevronRight className="w-4 h-4 ml-2" />
-            </Button>
+
           </div>
         </div>
       </div>
