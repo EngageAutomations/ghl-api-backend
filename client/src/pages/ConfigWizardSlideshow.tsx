@@ -517,6 +517,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+
+
   // Generate dynamic slides based on toggle states
   const allSlides = [
     // Slide 0: Welcome
@@ -2078,7 +2080,7 @@ body:not(.hl-builder) .quantity-container {
           </div>
 
           <Button 
-            onClick={() => goToSlide(4)}
+            onClick={() => setCurrentSlide(4)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
           >
             <Code className="w-5 h-5 mr-2" />
@@ -2115,7 +2117,22 @@ body:not(.hl-builder) .quantity-container {
     }
   }, [currentSlide, totalSlides]);
 
+  // Navigation functions
+  const nextSlide = () => {
+    if (currentSlide < totalSlides - 1) {
+      setCurrentSlide(currentSlide + 1);
+    }
+  };
 
+  const prevSlide = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1);
+    }
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
@@ -2138,7 +2155,7 @@ body:not(.hl-builder) .quantity-container {
               {Array.from({ length: totalSlides }, (_, index) => (
                 <button
                   key={index}
-                  onClick={() => goToSlide(index)}
+                  onClick={() => setCurrentSlide(index)}
                   className={`w-3 h-3 rounded-full transition-colors ${
                     index === currentSlide 
                       ? 'bg-blue-600' 
@@ -2172,7 +2189,7 @@ body:not(.hl-builder) .quantity-container {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Button
             variant="outline"
-            onClick={prevSlide}
+            onClick={() => setCurrentSlide(prev => Math.max(prev - 1, 0))}
             disabled={currentSlide === 0}
             className="flex items-center space-x-2"
           >
