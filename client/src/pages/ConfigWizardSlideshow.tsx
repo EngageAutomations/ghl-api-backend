@@ -1534,14 +1534,6 @@ body:not(.hl-builder) .quantity-container {
                 </div>
               )}
               
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <h4 className="font-medium text-purple-800 mb-2">Integration Settings</h4>
-                <ul className="text-sm text-purple-700 space-y-1">
-                  <li>• Custom Field: {customFieldName}</li>
-                  <li>• Button Type: {buttonType}</li>
-                  <li>• Total Fields: {generateFormFields(generateDirectoryConfig()).length}</li>
-                </ul>
-              </div>
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                 <h4 className="font-medium text-amber-800 mb-3">Form Embed Code</h4>
