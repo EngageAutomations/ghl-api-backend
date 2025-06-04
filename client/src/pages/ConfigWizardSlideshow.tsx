@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <Rocket className="w-12 h-12" />
           </div>
           <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">eCommerce Directory Generator</h1>
+            <h1 className="text-4xl font-bold text-slate-900 mb-2">Upgrade your ecommerce store with directory features</h1>
             <p className="text-xl text-slate-600">Create a customized product directory for your eCommerce site</p>
           </div>
         </div>
