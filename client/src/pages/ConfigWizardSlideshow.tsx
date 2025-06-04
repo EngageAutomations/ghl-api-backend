@@ -1706,14 +1706,11 @@ body:not(.hl-builder) .quantity-container {
             {Array.from({ length: totalSlides }, (_, i) => (
               <button
                 key={i}
-                onClick={() => canNavigateToSlide(i) && goToSlide(i)}
-                disabled={!canNavigateToSlide(i)}
+                onClick={() => goToSlide(i)}
                 className={`w-3 h-3 rounded-full transition-all duration-200 ${
                   i === currentSlide 
                     ? 'bg-blue-500 scale-110' 
-                    : canNavigateToSlide(i)
-                    ? 'bg-slate-300 hover:bg-slate-400'
-                    : 'bg-slate-200 cursor-not-allowed'
+                    : 'bg-slate-300 hover:bg-slate-400'
                 }`}
               />
             ))}
