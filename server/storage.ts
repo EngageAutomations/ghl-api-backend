@@ -5,7 +5,8 @@ import {
   listings, Listing, InsertListing,
   listingAddons, ListingAddon, InsertListingAddon,
   formConfigurations, FormConfiguration, InsertFormConfiguration,
-  formSubmissions, FormSubmission, InsertFormSubmission
+  formSubmissions, FormSubmission, InsertFormSubmission,
+  googleDriveCredentials, GoogleDriveCredentials, InsertGoogleDriveCredentials
 } from "@shared/schema";
 
 // Storage interface with all CRUD methods
@@ -43,6 +44,12 @@ export interface IStorage {
   createListingAddon(addon: InsertListingAddon): Promise<ListingAddon>;
   updateListingAddon(id: number, addon: Partial<InsertListingAddon>): Promise<ListingAddon | undefined>;
   deleteListingAddon(id: number): Promise<boolean>;
+  
+  // Google Drive Credentials methods
+  getGoogleDriveCredentials(userId: number): Promise<GoogleDriveCredentials | undefined>;
+  createGoogleDriveCredentials(credentials: InsertGoogleDriveCredentials): Promise<GoogleDriveCredentials>;
+  updateGoogleDriveCredentials(userId: number, credentials: Partial<InsertGoogleDriveCredentials>): Promise<GoogleDriveCredentials | undefined>;
+  deactivateGoogleDriveCredentials(userId: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -51,12 +58,14 @@ export class MemStorage implements IStorage {
   private portalDomains: Map<number, PortalDomain>;
   private listings: Map<number, Listing>;
   private listingAddons: Map<number, ListingAddon>;
+  private googleDriveCredentials: Map<number, GoogleDriveCredentials>;
   
   currentUserId: number;
   currentConfigId: number;
   currentDomainId: number;
   currentListingId: number;
   currentListingAddonId: number;
+  currentGoogleDriveCredentialsId: number;
 
   constructor() {
     this.users = new Map();
@@ -64,12 +73,14 @@ export class MemStorage implements IStorage {
     this.portalDomains = new Map();
     this.listings = new Map();
     this.listingAddons = new Map();
+    this.googleDriveCredentials = new Map();
     
     this.currentUserId = 1;
     this.currentConfigId = 1;
     this.currentDomainId = 1;
     this.currentListingId = 1;
     this.currentListingAddonId = 1;
+    this.currentGoogleDriveCredentialsId = 1;
   }
 
   // User methods
@@ -281,6 +292,66 @@ export class MemStorage implements IStorage {
       return true;
     }
     return false;
+  }
+
+  // Google Drive Credentials methods
+  async getGoogleDriveCredentials(userId: number): Promise<GoogleDriveCredentials | undefined> {
+    return Array.from(this.googleDriveCredentials.values())
+      .find(cred => cred.userId === userId && cred.isActive);
+  }
+
+  async createGoogleDriveCredentials(insertCredentials: InsertGoogleDriveCredentials): Promise<GoogleDriveCredentials> {
+    const id = this.currentGoogleDriveCredentialsId++;
+    const now = new Date();
+    
+    // Deactivate any existing credentials for this user
+    await this.deactivateGoogleDriveCredentials(insertCredentials.userId);
+    
+    const credentials: GoogleDriveCredentials = {
+      ...insertCredentials,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.googleDriveCredentials.set(id, credentials);
+    return credentials;
+  }
+
+  async updateGoogleDriveCredentials(userId: number, partialCredentials: Partial<InsertGoogleDriveCredentials>): Promise<GoogleDriveCredentials | undefined> {
+    const existingCredentials = Array.from(this.googleDriveCredentials.values())
+      .find(cred => cred.userId === userId && cred.isActive);
+    
+    if (!existingCredentials) {
+      return undefined;
+    }
+    
+    const updatedCredentials: GoogleDriveCredentials = {
+      ...existingCredentials,
+      ...partialCredentials,
+      updatedAt: new Date()
+    };
+    
+    this.googleDriveCredentials.set(existingCredentials.id, updatedCredentials);
+    return updatedCredentials;
+  }
+
+  async deactivateGoogleDriveCredentials(userId: number): Promise<boolean> {
+    const existingCredentials = Array.from(this.googleDriveCredentials.values())
+      .find(cred => cred.userId === userId && cred.isActive);
+    
+    if (!existingCredentials) {
+      return false;
+    }
+    
+    const deactivatedCredentials: GoogleDriveCredentials = {
+      ...existingCredentials,
+      isActive: false,
+      updatedAt: new Date()
+    };
+    
+    this.googleDriveCredentials.set(existingCredentials.id, deactivatedCredentials);
+    return true;
   }
 }
 

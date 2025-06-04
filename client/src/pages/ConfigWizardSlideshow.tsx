@@ -37,6 +37,8 @@ export default function ConfigWizardSlideshow() {
   
   // Slideshow-specific state
   const [googleDriveConnected, setGoogleDriveConnected] = useState(false);
+  const [googleDriveEmail, setGoogleDriveEmail] = useState('');
+  const [isCheckingGoogleDrive, setIsCheckingGoogleDrive] = useState(true);
   const [directoryName, setDirectoryName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);

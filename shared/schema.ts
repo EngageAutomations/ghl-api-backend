@@ -191,3 +191,27 @@ export const insertListingAddonSchema = createInsertSchema(listingAddons).omit({
 
 export type InsertListingAddon = z.infer<typeof insertListingAddonSchema>;
 export type ListingAddon = typeof listingAddons.$inferSelect;
+
+// Google Drive Credentials schema
+export const googleDriveCredentials = pgTable("google_drive_credentials", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  email: text("email").notNull(), // Google account email
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token"),
+  expiryDate: timestamp("expiry_date"),
+  folderName: text("folder_name").default("Directory Images"),
+  folderId: text("folder_id"), // Google Drive folder ID
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertGoogleDriveCredentialsSchema = createInsertSchema(googleDriveCredentials).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertGoogleDriveCredentials = z.infer<typeof insertGoogleDriveCredentialsSchema>;
+export type GoogleDriveCredentials = typeof googleDriveCredentials.$inferSelect;
