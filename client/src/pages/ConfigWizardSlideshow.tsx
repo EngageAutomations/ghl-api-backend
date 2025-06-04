@@ -88,54 +88,34 @@ export default function ConfigWizardSlideshow() {
   const [priceRemovalCodeCopied, setPriceRemovalCodeCopied] = useState<boolean>(false);
 
   // Cart Page CSS Code for removing checkout buttons
-  const cartPageCssCode = `/* Cart Page Customization CSS */
-/* Hide checkout buttons on cart pages */
-.hl-cart-button,
-.hl-buy-now-button,
-.c-buy-now-btn,
-.c-add-to-cart-btn,
-button[class*="buy-now"],
-button[class*="add-to-cart"],
-button[class*="checkout"],
-.checkout-button,
-.buy-button,
-.cart-btn,
-.proceed-to-checkout,
-.checkout-btn {
+  const cartPageCssCode = `/* 🛒 Hide price-related elements */
+.hl-cart-product-price,
+span.text-black,
+.hl-product-detail-product-price,
+.product-price,
+.price,
+.pricing,
+span[class*="price"],
+div[class*="price"] {
   display: none !important;
 }
 
-/* Hide quantity selectors and related e-commerce elements */
-.quantity-selector,
-.qty-selector,
-[class*="quantity"],
-.product-quantity,
-.hl-quantity {
+/* 🔢 Hide quantity section */
+.hl-quantity-input-container {
   display: none !important;
 }
 
-/* Cart page specific styling */
-.cart-items,
-.hl-cart-items,
-.shopping-cart-items {
-  border: 2px solid #3b82f6;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  padding: 1rem;
-  margin: 0.5rem 0;
+/* 💵 Hide subtotal, total, and checkout elements */
+.hl-amount-subtotal,
+.cart-subtotal,
+.cart-total,
+.hl-checkout-btn {
+  display: none !important;
 }
 
-/* Add saved items indicator */
-.cart-items::before,
-.hl-cart-items::before,
-.shopping-cart-items::before {
-  content: "🛒 Saved Items";
-  display: block;
-  font-size: 0.875rem;
-  color: #1e40af;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  text-align: center;
+/* 📌 Hide "My cart" heading */
+.hl-cart-heading {
+  display: none !important;
 }`;
 
   // Cart Icon CSS Code for transforming to bookmark icon
