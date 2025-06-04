@@ -12,7 +12,6 @@ import { generateActionButtonPopup } from '@/lib/custom-popup-generator';
 import { generateEmbeddedFormCode } from '@/lib/embedded-form-generator';
 import { generateExpandedDescriptionCode } from '@/lib/expanded-description-generator';
 import { generateMetadataBarCode } from '@/lib/metadata-bar-generator';
-import { generateFormFields, generateFormHTML, generateFormCSS, DirectoryConfig } from '@/lib/dynamic-form-generator';
 import DirectoryForm from '@/pages/DirectoryForm';
 
 interface SlideProps {
@@ -1097,9 +1096,9 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
           <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-6">
             <FileText className="w-10 h-10 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Configuration Summary</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Form Embed Code & Live Preview</h2>
           <p className="text-lg text-gray-600 mb-8">
-            Review your settings before generating the final code
+            Working form preview and embed code for GoHighLevel integration
           </p>
         </div>
 
