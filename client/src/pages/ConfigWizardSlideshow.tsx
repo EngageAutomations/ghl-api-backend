@@ -1860,8 +1860,32 @@ body:not(.hl-builder) .quantity-container {
             </div>
           </div>
 
-
-
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-lg font-medium">Price Removal CSS (Add to Any Page Custom CSS)</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyToClipboard(priceRemovalCssCode, setPriceRemovalCodeCopied)}
+                className="flex items-center space-x-2"
+              >
+                {priceRemovalCodeCopied ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-600" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </Button>
+            </div>
+            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-64 overflow-auto">
+              <pre className="text-sm whitespace-pre-wrap">{priceRemovalCssCode}</pre>
+            </div>
+          </div>
 
         </div>
       </div>
