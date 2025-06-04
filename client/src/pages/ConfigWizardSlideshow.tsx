@@ -1917,8 +1917,8 @@ body:not(.hl-builder) .quantity-container {
       </div>
     </Slide>,
 
-    // Slide 9: Summary
-    <Slide key={9}>
+    // Slide 10: Summary
+    <Slide key={10}>
       <div className="text-center space-y-6">
         <div className="flex items-center justify-center mb-8">
           <div className="bg-green-500 text-white p-4 rounded-full mr-4">
