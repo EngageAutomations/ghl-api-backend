@@ -446,15 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  const generatedCode = useMemo(() => {
-    const result = generateCodeForSelection();
-    console.log('generatedCode useMemo result:', {
-      headerLength: result.headerCode?.length || 0,
-      footerLength: result.footerCode?.length || 0,
-      formEmbedUrlLength: formEmbedUrl?.length || 0
-    });
-    return result;
-  }, [
+  const generatedCode = useMemo(() => generateCodeForSelection(), [
     formEmbedUrl, 
     buttonType, 
     customFieldName, 
