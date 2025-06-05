@@ -1244,18 +1244,15 @@ body:not(.hl-builder) .action-icon {
             </p>
           </div>
 
-          {/* Configuration Instructions */}
+          {/* Configuration Instructions with Image */}
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="font-medium text-blue-800 mb-2">Add this code to the CSS field inside your product listing page.</h4>
-            <div className="text-sm text-blue-700 space-y-2">
-              <p><strong>1. Download Config:</strong> Click "Download Config" to get your configuration JSON file</p>
-              <p><strong>2. Edit the JSON:</strong> Open the file and replace:</p>
-              <ul className="ml-4 list-disc space-y-1">
-                <li><code className="bg-blue-100 px-1 rounded">PASTE_YOUR_GOHIGHLEVEL_FORM_CODE_HERE</code> with your actual GoHighLevel form embed code</li>
-                <li>Update <code className="bg-blue-100 px-1 rounded">customFieldName</code> if needed (default: "listing")</li>
-              </ul>
-              <p><strong>3. Apply CSS:</strong> Copy the CSS code below and paste it into your GoHighLevel page's footer</p>
-              <p><strong>4. Integration:</strong> Your {integrationMethod === 'popup' ? 'popup forms' : 'embedded forms'} will work automatically based on the configuration</p>
+            <h4 className="font-medium text-blue-800 mb-4">Add this code to the CSS field inside your product listing page.</h4>
+            <div className="bg-white rounded-lg p-4 border border-blue-200">
+              <img 
+                src="/attached_assets/Screenshot 2025-06-05 at 7.47.47 AM_1749124337382.png" 
+                alt="GoHighLevel CSS field location screenshot" 
+                className="w-full max-w-2xl mx-auto rounded border shadow-sm"
+              />
             </div>
           </div>
 
