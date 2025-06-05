@@ -1489,9 +1489,7 @@ body:not(.hl-builder) .action-icon {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <h1 className="text-xl font-semibold text-gray-900">
-            GoHighLevel Configuration Wizard
-          </h1>
+          <h1 className="text-xl font-semibold text-gray-900">Directory Engine Setup Wizard</h1>
           
           {/* Progress indicator */}
           <div className="flex items-center space-x-2">
@@ -1511,14 +1509,12 @@ body:not(.hl-builder) .action-icon {
           </div>
         </div>
       </div>
-
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
         <div className="max-w-6xl mx-auto">
           {slides[currentSlide]}
         </div>
       </div>
-
       {/* Navigation Footer */}
       <div className="bg-white border-t border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
