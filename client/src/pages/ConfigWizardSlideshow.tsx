@@ -1099,6 +1099,64 @@ document.addEventListener('DOMContentLoaded', function() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Quantity Selector */}
+            <Card className="group hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-orange-100 p-2 rounded-lg">
+                      <Hash className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Quantity Selector</h3>
+                      <p className="text-sm text-slate-600">Product quantity controls</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={showQuantitySelector}
+                    onCheckedChange={setShowQuantitySelector}
+                  />
+                </div>
+                
+                {showQuantitySelector && (
+                  <div className="bg-orange-50 border border-orange-200 rounded p-3 text-sm">
+                    <p className="text-orange-800">
+                      ✓ Shows quantity input fields and controls
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Cart Icon */}
+            <Card className="group hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-teal-100 p-2 rounded-lg">
+                      <ShoppingBag className="w-5 h-5 text-teal-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Cart Icon</h3>
+                      <p className="text-sm text-slate-600">Navigation cart icon visibility</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={showCartIcon}
+                    onCheckedChange={setShowCartIcon}
+                  />
+                </div>
+                
+                {showCartIcon && (
+                  <div className="bg-teal-50 border border-teal-200 rounded p-3 text-sm">
+                    <p className="text-teal-800">
+                      ✓ Shows cart icon in navigation
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Advanced Options */}
@@ -1150,6 +1208,8 @@ document.addEventListener('DOMContentLoaded', function() {
                   { name: 'Price Display', enabled: showPrice, icon: DollarSign },
                   { name: 'Buy Now Button', enabled: showBuyNowButton, icon: ShoppingBag },
                   { name: 'Add to Cart', enabled: showAddToCartButton, icon: ShoppingCart },
+                  { name: 'Quantity Selector', enabled: showQuantitySelector, icon: Hash },
+                  { name: 'Cart Icon', enabled: showCartIcon, icon: ShoppingBag },
                   { name: 'Cart Customization', enabled: showCartCustomization, icon: Settings },
                   { name: 'Price Removal', enabled: showPriceRemoval, icon: X }
                 ].map((feature, index) => {
@@ -1535,6 +1595,628 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 8: CSS Utilities
+    <Slide key={8}>
+      <div className="space-y-8">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-slate-900">CSS Utilities</h1>
+          <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            Essential CSS fixes for GoHighLevel eCommerce pages and element visibility controls.
+          </p>
+        </div>
+
+        <div className="max-w-5xl mx-auto space-y-6">
+          {/* Essential Fixes */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-slate-900">Complete GoHighLevel CSS</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const cssCode = `<style>
+/* GoHighLevel Essential Fixes - Always Applied */
+
+/* Nuclear truncation fix - Apply first to prevent any truncation */
+body:not(.hl-builder) * { 
+  text-overflow: unset !important; 
+  -webkit-line-clamp: unset !important; 
+  white-space: normal !important;
+  overflow: visible !important;
+}
+
+/* Remove title truncation and set width */
+body:not(.hl-builder) [class*="product-title"],
+body:not(.hl-builder) [class*="product-name"],
+body:not(.hl-builder) .hl-product-detail-product-name,
+body:not(.hl-builder) p.hl-product-detail-product-name.truncate-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+  width: 800px !important;
+  max-width: 800px !important;
+}
+
+/* Prevent 2-line limit on descriptions */
+body:not(.hl-builder) .c-product-details p,
+body:not(.hl-builder) .hl-product-detail-product-description,
+body:not(.hl-builder) [class*="product-description"],
+body:not(.hl-builder) .product-description,
+body:not(.hl-builder) .description {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Remove show more buttons */
+body:not(.hl-builder) .show-more-btn,
+body:not(.hl-builder) .read-more,
+body:not(.hl-builder) [class*="show-more"],
+body:not(.hl-builder) [class*="read-more"],
+body:not(.hl-builder) .show-more {
+  display: none !important;
+}
+
+/* Force visibility on all containers and content */
+body:not(.hl-builder) [class*="container"],
+body:not(.hl-builder) [class*="wrapper"],
+body:not(.hl-builder) [class*="content"],
+body:not(.hl-builder) [class*="row"],
+body:not(.hl-builder) [class*="col-"],
+body:not(.hl-builder) [class*="inner"] {
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+body:not(.hl-builder) { 
+  overflow-x: hidden !important; 
+  overflow-y: auto !important; 
+}${showBuyNowButton === false ? `
+
+/* Hide Buy Now Button */
+body:not(.hl-builder) .cstore-product-detail button,
+body:not(.hl-builder) .hl-product-buy-button,
+body:not(.hl-builder) [class*="buy-now"],
+body:not(.hl-builder) #buy-now-btn,
+body:not(.hl-builder) .secondary-btn {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${showAddToCartButton === false ? `
+
+/* Hide Add to Cart Button */
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"],
+body:not(.hl-builder) #add-to-cart-btn,
+body:not(.hl-builder) .primary-btn {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${showPrice === false ? `
+
+/* Hide Price */
+body:not(.hl-builder) .cstore-product-detail [class*="price"],
+body:not(.hl-builder) .product-detail-container [class*="price"],
+body:not(.hl-builder) .hl-product-price,
+body:not(.hl-builder) .hl-product-detail-product-price,
+body:not(.hl-builder) p.hl-product-detail-product-price {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${showQuantitySelector === false ? `
+
+/* Hide Quantity Selector */
+body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
+body:not(.hl-builder) .product-detail-container [class*="qty"],
+body:not(.hl-builder) .cstore-product-detail input[type="number"],
+body:not(.hl-builder) input[class*="quantity"],
+body:not(.hl-builder) input[class*="qty"],
+body:not(.hl-builder) .quantity-container,
+body:not(.hl-builder) .hl-quantity-input-container,
+body:not(.hl-builder) .pdp-quantity-container,
+body:not(.hl-builder) .hl-quantity-input,
+body:not(.hl-builder) .action-icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${showCartIcon === false ? `
+
+/* Hide Cart Icon - Comprehensive targeting */
+body:not(.hl-builder) .nav-cart-icon,
+body:not(.hl-builder) .nav-cart-button,
+body:not(.hl-builder) .items-cart,
+body:not(.hl-builder) .cart-search-desktop,
+body:not(.hl-builder) .nav-cart-wrapper,
+body:not(.hl-builder) svg[width="20"][height="20"][viewBox="0 0 20 20"] path[d*="M1.66699 1.66675"],
+body:not(.hl-builder) button.items-cart,
+body:not(.hl-builder) [class*="cart-button"],
+body:not(.hl-builder) [class*="nav-cart"],
+body:not(.hl-builder) svg[clip-path*="clip0_1655_15551"],
+body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7GXYJ1VCkI8/media/6836acff9bd24392ee734932.svg"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}
+</style>`;
+                    copyToClipboard(cssCode, setCssCodeCopied);
+                  }}
+                  className="flex items-center space-x-2"
+                >
+                  {cssCodeCopied ? (
+                    <>
+                      <Check className="w-4 h-4 text-green-600" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      <span>Copy CSS</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+              
+              <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-80 overflow-auto">
+                <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                  {`<style>
+/* GoHighLevel Essential Fixes - Always Applied */
+
+/* Nuclear truncation fix - Apply first to prevent any truncation */
+body:not(.hl-builder) * { 
+  text-overflow: unset !important; 
+  -webkit-line-clamp: unset !important; 
+  white-space: normal !important;
+  overflow: visible !important;
+}
+
+/* Remove title truncation and set width */
+body:not(.hl-builder) [class*="product-title"],
+body:not(.hl-builder) [class*="product-name"],
+body:not(.hl-builder) .hl-product-detail-product-name,
+body:not(.hl-builder) p.hl-product-detail-product-name.truncate-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+  width: 800px !important;
+  max-width: 800px !important;
+}
+
+/* Enhanced product detail layout */
+.product-detail-container {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+}
+
+/* Ensure full content visibility */
+.hl-product-detail-product-name {
+  display: block !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+}${showBuyNowButton === false ? `
+
+/* Hide Buy Now Button */
+body:not(.hl-builder) .cstore-product-detail button,
+body:not(.hl-builder) .hl-product-buy-button,
+body:not(.hl-builder) [class*="buy-now"],
+body:not(.hl-builder) #buy-now-btn,
+body:not(.hl-builder) .secondary-btn {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${showAddToCartButton === false ? `
+
+/* Hide Add to Cart Button */
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"],
+body:not(.hl-builder) #add-to-cart-btn,
+body:not(.hl-builder) .primary-btn {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${showPrice === false ? `
+
+/* Hide Price */
+body:not(.hl-builder) .cstore-product-detail [class*="price"],
+body:not(.hl-builder) .product-detail-container [class*="price"],
+body:not(.hl-builder) .hl-product-price,
+body:not(.hl-builder) .hl-product-detail-product-price,
+body:not(.hl-builder) p.hl-product-detail-product-price {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${showQuantitySelector === false ? `
+
+/* Hide Quantity Selector */
+body:not(.hl-builder) .hl-product-detail-selectors,
+body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
+body:not(.hl-builder) .product-detail-container [class*="qty"],
+body:not(.hl-builder) .cstore-product-detail input[type="number"],
+body:not(.hl-builder) input[class*="quantity"],
+body:not(.hl-builder) input[class*="qty"],
+body:not(.hl-builder) .quantity-container,
+body:not(.hl-builder) .hl-quantity-input-container,
+body:not(.hl-builder) .pdp-quantity-container,
+body:not(.hl-builder) .hl-quantity-input,
+body:not(.hl-builder) .action-icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}${showCartIcon === false ? `
+
+/* Hide Cart Icon - Comprehensive targeting */
+body:not(.hl-builder) .nav-cart-icon,
+body:not(.hl-builder) .nav-cart-button,
+body:not(.hl-builder) .items-cart,
+body:not(.hl-builder) .cart-search-desktop,
+body:not(.hl-builder) .nav-cart-wrapper,
+body:not(.hl-builder) svg[width="20"][height="20"][viewBox="0 0 20 20"] path[d*="M1.66699 1.66675"],
+body:not(.hl-builder) button.items-cart,
+body:not(.hl-builder) [class*="cart-button"],
+body:not(.hl-builder) [class*="nav-cart"],
+body:not(.hl-builder) svg[clip-path*="clip0_1655_15551"],
+body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7GXYJ1VCkI8/media/6836acff9bd24392ee734932.svg"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}` : ''}
+</style>`}
+                </pre>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                <h4 className="font-semibold text-blue-900 mb-2">What this fixes:</h4>
+                <ul className="text-blue-800 space-y-1 text-sm">
+                  <li>• Prevents text truncation in product titles</li>
+                  <li>• Ensures full content visibility</li>
+                  <li>• Improves responsive layout</li>
+                  <li>• Hides elements based on your feature selections</li>
+                  <li>• Works across all GoHighLevel themes</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 9: Cart Page Customization (conditional)
+    showCartCustomization ? (
+      <Slide key={9}>
+        <div className="space-y-8">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl font-bold text-slate-900">Cart Page Customization</h1>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Transform your cart page into a bookmark system by hiding checkout elements.
+            </p>
+          </div>
+
+          <div className="max-w-5xl mx-auto space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Cart Page CSS */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-slate-900">Cart Page CSS</h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(cartPageCssCode, setCartPageCodeCopied)}
+                      className="flex items-center space-x-2"
+                    >
+                      {cartPageCodeCopied ? (
+                        <>
+                          <Check className="w-4 h-4 text-green-600" />
+                          <span>Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-64 overflow-auto">
+                    <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                      {cartPageCssCode}
+                    </pre>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Cart Icon CSS */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-slate-900">Cart Icon Transform</h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(cartIconCssCode, setCartIconCodeCopied)}
+                      className="flex items-center space-x-2"
+                    >
+                      {cartIconCodeCopied ? (
+                        <>
+                          <Check className="w-4 h-4 text-green-600" />
+                          <span>Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-64 overflow-auto">
+                    <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                      {cartIconCssCode}
+                    </pre>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Effects Description */}
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">What This Does</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-slate-900">Cart Page Changes:</h4>
+                    <ul className="text-slate-600 space-y-1 text-sm">
+                      <li>• Hides all price elements</li>
+                      <li>• Removes checkout buttons</li>
+                      <li>• Hides quantity selectors</li>
+                      <li>• Adds "Saved for later" messages</li>
+                    </ul>
+                  </div>
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-slate-900">Icon Changes:</h4>
+                    <ul className="text-slate-600 space-y-1 text-sm">
+                      <li>• Transforms cart icons to bookmarks</li>
+                      <li>• Uses bookmark emoji for universal compatibility</li>
+                      <li>• Maintains responsive design</li>
+                      <li>• Works across all themes</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </Slide>
+    ) : null,
+
+    // Slide 10: Price Removal (conditional)
+    showPriceRemoval ? (
+      <Slide key={10}>
+        <div className="space-y-8">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl font-bold text-slate-900">Price Removal</h1>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Hide all pricing elements across your GoHighLevel site.
+            </p>
+          </div>
+
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Price Removal CSS */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-slate-900">Price Removal CSS</h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(priceRemovalCssCode, setPriceRemovalCodeCopied)}
+                    className="flex items-center space-x-2"
+                  >
+                    {priceRemovalCodeCopied ? (
+                      <>
+                        <Check className="w-4 h-4 text-green-600" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+                
+                <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-32 overflow-auto">
+                  <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                    {priceRemovalCssCode}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Effects Description */}
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">What This Does</h3>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h4 className="font-medium text-red-900 mb-2">Price Elements Hidden:</h4>
+                  <ul className="text-red-800 space-y-1 text-sm">
+                    <li>• Product detail page prices</li>
+                    <li>• Listing card prices</li>
+                    <li>• General price elements</li>
+                    <li>• Any element with "price" in the class name</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                  <p className="text-blue-800 text-sm">
+                    <strong>Note:</strong> This CSS targets common GoHighLevel price elements. 
+                    If you notice any prices still showing, inspect the element and add its 
+                    specific class to the CSS rule.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </Slide>
+    ) : null,
+
+    // Slide 11: Form Preview & Testing
+    <Slide key={11}>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-indigo-500 text-white p-4 rounded-full mr-4">
+              <FileText className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Generated Form Preview</h1>
+              <p className="text-lg text-slate-600">Your directory will create forms with these fields</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Working Form Preview */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-slate-900 mb-4">Live Working Form</h3>
+            <div className="bg-white border border-slate-200 rounded-lg overflow-hidden max-h-96 overflow-y-auto">
+              <div className="scale-75 origin-top-left" style={{ width: '133.33%', height: '133.33%' }}>
+                <DirectoryForm />
+              </div>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                <strong>Live Form:</strong> This is the actual working form with AI summarizer, auto-fill functionality, and real database persistence. Test all features including the "Generate Bullet Points with AI" button.
+              </p>
+            </div>
+          </div>
+
+          {/* Configuration Summary */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-slate-900 mb-4">Configuration Summary</h3>
+            
+            <div className="space-y-3">
+
+              {(showDescription || showMetadata || showMaps || showPrice) && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h4 className="font-medium text-green-800 mb-2">Optional Features (Based on Selection)</h4>
+                  <ul className="text-sm text-green-700 space-y-1">
+                    {showPrice && <li>• Price Field</li>}
+                    {showDescription && <li>• Detailed Description</li>}
+                    {showMaps && <li>• Business Address (for Google Maps)</li>}
+                    {showMetadata && metadataFields2.length > 0 && (
+                      <li>• Metadata Fields: {metadataFields2.map(f => f.label).join(', ')}</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+              
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <h4 className="font-medium text-amber-800 mb-3">Form Embed Code</h4>
+                <div className="space-y-3">
+                  <p className="text-sm text-amber-700">Copy this HTML code to embed the form on your website:</p>
+                  <div className="relative">
+                    <div className="bg-slate-900 text-slate-100 p-3 rounded text-xs overflow-auto max-h-32">
+                      <code>{`<iframe src="${window.location.origin}/form/${directoryName || 'your-location'}/${directoryName || 'your-directory'}" width="100%" height="600" frameborder="0" style="border-radius: 8px;"></iframe>`}</code>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="absolute top-2 right-2 h-7 px-2"
+                      onClick={() => {
+                        const embedCode = `<iframe src="${window.location.origin}/form/${directoryName || 'your-location'}/${directoryName || 'your-directory'}" width="100%" height="600" frameborder="0" style="border-radius: 8px;"></iframe>`;
+                        navigator.clipboard.writeText(embedCode);
+                      }}
+                    >
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-amber-600">Replace 'your-location' and 'your-directory' with your actual values.</p>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 12: Summary & Completion
+    <Slide key={12}>
+      <div className="text-center space-y-6">
+        <div className="flex items-center justify-center mb-8">
+          <div className="bg-green-500 text-white p-4 rounded-full mr-4">
+            <Rocket className="w-8 h-8" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Setup Complete!</h1>
+            <p className="text-lg text-slate-600">Your GoHighLevel integration is ready</p>
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-green-800 mb-4">Configuration Summary</h3>
+            <div className="space-y-3 text-left">
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Directory Name:</span>
+                <span className="font-medium text-green-800">{directoryName || 'Not specified'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Integration Method:</span>
+                <span className="font-medium text-green-800 capitalize">{buttonType}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Google Drive:</span>
+                <span className="font-medium text-green-800">{googleDriveConnected ? 'Connected' : 'Not connected'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Expanded Description:</span>
+                <span className="font-medium text-green-800">{showDescription ? 'Enabled' : 'Disabled'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Metadata Bar:</span>
+                <span className="font-medium text-green-800">{showMetadata ? 'Enabled' : 'Disabled'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-green-700">Maps:</span>
+                <span className="font-medium text-green-800">{showMaps ? 'Enabled' : 'Disabled'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-blue-800 mb-4">Next Steps</h3>
+            <ol className="text-blue-700 space-y-2 text-left">
+              <li>1. Copy the header CSS code and add it to your GoHighLevel page</li>
+              <li>2. Copy the footer JavaScript code and add it to your page</li>
+              <li>3. Test the integration on your live site</li>
+              <li>4. Start adding listings to your directory</li>
+              <li>5. Monitor form submissions and leads</li>
+            </ol>
+          </div>
         </div>
       </div>
     </Slide>
