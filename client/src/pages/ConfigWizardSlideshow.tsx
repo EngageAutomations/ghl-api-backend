@@ -337,9 +337,9 @@ div[class*="price"] {
           fields: metadataFields2,
           customClass: 'listing-metadata-bar',
           backgroundColor: 'transparent',
-          textColor: metadataTextColor,
+          textColor: "#374151",
           borderRadius: 0,
-          fontFamily: metadataFont,
+          fontFamily: "Inter",
           showMaps: showMaps
         });
 
@@ -380,9 +380,9 @@ div[class*="price"] {
           fields: metadataFields2,
           customClass: 'listing-metadata-bar',
           backgroundColor: 'transparent',
-          textColor: metadataTextColor,
+          textColor: "#374151",
           borderRadius: 0,
-          fontFamily: metadataFont,
+          fontFamily: "Inter",
           showMaps: showMaps
         });
 
@@ -412,9 +412,9 @@ div[class*="price"] {
         fields: metadataFields2,
         customClass: 'listing-metadata-bar',
         backgroundColor: 'transparent',
-        textColor: metadataTextColor,
+        textColor: "#374151",
         borderRadius: 0,
-        fontFamily: metadataFont,
+        fontFamily: "Inter",
         showMaps: showMaps
       });
 
