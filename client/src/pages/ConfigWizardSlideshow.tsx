@@ -464,7 +464,8 @@ document.addEventListener('DOMContentLoaded', function() {
     showMetadata,
     metadataTextColor,
     metadataFont,
-    metadataFields
+    metadataFields,
+    showMaps
   ]);
 
   // Helper function for copying text with visual feedback - exact copy from config wizard
