@@ -886,7 +886,6 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     }}
                     className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="text-xs text-gray-500">Value: "{wizardFormData.embedCode}" (Length: {wizardFormData.embedCode.length})</p>
                 </div>
 
                 {/* Custom Field Name - Completely rebuilt from scratch */}
@@ -902,7 +901,6 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     onChange={(e) => setWizardFormData(prev => ({...prev, fieldName: e.target.value}))}
                     className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="text-xs text-gray-500">Value: "{wizardFormData.fieldName}"</p>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
                     <div className="text-sm text-blue-700 text-left">
                       <p className="font-medium mb-2">💡 Setup Instructions:</p>
