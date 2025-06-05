@@ -315,7 +315,7 @@ div[class*="price"] {
     };
   };
 
-  // Generate code based on selection - exact copy from config wizard
+  // Generate code based on selection - simplified working version
   const generateCodeForSelection = () => {
     if (formEmbedUrl && formEmbedUrl.trim()) {
       if (buttonType === 'popup') {
@@ -334,7 +334,7 @@ div[class*="price"] {
         const metadataCode = generateMetadataBarCode({
           enabled: showMetadata,
           position: 'bottom',
-          fields: metadataFields,
+          fields: metadataFields2,
           customClass: 'listing-metadata-bar',
           backgroundColor: 'transparent',
           textColor: metadataTextColor,
@@ -377,7 +377,7 @@ div[class*="price"] {
         const metadataCode = generateMetadataBarCode({
           enabled: showMetadata,
           position: 'bottom',
-          fields: metadataFields,
+          fields: metadataFields2,
           customClass: 'listing-metadata-bar',
           backgroundColor: 'transparent',
           textColor: metadataTextColor,
@@ -409,7 +409,7 @@ div[class*="price"] {
       const metadataCode = generateMetadataBarCode({
         enabled: showMetadata,
         position: 'bottom',
-        fields: metadataFields,
+        fields: metadataFields2,
         customClass: 'listing-metadata-bar',
         backgroundColor: 'transparent',
         textColor: metadataTextColor,
