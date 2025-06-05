@@ -511,27 +511,7 @@ body:not(.hl-builder) .action-icon {
           </Card>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 border border-blue-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">What You'll Create:</h3>
-          <ul className="text-left text-gray-700 space-y-2">
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Dynamic form integration with embedded popups or redirects
-            </li>
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Rich product descriptions with custom content management
-            </li>
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Business metadata displays with icons and contact information
-            </li>
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Google Maps integration for location-based listings
-            </li>
-          </ul>
-        </div>
+
       </div>
     </Slide>,
 
