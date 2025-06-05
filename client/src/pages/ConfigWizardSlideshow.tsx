@@ -29,6 +29,16 @@ function Slide({ children, className = "" }: SlideProps) {
   );
 }
 
+function LargeSlide({ children, className = "" }: SlideProps) {
+  return (
+    <div className={`min-h-screen overflow-y-auto p-8 ${className}`}>
+      <div className="w-full max-w-6xl mx-auto bg-white border border-white/30 rounded-2xl p-8 shadow-lg">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function ConfigWizardSlideshow() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [googleDriveConnected, setGoogleDriveConnected] = useState(false);
@@ -1233,7 +1243,7 @@ body:not(.hl-builder) .action-icon {
     
     // 1. Product Details Page CSS - Always after Configuration Summary
     baseSlides.splice(-1, 0,
-      <Slide key="product-details-css" className="bg-gradient-to-br from-indigo-50 to-blue-100">
+      <LargeSlide key="product-details-css" className="bg-gradient-to-br from-indigo-50 to-blue-100">
         <div className="text-center max-w-4xl mx-auto">
           <div className="mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-600 rounded-full mb-6">
@@ -1309,7 +1319,7 @@ body:not(.hl-builder) .action-icon {
             </CardContent>
           </Card>
         </div>
-      </Slide>
+      </LargeSlide>
     );
 
     // 2. Product Details Page Header - Always after CSS
@@ -1611,8 +1621,17 @@ Your marketplace enhancement is now active!`
       </div>
       
       {/* Main Content - Takes remaining space */}
-      <div className="flex-1 overflow-auto pb-20">
-        {slides[currentSlide]}
+      <div className="flex-1 overflow-hidden pb-20 relative">
+        <div 
+          className="flex transition-transform duration-500 ease-in-out h-full"
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        >
+          {slides.map((slide, index) => (
+            <div key={index} className="w-full flex-shrink-0">
+              {slide}
+            </div>
+          ))}
+        </div>
       </div>
       
       {/* Navigation Footer - Fixed at bottom */}
