@@ -470,9 +470,7 @@ body:not(.hl-builder) .action-icon {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-6">
             <Rocket className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            GoHighLevel Marketplace Extension
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Add Enhancements To Your Ecommerce Site</h1>
           <p className="text-xl text-gray-600 mb-8">
             Transform your GoHighLevel marketplace with advanced form generation, 
             metadata displays, and enhanced customer experiences.
