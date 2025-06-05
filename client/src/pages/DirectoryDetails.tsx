@@ -35,14 +35,14 @@ export default function DirectoryDetails() {
   const queryClient = useQueryClient();
 
   // Fetch directory info
-  const { data: directory, isLoading: directoryLoading } = useQuery({
+  const { data: directory, isLoading: directoryLoading } = useQuery<FormConfiguration>({
     queryKey: ['/api/directories', directoryName],
     queryFn: () => apiRequest(`/api/directories/${directoryName}`),
     enabled: !!directoryName,
   });
 
   // Fetch listings for this directory
-  const { data: listings = [], isLoading: listingsLoading } = useQuery({
+  const { data: listings = [], isLoading: listingsLoading } = useQuery<Listing[]>({
     queryKey: ['/api/listings', directoryName],
     queryFn: () => apiRequest(`/api/listings/${directoryName}`),
     enabled: !!directoryName,

@@ -1,19 +1,49 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, X, Link as LinkIcon, Download, MousePointer } from 'lucide-react';
-import { insertListingSchema, Listing, InsertListing } from '@shared/schema';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { insertListingSchema, type Listing, type InsertListing } from "@shared/schema";
+
+const BUSINESS_CATEGORIES = [
+  "Healthcare",
+  "Home & Garden", 
+  "Technology",
+  "Health & Fitness",
+  "Food & Beverage",
+  "Education",
+  "Finance",
+  "Professional Services",
+  "Entertainment",
+  "Automotive",
+  "Retail",
+  "Real Estate",
+  "Travel",
+  "Manufacturing",
+  "Other"
+];
 
 interface ListingFormProps {
   directoryName: string;
@@ -22,349 +52,286 @@ interface ListingFormProps {
   onSuccess: () => void;
 }
 
-const actionTypes = [
-  { value: 'popup', label: 'Popup Form', icon: MousePointer, description: 'Opens form in a popup overlay' },
-  { value: 'link', label: 'External Link', icon: LinkIcon, description: 'Redirects to external URL' },
-  { value: 'download', label: 'File Download', icon: Download, description: 'Downloads a file directly' },
-];
-
 export default function ListingForm({ directoryName, listing, onClose, onSuccess }: ListingFormProps) {
   const { toast } = useToast();
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>(listing?.imageUrl || '');
-  const [isDragOver, setIsDragOver] = useState(false);
+  const queryClient = useQueryClient();
 
   const form = useForm<InsertListing>({
-    resolver: zodResolver(insertListingSchema),
+    resolver: zodResolver(insertListingSchema.extend({
+      title: insertListingSchema.shape.title,
+      slug: insertListingSchema.shape.slug,
+    })),
     defaultValues: {
-      userId: 1, // TODO: Get from auth context
-      title: listing?.title || '',
-      slug: listing?.slug || '',
-      directoryName: directoryName,
-      category: listing?.category || '',
-      location: listing?.location || '',
-      description: listing?.description || '',
-      price: listing?.price || '',
-      downloadUrl: listing?.downloadUrl || '',
-      linkUrl: listing?.linkUrl || '',
-      popupUrl: listing?.popupUrl || '',
-      embedFormUrl: listing?.embedFormUrl || '',
-      imageUrl: listing?.imageUrl || '',
+      title: listing?.title || "",
+      slug: listing?.slug || "",
+      directoryName: listing?.directoryName || directoryName,
+      category: listing?.category || "",
+      location: listing?.location || "",
+      description: listing?.description || "",
+      price: listing?.price || "",
+      downloadUrl: listing?.downloadUrl || "",
+      linkUrl: listing?.linkUrl || "",
+      popupUrl: listing?.popupUrl || "",
+      embedFormUrl: listing?.embedFormUrl || "",
+      imageUrl: listing?.imageUrl || "",
+      isActive: listing?.isActive ?? true,
+      userId: 1, // This should come from user context
     },
   });
 
-  const createMutation = useMutation({
+  const mutation = useMutation({
     mutationFn: async (data: InsertListing) => {
-      const url = listing ? `/api/listings/${listing.id}` : '/api/listings';
-      const method = listing ? 'PUT' : 'POST';
-      return apiRequest(url, {
-        method,
-        data
-      });
+      if (listing) {
+        return apiRequest(`/api/listings/${listing.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        });
+      } else {
+        return apiRequest('/api/listings', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+      }
     },
     onSuccess: () => {
       toast({
         title: listing ? "Listing updated" : "Listing created",
-        description: listing ? "Your listing has been updated successfully." : "Your new listing has been created.",
+        description: listing 
+          ? "The listing has been successfully updated."
+          : "The listing has been successfully created.",
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/listings'] });
       onSuccess();
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to save listing. Please try again.",
+        description: error.message || "Failed to save listing. Please try again.",
         variant: "destructive",
       });
     },
   });
 
-  const handleImageDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
-    
-    if (imageFile) {
-      setImageFile(imageFile);
-      const url = URL.createObjectURL(imageFile);
-      setImagePreview(url);
-      form.setValue('imageUrl', url);
-    }
+  const onSubmit = (data: InsertListing) => {
+    mutation.mutate(data);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setImageFile(file);
-      const url = URL.createObjectURL(file);
-      setImagePreview(url);
-      form.setValue('imageUrl', url);
-    }
-  };
-
+  // Generate slug from title
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
   };
 
-  const handleTitleChange = (title: string) => {
-    form.setValue('title', title);
+  const handleTitleChange = (value: string) => {
+    form.setValue('title', value);
     if (!listing) {
-      const slug = generateSlug(title);
+      const slug = generateSlug(value);
       form.setValue('slug', slug);
     }
-  };
-
-  const onSubmit = (data: InsertListing) => {
-    createMutation.mutate(data);
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Tabs defaultValue="basic" className="w-full">
+        <Tabs defaultValue="basic" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="actions">Actions</TabsTrigger>
-            <TabsTrigger value="advanced">Advanced</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="basic" className="space-y-6">
-            {/* Image Upload */}
+          <TabsContent value="basic">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Listing Image</CardTitle>
+                <CardTitle>Basic Information</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div
-                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                    isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-                  }`}
-                  onDrop={handleImageDrop}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setIsDragOver(true);
-                  }}
-                  onDragLeave={() => setIsDragOver(false)}
-                >
-                  {imagePreview ? (
-                    <div className="relative">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="max-w-full h-48 object-cover rounded-lg mx-auto"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-2 right-2"
-                        onClick={() => {
-                          setImagePreview('');
-                          setImageFile(null);
-                          form.setValue('imageUrl', '');
-                        }}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div>
-                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600 mb-2">Drop an image here or click to upload</p>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="hidden"
-                        id="image-upload"
-                      />
-                      <Label htmlFor="image-upload">
-                        <Button type="button" variant="outline" asChild>
-                          <span>Choose Image</span>
-                        </Button>
-                      </Label>
-                    </div>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          value={field.value || ""} 
+                          onChange={(e) => handleTitleChange(e.target.value)}
+                          placeholder="Enter listing title" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="slug"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>URL Slug *</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ""} placeholder="auto-generated-from-title" />
+                      </FormControl>
+                      <FormDescription>
+                        This creates the URL for your listing. Auto-generated from title.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {BUSINESS_CATEGORIES.map((category) => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Location</FormLabel>
+                        <FormControl>
+                          <Input {...field} value={field.value || ""} placeholder="City, State" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          {...field} 
+                          value={field.value || ""} 
+                          placeholder="Describe your listing"
+                          className="min-h-[100px]"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Price</FormLabel>
+                        <FormControl>
+                          <Input {...field} value={field.value || ""} placeholder="$99.00" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="imageUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Image URL</FormLabel>
+                        <FormControl>
+                          <Input {...field} value={field.value || ""} placeholder="https://example.com/image.jpg" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </CardContent>
             </Card>
-
-            {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title *</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        onChange={(e) => handleTitleChange(e.target.value)}
-                        placeholder="Enter listing title"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="slug"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>URL Slug *</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="url-friendly-name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <FormControl>
-                      <Input {...field} value={field.value || ""} placeholder="e.g., Services, Products" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <Input {...field} value={field.value || ""} placeholder="City, State" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price</FormLabel>
-                    <FormControl>
-                      <Input {...field} value={field.value || ""} placeholder="$99.00 or Contact for pricing" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      value={field.value || ""}
-                      placeholder="Describe your listing..."
-                      rows={4}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </TabsContent>
 
-          <TabsContent value="actions" className="space-y-6">
+          <TabsContent value="actions">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Action Configuration</CardTitle>
-                <p className="text-sm text-gray-600">Configure what happens when users interact with this listing</p>
+                <CardTitle>Action Configuration</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Action Type Selection */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {actionTypes.map((action) => {
-                    const Icon = action.icon;
-                    return (
-                      <Card key={action.value} className="cursor-pointer hover:shadow-md transition-shadow">
-                        <CardContent className="p-4 text-center">
-                          <Icon className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                          <h3 className="font-medium">{action.label}</h3>
-                          <p className="text-xs text-gray-600 mt-1">{action.description}</p>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="popupUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Popup Form URL</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ""} placeholder="GoHighLevel form URL for popup" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                {/* Action URLs */}
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="popupUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Popup Form URL</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ""} placeholder="GoHighLevel form URL for popup" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <FormField
+                  control={form.control}
+                  name="linkUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>External Link URL</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ""} placeholder="https://example.com" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="linkUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>External Link URL</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ""} placeholder="https://example.com" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="downloadUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Download File URL</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ""} placeholder="https://example.com/file.pdf" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="downloadUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Download File URL</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ""} placeholder="https://example.com/file.pdf" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
-          </TabsContent>
 
-          <TabsContent value="advanced" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Advanced Settings</CardTitle>
+                <CardTitle>Embedded Form</CardTitle>
               </CardHeader>
               <CardContent>
                 <FormField
@@ -383,19 +350,63 @@ export default function ListingForm({ directoryName, listing, onClose, onSuccess
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Listing Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Active Status
+                        </FormLabel>
+                        <FormDescription>
+                          Make this listing visible to visitors
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="directoryName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Directory</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ""} readOnly disabled />
+                      </FormControl>
+                      <FormDescription>
+                        This listing belongs to the "{directoryName}" directory
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
 
-        {/* Form Actions */}
-        <div className="flex items-center justify-end space-x-4 pt-6 border-t">
+        <div className="flex justify-end gap-3">
           <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button 
-            type="submit" 
-            disabled={createMutation.isPending}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            {createMutation.isPending 
+          <Button type="submit" disabled={mutation.isPending}>
+            {mutation.isPending 
               ? (listing ? "Updating..." : "Creating...") 
               : (listing ? "Update Listing" : "Create Listing")
             }

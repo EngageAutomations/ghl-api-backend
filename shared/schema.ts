@@ -36,6 +36,7 @@ export const listings = pgTable("listings", {
   popupUrl: text("popup_url"),
   embedFormUrl: text("embed_form_url"),
   imageUrl: text("image_url"),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
