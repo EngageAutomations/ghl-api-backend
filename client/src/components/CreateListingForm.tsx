@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import RichTextEditor from '@/components/RichTextEditor';
+import { Plus } from 'lucide-react';
 
 interface CreateListingFormProps {
   directoryName: string;
@@ -17,11 +19,11 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    expandedDescription: '',
     imageUrl: '',
-    contactEmail: '',
-    contactPhone: '',
     price: '',
     location: '',
+    metadataFields: [{ icon: '', text: '' }],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -67,6 +69,24 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     }));
   };
 
+  const handleMetadataChange = (index: number, field: 'icon' | 'text', value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      metadataFields: prev.metadataFields.map((item, i) => 
+        i === index ? { ...item, [field]: value } : item
+      )
+    }));
+  };
+
+  const addMetadataField = () => {
+    if (formData.metadataFields.length < 8) {
+      setFormData(prev => ({
+        ...prev,
+        metadataFields: [...prev.metadataFields, { icon: '', text: '' }]
+      }));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -77,10 +97,11 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Always show basic fields */}
+        {/* Form fields matching wizard preview exactly */}
         <div className="space-y-4">
+          {/* 1. Listing Title - Always show */}
           <div>
-            <Label htmlFor="title">Listing Title *</Label>
+            <Label htmlFor="title" className="text-sm font-medium text-gray-700 block text-left">Listing Title *</Label>
             <Input
               id="title"
               type="text"
@@ -88,101 +109,149 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
               onChange={(e) => handleInputChange('title', e.target.value)}
               required
               placeholder="Enter listing title"
+              className="mt-1"
             />
           </div>
 
-          {features.showDescription !== false && (
-            <div>
-              <Label htmlFor="description">Description</Label>
+          {/* 2. Listing Price - Show field or placeholder */}
+          <div>
+            <Label htmlFor="price" className="text-sm font-medium text-gray-700 block text-left">
+              Listing Price {features.showPrice === false && <span className="text-xs text-gray-500">(Hidden from display)</span>}
+            </Label>
+            <Input
+              id="price"
+              type="text"
+              value={formData.price}
+              onChange={(e) => handleInputChange('price', e.target.value)}
+              placeholder={features.showPrice !== false ? "$50,000" : "$1 (placeholder value)"}
+              className="mt-1"
+              style={features.showPrice === false ? { backgroundColor: '#f9fafb', color: '#6b7280' } : {}}
+            />
+          </div>
+
+          {/* 3. Basic Description with AI Summarizer */}
+          <div>
+            <Label htmlFor="description" className="text-sm font-medium text-gray-700 block text-left">Description</Label>
+            <div className="mt-1 space-y-2">
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 placeholder="Describe your listing"
-                rows={4}
+                rows={3}
+                className="w-full p-3 border border-gray-300 rounded-md resize-none"
               />
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                className="text-xs"
+              >
+                🤖 Generate AI Bullet Points
+              </Button>
+            </div>
+          </div>
+
+          {/* 4. Expanded Description - If enabled */}
+          {features.showDescription && (
+            <div>
+              <Label className="text-sm font-medium text-gray-700 block text-left">Expanded Description (Rich Text)</Label>
+              <div className="mt-1">
+                <div className="flex items-center space-x-2 mb-2 text-xs text-gray-500">
+                  <span>🎨 Rich Text Editor</span>
+                  <span>•</span>
+                  <span>Drag & Drop Images</span>
+                  <span>•</span>
+                  <span>Text Alignment</span>
+                  <span>•</span>
+                  <span>HTML Support</span>
+                </div>
+                <RichTextEditor
+                  value={formData.expandedDescription}
+                  onChange={(value) => handleInputChange('expandedDescription', value)}
+                  placeholder="Enter rich content with drag & drop images and text alignment..."
+                  className="w-full"
+                />
+              </div>
             </div>
           )}
 
+          {/* 5. Image URL */}
           <div>
-            <Label htmlFor="imageUrl">Image URL</Label>
+            <Label htmlFor="imageUrl" className="text-sm font-medium text-gray-700 block text-left">Image URL</Label>
             <Input
               id="imageUrl"
               type="url"
               value={formData.imageUrl}
               onChange={(e) => handleInputChange('imageUrl', e.target.value)}
               placeholder="https://example.com/image.jpg"
+              className="mt-1"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* 6. Address for Google Maps - If enabled */}
+          {features.showMaps && (
             <div>
-              <Label htmlFor="contactEmail">Contact Email</Label>
-              <Input
-                id="contactEmail"
-                type="email"
-                value={formData.contactEmail}
-                onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                placeholder="contact@example.com"
-              />
-            </div>
-            <div>
-              <Label htmlFor="contactPhone">Contact Phone</Label>
-              <Input
-                id="contactPhone"
-                type="tel"
-                value={formData.contactPhone}
-                onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-                placeholder="(555) 123-4567"
-              />
-            </div>
-          </div>
-
-          {/* Conditional fields based on directory configuration */}
-          {features.showPrice !== false && (
-            <div>
-              <Label htmlFor="price">Price</Label>
-              <Input
-                id="price"
-                type="text"
-                value={formData.price}
-                onChange={(e) => handleInputChange('price', e.target.value)}
-                placeholder="$50,000"
-              />
-            </div>
-          )}
-
-          {features.showMaps !== false && (
-            <div>
-              <Label htmlFor="location">Location/Address</Label>
+              <Label htmlFor="location" className="text-sm font-medium text-gray-700 block text-left">Address for Google Maps</Label>
               <Input
                 id="location"
                 type="text"
                 value={formData.location}
                 onChange={(e) => handleInputChange('location', e.target.value)}
-                placeholder="123 Main St, City, State"
+                placeholder="123 Main St, City, State 12345"
+                className="mt-1"
               />
+            </div>
+          )}
+
+          {/* 7. Metadata Bar Fields - If enabled */}
+          {features.showMetadata && (
+            <div>
+              <Label className="text-sm font-medium text-gray-700 block text-left">Metadata Bar Fields</Label>
+              <div className="mt-1 space-y-3 border border-gray-300 rounded-md p-3 bg-gray-50">
+                <div className="text-xs text-gray-500 mb-2">Add up to 8 icon + text pairs (Default: 1 field)</div>
+                
+                {formData.metadataFields.map((field, index) => (
+                  <div key={index} className="flex items-end gap-2">
+                    <div className="w-16">
+                      <Label className="text-xs text-gray-600">Icon</Label>
+                      <Input
+                        value={field.icon}
+                        onChange={(e) => handleMetadataChange(index, 'icon', e.target.value)}
+                        placeholder="📞"
+                        className="w-16 h-10 text-center text-xs"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Label className="text-xs text-gray-600">Display Text</Label>
+                      <Input
+                        value={field.text}
+                        onChange={(e) => handleMetadataChange(index, 'text', e.target.value)}
+                        placeholder="Contact information"
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+                ))}
+                
+                {formData.metadataFields.length < 8 && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={addMetadataField}
+                    className="text-xs w-full"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add Additional Field (up to 8 total)
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Integration Preview */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="font-medium mb-2">Button Preview</h4>
-          <button
-            type="button"
-            className="px-4 py-2 rounded"
-            style={{
-              backgroundColor: directoryConfig?.button?.color || '#3b82f6',
-              color: directoryConfig?.button?.textColor || '#ffffff',
-            }}
-          >
-            {directoryConfig?.button?.text || 'Get Info'}
-          </button>
-          <p className="text-sm text-gray-600 mt-2">
-            This button will appear on your listing using your directory's style.
-          </p>
-        </div>
+
 
         <div className="flex justify-end space-x-3 pt-4 border-t">
           <Button type="button" variant="outline" onClick={onCancel}>
