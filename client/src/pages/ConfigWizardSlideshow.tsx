@@ -329,6 +329,10 @@ body:not(.hl-builder) .hl-product-detail-product-name {
   -webkit-line-clamp: unset !important;
   max-height: none !important;
   height: auto !important;
+  max-width: 600px !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto !important;
 }`;
 
     // Add element hiding CSS based on toggles
