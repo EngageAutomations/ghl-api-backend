@@ -234,7 +234,7 @@ export default function ListingForm({ directoryName, listing, onClose, onSuccess
                   <FormItem>
                     <FormLabel>Category</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="e.g., Services, Products" />
+                      <Input {...field} value={field.value || ""} placeholder="e.g., Services, Products" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -248,7 +248,7 @@ export default function ListingForm({ directoryName, listing, onClose, onSuccess
                   <FormItem>
                     <FormLabel>Location</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="City, State" />
+                      <Input {...field} value={field.value || ""} placeholder="City, State" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -262,7 +262,7 @@ export default function ListingForm({ directoryName, listing, onClose, onSuccess
                   <FormItem>
                     <FormLabel>Price</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="$99.00 or Contact for pricing" />
+                      <Input {...field} value={field.value || ""} placeholder="$99.00 or Contact for pricing" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -279,6 +279,7 @@ export default function ListingForm({ directoryName, listing, onClose, onSuccess
                   <FormControl>
                     <Textarea
                       {...field}
+                      value={field.value || ""}
                       placeholder="Describe your listing..."
                       rows={4}
                     />
