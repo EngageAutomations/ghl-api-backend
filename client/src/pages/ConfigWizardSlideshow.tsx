@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 
 import { Switch } from '@/components/ui/switch';
 import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy, Monitor, Zap, Plus } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 
 // Import wizard's proven code generation functions
 import { generateActionButtonPopup } from '@/lib/custom-popup-generator';
@@ -1460,7 +1461,112 @@ body:not(.hl-builder) .action-icon {
       );
     }
 
-    // Cart bookmark functionality is now handled directly in GoHighLevel web builder
+    // Final completion slide
+    baseSlides.push(
+      <Slide key="completion" className="bg-gradient-to-br from-green-50 to-emerald-100">
+        <div className="text-center max-w-4xl mx-auto">
+          <div className="mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mb-6">
+              <CheckCircle className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Setup Complete!</h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Your GoHighLevel marketplace enhancement is ready to deploy. Download all generated files and implement them in your site.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card className="border-green-200 bg-white/70 backdrop-blur-sm">
+              <CardContent className="p-6 text-center">
+                <FileText className="w-8 h-8 text-green-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-gray-900 mb-2">CSS Code</h3>
+                <p className="text-sm text-gray-600">Product page styling and element visibility controls</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-green-200 bg-white/70 backdrop-blur-sm">
+              <CardContent className="p-6 text-center">
+                <Settings className="w-8 h-8 text-green-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-gray-900 mb-2">Header Code</h3>
+                <p className="text-sm text-gray-600">Enhanced functionality and form integration</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-green-200 bg-white/70 backdrop-blur-sm">
+              <CardContent className="p-6 text-center">
+                <Layout className="w-8 h-8 text-green-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-gray-900 mb-2">Footer Code</h3>
+                <p className="text-sm text-gray-600">JavaScript for popups and interactive features</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Button 
+            onClick={() => {
+              // Generate all code files
+              const generatedCode = generateCodeForSelection();
+              const elementHidingCSS = generateElementHidingCSS();
+              
+              // Create zip file content
+              const files = [
+                {
+                  name: 'css-code.html',
+                  content: elementHidingCSS
+                },
+                {
+                  name: 'header-code.html', 
+                  content: generatedCode.headerCode || '<!-- No header code generated -->'
+                },
+                {
+                  name: 'footer-code.html',
+                  content: generatedCode.footerCode || '<!-- No footer code generated -->'
+                },
+                {
+                  name: 'implementation-guide.txt',
+                  content: `GoHighLevel Implementation Guide
+
+1. CSS Code (css-code.html):
+   - Go to your product page in GoHighLevel editor
+   - Find the CSS field in styling options
+   - Copy and paste the CSS code from css-code.html
+
+2. Header Code (header-code.html):
+   - Go to Settings → Custom Code in GoHighLevel
+   - Find the Header Tracking Code section
+   - Paste the header code
+
+3. Footer Code (footer-code.html):
+   - Go to Settings → Custom Code in GoHighLevel
+   - Find the Footer Tracking Code section
+   - Paste the footer code
+
+4. Save and publish your changes
+
+Your marketplace enhancement is now active!`
+                }
+              ];
+              
+              // Create and download files individually (simplified approach)
+              files.forEach(file => {
+                const blob = new Blob([file.content], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              });
+            }}
+            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
+          >
+            <Download className="w-5 h-5 mr-2" />
+            Download All Files
+          </Button>
+        </div>
+      </Slide>
+    );
 
     return baseSlides;
   }, [directoryName, logoFile, integrationMethod, showPrice, showQuantitySelector, showDescription, showMetadata, showMaps, wizardFormData.embedCode, wizardFormData.fieldName]);
@@ -1530,8 +1636,8 @@ body:not(.hl-builder) .action-icon {
 
           {currentSlide === slides.length - 1 ? (
             <Button className="flex items-center space-x-2 bg-green-600 hover:bg-green-700">
-              <Download className="w-4 h-4" />
-              <span>Download Code</span>
+              <CheckCircle className="w-4 h-4" />
+              <span>Complete Wizard</span>
             </Button>
           ) : (
             <Button
