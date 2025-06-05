@@ -47,9 +47,9 @@ export default function ConfigWizardSlideshow() {
   const [showDescription, setShowDescription] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
   const [showMaps, setShowMaps] = useState(false);
-  const [showPrice, setShowPrice] = useState(false);
+  const [showPrice, setShowPrice] = useState(true);
 
-  const [showQuantitySelector, setShowQuantitySelector] = useState(false);
+  const [showQuantitySelector, setShowQuantitySelector] = useState(true);
   const [integrationMethod, setIntegrationMethod] = useState('popup');
 
   const [buttonText, setButtonText] = useState('Get Info');
