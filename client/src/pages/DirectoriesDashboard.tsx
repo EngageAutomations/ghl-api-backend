@@ -160,47 +160,13 @@ export default function DirectoriesDashboard() {
                 )}
 
                 {/* Actions */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                  <div className="flex space-x-2">
-                    <Link href={`/directories/${directory.directoryName}`}>
-                      <Button variant="outline" size="sm">
-                        <Eye className="w-4 h-4 mr-1" />
-                        View
-                      </Button>
-                    </Link>
-                    <Link href={`/directories/${directory.directoryName}/settings`}>
-                      <Button variant="outline" size="sm">
-                        <Settings className="w-4 h-4 mr-1" />
-                        Settings
-                      </Button>
-                    </Link>
-                  </div>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Directory</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete "{directory.directoryName}"? This action cannot be undone and will remove all listings in this directory.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => deleteMutation.mutate(directory.id)}
-                          className="bg-red-600 hover:bg-red-700"
-                          disabled={deleteMutation.isPending}
-                        >
-                          {deleteMutation.isPending ? "Deleting..." : "Delete"}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                <div className="flex items-center justify-center pt-4 border-t border-gray-100">
+                  <Link href={`/directories/${directory.directoryName}`}>
+                    <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      <Settings className="w-4 h-4 mr-1" />
+                      Manage
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

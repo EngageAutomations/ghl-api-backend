@@ -12,8 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import ListingForm from '@/components/ListingForm';
-import type { Listing, FormConfiguration } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 
 type ViewMode = 'grid' | 'list';
@@ -35,16 +33,23 @@ export default function DirectoryDetails() {
   const queryClient = useQueryClient();
 
   // Fetch directory info
-  const { data: directory, isLoading: directoryLoading } = useQuery<FormConfiguration>({
+  const { data: directory, isLoading: directoryLoading } = useQuery({
     queryKey: ['/api/directories', directoryName],
-    queryFn: () => apiRequest(`/api/directories/${directoryName}`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/directories/${directoryName}`);
+      return response.json();
+    },
     enabled: !!directoryName,
   });
 
   // Fetch listings for this directory
-  const { data: listings = [], isLoading: listingsLoading } = useQuery<Listing[]>({
+  const { data: listings = [], isLoading: listingsLoading } = useQuery({
     queryKey: ['/api/listings', directoryName],
-    queryFn: () => apiRequest(`/api/listings/${directoryName}`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/listings/${directoryName}`);
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     enabled: !!directoryName,
   });
 
@@ -94,8 +99,8 @@ export default function DirectoryDetails() {
   });
 
   // Filter and sort listings
-  const processedListings = listings
-    .filter((listing: Listing) => {
+  const processedListings = Array.isArray(listings) ? listings
+    .filter((listing: any) => {
       // Search filter
       const matchesSearch = !searchQuery || 
         listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -109,7 +114,7 @@ export default function DirectoryDetails() {
 
       return matchesSearch && matchesFilter;
     })
-    .sort((a: Listing, b: Listing) => {
+    .sort((a: any, b: any) => {
       switch (sortBy) {
         case 'newest':
           return new Date(b.createdAt || new Date()).getTime() - new Date(a.createdAt || new Date()).getTime();
@@ -124,9 +129,9 @@ export default function DirectoryDetails() {
         default:
           return 0;
       }
-    });
+    }) : [];
 
-  const handleEditListing = (listing: Listing) => {
+  const handleEditListing = (listing: any) => {
     setEditingListing(listing);
     setShowListingForm(true);
   };
