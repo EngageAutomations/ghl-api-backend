@@ -1654,7 +1654,7 @@ body:not(.hl-builder) button[class*="cart"]:before {
     }
 
     return baseSlides;
-  }, [convertCartToBookmarks, directoryName, logoFile, integrationMethod, showPrice, showBuyNowButton, showAddToCartButton, showQuantitySelector, showCartIcon, showDescription, showMetadata, showMaps]);
+  }, [convertCartToBookmarks, directoryName, logoFile, integrationMethod, showPrice, showBuyNowButton, showAddToCartButton, showQuantitySelector, showCartIcon, showDescription, showMetadata, showMaps, wizardFormData.embedCode, wizardFormData.fieldName]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
