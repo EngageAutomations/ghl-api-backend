@@ -1249,7 +1249,7 @@ body:not(.hl-builder) .action-icon {
             <h4 className="font-medium text-blue-800 mb-4">Add this code to the CSS field inside your product listing page.</h4>
             <div className="bg-white rounded-lg p-4 border border-blue-200">
               <img 
-                src="/images/ghl-css-field.png" 
+                src="/assets/ghl-css-field.png" 
                 alt="GoHighLevel CSS field location screenshot" 
                 className="w-full max-w-2xl mx-auto rounded border shadow-sm"
               />
@@ -1330,7 +1330,7 @@ body:not(.hl-builder) .action-icon {
             <h4 className="font-medium text-emerald-800 mb-4">Add this code to the Header Tracking Code in your GoHighLevel site settings.</h4>
             <div className="bg-white rounded-lg p-4 border border-emerald-200">
               <img 
-                src="/images/ghl-css-field.png" 
+                src="/assets/ghl-css-field.png" 
                 alt="GoHighLevel header tracking code location" 
                 className="w-full max-w-2xl mx-auto rounded border shadow-sm"
               />
