@@ -484,7 +484,9 @@ body:not(.hl-builder) .action-icon {
             <CardContent className="p-6 text-center">
               <Settings className="w-8 h-8 text-blue-600 mx-auto mb-3" />
               <h3 className="font-semibold text-gray-900 mb-2">Easy Configuration</h3>
-              <p className="text-sm text-gray-600">Simple wizard-driven setup process</p>
+              <p className="text-sm text-gray-600">Guided, no-code wizard that gets you live in minutes
+
+</p>
             </CardContent>
           </Card>
 
