@@ -89,7 +89,6 @@ export default function ConfigWizardSlideshow() {
         buttonBorderRadius: 8,
         customFieldName: wizardFormData.fieldName || 'listing',
         formUrl: wizardFormData.embedCode,
-        showBuyNowButton,
         showAddToCartButton,
         showQuantitySelector
       });
@@ -350,7 +349,8 @@ body:not(.hl-builder) .hl-product-detail-product-price {
 }`;
     }
 
-    if (!showBuyNowButton) {
+    // Buy now button visibility is now handled by GoHighLevel web builder
+    if (false) {
       css += `
 
 /* Hide Buy Now Button */
@@ -1211,10 +1211,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     <span className="w-6 text-center">💰</span>
                     <span className="ml-2"><strong>Price Display:</strong> {showPrice ? 'Visible' : 'Hidden'}</span>
                   </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🛒</span>
-                    <span className="ml-2"><strong>Buy Now Button:</strong> {showBuyNowButton ? 'Visible' : 'Hidden'}</span>
-                  </div>
+
                   <div className="flex items-center">
                     <span className="w-6 text-center">➕</span>
                     <span className="ml-2"><strong>Add to Cart:</strong> {showAddToCartButton ? 'Visible' : 'Hidden'}</span>
@@ -1336,11 +1333,9 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                         showMetadata,
                         showMaps,
                         showPrice,
-                        showBuyNowButton,
                         showAddToCartButton,
                         showQuantitySelector,
                         showCartIcon,
-                        convertCartToBookmarks,
                         formEmbedUrl: wizardFormData.embedCode || "PASTE_YOUR_GOHIGHLEVEL_FORM_CODE_HERE",
                         customFieldName: wizardFormData.fieldName
                       };
@@ -1478,180 +1473,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
       </Slide>
     );
 
-    // 4. Cart Bookmark CSS - Only if cart bookmark feature is enabled
-    if (convertCartToBookmarks) {
-      baseSlides.splice(-1, 0, 
-        <Slide key="cart-bookmarks-css" className="bg-gradient-to-br from-orange-50 to-amber-100">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-orange-600 rounded-full mb-6">
-                <ShoppingCart className="w-10 h-10 text-white" />
-              </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Cart Bookmark CSS Setup</h2>
-              <p className="text-lg text-gray-600 mb-8">
-                Additional CSS code required for cart-related pages
-              </p>
-            </div>
-
-            {/* Instructions */}
-            <Card className="bg-white border border-orange-200 mb-6">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Implementation Instructions</h3>
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-                  <p className="text-orange-800 text-sm">
-                    <strong>Important:</strong> The following CSS must be added to specific pages in addition to the main CSS code.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Cart Symbol Pages CSS */}
-            <Card className="bg-white border border-orange-200 mb-6">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Cart Symbol Pages CSS</h3>
-                  <Button
-                    onClick={() => {
-                      const cartSymbolCSS = `<style>
-/* Cart to Bookmark Conversion - Cart Symbol Pages */
-body:not(.hl-builder) .nav-cart-icon:before,
-body:not(.hl-builder) .cart-search-desktop:before,
-body:not(.hl-builder) .items-cart:before {
-  content: "🔖" !important;
-  font-size: 16px !important;
-}
-
-/* Replace cart text with bookmark text */
-body:not(.hl-builder) .nav-cart-icon span,
-body:not(.hl-builder) .cart-search-desktop span {
-  font-size: 0 !important;
-}
-
-body:not(.hl-builder) .nav-cart-icon span:after,
-body:not(.hl-builder) .cart-search-desktop span:after {
-  content: "Bookmarks" !important;
-  font-size: 14px !important;
-}
-</style>`;
-                      navigator.clipboard.writeText(cartSymbolCSS);
-                    }}
-                    className="bg-orange-600 hover:bg-orange-700 text-white"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy CSS
-                  </Button>
-                </div>
-                
-                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-64 overflow-y-auto">
-                  <pre className="text-sm whitespace-pre-wrap">
-{`<style>
-/* Cart to Bookmark Conversion - Cart Symbol Pages */
-body:not(.hl-builder) .nav-cart-icon:before,
-body:not(.hl-builder) .cart-search-desktop:before,
-body:not(.hl-builder) .items-cart:before {
-  content: "🔖" !important;
-  font-size: 16px !important;
-}
-
-/* Replace cart text with bookmark text */
-body:not(.hl-builder) .nav-cart-icon span,
-body:not(.hl-builder) .cart-search-desktop span {
-  font-size: 0 !important;
-}
-
-body:not(.hl-builder) .nav-cart-icon span:after,
-body:not(.hl-builder) .cart-search-desktop span:after {
-  content: "Bookmarks" !important;
-  font-size: 14px !important;
-}
-</style>`}
-                  </pre>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Cart Page CSS */}
-            <Card className="bg-white border border-orange-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Cart Page CSS</h3>
-                  <Button
-                    onClick={() => {
-                      const cartPageCSS = `<style>
-/* Cart to Bookmark Conversion - Cart Page */
-body:not(.hl-builder) .cart-page h1,
-body:not(.hl-builder) .cart-container h1,
-body:not(.hl-builder) [class*="cart-title"] {
-  font-size: 0 !important;
-}
-
-body:not(.hl-builder) .cart-page h1:after,
-body:not(.hl-builder) .cart-container h1:after,
-body:not(.hl-builder) [class*="cart-title"]:after {
-  content: "Your Bookmarks" !important;
-  font-size: 24px !important;
-  font-weight: bold !important;
-}
-
-/* Change add to cart buttons to bookmark buttons */
-body:not(.hl-builder) [class*="add-to-cart"],
-body:not(.hl-builder) button[class*="cart"] {
-  background: #f59e0b !important;
-}
-
-body:not(.hl-builder) [class*="add-to-cart"]:before,
-body:not(.hl-builder) button[class*="cart"]:before {
-  content: "🔖 Add to Bookmarks" !important;
-  font-size: 0 !important;
-}
-</style>`;
-                      navigator.clipboard.writeText(cartPageCSS);
-                    }}
-                    className="bg-orange-600 hover:bg-orange-700 text-white"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy CSS
-                  </Button>
-                </div>
-                
-                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-64 overflow-y-auto">
-                  <pre className="text-sm whitespace-pre-wrap">
-{`<style>
-/* Cart to Bookmark Conversion - Cart Page */
-body:not(.hl-builder) .cart-page h1,
-body:not(.hl-builder) .cart-container h1,
-body:not(.hl-builder) [class*="cart-title"] {
-  font-size: 0 !important;
-}
-
-body:not(.hl-builder) .cart-page h1:after,
-body:not(.hl-builder) .cart-container h1:after,
-body:not(.hl-builder) [class*="cart-title"]:after {
-  content: "Your Bookmarks" !important;
-  font-size: 24px !important;
-  font-weight: bold !important;
-}
-
-/* Change add to cart buttons to bookmark buttons */
-body:not(.hl-builder) [class*="add-to-cart"],
-body:not(.hl-builder) button[class*="cart"] {
-  background: #f59e0b !important;
-}
-
-body:not(.hl-builder) [class*="add-to-cart"]:before,
-body:not(.hl-builder) button[class*="cart"]:before {
-  content: "🔖 Add to Bookmarks" !important;
-  font-size: 0 !important;
-}
-</style>`}
-                  </pre>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </Slide>
-      );
-    }
+    // Cart bookmark functionality is now handled directly in GoHighLevel web builder
 
     return baseSlides;
   }, [directoryName, logoFile, integrationMethod, showPrice, showAddToCartButton, showQuantitySelector, showCartIcon, showDescription, showMetadata, showMaps, wizardFormData.embedCode, wizardFormData.fieldName]);
