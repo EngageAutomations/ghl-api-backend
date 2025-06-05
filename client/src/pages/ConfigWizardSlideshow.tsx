@@ -764,6 +764,73 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
           </Card>
         </div>
 
+        {/* Button Configuration for Action Button Types */}
+        {(integrationMethod === 'popup' || integrationMethod === 'redirect' || integrationMethod === 'download') && (
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Button Configuration</h3>
+              
+              <div className="grid md:grid-cols-3 gap-6">
+                {/* Button Text */}
+                <div className="space-y-3">
+                  <Label htmlFor="buttonText" className="text-sm font-medium text-gray-900">Button Text</Label>
+                  <Input
+                    id="buttonText"
+                    value={buttonText}
+                    onChange={(e) => setButtonText(e.target.value)}
+                    placeholder={
+                      integrationMethod === 'popup' ? 'Get Info' :
+                      integrationMethod === 'download' ? 'Download' :
+                      'Learn More'
+                    }
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Button Color */}
+                <div className="space-y-3">
+                  <Label htmlFor="buttonColor" className="text-sm font-medium text-gray-900">Button Color</Label>
+                  <div className="flex space-x-2">
+                    <input
+                      id="buttonColor"
+                      type="color"
+                      value={previewColor}
+                      onChange={(e) => setPreviewColor(e.target.value)}
+                      className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+                    />
+                    <Input
+                      value={previewColor}
+                      onChange={(e) => setPreviewColor(e.target.value)}
+                      placeholder="#3b82f6"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                {/* Button Preview */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-gray-900">Preview</Label>
+                  <div className="flex items-center justify-center h-10">
+                    <button
+                      className="px-6 py-2 font-medium text-white rounded-lg transition-colors hover:opacity-90"
+                      style={{ 
+                        backgroundColor: previewColor,
+                        color: previewTextColor
+                      }}
+                    >
+                      {buttonText || (
+                        integrationMethod === 'popup' ? 'Get Info' :
+                        integrationMethod === 'download' ? 'Download' :
+                        'Learn More'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Configuration Card */}
         <div className="max-w-2xl mx-auto text-center">
           <div>
