@@ -1295,14 +1295,24 @@ body:not(.hl-builder) .action-icon {
                   <Input placeholder="Enter listing title" className="mt-1" />
                 </div>
 
-                {showDescription !== false && (
+                {showDescription && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Description</Label>
-                    <textarea 
-                      className="w-full mt-1 p-3 border border-gray-300 rounded-md resize-none"
-                      rows={3}
-                      placeholder="Describe your listing"
-                    />
+                    <Label className="text-sm font-medium text-gray-700">Expanded Description (Rich Text)</Label>
+                    <div className="mt-1 border border-gray-300 rounded-md p-3 bg-gray-50">
+                      <div className="flex items-center space-x-2 mb-2 text-xs text-gray-500">
+                        <span>🎨 Rich Text Editor</span>
+                        <span>•</span>
+                        <span>HTML Support</span>
+                        <span>•</span>
+                        <span>Image Upload</span>
+                      </div>
+                      <textarea 
+                        className="w-full p-2 border border-gray-200 rounded text-sm"
+                        rows={4}
+                        placeholder="Enter rich content with HTML formatting..."
+                        defaultValue="<h3>Enhanced Product Details</h3><p>This rich text field supports <strong>HTML formatting</strong> and embedded images.</p>"
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -1329,17 +1339,44 @@ body:not(.hl-builder) .action-icon {
                   </div>
                 )}
 
-                {showMaps !== false && (
+                {showMaps && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Location/Address</Label>
-                    <Input placeholder="123 Main St, City, State" className="mt-1" />
+                    <Label className="text-sm font-medium text-gray-700">Address for Google Maps</Label>
+                    <Input placeholder="123 Main St, City, State 12345" className="mt-1" />
                   </div>
                 )}
 
-                {showMetadata !== false && (
+                {showMetadata && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Additional Details</Label>
-                    <Input placeholder="Business hours, contact info, etc." className="mt-1" />
+                    <Label className="text-sm font-medium text-gray-700">Metadata Bar Fields</Label>
+                    <div className="mt-1 space-y-3 border border-gray-300 rounded-md p-3 bg-gray-50">
+                      <div className="text-xs text-gray-500 mb-2">Add up to 8 icon + text pairs (Default: 1 field)</div>
+                      
+                      {/* Default field */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs text-gray-600">Icon Image (SVG/PNG with transparency)</Label>
+                          <Input 
+                            placeholder="📱 or upload icon URL" 
+                            className="text-sm h-8"
+                            defaultValue="📞"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-600">Display Text</Label>
+                          <Input 
+                            placeholder="Contact information" 
+                            className="text-sm h-8"
+                            defaultValue="(555) 123-4567"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="text-xs text-blue-600 flex items-center">
+                        <Plus className="w-3 h-3 mr-1" />
+                        <span>Additional fields can be added (up to 8 total)</span>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -1382,10 +1419,10 @@ body:not(.hl-builder) .action-icon {
                       <span className="w-4 h-4 mr-2">✓</span>
                       <span>Title (required)</span>
                     </div>
-                    {showDescription !== false && (
+                    {showDescription && (
                       <div className="flex items-center text-green-600">
                         <span className="w-4 h-4 mr-2">✓</span>
-                        <span>Description</span>
+                        <span>Expanded Description (Rich Text + HTML)</span>
                       </div>
                     )}
                     <div className="flex items-center text-green-600">
@@ -1396,22 +1433,22 @@ body:not(.hl-builder) .action-icon {
                       <span className="w-4 h-4 mr-2">✓</span>
                       <span>Contact Information</span>
                     </div>
-                    {showPrice !== false && (
+                    {showPrice && (
                       <div className="flex items-center text-green-600">
                         <span className="w-4 h-4 mr-2">✓</span>
                         <span>Price</span>
                       </div>
                     )}
-                    {showMaps !== false && (
+                    {showMaps && (
                       <div className="flex items-center text-green-600">
                         <span className="w-4 h-4 mr-2">✓</span>
-                        <span>Location/Address</span>
+                        <span>Google Maps Address Field</span>
                       </div>
                     )}
-                    {showMetadata !== false && (
+                    {showMetadata && (
                       <div className="flex items-center text-green-600">
                         <span className="w-4 h-4 mr-2">✓</span>
-                        <span>Additional Details</span>
+                        <span>Metadata Bar (Icon + Text pairs, up to 8)</span>
                       </div>
                     )}
                   </div>
