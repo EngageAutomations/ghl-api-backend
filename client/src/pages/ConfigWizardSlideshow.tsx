@@ -1680,7 +1680,10 @@ body:not(.hl-builder) .quantity-container {
               </Button>
             </div>
             <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-80 overflow-auto">
-              <pre className="text-sm whitespace-pre-wrap">{generatedCode.headerCode}</pre>
+              <pre className="text-sm whitespace-pre-wrap">{generatedCode.headerCode || '/* No header code generated - ensure form embed code is pasted on slide 4 */'}</pre>
+            </div>
+            <div className="text-xs text-gray-500 mt-2">
+              Debug: Header code length: {generatedCode.headerCode?.length || 0} characters
             </div>
           </div>
         </div>
@@ -1726,7 +1729,10 @@ body:not(.hl-builder) .quantity-container {
               </Button>
             </div>
             <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-80 overflow-auto">
-              <pre className="text-sm whitespace-pre-wrap">{generatedCode.footerCode}</pre>
+              <pre className="text-sm whitespace-pre-wrap">{generatedCode.footerCode || '/* No footer code generated - ensure form embed code is pasted on slide 4 */'}</pre>
+            </div>
+            <div className="text-xs text-gray-500 mt-2">
+              Debug: Footer code length: {generatedCode.footerCode?.length || 0} characters
             </div>
           </div>
         </div>
