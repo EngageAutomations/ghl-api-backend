@@ -773,7 +773,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Button Configuration</h3>
               
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-6">
                 {/* Button Text */}
                 <div className="space-y-3">
                   <Label htmlFor="buttonText" className="text-sm font-medium text-gray-900">Button Text</Label>
@@ -790,13 +790,14 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   />
                 </div>
 
-                {/* Color Controls */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium text-gray-900">Colors</Label>
-                  <div className="grid grid-cols-2 gap-3">
+                {/* Button Styling */}
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium text-gray-900">Button Styling</Label>
+                  
+                  <div className="grid grid-cols-2 gap-4">
                     {/* Button Color */}
                     <div>
-                      <Label htmlFor="buttonColor" className="text-xs text-gray-600">Background</Label>
+                      <Label htmlFor="buttonColor" className="text-xs text-gray-600">Background Color</Label>
                       <div className="flex space-x-2 mt-1">
                         <input
                           id="buttonColor"
@@ -816,7 +817,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
 
                     {/* Text Color */}
                     <div>
-                      <Label htmlFor="textColor" className="text-xs text-gray-600">Text</Label>
+                      <Label htmlFor="textColor" className="text-xs text-gray-600">Text Color</Label>
                       <div className="flex space-x-2 mt-1">
                         <input
                           id="textColor"
@@ -836,11 +837,11 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   </div>
 
                   {/* Button Preview */}
-                  <div className="mt-3">
+                  <div className="pt-2">
                     <Label className="text-xs text-gray-600">Preview</Label>
-                    <div className="flex items-center justify-center mt-1">
+                    <div className="flex items-center justify-center mt-2 p-4 bg-gray-50 rounded border">
                       <button
-                        className="px-4 py-2 font-medium transition-colors hover:opacity-90"
+                        className="px-6 py-2 font-medium transition-colors hover:opacity-90"
                         style={{ 
                           backgroundColor: previewColor,
                           color: previewTextColor
