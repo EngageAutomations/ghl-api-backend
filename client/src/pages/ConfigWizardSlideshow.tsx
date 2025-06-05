@@ -1291,13 +1291,13 @@ body:not(.hl-builder) .action-icon {
               <div className="space-y-4">
                 {/* 1. Listing Title - Always show */}
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Listing Title *</Label>
+                  <Label className="text-sm font-medium text-gray-700 text-left">Listing Title *</Label>
                   <Input placeholder="Enter listing title" className="mt-1" />
                 </div>
 
                 {/* 2. Listing Price - Show field or placeholder */}
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium text-gray-700 text-left">
                     Listing Price {!showPrice && <span className="text-xs text-gray-500">(Hidden from display)</span>}
                   </Label>
                   <Input 
@@ -1309,7 +1309,7 @@ body:not(.hl-builder) .action-icon {
 
                 {/* 3. Basic Description with AI Summarizer */}
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Description</Label>
+                  <Label className="text-sm font-medium text-gray-700 text-left">Description</Label>
                   <div className="mt-1 space-y-2">
                     <textarea 
                       className="w-full p-3 border border-gray-300 rounded-md resize-none"
@@ -1330,7 +1330,7 @@ body:not(.hl-builder) .action-icon {
                 {/* 4. Expanded Description - If enabled */}
                 {showDescription && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Expanded Description (Rich Text)</Label>
+                    <Label className="text-sm font-medium text-gray-700 text-left">Expanded Description (Rich Text)</Label>
                     <div className="mt-1 border border-gray-300 rounded-md p-3 bg-gray-50">
                       <div className="flex items-center space-x-2 mb-2 text-xs text-gray-500">
                         <span>🎨 Rich Text Editor</span>
@@ -1351,14 +1351,14 @@ body:not(.hl-builder) .action-icon {
 
                 {/* 5. Image URL */}
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Image URL</Label>
+                  <Label className="text-sm font-medium text-gray-700 text-left">Image URL</Label>
                   <Input placeholder="https://example.com/image.jpg" className="mt-1" />
                 </div>
 
                 {/* 6. Address for Google Maps - If enabled */}
                 {showMaps && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Address for Google Maps</Label>
+                    <Label className="text-sm font-medium text-gray-700 text-left">Address for Google Maps</Label>
                     <Input placeholder="123 Main St, City, State 12345" className="mt-1" />
                   </div>
                 )}
@@ -1366,7 +1366,7 @@ body:not(.hl-builder) .action-icon {
                 {/* 7. Metadata Bar Fields - If enabled */}
                 {showMetadata && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Metadata Bar Fields</Label>
+                    <Label className="text-sm font-medium text-gray-700 text-left">Metadata Bar Fields</Label>
                     <div className="mt-1 space-y-3 border border-gray-300 rounded-md p-3 bg-gray-50">
                       <div className="text-xs text-gray-500 mb-2">Add up to 8 icon + text pairs (Default: 1 field)</div>
                       
