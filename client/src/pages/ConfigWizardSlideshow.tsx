@@ -815,7 +815,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <Label className="text-sm font-medium text-gray-900">Preview</Label>
                   <div className="flex items-center justify-center h-10">
                     <button
-                      className="px-6 py-2 font-medium text-white rounded-lg transition-colors hover:opacity-90"
+                      className="px-6 py-2 font-medium text-white transition-colors hover:opacity-90"
                       style={{ 
                         backgroundColor: previewColor,
                         color: previewTextColor
