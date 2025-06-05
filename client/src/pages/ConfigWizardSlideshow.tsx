@@ -309,6 +309,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
+  // Generate CSS for hiding prices globally across all GoHighLevel pages
+  const generateGlobalPriceCSS = () => {
+    return `<style>
+/* Global Price Hiding CSS - Apply to all GoHighLevel pages */
+/* Listing/Collection Pages */
+body:not(.hl-builder) .cstore-products [class*="price"],
+body:not(.hl-builder) .product-grid [class*="price"],
+body:not(.hl-builder) .product-list [class*="price"],
+body:not(.hl-builder) .collection-grid [class*="price"],
+body:not(.hl-builder) .search-results [class*="price"],
+
+/* Product Cards */
+body:not(.hl-builder) .product-card [class*="price"],
+body:not(.hl-builder) .cstore-product-card [class*="price"],
+body:not(.hl-builder) .hl-product-card [class*="price"],
+
+/* Generic Price Selectors */
+body:not(.hl-builder) [class*="product-price"],
+body:not(.hl-builder) [class*="item-price"],
+body:not(.hl-builder) [class*="listing-price"],
+body:not(.hl-builder) .price-display,
+body:not(.hl-builder) .price-container,
+body:not(.hl-builder) .product-pricing,
+
+/* Currency and Dollar Signs */
+body:not(.hl-builder) .currency,
+body:not(.hl-builder) .price-currency,
+body:not(.hl-builder) span[class*="dollar"],
+body:not(.hl-builder) span[class*="currency"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+</style>`;
+  };
+
   // Base CSS for element hiding
   const generateElementHidingCSS = () => {
     let css = `<style>
@@ -1375,6 +1411,58 @@ body:not(.hl-builder) .action-icon {
         </div>
       </Slide>
     );
+
+    // Add global price hiding CSS slide when price display is enabled
+    if (showPrice) {
+      baseSlides.splice(-1, 0,
+        <Slide key="global-price-css" className="bg-gradient-to-br from-orange-50 to-amber-100">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="mb-8">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-orange-600 rounded-full mb-6">
+                <DollarSign className="w-10 h-10 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Global Price CSS</h2>
+              <p className="text-lg text-gray-600 mb-8">
+                CSS to hide prices on other GoHighLevel pages (listings, collections, etc.)
+              </p>
+            </div>
+
+            <Card className="bg-white border border-orange-200 text-left">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Global Price Hiding CSS</h3>
+                  <Button
+                    onClick={() => {
+                      const globalPriceCSS = generateGlobalPriceCSS();
+                      navigator.clipboard.writeText(globalPriceCSS);
+                    }}
+                    className="bg-orange-600 hover:bg-orange-700"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy CSS
+                  </Button>
+                </div>
+                
+                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
+                  <pre className="text-sm whitespace-pre-wrap">
+{generateGlobalPriceCSS()}
+                  </pre>
+                </div>
+                
+                <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                  <h4 className="font-medium text-orange-800 mb-2">📋 Usage Instructions</h4>
+                  <div className="text-sm text-orange-700 space-y-2">
+                    <p><strong>1. Application:</strong> Add this CSS to your GoHighLevel site's global settings</p>
+                    <p><strong>2. Coverage:</strong> This CSS will hide prices on listing pages, collection pages, and search results</p>
+                    <p><strong>3. Placement:</strong> Go to Settings → Custom Code → Head Tracking Code</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </Slide>
+      );
+    }
 
     // Cart bookmark functionality is now handled directly in GoHighLevel web builder
 
