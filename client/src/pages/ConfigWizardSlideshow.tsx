@@ -1454,12 +1454,7 @@ body:not(.hl-builder) .action-icon {
                   </pre>
                 </div>
                 
-                <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                  <h4 className="font-medium text-orange-800 mb-2">📋 Usage Instructions</h4>
-                  <div className="text-sm text-orange-700 space-y-2">
-                    <p><strong>Placement:</strong> Go to Settings → Custom Code → Head Tracking Code</p>
-                  </div>
-                </div>
+
               </CardContent>
             </Card>
           </div>
