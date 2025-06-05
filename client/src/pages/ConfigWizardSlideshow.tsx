@@ -247,6 +247,7 @@ div[class*="price"] {
 
   // Generate custom action button popup code
   const generateFullPopupCode = () => {
+    console.log('generateFullPopupCode called with:', { buttonType, formEmbedUrl: formEmbedUrl?.substring(0, 50) + '...' });
     if (buttonType === 'popup' && formEmbedUrl) {
       const result = generateActionButtonPopup({
         buttonText: 'Get More Info',
@@ -260,6 +261,7 @@ div[class*="price"] {
         showQuantitySelector
       });
       
+      console.log('generateActionButtonPopup result:', result);
       if (result.isValid) {
         return {
           headerCode: result.headerCode,
@@ -267,7 +269,9 @@ div[class*="price"] {
         };
       }
     }
-    return { headerCode: '', footerCode: '' };
+    const fallback = { headerCode: '', footerCode: '' };
+    console.log('generateFullPopupCode returning fallback:', fallback);
+    return fallback;
   };
 
   // Extract form URL from iframe embed code
@@ -317,10 +321,12 @@ div[class*="price"] {
 
   // Generate code based on selection - exact copy from config wizard
   const generateCodeForSelection = () => {
+    console.log('generateCodeForSelection called with:', { formEmbedUrl, buttonType });
     if (formEmbedUrl && formEmbedUrl.trim()) {
       if (buttonType === 'popup') {
         // Generate popup template with 100px spacing
         const popupCode = generateFullPopupCode();
+        console.log('popupCode result:', popupCode);
         
         // Generate expanded description code if enabled
         const expandedDescCode = generateExpandedDescriptionCode({
@@ -832,24 +838,10 @@ document.addEventListener('DOMContentLoaded', function() {
                   }
                   value={formEmbedUrl}
                   onChange={(e) => {
-                    console.log('Textarea onChange triggered:', e.target.value);
+                    console.log('Textarea onChange triggered:', e.target.value.length, 'chars');
                     setFormEmbedUrl(e.target.value);
                   }}
-                  onInput={(e) => {
-                    console.log('Textarea onInput triggered:', e.currentTarget.value);
-                    setFormEmbedUrl(e.currentTarget.value);
-                  }}
-                  onPaste={(e) => {
-                    console.log('Textarea onPaste triggered');
-                    setTimeout(() => {
-                      const target = e.target as HTMLTextAreaElement;
-                      setFormEmbedUrl(target.value);
-                    }, 0);
-                  }}
-                  className="min-h-[100px] relative z-10"
-                  autoComplete="off"
-                  spellCheck="false"
-                  style={{ pointerEvents: 'auto' }}
+                  className="min-h-[100px]"
                 />
                 {buttonType === 'popup' && parsedEmbedData && (
                   <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
