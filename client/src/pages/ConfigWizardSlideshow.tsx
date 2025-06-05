@@ -794,7 +794,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                 <div className="space-y-4">
                   <Label className="text-sm font-medium text-gray-900">Button Styling</Label>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     {/* Button Color */}
                     <div>
                       <Label htmlFor="buttonColor" className="text-xs text-gray-600">Background Color</Label>
@@ -834,25 +834,25 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                         />
                       </div>
                     </div>
-                  </div>
 
-                  {/* Button Preview */}
-                  <div className="pt-2">
-                    <Label className="text-xs text-gray-600">Preview</Label>
-                    <div className="flex items-center justify-center mt-2 p-4 bg-gray-50 rounded border">
-                      <button
-                        className="px-6 py-2 font-medium transition-colors hover:opacity-90"
-                        style={{ 
-                          backgroundColor: previewColor,
-                          color: previewTextColor
-                        }}
-                      >
-                        {buttonText || (
-                          integrationMethod === 'popup' ? 'Get Info' :
-                          integrationMethod === 'download' ? 'Download' :
-                          'Learn More'
-                        )}
-                      </button>
+                    {/* Button Preview */}
+                    <div>
+                      <Label className="text-xs text-gray-600">Preview</Label>
+                      <div className="flex items-center justify-center mt-1 p-3 bg-gray-50 rounded border h-[42px]">
+                        <button
+                          className="px-4 py-1.5 font-medium transition-colors hover:opacity-90 text-sm"
+                          style={{ 
+                            backgroundColor: previewColor,
+                            color: previewTextColor
+                          }}
+                        >
+                          {buttonText || (
+                            integrationMethod === 'popup' ? 'Get Info' :
+                            integrationMethod === 'download' ? 'Download' :
+                            'Learn More'
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
