@@ -59,8 +59,7 @@ export default function ListingForm({ directoryName, listing, onClose, onSuccess
       const method = listing ? 'PUT' : 'POST';
       return apiRequest(url, {
         method,
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' },
+        data
       });
     },
     onSuccess: () => {

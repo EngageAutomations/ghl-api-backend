@@ -7,7 +7,8 @@ import {
   insertDesignerConfigSchema, 
   insertPortalDomainSchema,
   insertListingSchema,
-  insertListingAddonSchema
+  insertListingAddonSchema,
+  insertFormConfigurationSchema
 } from "@shared/schema";
 import { generateBulletPoints } from "./ai-summarizer";
 import { googleDriveService } from "./google-drive";
@@ -610,6 +611,186 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error tracking opt-in:", error);
       // Always return 200 for tracking endpoints to prevent disrupting the user experience
       res.status(200).json({ message: "Tracking request received" });
+    }
+  });
+
+  // Directory (Form Configuration) Routes
+  // Get all directories for a user
+  app.get("/api/directories", async (req, res) => {
+    try {
+      const userId = 1; // TODO: Get from auth context
+      const directories = await storage.getFormConfigurationsByUser(userId);
+      
+      // Add listing count and last activity for each directory
+      const directoriesWithStats = await Promise.all(
+        directories.map(async (directory) => {
+          const listings = await storage.getListingsByDirectory(directory.directoryName);
+          const listingCount = listings.length;
+          const lastActivity = listings.length > 0 
+            ? Math.max(...listings.map(l => new Date(l.updatedAt || l.createdAt).getTime()))
+            : null;
+          
+          return {
+            ...directory,
+            listingCount,
+            lastActivity: lastActivity ? new Date(lastActivity).toISOString() : null
+          };
+        })
+      );
+      
+      res.status(200).json(directoriesWithStats);
+    } catch (error) {
+      console.error("Error fetching directories:", error);
+      res.status(500).json({ message: "Failed to fetch directories" });
+    }
+  });
+
+  // Get directory by name
+  app.get("/api/directories/:directoryName", async (req, res) => {
+    try {
+      const directoryName = req.params.directoryName;
+      const directory = await storage.getFormConfigurationByDirectoryName(directoryName);
+      
+      if (!directory) {
+        return res.status(404).json({ message: "Directory not found" });
+      }
+      
+      res.status(200).json(directory);
+    } catch (error) {
+      console.error("Error fetching directory:", error);
+      res.status(500).json({ message: "Failed to fetch directory" });
+    }
+  });
+
+  // Create directory
+  app.post("/api/directories", async (req, res) => {
+    try {
+      const configData = insertFormConfigurationSchema.parse(req.body);
+      const directory = await storage.createFormConfiguration(configData);
+      res.status(201).json(directory);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid directory data", errors: error.errors });
+      }
+      console.error("Error creating directory:", error);
+      res.status(500).json({ message: "Failed to create directory" });
+    }
+  });
+
+  // Update directory
+  app.put("/api/directories/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid directory ID" });
+      }
+      
+      const configData = req.body;
+      const updatedDirectory = await storage.updateFormConfiguration(id, configData);
+      
+      if (!updatedDirectory) {
+        return res.status(404).json({ message: "Directory not found" });
+      }
+      
+      res.status(200).json(updatedDirectory);
+    } catch (error) {
+      console.error("Error updating directory:", error);
+      res.status(500).json({ message: "Failed to update directory" });
+    }
+  });
+
+  // Delete directory
+  app.delete("/api/directories/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid directory ID" });
+      }
+      
+      // Get directory to find its name
+      const directory = await storage.getFormConfiguration(id);
+      if (!directory) {
+        return res.status(404).json({ message: "Directory not found" });
+      }
+      
+      // Delete all listings in this directory first
+      const listings = await storage.getListingsByDirectory(directory.directoryName);
+      for (const listing of listings) {
+        await storage.deleteListing(listing.id);
+      }
+      
+      // Delete the directory
+      const success = await storage.deleteFormConfiguration(id);
+      if (!success) {
+        return res.status(404).json({ message: "Directory not found" });
+      }
+      
+      res.status(200).json({ message: "Directory and all listings deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting directory:", error);
+      res.status(500).json({ message: "Failed to delete directory" });
+    }
+  });
+
+  // Get listings for a directory
+  app.get("/api/listings/:directoryName", async (req, res) => {
+    try {
+      const directoryName = req.params.directoryName;
+      const listings = await storage.getListingsByDirectory(directoryName);
+      res.status(200).json(listings);
+    } catch (error) {
+      console.error("Error fetching listings for directory:", error);
+      res.status(500).json({ message: "Failed to fetch listings" });
+    }
+  });
+
+  // Update listing (PUT endpoint for the form)
+  app.put("/api/listings/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid listing ID" });
+      }
+      
+      const listingData = req.body;
+      
+      // If slug is being updated, check if it's unique
+      if (listingData.slug) {
+        const existingListing = await storage.getListingBySlug(listingData.slug);
+        if (existingListing && existingListing.id !== id) {
+          return res.status(400).json({ message: "A listing with this slug already exists" });
+        }
+      }
+      
+      const updatedListing = await storage.updateListing(id, listingData);
+      if (!updatedListing) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+      
+      res.status(200).json(updatedListing);
+    } catch (error) {
+      console.error("Error updating listing:", error);
+      res.status(500).json({ message: "Failed to update listing" });
+    }
+  });
+
+  // Delete listing (DELETE endpoint)
+  app.delete("/api/listings/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid listing ID" });
+      }
+      
+      const success = await storage.deleteListing(id);
+      if (!success) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+      
+      res.status(200).json({ message: "Listing deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting listing:", error);
+      res.status(500).json({ message: "Failed to delete listing" });
     }
   });
 

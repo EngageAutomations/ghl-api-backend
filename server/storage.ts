@@ -69,6 +69,7 @@ export class MemStorage implements IStorage {
   private portalDomains: Map<number, PortalDomain>;
   private listings: Map<number, Listing>;
   private listingAddons: Map<number, ListingAddon>;
+  private formConfigurations: Map<number, FormConfiguration>;
   private googleDriveCredentials: Map<number, GoogleDriveCredentials>;
   
   currentUserId: number;
@@ -76,6 +77,7 @@ export class MemStorage implements IStorage {
   currentDomainId: number;
   currentListingId: number;
   currentListingAddonId: number;
+  currentFormConfigId: number;
   currentGoogleDriveCredentialsId: number;
 
   constructor() {
@@ -84,6 +86,7 @@ export class MemStorage implements IStorage {
     this.portalDomains = new Map();
     this.listings = new Map();
     this.listingAddons = new Map();
+    this.formConfigurations = new Map();
     this.googleDriveCredentials = new Map();
     
     this.currentUserId = 1;
@@ -91,6 +94,7 @@ export class MemStorage implements IStorage {
     this.currentDomainId = 1;
     this.currentListingId = 1;
     this.currentListingAddonId = 1;
+    this.currentFormConfigId = 1;
     this.currentGoogleDriveCredentialsId = 1;
   }
 
@@ -363,6 +367,68 @@ export class MemStorage implements IStorage {
     
     this.googleDriveCredentials.set(existingCredentials.id, deactivatedCredentials);
     return true;
+  }
+
+  // Form Configuration (Directory) methods
+  async getFormConfiguration(id: number): Promise<FormConfiguration | undefined> {
+    return this.formConfigurations.get(id);
+  }
+
+  async getFormConfigurationsByUser(userId: number): Promise<FormConfiguration[]> {
+    return Array.from(this.formConfigurations.values()).filter(
+      (config) => config.userId === userId
+    );
+  }
+
+  async getFormConfigurationByDirectoryName(directoryName: string): Promise<FormConfiguration | undefined> {
+    return Array.from(this.formConfigurations.values()).find(
+      (config) => config.directoryName === directoryName
+    );
+  }
+
+  async createFormConfiguration(insertConfig: InsertFormConfiguration): Promise<FormConfiguration> {
+    const id = this.currentFormConfigId++;
+    const now = new Date();
+    const formConfig: FormConfiguration = {
+      ...insertConfig,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.formConfigurations.set(id, formConfig);
+    return formConfig;
+  }
+
+  async updateFormConfiguration(id: number, partialConfig: Partial<InsertFormConfiguration>): Promise<FormConfiguration | undefined> {
+    const existingConfig = this.formConfigurations.get(id);
+    
+    if (!existingConfig) {
+      return undefined;
+    }
+    
+    const updatedConfig: FormConfiguration = {
+      ...existingConfig,
+      ...partialConfig,
+      updatedAt: new Date()
+    };
+    
+    this.formConfigurations.set(id, updatedConfig);
+    return updatedConfig;
+  }
+
+  async deleteFormConfiguration(id: number): Promise<boolean> {
+    const exists = this.formConfigurations.has(id);
+    if (exists) {
+      this.formConfigurations.delete(id);
+      return true;
+    }
+    return false;
+  }
+
+  async getListingsByDirectory(directoryName: string): Promise<Listing[]> {
+    return Array.from(this.listings.values()).filter(
+      (listing) => listing.directoryName === directoryName
+    );
   }
 }
 
