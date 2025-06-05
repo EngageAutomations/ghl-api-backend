@@ -237,7 +237,7 @@ div[class*="price"] {
     }
   ]);
 
-  // Parse embed code for popup dimensions - exact copy from config wizard
+  // Parse embed code for popup dimensions
   const parsedEmbedData = useMemo(() => {
     if (buttonType === 'popup' && formEmbedUrl) {
       return parseEmbedCode(formEmbedUrl);
@@ -245,7 +245,7 @@ div[class*="price"] {
     return null;
   }, [buttonType, formEmbedUrl]);
 
-  // Generate custom action button popup code - exact copy from config wizard
+  // Generate custom action button popup code
   const generateFullPopupCode = () => {
     if (buttonType === 'popup' && formEmbedUrl) {
       const result = generateActionButtonPopup({
@@ -270,7 +270,7 @@ div[class*="price"] {
     return { headerCode: '', footerCode: '' };
   };
 
-  // Extract form URL from iframe embed code - exact copy from config wizard
+  // Extract form URL from iframe embed code
   const extractFormUrl = (embedCode: string) => {
     if (!embedCode) return '';
     
