@@ -492,7 +492,9 @@ body:not(.hl-builder) .action-icon {
             <CardContent className="p-6 text-center">
               <FileText className="w-8 h-8 text-blue-600 mx-auto mb-3" />
               <h3 className="font-semibold text-gray-900 mb-2">Rich Content</h3>
-              <p className="text-sm text-gray-600">Enhanced descriptions and metadata</p>
+              <p className="text-sm text-gray-600">Showcase detailed descriptions, metadata, and media
+
+</p>
             </CardContent>
           </Card>
 
