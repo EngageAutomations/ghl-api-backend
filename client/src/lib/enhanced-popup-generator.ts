@@ -74,7 +74,7 @@ function generatePopupHeaderCode(config: PopupConfig, parsedData: ParsedEmbedDat
   const closeButtonBackground = config.closeButtonBackground || 'black';
 
   return `<style>
-  /* Action Button Styling */
+  /* Action Button Styling with Margin and Border Radius */
   .trigger-optin-btn {
     display: inline-block;
     background-color: ${config.buttonColor};       /* ← customizable */
@@ -84,9 +84,23 @@ function generatePopupHeaderCode(config: PopupConfig, parsedData: ParsedEmbedDat
     font-weight: bold;
     font-size: 16px;
     cursor: pointer;
-    margin: 20px 0;
+    margin-top: 16px;
+    margin-bottom: 16px;
     text-align: center;
     transition: all 0.2s ease;
+  }
+
+  /* Buy Now and Add to Cart Button Radius Synchronization */
+  body:not(.hl-builder) .cstore-product-detail button,
+  body:not(.hl-builder) .hl-product-buy-button,
+  body:not(.hl-builder) [class*="buy-now"],
+  body:not(.hl-builder) #buy-now-btn,
+  body:not(.hl-builder) .secondary-btn,
+  body:not(.hl-builder) .hl-product-cart-button,
+  body:not(.hl-builder) [class*="add-cart"],
+  body:not(.hl-builder) #add-to-cart-btn,
+  body:not(.hl-builder) .primary-btn {
+    border-radius: ${config.buttonBorderRadius}px !important;
   }
 
   .trigger-optin-btn:hover {

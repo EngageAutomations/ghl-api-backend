@@ -60,7 +60,27 @@ export function generateActionButtonPopup(config: ActionButtonConfig): PopupCode
  */
 function createHeaderCode(config: ActionButtonConfig): string {
   return `<style>
-/* No custom button styling needed - using native GoHighLevel classes */
+/* Action Button Styling with Margin and Border Radius */
+.directory-action-button,
+.trigger-optin-btn,
+button[onclick*="openPopup"] {
+  margin-top: 16px !important;
+  margin-bottom: 16px !important;
+  border-radius: ${config.buttonBorderRadius}px !important;
+}
+
+/* Buy Now and Add to Cart Button Radius Synchronization */
+body:not(.hl-builder) .cstore-product-detail button,
+body:not(.hl-builder) .hl-product-buy-button,
+body:not(.hl-builder) [class*="buy-now"],
+body:not(.hl-builder) #buy-now-btn,
+body:not(.hl-builder) .secondary-btn,
+body:not(.hl-builder) .hl-product-cart-button,
+body:not(.hl-builder) [class*="add-cart"],
+body:not(.hl-builder) #add-to-cart-btn,
+body:not(.hl-builder) .primary-btn {
+  border-radius: ${config.buttonBorderRadius}px !important;
+}
 
 /* Popup Styling */
 .popup-backdrop {
