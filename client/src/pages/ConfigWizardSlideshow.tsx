@@ -1585,7 +1585,7 @@ Your marketplace enhancement is now active!`
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
@@ -1609,14 +1609,16 @@ Your marketplace enhancement is now active!`
           </div>
         </div>
       </div>
-      {/* Main Content */}
-      <div className="flex-1 overflow-hidden">
+      
+      {/* Main Content - Takes remaining space */}
+      <div className="flex-1 overflow-auto pb-20">
         <div className="max-w-6xl mx-auto">
           {slides[currentSlide]}
         </div>
       </div>
-      {/* Navigation Footer */}
-      <div className="bg-white border-t border-gray-200 px-6 py-4">
+      
+      {/* Navigation Footer - Fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-4 z-50">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
           <Button
             variant="outline"
