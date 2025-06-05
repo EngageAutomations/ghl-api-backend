@@ -247,7 +247,6 @@ div[class*="price"] {
 
   // Generate custom action button popup code
   const generateFullPopupCode = () => {
-    console.log('generateFullPopupCode called with:', { buttonType, formEmbedUrl: formEmbedUrl?.substring(0, 50) + '...' });
     if (buttonType === 'popup' && formEmbedUrl) {
       const result = generateActionButtonPopup({
         buttonText: 'Get More Info',
@@ -261,7 +260,6 @@ div[class*="price"] {
         showQuantitySelector
       });
       
-      console.log('generateActionButtonPopup result:', result);
       if (result.isValid) {
         return {
           headerCode: result.headerCode,
@@ -269,9 +267,7 @@ div[class*="price"] {
         };
       }
     }
-    const fallback = { headerCode: '', footerCode: '' };
-    console.log('generateFullPopupCode returning fallback:', fallback);
-    return fallback;
+    return { headerCode: '', footerCode: '' };
   };
 
   // Extract form URL from iframe embed code
@@ -321,12 +317,10 @@ div[class*="price"] {
 
   // Generate code based on selection - exact copy from config wizard
   const generateCodeForSelection = () => {
-    console.log('generateCodeForSelection called with:', { formEmbedUrl, buttonType });
     if (formEmbedUrl && formEmbedUrl.trim()) {
       if (buttonType === 'popup') {
         // Generate popup template with 100px spacing
         const popupCode = generateFullPopupCode();
-        console.log('popupCode result:', popupCode);
         
         // Generate expanded description code if enabled
         const expandedDescCode = generateExpandedDescriptionCode({
@@ -838,7 +832,6 @@ document.addEventListener('DOMContentLoaded', function() {
                   }
                   value={formEmbedUrl}
                   onChange={(e) => {
-                    console.log('Textarea onChange triggered:', e.target.value.length, 'chars');
                     setFormEmbedUrl(e.target.value);
                   }}
                   className="min-h-[100px]"
