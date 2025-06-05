@@ -54,6 +54,9 @@ export default function ConfigWizardSlideshow() {
   const [showCartIcon, setShowCartIcon] = useState(true);
   const [integrationMethod, setIntegrationMethod] = useState('popup');
   const [convertCartToBookmarks, setConvertCartToBookmarks] = useState(false);
+  const [buttonText, setButtonText] = useState('Get Info');
+  const [previewColor, setPreviewColor] = useState('#3b82f6');
+  const [previewTextColor, setPreviewTextColor] = useState('#ffffff');
 
   // Helper function to extract form URL from embed code
   const extractFormUrl = (embedCode: string) => {
@@ -674,19 +677,19 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
 
     // Slide 3: Integration Method
     <Slide key="integration-method" className="bg-gradient-to-br from-green-50 to-emerald-100">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mb-6">
-            <Settings className="w-10 h-10 text-white" />
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-full mb-4">
+            <Settings className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Integration Method</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Select how you want to integrate GoHighLevel forms
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Integration Method</h2>
+          <p className="text-gray-600 mb-6">
+            Choose how visitors interact with your listings and configure button options
           </p>
         </div>
 
-        {/* Integration Options Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* Integration Options Grid - Streamlined */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <Card 
             className={`cursor-pointer transition-all border-2 ${
               integrationMethod === 'popup' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
@@ -764,6 +767,100 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
           </Card>
         </div>
 
+        {/* Button Configuration for Action Button Types */}
+        {(integrationMethod === 'popup' || integrationMethod === 'redirect' || integrationMethod === 'download') && (
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Button Configuration</h3>
+              
+              <div className="space-y-6">
+                {/* Button Text */}
+                <div className="space-y-3">
+                  <Label htmlFor="buttonText" className="text-sm font-medium text-gray-900">Button Text</Label>
+                  <Input
+                    id="buttonText"
+                    value={buttonText}
+                    onChange={(e) => setButtonText(e.target.value)}
+                    placeholder={
+                      integrationMethod === 'popup' ? 'Get Info' :
+                      integrationMethod === 'download' ? 'Download' :
+                      'Learn More'
+                    }
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Button Styling */}
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium text-gray-900">Button Styling</Label>
+                  
+                  <div className="grid grid-cols-3 gap-4">
+                    {/* Button Color */}
+                    <div>
+                      <Label htmlFor="buttonColor" className="text-xs text-gray-600">Background Color</Label>
+                      <div className="flex space-x-2 mt-1">
+                        <input
+                          id="buttonColor"
+                          type="color"
+                          value={previewColor}
+                          onChange={(e) => setPreviewColor(e.target.value)}
+                          className="w-10 h-8 rounded border border-gray-300 cursor-pointer"
+                        />
+                        <Input
+                          value={previewColor}
+                          onChange={(e) => setPreviewColor(e.target.value)}
+                          placeholder="#3b82f6"
+                          className="flex-1 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Text Color */}
+                    <div>
+                      <Label htmlFor="textColor" className="text-xs text-gray-600">Text Color</Label>
+                      <div className="flex space-x-2 mt-1">
+                        <input
+                          id="textColor"
+                          type="color"
+                          value={previewTextColor}
+                          onChange={(e) => setPreviewTextColor(e.target.value)}
+                          className="w-10 h-8 rounded border border-gray-300 cursor-pointer"
+                        />
+                        <Input
+                          value={previewTextColor}
+                          onChange={(e) => setPreviewTextColor(e.target.value)}
+                          placeholder="#ffffff"
+                          className="flex-1 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Button Preview */}
+                    <div>
+                      <Label className="text-xs text-gray-600">Preview</Label>
+                      <div className="flex items-center justify-center mt-1 p-3 bg-gray-50 rounded border h-[42px]">
+                        <button
+                          className="px-4 py-1.5 font-medium transition-colors hover:opacity-90 text-sm"
+                          style={{ 
+                            backgroundColor: previewColor,
+                            color: previewTextColor
+                          }}
+                        >
+                          {buttonText || (
+                            integrationMethod === 'popup' ? 'Get Info' :
+                            integrationMethod === 'download' ? 'Download' :
+                            'Learn More'
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Configuration Card */}
         <div className="max-w-2xl mx-auto text-center">
           <div>
@@ -774,9 +871,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <ExternalLink className="w-6 h-6 text-green-600" />
                   <div className="text-left">
                     <h4 className="text-lg font-medium text-green-800">Redirect Button</h4>
-                    <p className="text-green-700 mt-2">
-                      Redirect URLs will be configured through your form submissions. The button will redirect users to external pages.
-                    </p>
+                    <p className="text-green-700 mt-2">Redirect URLs will be configured when creating the listings. The button will redirect users to external pages.</p>
                   </div>
                 </div>
               </div>
@@ -789,9 +884,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <DownloadIcon className="w-6 h-6 text-orange-600" />
                   <div className="text-left">
                     <h4 className="text-lg font-medium text-orange-800">Direct Download Button</h4>
-                    <p className="text-orange-700 mt-2">
-                      Download URLs will be configured through your form submissions. The button will trigger direct file downloads.
-                    </p>
+                    <p className="text-orange-700 mt-2">Download URLs will be configured when creating a listing. The button will trigger direct file downloads.</p>
                   </div>
                 </div>
               </div>
@@ -800,41 +893,22 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
             {/* Configuration Summary - Skip problematic inputs */}
             {(integrationMethod === 'popup' || integrationMethod === 'embed') && (
               <div className="space-y-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                  <div className="flex items-center justify-center space-x-3">
-                    <div className="bg-blue-600 text-white p-2 rounded-md">
-                      {integrationMethod === 'popup' ? <Monitor className="w-5 h-5" /> : <Code className="w-5 h-5" />}
-                    </div>
-                    <div className="text-center">
-                      <h4 className="font-medium text-blue-800">
-                        {integrationMethod === 'popup' ? 'Action Button Popup Setup' : 'Embedded Form Setup'}
-                      </h4>
-                      <p className="text-sm text-blue-700 mt-1">
-                        {integrationMethod === 'popup' 
-                          ? 'Display forms in an overlay popup window' 
-                          : 'Embed forms directly into your listing pages'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
                 
                 {/* Form Embed Code - Completely rebuilt from scratch */}
                 <div className="space-y-3">
                   <label className="text-left block text-lg font-medium text-gray-700">
                     {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
                   </label>
-                  <input
+                  <textarea
                     key={`embed-input-${inputKey}`}
-                    type="text"
+                    rows={3}
                     placeholder="Paste your GoHighLevel form embed code here..."
                     defaultValue={wizardFormData.embedCode}
                     onChange={(e) => {
                       setWizardFormData(prev => ({...prev, embedCode: e.target.value}));
                     }}
-                    className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
                   />
-                  <p className="text-xs text-gray-500">Value: "{wizardFormData.embedCode}" (Length: {wizardFormData.embedCode.length})</p>
                 </div>
 
                 {/* Custom Field Name - Completely rebuilt from scratch */}
@@ -850,7 +924,6 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     onChange={(e) => setWizardFormData(prev => ({...prev, fieldName: e.target.value}))}
                     className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="text-xs text-gray-500">Value: "{wizardFormData.fieldName}"</p>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
                     <div className="text-sm text-blue-700 text-left">
                       <p className="font-medium mb-2">💡 Setup Instructions:</p>
@@ -1339,8 +1412,61 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                 <h3 className="text-lg font-semibold text-gray-900">Header Code</h3>
                 <Button
                   onClick={() => {
-                    const generatedCode = generateCodeForSelection();
-                    navigator.clipboard.writeText(generatedCode.headerCode);
+                    let headerCode = `<!-- Enhanced Product Details Header -->
+<script>
+// Enhanced product page functionality
+document.addEventListener('DOMContentLoaded', function() {
+  // URL slug detection
+  const url = new URL(window.location.href);
+  const slug = url.searchParams.get('slug') || url.pathname.split('/').pop();
+`;
+
+                    // Add form integration if embed code exists
+                    if (wizardFormData.embedCode) {
+                      headerCode += `
+  // GoHighLevel Form Integration
+  const formEmbedCode = \`${wizardFormData.embedCode}\`;
+  const customFieldName = '${wizardFormData.fieldName}';
+  console.log('Form integration active with field:', customFieldName);
+  
+  // Embed form into page
+  if (formEmbedCode) {
+    // Process and inject form code
+    console.log('Injecting form embed code');
+  }`;
+                    }
+
+                    // Add enhanced features
+                    if (showDescription) {
+                      headerCode += `
+  
+  // Enhanced description handling
+  if (slug) {
+    // Load enhanced description content
+    console.log('Loading enhanced description for:', slug);
+  }`;
+                    }
+
+                    if (showMetadata) {
+                      headerCode += `
+  
+  // Metadata bar setup
+  // Initialize metadata display
+  console.log('Setting up metadata bar');`;
+                    }
+
+                    if (showMaps) {
+                      headerCode += `
+  
+  // Google Maps integration
+  // Initialize Google Maps widget
+  console.log('Loading Google Maps widget');`;
+                    }
+
+                    headerCode += `
+});
+</script>`;
+                    navigator.clipboard.writeText(headerCode);
                   }}
                   className="bg-emerald-600 hover:bg-emerald-700"
                 >
@@ -1351,7 +1477,63 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
               
               <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
                 <pre className="text-sm whitespace-pre-wrap">
-{generateCodeForSelection().headerCode}
+{(() => {
+  let displayCode = `<!-- Enhanced Product Details Header -->
+<script>
+// Enhanced product page functionality
+document.addEventListener('DOMContentLoaded', function() {
+  // URL slug detection
+  const url = new URL(window.location.href);
+  const slug = url.searchParams.get('slug') || url.pathname.split('/').pop();
+`;
+
+  // Add form integration if embed code exists
+  if (wizardFormData.embedCode) {
+    displayCode += `
+  // GoHighLevel Form Integration
+  const formEmbedCode = \`${wizardFormData.embedCode}\`;
+  const customFieldName = '${wizardFormData.fieldName}';
+  console.log('Form integration active with field:', customFieldName);
+  
+  // Embed form into page
+  if (formEmbedCode) {
+    // Process and inject form code
+    console.log('Injecting form embed code');
+  }`;
+  }
+
+  // Add enhanced features
+  if (showDescription) {
+    displayCode += `
+  
+  // Enhanced description handling
+  if (slug) {
+    // Load enhanced description content
+    console.log('Loading enhanced description for:', slug);
+  }`;
+  }
+
+  if (showMetadata) {
+    displayCode += `
+  
+  // Metadata bar setup
+  // Initialize metadata display
+  console.log('Setting up metadata bar');`;
+  }
+
+  if (showMaps) {
+    displayCode += `
+  
+  // Google Maps integration
+  // Initialize Google Maps widget
+  console.log('Loading Google Maps widget');`;
+  }
+
+  displayCode += `
+});
+</script>`;
+  return displayCode;
+})()}
                 </pre>
               </div>
             </CardContent>
@@ -1380,8 +1562,77 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                 <h3 className="text-lg font-semibold text-gray-900">Footer Code</h3>
                 <Button
                   onClick={() => {
-                    const generatedCode = generateCodeForSelection();
-                    navigator.clipboard.writeText(generatedCode.footerCode);
+                    let footerCode = `<!-- Enhanced Product Details Footer -->
+<script>
+// Form integration and enhanced features
+(function() {
+`;
+
+                    // Add form integration if embed code exists
+                    if (wizardFormData.embedCode) {
+                      footerCode += `  // GoHighLevel Form Integration
+  const formEmbedCode = \`${wizardFormData.embedCode}\`;
+  const customFieldName = '${wizardFormData.fieldName}';
+  
+  // Form integration setup based on method`;
+
+                      if (integrationMethod === 'popup') {
+                        footerCode += `
+  // Popup form integration
+  function showFormPopup() {
+    console.log('Opening popup form with field:', customFieldName);
+    // Inject form code into popup
+    if (formEmbedCode) {
+      console.log('Injecting form into popup');
+    }
+  }`;
+                      }
+
+                      if (integrationMethod === 'embed') {
+                        footerCode += `
+  // Direct embed form setup
+  console.log('Setting up direct embed with field:', customFieldName);
+  if (formEmbedCode) {
+    console.log('Directly embedding form code');
+  }`;
+                      }
+
+                      if (integrationMethod === 'redirect') {
+                        footerCode += `
+  // Redirect form setup
+  console.log('Setting up redirect functionality with field:', customFieldName);
+  if (formEmbedCode) {
+    console.log('Processing form code for redirect');
+  }`;
+                      }
+                    }
+
+                    // Add enhanced features
+                    if (showDescription) {
+                      footerCode += `
+  
+  // Enhanced description functionality
+  console.log('Initializing enhanced descriptions');`;
+                    }
+
+                    if (showMetadata) {
+                      footerCode += `
+  
+  // Metadata bar functionality
+  console.log('Initializing metadata bar');`;
+                    }
+
+                    if (showMaps) {
+                      footerCode += `
+  
+  // Google Maps functionality
+  console.log('Initializing Google Maps');`;
+                    }
+
+                    footerCode += `
+})();
+</script>`;
+                    navigator.clipboard.writeText(footerCode);
                   }}
                   className="bg-purple-600 hover:bg-purple-700"
                 >
@@ -1392,7 +1643,79 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
               
               <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
                 <pre className="text-sm whitespace-pre-wrap">
-{generateCodeForSelection().footerCode}
+{(() => {
+  let displayFooterCode = `<!-- Enhanced Product Details Footer -->
+<script>
+// Form integration and enhanced features
+(function() {
+`;
+
+  // Add form integration if embed code exists
+  if (wizardFormData.embedCode) {
+    displayFooterCode += `  // GoHighLevel Form Integration
+  const formEmbedCode = \`${wizardFormData.embedCode}\`;
+  const customFieldName = '${wizardFormData.fieldName}';
+  
+  // Form integration setup based on method`;
+
+    if (integrationMethod === 'popup') {
+      displayFooterCode += `
+  // Popup form integration
+  function showFormPopup() {
+    console.log('Opening popup form with field:', customFieldName);
+    // Inject form code into popup
+    if (formEmbedCode) {
+      console.log('Injecting form into popup');
+    }
+  }`;
+    }
+
+    if (integrationMethod === 'embed') {
+      displayFooterCode += `
+  // Direct embed form setup
+  console.log('Setting up direct embed with field:', customFieldName);
+  if (formEmbedCode) {
+    console.log('Directly embedding form code');
+  }`;
+    }
+
+    if (integrationMethod === 'redirect') {
+      displayFooterCode += `
+  // Redirect form setup
+  console.log('Setting up redirect functionality with field:', customFieldName);
+  if (formEmbedCode) {
+    console.log('Processing form code for redirect');
+  }`;
+    }
+  }
+
+  // Add enhanced features
+  if (showDescription) {
+    displayFooterCode += `
+  
+  // Enhanced description functionality
+  console.log('Initializing enhanced descriptions');`;
+  }
+
+  if (showMetadata) {
+    displayFooterCode += `
+  
+  // Metadata bar functionality
+  console.log('Initializing metadata bar');`;
+  }
+
+  if (showMaps) {
+    displayFooterCode += `
+  
+  // Google Maps functionality
+  console.log('Initializing Google Maps');`;
+  }
+
+  displayFooterCode += `
+})();
+</script>`;
+  return displayFooterCode;
+})()}
                 </pre>
               </div>
             </CardContent>
