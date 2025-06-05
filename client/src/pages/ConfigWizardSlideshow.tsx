@@ -884,9 +884,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <DownloadIcon className="w-6 h-6 text-orange-600" />
                   <div className="text-left">
                     <h4 className="text-lg font-medium text-orange-800">Direct Download Button</h4>
-                    <p className="text-orange-700 mt-2">
-                      Download URLs will be configured through your form submissions. The button will trigger direct file downloads.
-                    </p>
+                    <p className="text-orange-700 mt-2">Download URLs will be configured when creating a listing. The button will trigger direct file downloads.</p>
                   </div>
                 </div>
               </div>
