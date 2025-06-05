@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 import { Switch } from '@/components/ui/switch';
-import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy, Monitor, Zap } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy, Monitor, Zap, Plus } from 'lucide-react';
 
 // Import wizard's proven code generation functions
 import { generateActionButtonPopup } from '@/lib/custom-popup-generator';
@@ -48,12 +48,12 @@ export default function ConfigWizardSlideshow() {
   const [showMetadata, setShowMetadata] = useState(false);
   const [showMaps, setShowMaps] = useState(false);
   const [showPrice, setShowPrice] = useState(false);
-  const [showBuyNowButton, setShowBuyNowButton] = useState(false);
+
   const [showAddToCartButton, setShowAddToCartButton] = useState(false);
   const [showQuantitySelector, setShowQuantitySelector] = useState(false);
   const [showCartIcon, setShowCartIcon] = useState(true);
   const [integrationMethod, setIntegrationMethod] = useState('popup');
-  const [convertCartToBookmarks, setConvertCartToBookmarks] = useState(false);
+
   const [buttonText, setButtonText] = useState('Get Info');
   const [previewColor, setPreviewColor] = useState('#3b82f6');
   const [previewTextColor, setPreviewTextColor] = useState('#ffffff');
@@ -988,18 +988,18 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-red-50 p-2 rounded-md">
-                    <ShoppingBag className="w-6 h-6 text-red-600" />
+                  <div className="bg-green-50 p-2 rounded-md">
+                    <ShoppingBag className="w-6 h-6 text-green-600" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-lg font-medium">Show Buy Now Button</h3>
-                    <p className="text-sm text-gray-500">Display GoHighLevel's buy now button</p>
+                    <h3 className="text-lg font-medium">Show Add to Cart Button</h3>
+                    <p className="text-sm text-gray-500">Display add to cart functionality</p>
                   </div>
                 </div>
                 <Switch 
-                  checked={showBuyNowButton}
-                  onCheckedChange={setShowBuyNowButton}
-                  id="show-buy-now" 
+                  checked={showAddToCartButton}
+                  onCheckedChange={setShowAddToCartButton}
+                  id="show-add-to-cart" 
                 />
               </div>
 
@@ -1010,18 +1010,18 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-yellow-50 p-2 rounded-md">
-                    <ShoppingCart className="w-6 h-6 text-yellow-600" />
+                  <div className="bg-orange-50 p-2 rounded-md">
+                    <ShoppingCart className="w-6 h-6 text-orange-600" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-lg font-medium">Convert Cart To Bookmarks</h3>
-                    <p className="text-sm text-gray-500">Converts the cart feature into a book marking system.</p>
+                    <h3 className="text-lg font-medium">Show Cart Icon</h3>
+                    <p className="text-sm text-gray-500">Display shopping cart icon in navigation</p>
                   </div>
                 </div>
                 <Switch 
-                  checked={convertCartToBookmarks}
-                  onCheckedChange={setConvertCartToBookmarks}
-                  id="convert-cart-bookmarks" 
+                  checked={showCartIcon}
+                  onCheckedChange={setShowCartIcon}
+                  id="show-cart-icon" 
                 />
               </div>
 
@@ -1654,7 +1654,7 @@ body:not(.hl-builder) button[class*="cart"]:before {
     }
 
     return baseSlides;
-  }, [convertCartToBookmarks, directoryName, logoFile, integrationMethod, showPrice, showBuyNowButton, showAddToCartButton, showQuantitySelector, showCartIcon, showDescription, showMetadata, showMaps, wizardFormData.embedCode, wizardFormData.fieldName]);
+  }, [directoryName, logoFile, integrationMethod, showPrice, showAddToCartButton, showQuantitySelector, showCartIcon, showDescription, showMetadata, showMaps, wizardFormData.embedCode, wizardFormData.fieldName]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
