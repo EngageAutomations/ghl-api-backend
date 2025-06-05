@@ -84,14 +84,7 @@ export default function ConfigWizardSlideshow() {
   // Button text state
   const [buttonText, setButtonText] = useState('Get More Info');
   
-  // Metadata configuration - exact copy from config wizard
-  const [metadataTextColor, setMetadataTextColor] = useState('#374151');
-  const [metadataFont, setMetadataFont] = useState('Inter');
-  const metadataFields = [
-    { label: 'Location', icon: 'MapPin' },
-    { label: 'Price', icon: 'DollarSign' },
-    { label: 'Category', icon: 'Hash' }
-  ];
+
   
   // Copy button states for cart page CSS
   const [cartPageCodeCopied, setCartPageCodeCopied] = useState<boolean>(false);
@@ -306,7 +299,7 @@ div[class*="price"] {
       showMetadata: showMetadata,
       showMaps: showMaps,
       showPrice: showPrice,
-      metadataFields: metadataFields.map(field => field.label),
+      metadataFields: metadataFields2.map(field => field.label),
       formEmbedUrl: formEmbedUrl,
       buttonType: buttonType as 'popup' | 'redirect' | 'download'
     };
@@ -469,9 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
     expandedDescFadeIn,
     expandedDescClass,
     showMetadata,
-    metadataTextColor,
-    metadataFont,
-    metadataFields,
+    metadataFields2,
     showMaps
   ]);
 
