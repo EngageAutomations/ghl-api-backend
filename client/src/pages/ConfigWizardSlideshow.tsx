@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
 import { Switch } from '@/components/ui/switch';
+import RichTextEditor from '@/components/RichTextEditor';
 import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy, Monitor, Zap, Plus } from 'lucide-react';
 import { CheckCircle } from 'lucide-react';
 
@@ -1331,19 +1332,21 @@ body:not(.hl-builder) .action-icon {
                 {showDescription && (
                   <div>
                     <Label className="text-sm font-medium text-gray-700 block text-left">Expanded Description (Rich Text)</Label>
-                    <div className="mt-1 border border-gray-300 rounded-md p-3 bg-gray-50">
+                    <div className="mt-1">
                       <div className="flex items-center space-x-2 mb-2 text-xs text-gray-500">
                         <span>🎨 Rich Text Editor</span>
                         <span>•</span>
-                        <span>HTML Support</span>
+                        <span>Drag & Drop Images</span>
                         <span>•</span>
-                        <span>Image Upload</span>
+                        <span>Text Alignment</span>
+                        <span>•</span>
+                        <span>HTML Support</span>
                       </div>
-                      <textarea 
-                        className="w-full p-2 border border-gray-200 rounded text-sm"
-                        rows={4}
-                        placeholder="Enter rich content with HTML formatting..."
-                        defaultValue="<h3>Enhanced Product Details</h3><p>This rich text field supports <strong>HTML formatting</strong> and embedded images.</p>"
+                      <RichTextEditor
+                        value="<h3>Enhanced Product Details</h3><p>This rich text field supports <strong>HTML formatting</strong>, drag & drop images, and text alignment options including <span style='text-align: center;'>center</span>, <span style='text-align: right;'>right</span>, and <span style='text-align: justify;'>justify</span>.</p>"
+                        placeholder="Enter rich content with drag & drop images and text alignment..."
+                        className="w-full"
+                        disabled={true}
                       />
                     </div>
                   </div>
