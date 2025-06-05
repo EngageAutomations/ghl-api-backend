@@ -870,24 +870,6 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
             {/* Configuration Summary - Skip problematic inputs */}
             {(integrationMethod === 'popup' || integrationMethod === 'embed') && (
               <div className="space-y-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                  <div className="flex items-center justify-center space-x-3">
-                    <div className="bg-blue-600 text-white p-2 rounded-md">
-                      {integrationMethod === 'popup' ? <Monitor className="w-5 h-5" /> : <Code className="w-5 h-5" />}
-                    </div>
-                    <div className="text-center">
-                      <h4 className="font-medium text-blue-800">
-                        {integrationMethod === 'popup' ? 'Action Button Popup Setup' : 'Embedded Form Setup'}
-                      </h4>
-                      <p className="text-sm text-blue-700 mt-1">
-                        {integrationMethod === 'popup' 
-                          ? 'Display forms in an overlay popup window' 
-                          : 'Embed forms directly into your listing pages'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
                 
                 {/* Form Embed Code - Completely rebuilt from scratch */}
                 <div className="space-y-3">
