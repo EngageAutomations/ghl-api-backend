@@ -346,35 +346,7 @@ body:not(.hl-builder) .hl-product-detail-product-price {
 }`;
     }
 
-    // Buy now button visibility is now handled by GoHighLevel web builder
-    if (false) {
-      css += `
 
-/* Hide Buy Now Button */
-body:not(.hl-builder) .cstore-product-detail [class*="buy-now"],
-body:not(.hl-builder) .product-detail-container [class*="buy-now"],
-body:not(.hl-builder) .hl-buy-now-button,
-body:not(.hl-builder) button[class*="buy-now"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
-
-    // Add to cart button visibility is now handled by GoHighLevel web builder
-    if (false) {
-      css += `
-
-/* Hide Add to Cart Button */
-body:not(.hl-builder) .cstore-product-detail [class*="add-to-cart"],
-body:not(.hl-builder) .product-detail-container [class*="add-to-cart"],
-body:not(.hl-builder) .hl-add-to-cart-button,
-body:not(.hl-builder) button[class*="add-to-cart"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
 
     if (!showQuantitySelector) {
       css += `
@@ -397,27 +369,7 @@ body:not(.hl-builder) .action-icon {
 }`;
     }
 
-    // Cart icon visibility is now handled by GoHighLevel web builder
-    if (false) {
-      css += `
 
-/* Hide Cart Icon - Comprehensive targeting */
-body:not(.hl-builder) .nav-cart-icon,
-body:not(.hl-builder) .nav-cart-button,
-body:not(.hl-builder) .items-cart,
-body:not(.hl-builder) .cart-search-desktop,
-body:not(.hl-builder) .nav-cart-wrapper,
-body:not(.hl-builder) svg[width="20"][height="20"][viewBox="0 0 20 20"] path[d*="M1.66699 1.66675"],
-body:not(.hl-builder) button.items-cart,
-body:not(.hl-builder) [class*="cart-button"],
-body:not(.hl-builder) [class*="nav-cart"],
-body:not(.hl-builder) svg[clip-path*="clip0_1655_15551"],
-body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7GXYJ1VCkI8/media/6836acff9bd24392ee734932.svg"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}`;
-    }
 
     css += `
 </style>`;
