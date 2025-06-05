@@ -1427,9 +1427,7 @@ body:not(.hl-builder) .action-icon {
                 <DollarSign className="w-10 h-10 text-white" />
               </div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Global Price CSS</h2>
-              <p className="text-lg text-gray-600 mb-8">
-                CSS to hide prices on other GoHighLevel pages (listings, collections, etc.)
-              </p>
+              <p className="text-lg text-gray-600 mb-8">Add this code to the product list page and any other page you decide to display featured products. This will vary based on your sites design.</p>
             </div>
 
             <Card className="bg-white border border-orange-200 text-left">
