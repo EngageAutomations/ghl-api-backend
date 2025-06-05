@@ -45,6 +45,17 @@ export interface IStorage {
   updateListingAddon(id: number, addon: Partial<InsertListingAddon>): Promise<ListingAddon | undefined>;
   deleteListingAddon(id: number): Promise<boolean>;
   
+  // Form Configuration (Directory) methods
+  getFormConfiguration(id: number): Promise<FormConfiguration | undefined>;
+  getFormConfigurationsByUser(userId: number): Promise<FormConfiguration[]>;
+  getFormConfigurationByDirectoryName(directoryName: string): Promise<FormConfiguration | undefined>;
+  createFormConfiguration(config: InsertFormConfiguration): Promise<FormConfiguration>;
+  updateFormConfiguration(id: number, config: Partial<InsertFormConfiguration>): Promise<FormConfiguration | undefined>;
+  deleteFormConfiguration(id: number): Promise<boolean>;
+  
+  // Listings by directory methods
+  getListingsByDirectory(directoryName: string): Promise<Listing[]>;
+  
   // Google Drive Credentials methods
   getGoogleDriveCredentials(userId: number): Promise<GoogleDriveCredentials | undefined>;
   createGoogleDriveCredentials(credentials: InsertGoogleDriveCredentials): Promise<GoogleDriveCredentials>;
