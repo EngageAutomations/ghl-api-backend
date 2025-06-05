@@ -824,19 +824,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 <Label htmlFor="form-embed">
                   {buttonType === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
                 </Label>
-                <textarea
-                  id="form-embed"
-                  placeholder="Paste your GoHighLevel iframe embed code here..."
-                  value={formEmbedUrl}
-                  onChange={(e) => {
-                    setFormEmbedUrl(e.target.value);
-                  }}
-                  className="w-full h-32 p-3 border-2 border-gray-300 rounded-lg font-mono text-sm"
-                  style={{ 
-                    resize: 'vertical',
-                    minHeight: '120px'
-                  }}
-                />
+                <div className="space-y-3">
+                  <textarea
+                    id="form-embed"
+                    placeholder="Paste your GoHighLevel iframe embed code here..."
+                    className="w-full h-32 p-3 border-2 border-gray-300 rounded-lg font-mono text-sm"
+                    style={{ 
+                      resize: 'vertical',
+                      minHeight: '120px'
+                    }}
+                    onBlur={(e) => {
+                      if (e.target.value !== formEmbedUrl) {
+                        setFormEmbedUrl(e.target.value);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const textarea = document.getElementById('form-embed') as HTMLTextAreaElement;
+                      if (textarea && textarea.value) {
+                        setFormEmbedUrl(textarea.value);
+                      }
+                    }}
+                    className="w-full"
+                  >
+                    Update Code Generation
+                  </Button>
+                </div>
                 {buttonType === 'popup' && parsedEmbedData && (
                   <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
                     ✓ Form detected: {parsedEmbedData.width}×{parsedEmbedData.height}px 
