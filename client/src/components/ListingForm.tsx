@@ -322,7 +322,7 @@ export default function ListingForm({ directoryName, listing, onClose, onSuccess
                       <FormItem>
                         <FormLabel>Popup Form URL</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="GoHighLevel form URL for popup" />
+                          <Input {...field} value={field.value || ""} placeholder="GoHighLevel form URL for popup" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -336,7 +336,7 @@ export default function ListingForm({ directoryName, listing, onClose, onSuccess
                       <FormItem>
                         <FormLabel>External Link URL</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="https://example.com" />
+                          <Input {...field} value={field.value || ""} placeholder="https://example.com" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -350,7 +350,7 @@ export default function ListingForm({ directoryName, listing, onClose, onSuccess
                       <FormItem>
                         <FormLabel>Download File URL</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="https://example.com/file.pdf" />
+                          <Input {...field} value={field.value || ""} placeholder="https://example.com/file.pdf" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -374,7 +374,7 @@ export default function ListingForm({ directoryName, listing, onClose, onSuccess
                     <FormItem>
                       <FormLabel>Embedded Form URL</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="GoHighLevel embed form URL" />
+                        <Input {...field} value={field.value || ""} placeholder="GoHighLevel embed form URL" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

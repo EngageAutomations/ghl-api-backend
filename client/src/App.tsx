@@ -14,6 +14,8 @@ import ConfigTester from "@/pages/ConfigTester";
 import ImageStorageDemo from "@/pages/ImageStorageDemo";
 import DeveloperDashboard from "@/pages/DeveloperDashboard";
 import DirectoryForm from "@/pages/DirectoryForm";
+import DirectoriesDashboard from "@/pages/DirectoriesDashboard";
+import DirectoryDetails from "@/pages/DirectoryDetails";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
@@ -71,6 +73,23 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <Dashboard />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      {/* Directory management routes */}
+      <Route path="/directories">
+        <ProtectedRoute>
+          <AppLayout>
+            <DirectoriesDashboard />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/directories/:directoryName">
+        <ProtectedRoute>
+          <AppLayout>
+            <DirectoryDetails />
           </AppLayout>
         </ProtectedRoute>
       </Route>
