@@ -1,8 +1,12 @@
 import { useState, useMemo } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 import { Switch } from '@/components/ui/switch';
 import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy, Monitor, Zap, Plus } from 'lucide-react';
@@ -37,6 +41,10 @@ function Slide({ children, className = "" }: SlideProps) {
 
 
 export default function ConfigWizardSlideshow() {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const [currentSlide, setCurrentSlide] = useState(0);
   const [googleDriveConnected, setGoogleDriveConnected] = useState(false);
   const [directoryName, setDirectoryName] = useState('');
@@ -63,6 +71,31 @@ export default function ConfigWizardSlideshow() {
   const [buttonText, setButtonText] = useState('Get Info');
   const [previewColor, setPreviewColor] = useState('#3b82f6');
   const [previewTextColor, setPreviewTextColor] = useState('#ffffff');
+
+  // Create directory mutation
+  const createDirectoryMutation = useMutation({
+    mutationFn: async (directoryData: any) => {
+      return apiRequest('/api/directories', {
+        method: 'POST',
+        data: directoryData
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/directories'] });
+      toast({
+        title: "Directory Created",
+        description: "Your directory configuration has been saved successfully!",
+      });
+      setLocation('/directories');
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create directory. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
 
   // Helper function to extract form URL from embed code
   const extractFormUrl = (embedCode: string) => {
@@ -315,6 +348,52 @@ document.addEventListener('DOMContentLoaded', function() {
          (metadataCode.jsCode ? '\n\n' + metadataCode.jsCode : '')
       };
     }
+  };
+
+  // Handle wizard completion
+  const handleCompleteWizard = async () => {
+    if (!directoryName.trim()) {
+      toast({
+        title: "Directory Name Required",
+        description: "Please enter a directory name before completing the wizard.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const config = generateDirectoryConfig();
+    
+    const directoryData = {
+      directoryName: directoryName.trim(),
+      logoUrl: logoUrl || null,
+      locationId: 'wizard-generated',
+      userId: 1, // Default user for now
+      config: {
+        features: {
+          showDescription,
+          showMetadata,
+          showMaps,
+          showPrice,
+          showQuantitySelector
+        },
+        button: {
+          type: buttonType,
+          text: buttonText,
+          color: previewColor,
+          textColor: previewTextColor
+        },
+        form: {
+          embedCode: wizardFormData.embedCode,
+          fieldName: wizardFormData.fieldName
+        },
+        integrationMethod,
+        generatedCode: config
+      },
+      actionButtonColor: previewColor,
+      isActive: true
+    };
+
+    createDirectoryMutation.mutate(directoryData);
   };
 
   // Generate CSS for hiding prices globally across all GoHighLevel pages
@@ -1649,9 +1728,13 @@ Your marketplace enhancement is now active!`
           </div>
 
           {currentSlide === slides.length - 1 ? (
-            <Button className="flex items-center space-x-2 bg-green-600 hover:bg-green-700">
+            <Button 
+              onClick={handleCompleteWizard}
+              disabled={createDirectoryMutation.isPending}
+              className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+            >
               <CheckCircle className="w-4 h-4" />
-              <span>Complete Wizard</span>
+              <span>{createDirectoryMutation.isPending ? 'Saving...' : 'Complete Wizard'}</span>
             </Button>
           ) : (
             <Button
