@@ -84,6 +84,15 @@ export default function ConfigWizardSlideshow() {
   // Button text state
   const [buttonText, setButtonText] = useState('Get More Info');
   
+  // Metadata configuration - exact copy from config wizard
+  const [metadataTextColor, setMetadataTextColor] = useState('#374151');
+  const [metadataFont, setMetadataFont] = useState('Inter');
+  const metadataFields = [
+    { label: 'Location', icon: 'MapPin' },
+    { label: 'Price', icon: 'DollarSign' },
+    { label: 'Category', icon: 'Hash' }
+  ];
+  
   // Copy button states for cart page CSS
   const [cartPageCodeCopied, setCartPageCodeCopied] = useState<boolean>(false);
   const [cartIconCodeCopied, setCartIconCodeCopied] = useState<boolean>(false);
@@ -208,9 +217,7 @@ div[class*="price"] {
 }`;
   
   // Metadata bar configuration - exact copy from config wizard
-  const [metadataTextColor, setMetadataTextColor] = useState('#374151');
-  const [metadataFont, setMetadataFont] = useState('system-ui, sans-serif');
-  const [metadataFields, setMetadataFields] = useState<MetadataField[]>([
+  const [metadataFields2, setMetadataFields2] = useState<MetadataField[]>([
     {
       id: 'phone',
       label: 'Phone',
@@ -844,8 +851,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     variant="outline"
                     onClick={() => {
                       const textarea = document.getElementById('form-embed') as HTMLTextAreaElement;
+                      console.log('Button clicked, textarea value:', textarea?.value?.length || 0, 'chars');
                       if (textarea && textarea.value) {
+                        console.log('Setting formEmbedUrl to:', textarea.value.substring(0, 50) + '...');
                         setFormEmbedUrl(textarea.value);
+                      } else {
+                        console.log('No textarea value found');
                       }
                     }}
                     className="w-full"
