@@ -773,7 +773,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Button Configuration</h3>
               
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-2 gap-6">
                 {/* Button Text */}
                 <div className="space-y-3">
                   <Label htmlFor="buttonText" className="text-sm font-medium text-gray-900">Button Text</Label>
@@ -790,43 +790,69 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   />
                 </div>
 
-                {/* Button Color */}
+                {/* Color Controls */}
                 <div className="space-y-3">
-                  <Label htmlFor="buttonColor" className="text-sm font-medium text-gray-900">Button Color</Label>
-                  <div className="flex space-x-2">
-                    <input
-                      id="buttonColor"
-                      type="color"
-                      value={previewColor}
-                      onChange={(e) => setPreviewColor(e.target.value)}
-                      className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
-                    />
-                    <Input
-                      value={previewColor}
-                      onChange={(e) => setPreviewColor(e.target.value)}
-                      placeholder="#3b82f6"
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
+                  <Label className="text-sm font-medium text-gray-900">Colors</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Button Color */}
+                    <div>
+                      <Label htmlFor="buttonColor" className="text-xs text-gray-600">Background</Label>
+                      <div className="flex space-x-2 mt-1">
+                        <input
+                          id="buttonColor"
+                          type="color"
+                          value={previewColor}
+                          onChange={(e) => setPreviewColor(e.target.value)}
+                          className="w-10 h-8 rounded border border-gray-300 cursor-pointer"
+                        />
+                        <Input
+                          value={previewColor}
+                          onChange={(e) => setPreviewColor(e.target.value)}
+                          placeholder="#3b82f6"
+                          className="flex-1 text-xs"
+                        />
+                      </div>
+                    </div>
 
-                {/* Button Preview */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium text-gray-900">Preview</Label>
-                  <div className="flex items-center justify-center h-10">
-                    <button
-                      className="px-6 py-2 font-medium text-white transition-colors hover:opacity-90"
-                      style={{ 
-                        backgroundColor: previewColor,
-                        color: previewTextColor
-                      }}
-                    >
-                      {buttonText || (
-                        integrationMethod === 'popup' ? 'Get Info' :
-                        integrationMethod === 'download' ? 'Download' :
-                        'Learn More'
-                      )}
-                    </button>
+                    {/* Text Color */}
+                    <div>
+                      <Label htmlFor="textColor" className="text-xs text-gray-600">Text</Label>
+                      <div className="flex space-x-2 mt-1">
+                        <input
+                          id="textColor"
+                          type="color"
+                          value={previewTextColor}
+                          onChange={(e) => setPreviewTextColor(e.target.value)}
+                          className="w-10 h-8 rounded border border-gray-300 cursor-pointer"
+                        />
+                        <Input
+                          value={previewTextColor}
+                          onChange={(e) => setPreviewTextColor(e.target.value)}
+                          placeholder="#ffffff"
+                          className="flex-1 text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Button Preview */}
+                  <div className="mt-3">
+                    <Label className="text-xs text-gray-600">Preview</Label>
+                    <div className="flex items-center justify-center mt-1">
+                      <button
+                        className="px-4 py-2 font-medium transition-colors hover:opacity-90"
+                        style={{ 
+                          backgroundColor: previewColor,
+                          color: previewTextColor
+                        }}
+                      >
+                        {buttonText || (
+                          integrationMethod === 'popup' ? 'Get Info' :
+                          integrationMethod === 'download' ? 'Download' :
+                          'Learn More'
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
