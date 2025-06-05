@@ -825,22 +825,11 @@ document.addEventListener('DOMContentLoaded', function() {
                   {buttonType === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
                 </Label>
                 <textarea
-                  key={formEmbedUrl}
                   id="form-embed"
                   placeholder="Paste your GoHighLevel iframe embed code here..."
-                  defaultValue={formEmbedUrl}
-                  onInput={(e) => {
-                    const target = e.target as HTMLTextAreaElement;
-                    setFormEmbedUrl(target.value);
-                  }}
+                  value={formEmbedUrl}
                   onChange={(e) => {
                     setFormEmbedUrl(e.target.value);
-                  }}
-                  onPaste={(e) => {
-                    setTimeout(() => {
-                      const target = e.target as HTMLTextAreaElement;
-                      setFormEmbedUrl(target.value);
-                    }, 10);
                   }}
                   className="w-full h-32 p-3 border-2 border-gray-300 rounded-lg font-mono text-sm"
                   style={{ 
