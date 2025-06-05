@@ -737,13 +737,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <div className="space-y-6">
           <div className="max-w-5xl mx-auto">
+            <div className="mb-4 p-2 bg-gray-100 rounded text-sm">
+              Debug: Current buttonType = "{buttonType}"
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 justify-items-center">
               <Button
               variant={buttonType === 'popup' ? 'default' : 'outline'}
               className={`h-auto p-4 justify-start overflow-hidden ${
                 buttonType === 'popup' ? 'bg-blue-50 border-blue-500 text-blue-900 hover:bg-blue-100' : 'hover:border-slate-400'
               }`}
-              onClick={() => setButtonType('popup')}
+              onClick={() => {
+                console.log('Popup button clicked');
+                setButtonType('popup');
+              }}
             >
               <div className="flex items-start space-x-3 w-full min-w-0">
                 <div className="bg-blue-500 text-white p-2 rounded-md flex-shrink-0">
@@ -765,7 +771,10 @@ document.addEventListener('DOMContentLoaded', function() {
               className={`h-auto p-4 justify-start overflow-hidden ${
                 buttonType === 'redirect' ? 'bg-green-50 border-green-500 text-green-900 hover:bg-green-100' : 'hover:border-slate-400'
               }`}
-              onClick={() => setButtonType('redirect')}
+              onClick={() => {
+                console.log('Redirect button clicked');
+                setButtonType('redirect');
+              }}
             >
               <div className="flex items-start space-x-3 w-full min-w-0">
                 <div className="bg-green-500 text-white p-2 rounded-md flex-shrink-0">
@@ -783,7 +792,10 @@ document.addEventListener('DOMContentLoaded', function() {
               className={`h-auto p-4 justify-start overflow-hidden ${
                 buttonType === 'download' ? 'bg-orange-50 border-orange-500 text-orange-900 hover:bg-orange-100' : 'hover:border-slate-400'
               }`}
-              onClick={() => setButtonType('download')}
+              onClick={() => {
+                console.log('Download button clicked');
+                setButtonType('download');
+              }}
             >
               <div className="flex items-start space-x-3 w-full min-w-0">
                 <div className="bg-orange-500 text-white p-2 rounded-md flex-shrink-0">
@@ -801,7 +813,10 @@ document.addEventListener('DOMContentLoaded', function() {
               className={`h-auto p-4 justify-start overflow-hidden ${
                 buttonType === 'embed' ? 'bg-purple-50 border-purple-500 text-purple-900 hover:bg-purple-100' : 'hover:border-slate-400'
               }`}
-              onClick={() => setButtonType('embed')}
+              onClick={() => {
+                console.log('Embed button clicked');
+                setButtonType('embed');
+              }}
             >
               <div className="flex items-start space-x-3 w-full min-w-0">
                 <div className="bg-purple-500 text-white p-2 rounded-md flex-shrink-0">
@@ -823,7 +838,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <Label htmlFor="form-embed">
                   {buttonType === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
                 </Label>
-                <Textarea
+                <textarea
                   id="form-embed"
                   placeholder={buttonType === 'popup' 
                     ? '<iframe src="https://link.msgsndr.com/form/..." width="500" height="600"></iframe>'
@@ -831,24 +846,24 @@ document.addEventListener('DOMContentLoaded', function() {
                   }
                   value={formEmbedUrl}
                   onChange={(e) => {
-                    console.log('Textarea onChange triggered:', e.target.value);
+                    console.log('Native textarea onChange triggered:', e.target.value);
                     setFormEmbedUrl(e.target.value);
                   }}
                   onInput={(e) => {
-                    console.log('Textarea onInput triggered:', e.currentTarget.value);
+                    console.log('Native textarea onInput triggered:', e.currentTarget.value);
                     setFormEmbedUrl(e.currentTarget.value);
                   }}
                   onPaste={(e) => {
-                    console.log('Textarea onPaste triggered');
+                    console.log('Native textarea onPaste triggered');
                     setTimeout(() => {
                       const target = e.target as HTMLTextAreaElement;
                       setFormEmbedUrl(target.value);
                     }, 0);
                   }}
-                  className="min-h-[100px] relative z-10"
+                  className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 relative z-10"
                   autoComplete="off"
                   spellCheck="false"
-                  style={{ pointerEvents: 'auto' }}
+                  style={{ pointerEvents: 'auto', resize: 'vertical' }}
                 />
                 {buttonType === 'popup' && parsedEmbedData && (
                   <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
