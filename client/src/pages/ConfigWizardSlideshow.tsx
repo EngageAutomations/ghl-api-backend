@@ -446,23 +446,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  const generatedCode = useMemo(() => generateCodeForSelection(), [
+  const generatedCode = useMemo(() => {
+    console.log('useMemo triggered, formEmbedUrl length:', formEmbedUrl?.length || 0);
+    const result = generateCodeForSelection();
+    console.log('Generated code result:', {
+      headerLength: result?.headerCode?.length || 0,
+      footerLength: result?.footerCode?.length || 0
+    });
+    return result;
+  }, [
     formEmbedUrl, 
     buttonType, 
     customFieldName, 
     previewBorderRadius, 
     previewColor, 
     previewTextColor,
-    showPrice,
-    showBuyNowButton,
-    showAddToCartButton,
-    showQuantitySelector,
     showDescription,
     expandedDescriptionContent,
     expandedDescFadeIn,
     expandedDescClass,
     showMetadata,
-    metadataFields2,
     showMaps
   ]);
 
