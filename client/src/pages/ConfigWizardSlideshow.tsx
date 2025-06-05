@@ -446,7 +446,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  const generatedCode = useMemo(() => generateCodeForSelection(), [
+  const generatedCode = useMemo(() => {
+    const result = generateCodeForSelection();
+    console.log('generatedCode useMemo result:', {
+      headerLength: result.headerCode?.length || 0,
+      footerLength: result.footerCode?.length || 0,
+      formEmbedUrlLength: formEmbedUrl?.length || 0
+    });
+    return result;
+  }, [
     formEmbedUrl, 
     buttonType, 
     customFieldName, 
@@ -825,12 +833,16 @@ document.addEventListener('DOMContentLoaded', function() {
                   {buttonType === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
                 </Label>
                 <textarea
+                  key={formEmbedUrl}
                   id="form-embed"
                   placeholder="Paste your GoHighLevel iframe embed code here..."
                   defaultValue={formEmbedUrl}
                   onInput={(e) => {
                     const target = e.target as HTMLTextAreaElement;
                     setFormEmbedUrl(target.value);
+                  }}
+                  onChange={(e) => {
+                    setFormEmbedUrl(e.target.value);
                   }}
                   onPaste={(e) => {
                     setTimeout(() => {
