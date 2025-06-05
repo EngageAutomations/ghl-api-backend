@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { CreateListingForm } from '@/components/CreateListingForm';
 
 type ViewMode = 'grid' | 'list';
 type FilterOption = 'all' | 'active' | 'draft';
@@ -455,33 +456,12 @@ export default function DirectoryDetails() {
               Create New Listing
             </DialogTitle>
           </DialogHeader>
-          <div className="p-6">
-            <p className="text-gray-600 mb-4">
-              This would open the form configured in your directory wizard with the custom embed code and features you selected.
-            </p>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">Directory Configuration:</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Form Integration: {directory?.config?.integrationMethod || 'Standard'}</li>
-                <li>• Features: {directory?.config?.features ? Object.keys(directory.config.features).filter(key => directory.config.features[key]).join(', ') || 'None' : 'None'}</li>
-                <li>• Button Style: {directory?.config?.button?.text || 'Get Info'}</li>
-              </ul>
-            </div>
-            <div className="flex justify-end space-x-2 mt-6">
-              <Button variant="outline" onClick={() => setShowListingForm(false)}>
-                Cancel
-              </Button>
-              <Button onClick={() => {
-                toast({
-                  title: "Feature Coming Soon",
-                  description: "The listing form will use your directory's configuration to create listings.",
-                });
-                setShowListingForm(false);
-              }}>
-                Continue
-              </Button>
-            </div>
-          </div>
+          <CreateListingForm
+            directoryName={directoryName!}
+            directoryConfig={directory?.config}
+            onSuccess={handleFormSuccess}
+            onCancel={handleFormClose}
+          />
         </DialogContent>
       </Dialog>
     </div>
