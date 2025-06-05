@@ -1248,12 +1248,11 @@ body:not(.hl-builder) .action-icon {
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h4 className="font-medium text-blue-800 mb-4">Add this code to the CSS field inside your product listing page.</h4>
             <div className="bg-white rounded-lg p-4 border border-blue-200">
-              <div className="text-sm text-gray-700 space-y-2 bg-gray-50 p-4 rounded">
-                <p><strong>Step 1:</strong> Go to your GoHighLevel product page editor</p>
-                <p><strong>Step 2:</strong> Look for the CSS field in the styling options</p>
-                <p><strong>Step 3:</strong> Copy the CSS code below and paste it into that field</p>
-                <p><strong>Step 4:</strong> Save your changes</p>
-              </div>
+              <img 
+                src="https://storage.googleapis.com/msgsndr/WAvk87RmW9rBSDJHeOpH/media/6841b837e142b60d3a41ea1f.png" 
+                alt="GoHighLevel CSS field location screenshot" 
+                className="w-full max-w-2xl mx-auto rounded border shadow-sm"
+              />
             </div>
           </div>
 
@@ -1330,12 +1329,11 @@ body:not(.hl-builder) .action-icon {
           <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
             <h4 className="font-medium text-emerald-800 mb-4">Add this code to the Header Tracking Code in your GoHighLevel site settings.</h4>
             <div className="bg-white rounded-lg p-4 border border-emerald-200">
-              <div className="text-sm text-gray-700 space-y-2 bg-gray-50 p-4 rounded">
-                <p><strong>Step 1:</strong> Go to Settings → Custom Code</p>
-                <p><strong>Step 2:</strong> Find the Header Tracking Code section</p>
-                <p><strong>Step 3:</strong> Paste the header code below</p>
-                <p><strong>Step 4:</strong> Save your changes</p>
-              </div>
+              <img 
+                src="https://storage.googleapis.com/msgsndr/WAvk87RmW9rBSDJHeOpH/media/6841b837e142b60d3a41ea1f.png" 
+                alt="GoHighLevel header tracking code location" 
+                className="w-full max-w-2xl mx-auto rounded border shadow-sm"
+              />
             </div>
           </div>
 
