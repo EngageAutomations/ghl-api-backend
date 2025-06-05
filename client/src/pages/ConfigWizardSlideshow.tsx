@@ -903,15 +903,15 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <label className="text-left block text-lg font-medium text-gray-700">
                     {integrationMethod === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
                   </label>
-                  <input
+                  <textarea
                     key={`embed-input-${inputKey}`}
-                    type="text"
+                    rows={3}
                     placeholder="Paste your GoHighLevel form embed code here..."
                     defaultValue={wizardFormData.embedCode}
                     onChange={(e) => {
                       setWizardFormData(prev => ({...prev, embedCode: e.target.value}));
                     }}
-                    className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full text-lg p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
                   />
                 </div>
 
