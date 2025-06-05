@@ -69,6 +69,7 @@ export default function ConfigWizardSlideshow() {
   const [integrationMethod, setIntegrationMethod] = useState('popup');
 
   const [buttonText, setButtonText] = useState('Get Info');
+  const [buttonColor, setButtonColor] = useState('#3b82f6');
   const [previewColor, setPreviewColor] = useState('#3b82f6');
   const [previewTextColor, setPreviewTextColor] = useState('#ffffff');
 
@@ -1349,7 +1350,7 @@ body:not(.hl-builder) .action-icon {
                     type="button"
                     className="px-4 py-2 rounded font-medium"
                     style={{
-                      backgroundColor: buttonColor,
+                      backgroundColor: previewColor,
                       color: '#ffffff',
                     }}
                   >
@@ -1424,7 +1425,7 @@ body:not(.hl-builder) .action-icon {
                   <div className="space-y-2 text-sm text-gray-600">
                     <div><strong>Type:</strong> {integrationMethod === 'popup' ? 'Popup' : 'Embedded Form'}</div>
                     <div><strong>Text:</strong> {buttonText || 'Get Info'}</div>
-                    <div><strong>Color:</strong> <span className="inline-block w-4 h-4 rounded ml-1" style={{backgroundColor: buttonColor}}></span></div>
+                    <div><strong>Color:</strong> <span className="inline-block w-4 h-4 rounded ml-1" style={{backgroundColor: previewColor}}></span></div>
                   </div>
                 </div>
 
