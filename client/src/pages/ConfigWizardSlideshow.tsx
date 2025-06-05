@@ -361,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    const config = generateDirectoryConfig();
+    const config = generateCodeForSelection();
     
     const directoryData = {
       directoryName: directoryName.trim(),
