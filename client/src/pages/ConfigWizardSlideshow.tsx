@@ -1329,12 +1329,11 @@ body:not(.hl-builder) .action-icon {
           <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
             <h4 className="font-medium text-emerald-800 mb-4">Add this code to the Header Tracking Code in your GoHighLevel site settings.</h4>
             <div className="bg-white rounded-lg p-4 border border-emerald-200">
-              <div className="text-sm text-gray-700 space-y-2 bg-gray-50 p-4 rounded">
-                <p><strong>Step 1:</strong> Go to Settings → Custom Code</p>
-                <p><strong>Step 2:</strong> Find the Header Tracking Code section</p>
-                <p><strong>Step 3:</strong> Paste the header code below</p>
-                <p><strong>Step 4:</strong> Save your changes</p>
-              </div>
+              <img 
+                src="https://storage.googleapis.com/msgsndr/WAvk87RmW9rBSDJHeOpH/media/6841b9c175ad7e7ddd0c2f0a.png" 
+                alt="GoHighLevel header tracking code location" 
+                className="w-full max-w-2xl mx-auto rounded border shadow-sm"
+              />
             </div>
           </div>
 
@@ -1377,6 +1376,18 @@ body:not(.hl-builder) .action-icon {
             <p className="text-lg text-gray-600 mb-8">
               Footer code for form integration and enhanced features
             </p>
+          </div>
+
+          {/* Configuration Instructions */}
+          <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+            <h4 className="font-medium text-purple-800 mb-4">Add this code to the Footer Tracking Code in your GoHighLevel site settings.</h4>
+            <div className="bg-white rounded-lg p-4 border border-purple-200">
+              <img 
+                src="https://storage.googleapis.com/msgsndr/WAvk87RmW9rBSDJHeOpH/media/6841b9c175ad7e7ddd0c2f0a.png" 
+                alt="GoHighLevel footer tracking code location" 
+                className="w-full max-w-2xl mx-auto rounded border shadow-sm"
+              />
+            </div>
           </div>
 
           <Card className="bg-white border border-purple-200 text-left">
