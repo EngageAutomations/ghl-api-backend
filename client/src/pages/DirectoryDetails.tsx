@@ -26,7 +26,7 @@ export default function DirectoryDetails() {
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [showListingForm, setShowListingForm] = useState(false);
-  const [editingListing, setEditingListing] = useState<Listing | null>(null);
+  const [editingListing, setEditingListing] = useState<any | null>(null);
   const [selectedListings, setSelectedListings] = useState<number[]>([]);
   
   const { toast } = useToast();
@@ -162,7 +162,7 @@ export default function DirectoryDetails() {
     setSelectedListings(
       selectedListings.length === processedListings.length 
         ? [] 
-        : processedListings.map((listing: Listing) => listing.id)
+        : processedListings.map((listing: any) => listing.id)
     );
   };
 
@@ -369,7 +369,7 @@ export default function DirectoryDetails() {
               ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               : "space-y-4"
           }>
-            {processedListings.map((listing: Listing) => (
+            {processedListings.map((listing: any) => (
               <Card key={listing.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -447,20 +447,41 @@ export default function DirectoryDetails() {
         </>
       )}
 
-      {/* Listing Form Dialog */}
+      {/* Create Listing Dialog */}
       <Dialog open={showListingForm} onOpenChange={setShowListingForm}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingListing ? 'Edit Listing' : 'Create New Listing'}
+              Create New Listing
             </DialogTitle>
           </DialogHeader>
-          <ListingForm
-            directoryName={directoryName!}
-            listing={editingListing}
-            onClose={handleFormClose}
-            onSuccess={handleFormSuccess}
-          />
+          <div className="p-6">
+            <p className="text-gray-600 mb-4">
+              This would open the form configured in your directory wizard with the custom embed code and features you selected.
+            </p>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-medium mb-2">Directory Configuration:</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Form Integration: {directory?.config?.integrationMethod || 'Standard'}</li>
+                <li>• Features: {directory?.config?.features ? Object.keys(directory.config.features).filter(key => directory.config.features[key]).join(', ') || 'None' : 'None'}</li>
+                <li>• Button Style: {directory?.config?.button?.text || 'Get Info'}</li>
+              </ul>
+            </div>
+            <div className="flex justify-end space-x-2 mt-6">
+              <Button variant="outline" onClick={() => setShowListingForm(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({
+                  title: "Feature Coming Soon",
+                  description: "The listing form will use your directory's configuration to create listings.",
+                });
+                setShowListingForm(false);
+              }}>
+                Continue
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
