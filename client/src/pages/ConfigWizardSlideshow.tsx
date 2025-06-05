@@ -1457,9 +1457,7 @@ body:not(.hl-builder) .action-icon {
                 <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
                   <h4 className="font-medium text-orange-800 mb-2">📋 Usage Instructions</h4>
                   <div className="text-sm text-orange-700 space-y-2">
-
-                    <p><strong>2. Coverage:</strong> This CSS will hide prices on listing pages, collection pages, and search results</p>
-                    <p><strong>3. Placement:</strong> Go to Settings → Custom Code → Head Tracking Code</p>
+                    <p><strong>Placement:</strong> Go to Settings → Custom Code → Head Tracking Code</p>
                   </div>
                 </div>
               </CardContent>
