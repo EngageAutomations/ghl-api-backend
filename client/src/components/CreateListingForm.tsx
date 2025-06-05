@@ -171,6 +171,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
                   onChange={(value) => handleInputChange('expandedDescription', value)}
                   placeholder="Enter rich content with drag & drop images and text alignment..."
                   className="w-full"
+                  disabled={false}
                 />
               </div>
             </div>

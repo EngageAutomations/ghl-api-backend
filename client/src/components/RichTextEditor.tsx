@@ -22,24 +22,14 @@ export default function RichTextEditor({
 
   // Custom toolbar configuration with text alignment and image support
   const modules = {
-    toolbar: {
-      container: [
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ 'align': [] }], // Text alignment options
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-        [{ 'indent': '-1'}, { 'indent': '+1' }],
-        [{ 'color': [] }, { 'background': [] }],
-        ['link', 'image'],
-        ['clean']
-      ],
-      handlers: {
-        image: imageHandler
-      }
-    },
-    clipboard: {
-      matchVisual: false,
-    }
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline'],
+      [{ 'align': [] }],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['link', 'image'],
+      ['clean']
+    ]
   };
 
   const formats = [
@@ -50,29 +40,7 @@ export default function RichTextEditor({
     'align'
   ];
 
-  // Custom image handler for drag and drop support
-  function imageHandler() {
-    const input = document.createElement('input');
-    input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*');
-    input.click();
 
-    input.onchange = () => {
-      const file = input.files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const imageUrl = e.target?.result as string;
-          const quill = quillRef.current?.getEditor();
-          if (quill) {
-            const range = quill.getSelection();
-            quill.insertEmbed(range?.index || 0, 'image', imageUrl);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-  }
 
   const handleChange = (content: string) => {
     setEditorValue(content);

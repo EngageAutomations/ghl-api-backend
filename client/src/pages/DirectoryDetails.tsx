@@ -450,18 +450,20 @@ export default function DirectoryDetails() {
 
       {/* Create Listing Dialog */}
       <Dialog open={showListingForm} onOpenChange={setShowListingForm}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Create New Listing
             </DialogTitle>
           </DialogHeader>
-          <CreateListingForm
-            directoryName={directoryName!}
-            directoryConfig={directory?.config}
-            onSuccess={handleFormSuccess}
-            onCancel={handleFormClose}
-          />
+          <div className="max-h-[75vh] overflow-y-auto pr-2">
+            <CreateListingForm
+              directoryName={directoryName!}
+              directoryConfig={directory?.config}
+              onSuccess={handleFormSuccess}
+              onCancel={handleFormClose}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
