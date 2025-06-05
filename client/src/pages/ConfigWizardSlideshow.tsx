@@ -65,6 +65,8 @@ export default function ConfigWizardSlideshow() {
   const [showDescription, setShowDescription] = useState<boolean>(false);
   const [showMetadata, setShowMetadata] = useState<boolean>(false);
   const [showMaps, setShowMaps] = useState<boolean>(false);
+  const [showCartCustomization, setShowCartCustomization] = useState<boolean>(false);
+  const [showPriceRemoval, setShowPriceRemoval] = useState<boolean>(false);
   
   // Expanded description configuration - exact copy from config wizard
   const [expandedDescriptionContent, setExpandedDescriptionContent] = useState(`<h2>Product Details</h2>
@@ -81,6 +83,155 @@ export default function ConfigWizardSlideshow() {
   
   // Button text state
   const [buttonText, setButtonText] = useState('Get More Info');
+  
+  // Metadata configuration for working code generation
+  const metadataFields2 = [
+    { label: 'Location', icon: 'MapPin', id: 'location', defaultValue: 'Default Location' },
+    { label: 'Price', icon: 'DollarSign', id: 'price', defaultValue: '$0' },
+    { label: 'Category', icon: 'Hash', id: 'category', defaultValue: 'General' }
+  ];
+  
+  // Copy button states for cart page CSS
+  const [cartPageCodeCopied, setCartPageCodeCopied] = useState<boolean>(false);
+  const [cartIconCodeCopied, setCartIconCodeCopied] = useState<boolean>(false);
+  const [priceRemovalCodeCopied, setPriceRemovalCodeCopied] = useState<boolean>(false);
+
+  // Cart Page CSS Code for removing checkout buttons
+  const cartPageCssCode = `/* Cart page customization - hide checkout and make it a bookmark system */
+.hl-cart-product-price,
+span.text-black,
+.hl-product-detail-product-price,
+.product-price,
+.price,
+.pricing,
+span[class*="price"],
+div[class*="price"] {
+    display: none !important;
+}
+
+/* Hide checkout and purchase buttons */
+.hl-checkout-btn,
+.checkout-btn,
+.btn-checkout,
+button[class*="checkout"],
+a[class*="checkout"],
+.purchase-btn,
+.buy-btn,
+button[class*="buy"],
+a[class*="buy"],
+input[type="submit"][value*="checkout" i],
+input[type="submit"][value*="purchase" i],
+input[type="submit"][value*="buy" i] {
+    display: none !important;
+}
+
+/* Hide quantity controls on cart page */
+.quantity-selector,
+.qty-selector,
+input[type="number"],
+.quantity-input,
+.qty-input,
+.quantity-controls,
+.qty-controls,
+button[class*="qty"],
+button[class*="quantity"] {
+    display: none !important;
+}
+
+/* Style saved items message */
+.cart-item,
+.hl-cart-item {
+    position: relative;
+}
+
+.cart-item::after,
+.hl-cart-item::after {
+    content: "Saved for later";
+    display: block;
+    margin-top: 8px;
+    padding: 4px 8px;
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}`;
+
+  // Cart Icon CSS Code
+  const cartIconCssCode = `/* Transform cart icons to bookmark icons */
+
+/* Hide original cart icon content */
+.hl-cart-icon > *,
+.cart-icon > *,
+[class*="cart-icon"] > *,
+i[class*="cart"] > *,
+.fa-shopping-cart > *,
+.shopping-cart-icon > * {
+  opacity: 0;
+}
+
+/* Add bookmark icon using CSS */
+.hl-cart-icon::before,
+.cart-icon::before,
+[class*="cart-icon"]::before,
+i[class*="cart"]::before,
+.fa-shopping-cart::before,
+.shopping-cart-icon::before {
+  content: "🔖";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: inherit;
+  z-index: 10;
+}
+
+/* Alternative bookmark icon using CSS shapes for better compatibility */
+.bookmark-icon {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 20px;
+}
+
+.bookmark-icon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 20px;
+  background-color: currentColor;
+  clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .bookmark-icon {
+    width: 14px;
+    height: 18px;
+  }
+  
+  .bookmark-icon::before {
+    width: 14px;
+    height: 18px;
+  }
+}`;
+
+  // Price Removal CSS Code for hiding prices on any page
+  const priceRemovalCssCode = `/* Hide all price elements */
+.hl-product-detail-product-price,
+.product-price,
+.price,
+.pricing,
+span[class*="price"],
+div[class*="price"] {
+    display: none !important;
+}`;
   
   // Parse embed code for popup dimensions
   const parsedEmbedData = useMemo(() => {
@@ -136,7 +287,31 @@ export default function ConfigWizardSlideshow() {
     return embedCode;
   };
 
-  // Generate code based on selection - simplified working version
+  // Generate directory configuration for form creation
+  const generateDirectoryConfig = (): DirectoryConfig => {
+    return {
+      customFieldName: customFieldName || 'listing',
+      showDescription: showDescription,
+      showMetadata: showMetadata,
+      showMaps: showMaps,
+      showPrice: showPrice,
+      metadataFields: metadataFields2.map(field => field.label),
+      formEmbedUrl: formEmbedUrl,
+      buttonType: buttonType as 'popup' | 'redirect' | 'download'
+    };
+  };
+
+  // Generate complete form HTML with all configured fields
+  const generateDynamicForm = () => {
+    const config = generateDirectoryConfig();
+    return {
+      formHTML: generateFormHTML(config),
+      formCSS: generateFormCSS(),
+      formFields: generateFormFields(config)
+    };
+  };
+
+  // Working code generation function with debug logging
   const generateCodeForSelection = () => {
     console.log('generateCodeForSelection called with formEmbedUrl:', formEmbedUrl?.length || 0, 'chars');
     
@@ -183,6 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return { headerCode: '', footerCode: '' };
   };
 
+  // Working useMemo with debug logging
   const generatedCode = useMemo(() => {
     console.log('useMemo triggered, formEmbedUrl length:', formEmbedUrl?.length || 0);
     const result = generateCodeForSelection();
@@ -226,7 +402,1160 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  const totalSlides = 8;
+  // File upload handlers
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    
+    if (imageFile) {
+      setLogoFile(imageFile);
+      setLogoUrl(URL.createObjectURL(imageFile));
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setLogoFile(file);
+      setLogoUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const allSlides = [
+    // Slide 0: Welcome
+    <Slide key={0}>
+      <div className="text-center space-y-8">
+        <div className="space-y-4">
+          <h1 className="text-5xl font-bold text-slate-900 mb-4">Directory Wizard</h1>
+          <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            Transform your GoHighLevel eCommerce store into a powerful directory platform with automated lead capture and dynamic listings.
+          </p>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-8 max-w-4xl mx-auto">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-6">What You'll Create</h2>
+          <div className="grid md:grid-cols-3 gap-6 text-left">
+            <div className="flex items-start space-x-3">
+              <div className="bg-blue-100 p-3 rounded-full">
+                <Building2 className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900">Business Directory</h3>
+                <p className="text-slate-600">Dynamic listings with custom fields and metadata</p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-3">
+              <div className="bg-green-100 p-3 rounded-full">
+                <FileText className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900">Lead Capture Forms</h3>
+                <p className="text-slate-600">Integrated GoHighLevel forms for each listing</p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-3">
+              <div className="bg-purple-100 p-3 rounded-full">
+                <Settings className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900">Full Customization</h3>
+                <p className="text-slate-600">Complete control over appearance and behavior</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 max-w-2xl mx-auto">
+          <h3 className="text-lg font-semibold text-slate-900 mb-3">Setup Process</h3>
+          <div className="space-y-2 text-slate-600">
+            <p>• Connect Google Drive for image storage</p>
+            <p>• Configure directory branding and settings</p>
+            <p>• Choose form integration method</p>
+            <p>• Customize features and appearance</p>
+            <p>• Generate and copy integration code</p>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 1: Google Drive Connection
+    <Slide key={1}>
+      <div className="text-center space-y-8">
+        <div className="space-y-4">
+          <h1 className="text-4xl font-bold text-slate-900">Google Drive Setup</h1>
+          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+            Connect your Google Drive to store and manage directory listing images securely.
+          </p>
+        </div>
+
+        <div className="max-w-3xl mx-auto">
+          {!googleDriveConnected ? (
+            <div className="bg-white border border-slate-200 rounded-xl p-8 space-y-6">
+              <div className="text-center space-y-4">
+                <div className="bg-blue-100 p-4 rounded-full w-20 h-20 mx-auto flex items-center justify-center">
+                  <FolderOpen className="w-10 h-10 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-semibold text-slate-900">Connect Google Drive</h3>
+                <p className="text-slate-600">
+                  Images uploaded to your directory will be stored in a dedicated "Directory Images" folder in your Google Drive.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-900 mb-2">What happens when you connect:</h4>
+                  <ul className="text-blue-800 space-y-1 text-left">
+                    <li>• A "Directory Images" folder is created in your Google Drive</li>
+                    <li>• Uploaded images are automatically organized by directory name</li>
+                    <li>• Images remain in your control and ownership</li>
+                    <li>• Public viewing links are generated for web display</li>
+                  </ul>
+                </div>
+
+                <Button 
+                  size="lg" 
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  onClick={() => {
+                    // Mock connection for demo
+                    setGoogleDriveConnected(true);
+                    setGoogleDriveEmail('user@example.com');
+                  }}
+                >
+                  <ExternalLink className="w-5 h-5 mr-2" />
+                  Connect Google Drive
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-8 space-y-6">
+              <div className="text-center space-y-4">
+                <div className="bg-green-100 p-4 rounded-full w-20 h-20 mx-auto flex items-center justify-center">
+                  <CheckCircle className="w-10 h-10 text-green-600" />
+                </div>
+                <h3 className="text-2xl font-semibold text-green-900">Google Drive Connected!</h3>
+                <p className="text-green-700">
+                  Connected to: <span className="font-medium">{googleDriveEmail}</span>
+                </p>
+              </div>
+
+              <div className="bg-white border border-green-200 rounded-lg p-4">
+                <h4 className="font-semibold text-green-900 mb-2">Ready for image uploads:</h4>
+                <ul className="text-green-800 space-y-1 text-left">
+                  <li>• Directory Images folder created successfully</li>
+                  <li>• Upload permissions configured</li>
+                  <li>• Public sharing settings applied</li>
+                  <li>• Ready to accept directory listings</li>
+                </ul>
+              </div>
+
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="w-full border-green-300 text-green-700 hover:bg-green-50"
+                onClick={() => {
+                  setGoogleDriveConnected(false);
+                  setGoogleDriveEmail('');
+                }}
+              >
+                Disconnect & Use Different Account
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 2: Directory Configuration
+    <Slide key={2}>
+      <div className="space-y-8">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-slate-900">Directory Configuration</h1>
+          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+            Set up your directory branding and basic settings.
+          </p>
+        </div>
+
+        <div className="max-w-4xl mx-auto grid lg:grid-cols-2 gap-8">
+          {/* Left Column: Configuration */}
+          <div className="space-y-6">
+            <Card>
+              <CardContent className="p-6 space-y-4">
+                <h3 className="text-lg font-semibold text-slate-900">Directory Information</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="directoryName">Directory Name</Label>
+                    <Input
+                      id="directoryName"
+                      value={directoryName}
+                      onChange={(e) => setDirectoryName(e.target.value)}
+                      placeholder="e.g., Local Restaurants, Service Providers"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Custom Field Name</Label>
+                    <Input
+                      value={customFieldName}
+                      onChange={(e) => setCustomFieldName(e.target.value)}
+                      placeholder="listing"
+                      className="mt-1"
+                    />
+                    <p className="text-sm text-slate-500 mt-1">
+                      This hidden field will be added to forms to track which listing the submission came from.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6 space-y-4">
+                <h3 className="text-lg font-semibold text-slate-900">Logo Upload</h3>
+                
+                <div 
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                    isDragOver 
+                      ? 'border-blue-400 bg-blue-50' 
+                      : 'border-slate-300 hover:border-slate-400'
+                  }`}
+                  onDrop={handleDrop}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragOver(true);
+                  }}
+                  onDragLeave={() => setIsDragOver(false)}
+                >
+                  {logoUrl ? (
+                    <div className="space-y-4">
+                      <img 
+                        src={logoUrl} 
+                        alt="Directory logo"
+                        className="mx-auto max-h-32 rounded-lg"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setLogoUrl('');
+                          setLogoFile(null);
+                        }}
+                      >
+                        Remove Logo
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <Upload className="w-12 h-12 text-slate-400 mx-auto" />
+                      <div>
+                        <p className="text-slate-600">
+                          Drag and drop your logo here, or{' '}
+                          <label className="text-blue-600 hover:text-blue-700 cursor-pointer underline">
+                            browse
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={handleFileSelect}
+                            />
+                          </label>
+                        </p>
+                        <p className="text-sm text-slate-500 mt-1">
+                          PNG, JPG, GIF up to 10MB
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column: Preview */}
+          <div className="space-y-6">
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">Preview</h3>
+                
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 space-y-4">
+                  {logoUrl && (
+                    <div className="text-center">
+                      <img 
+                        src={logoUrl} 
+                        alt="Directory logo"
+                        className="mx-auto max-h-16 rounded"
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="text-center">
+                    <h4 className="text-xl font-bold text-slate-900">
+                      {directoryName || 'Your Directory Name'}
+                    </h4>
+                    <p className="text-slate-600 mt-2">
+                      Professional directory listing with lead capture forms
+                    </p>
+                  </div>
+
+                  <div className="bg-white border border-slate-200 rounded p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Sample Business</span>
+                      <span className="text-green-600">★ 4.8</span>
+                    </div>
+                    <p className="text-sm text-slate-600">
+                      123 Main Street, Anytown
+                    </p>
+                    <Button size="sm" className="w-full">
+                      Get More Info
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 3: Form Integration Method Selection
+    <Slide key={3}>
+      <div className="space-y-8">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-slate-900">Form Integration Method</h1>
+          <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            Choose how visitors will interact with your directory listings.
+          </p>
+        </div>
+
+        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6">
+          {/* Popup Option */}
+          <Card className={`cursor-pointer transition-all ${buttonType === 'popup' ? 'ring-2 ring-blue-500 border-blue-500' : 'hover:shadow-lg'}`}>
+            <CardContent className="p-6 space-y-4" onClick={() => setButtonType('popup')}>
+              <div className="text-center">
+                <div className="bg-blue-100 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                  <ExternalLink className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mt-4">Popup Form</h3>
+                <p className="text-slate-600 mt-2">
+                  Opens GoHighLevel form in an overlay popup
+                </p>
+              </div>
+
+              <div className="space-y-2 text-sm text-slate-600">
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>Best user experience</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>Keeps users on your site</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>Automatic listing tracking</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>Mobile responsive</span>
+                </div>
+              </div>
+
+              {buttonType === 'popup' && (
+                <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                  <p className="text-blue-800 font-medium text-center">✓ Selected</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Redirect Option */}
+          <Card className={`cursor-pointer transition-all ${buttonType === 'redirect' ? 'ring-2 ring-blue-500 border-blue-500' : 'hover:shadow-lg'}`}>
+            <CardContent className="p-6 space-y-4" onClick={() => setButtonType('redirect')}>
+              <div className="text-center">
+                <div className="bg-purple-100 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                  <ExternalLink className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mt-4">Direct Redirect</h3>
+                <p className="text-slate-600 mt-2">
+                  Takes users directly to GoHighLevel form page
+                </p>
+              </div>
+
+              <div className="space-y-2 text-sm text-slate-600">
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>Simple implementation</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>Works on all devices</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>Automatic listing tracking</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <X className="w-4 h-4 text-red-500" />
+                  <span>Users leave your site</span>
+                </div>
+              </div>
+
+              {buttonType === 'redirect' && (
+                <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                  <p className="text-blue-800 font-medium text-center">✓ Selected</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Download Option */}
+          <Card className={`cursor-pointer transition-all ${buttonType === 'download' ? 'ring-2 ring-blue-500 border-blue-500' : 'hover:shadow-lg'}`}>
+            <CardContent className="p-6 space-y-4" onClick={() => setButtonType('download')}>
+              <div className="text-center">
+                <div className="bg-green-100 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                  <Download className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mt-4">Lead Magnet</h3>
+                <p className="text-slate-600 mt-2">
+                  Collect info before providing download or contact details
+                </p>
+              </div>
+
+              <div className="space-y-2 text-sm text-slate-600">
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>High conversion rate</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>Keeps users engaged</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>Perfect for services</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>Builds email list</span>
+                </div>
+              </div>
+
+              {buttonType === 'download' && (
+                <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                  <p className="text-blue-800 font-medium text-center">✓ Selected</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Configuration Section */}
+        <div className="max-w-3xl mx-auto">
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <h3 className="text-lg font-semibold text-slate-900">
+                {buttonType === 'popup' && 'Popup Configuration'}
+                {buttonType === 'redirect' && 'Redirect Configuration'}
+                {buttonType === 'download' && 'Lead Magnet Configuration'}
+              </h3>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="formEmbedUrl">
+                    {buttonType === 'popup' && 'GoHighLevel Form Embed Code'}
+                    {buttonType === 'redirect' && 'GoHighLevel Form URL'}
+                    {buttonType === 'download' && 'GoHighLevel Form URL'}
+                  </Label>
+                  <Textarea
+                    id="formEmbedUrl"
+                    value={formEmbedUrl}
+                    onChange={(e) => setFormEmbedUrl(e.target.value)}
+                    placeholder={
+                      buttonType === 'popup' 
+                        ? 'Paste your GoHighLevel iframe embed code here...'
+                        : 'Paste your GoHighLevel form URL here...'
+                    }
+                    className="mt-1 h-24"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="buttonText">Button Text</Label>
+                  <Input
+                    id="buttonText"
+                    value={buttonText}
+                    onChange={(e) => setButtonText(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Button Preview */}
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                  <h4 className="font-medium text-slate-900 mb-2">Button Preview</h4>
+                  <button
+                    style={{
+                      backgroundColor: previewColor,
+                      color: previewTextColor,
+                      borderRadius: `${previewBorderRadius}px`
+                    }}
+                    className="px-4 py-2 font-medium transition-opacity hover:opacity-90"
+                  >
+                    {buttonText}
+                  </button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 4: Feature Configuration
+    <Slide key={4}>
+      <div className="space-y-8">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-slate-900">Feature Configuration</h1>
+          <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            Choose which features to enable for your directory listings.
+          </p>
+        </div>
+
+        <div className="max-w-5xl mx-auto space-y-6">
+          {/* Main Features Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Expanded Description */}
+            <Card className="group hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-blue-100 p-2 rounded-lg">
+                      <AlignLeft className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Expanded Description</h3>
+                      <p className="text-sm text-slate-600">Rich content below listings</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={showDescription}
+                    onCheckedChange={setShowDescription}
+                  />
+                </div>
+                
+                {showDescription && (
+                  <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
+                    <p className="text-blue-800">
+                      ✓ Adds expandable content sections to listings with custom HTML support
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Metadata Bar */}
+            <Card className="group hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-purple-100 p-2 rounded-lg">
+                      <Info className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Metadata Bar</h3>
+                      <p className="text-sm text-slate-600">Location, price, category info</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={showMetadata}
+                    onCheckedChange={setShowMetadata}
+                  />
+                </div>
+                
+                {showMetadata && (
+                  <div className="bg-purple-50 border border-purple-200 rounded p-3 text-sm">
+                    <p className="text-purple-800">
+                      ✓ Displays structured metadata like location, price, and category
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Maps Integration */}
+            <Card className="group hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-green-100 p-2 rounded-lg">
+                      <MapPin className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Maps</h3>
+                      <p className="text-sm text-slate-600">Google Maps integration</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={showMaps}
+                    onCheckedChange={setShowMaps}
+                  />
+                </div>
+                
+                {showMaps && (
+                  <div className="bg-green-50 border border-green-200 rounded p-3 text-sm">
+                    <p className="text-green-800">
+                      ✓ Embeds interactive maps for location-based listings
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Price Display */}
+            <Card className="group hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-yellow-100 p-2 rounded-lg">
+                      <DollarSign className="w-5 h-5 text-yellow-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Price Display</h3>
+                      <p className="text-sm text-slate-600">Show pricing information</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={showPrice}
+                    onCheckedChange={setShowPrice}
+                  />
+                </div>
+                
+                {showPrice && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm">
+                    <p className="text-yellow-800">
+                      ✓ Displays pricing information for listings
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Buy Now Button */}
+            <Card className="group hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-red-100 p-2 rounded-lg">
+                      <ShoppingBag className="w-5 h-5 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Buy Now Button</h3>
+                      <p className="text-sm text-slate-600">Direct purchase option</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={showBuyNowButton}
+                    onCheckedChange={setShowBuyNowButton}
+                  />
+                </div>
+                
+                {showBuyNowButton && (
+                  <div className="bg-red-50 border border-red-200 rounded p-3 text-sm">
+                    <p className="text-red-800">
+                      ✓ Adds Buy Now buttons with synchronized styling
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Add to Cart Button */}
+            <Card className="group hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-indigo-100 p-2 rounded-lg">
+                      <ShoppingCart className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Add to Cart</h3>
+                      <p className="text-sm text-slate-600">Shopping cart integration</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={showAddToCartButton}
+                    onCheckedChange={setShowAddToCartButton}
+                  />
+                </div>
+                
+                {showAddToCartButton && (
+                  <div className="bg-indigo-50 border border-indigo-200 rounded p-3 text-sm">
+                    <p className="text-indigo-800">
+                      ✓ Adds Add to Cart buttons with synchronized styling
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Advanced Options */}
+          <Card>
+            <CardContent className="p-6 space-y-6">
+              <h3 className="text-lg font-semibold text-slate-900">Advanced Options</h3>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Cart Customization Toggle */}
+                <div className="flex items-center justify-between p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                  <div>
+                    <h4 className="font-semibold text-orange-900">Cart Page Customization</h4>
+                    <p className="text-sm text-orange-700">
+                      Hide checkout buttons, transform cart to bookmark system
+                    </p>
+                  </div>
+                  <Switch
+                    checked={showCartCustomization}
+                    onCheckedChange={setShowCartCustomization}
+                  />
+                </div>
+
+                {/* Price Removal Toggle */}
+                <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div>
+                    <h4 className="font-semibold text-red-900">Price Removal</h4>
+                    <p className="text-sm text-red-700">
+                      Hide all price elements across the site
+                    </p>
+                  </div>
+                  <Switch
+                    checked={showPriceRemoval}
+                    onCheckedChange={setShowPriceRemoval}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Feature Summary */}
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">Selected Features Summary</h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { name: 'Expanded Description', enabled: showDescription, icon: AlignLeft },
+                  { name: 'Metadata Bar', enabled: showMetadata, icon: Info },
+                  { name: 'Maps', enabled: showMaps, icon: MapPin },
+                  { name: 'Price Display', enabled: showPrice, icon: DollarSign },
+                  { name: 'Buy Now Button', enabled: showBuyNowButton, icon: ShoppingBag },
+                  { name: 'Add to Cart', enabled: showAddToCartButton, icon: ShoppingCart },
+                  { name: 'Cart Customization', enabled: showCartCustomization, icon: Settings },
+                  { name: 'Price Removal', enabled: showPriceRemoval, icon: X }
+                ].map((feature, index) => {
+                  const IconComponent = feature.icon;
+                  return (
+                    <div
+                      key={index}
+                      className={`flex items-center space-x-2 p-3 rounded-lg ${
+                        feature.enabled
+                          ? 'bg-green-50 border border-green-200'
+                          : 'bg-slate-50 border border-slate-200'
+                      }`}
+                    >
+                      <IconComponent className={`w-4 h-4 ${
+                        feature.enabled ? 'text-green-600' : 'text-slate-400'
+                      }`} />
+                      <span className={`text-sm ${
+                        feature.enabled ? 'text-green-800 font-medium' : 'text-slate-500'
+                      }`}>
+                        {feature.name}
+                      </span>
+                      {feature.enabled && (
+                        <Check className="w-4 h-4 text-green-600" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 5: Button Customization
+    <Slide key={5}>
+      <div className="space-y-8">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-slate-900">Button Customization</h1>
+          <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            Customize the appearance of your directory action buttons.
+          </p>
+        </div>
+
+        <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-8">
+          {/* Left Column: Controls */}
+          <div className="space-y-6">
+            <Card>
+              <CardContent className="p-6 space-y-6">
+                <h3 className="text-lg font-semibold text-slate-900">Button Styling</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="buttonText">Button Text</Label>
+                    <Input
+                      id="buttonText"
+                      value={buttonText}
+                      onChange={(e) => setButtonText(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="buttonColor">Button Color</Label>
+                    <div className="flex space-x-2 mt-1">
+                      <Input
+                        id="buttonColor"
+                        type="color"
+                        value={previewColor}
+                        onChange={(e) => setPreviewColor(e.target.value)}
+                        className="w-16 h-10 p-1 rounded"
+                      />
+                      <Input
+                        value={previewColor}
+                        onChange={(e) => setPreviewColor(e.target.value)}
+                        placeholder="#3b82f6"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="textColor">Text Color</Label>
+                    <div className="flex space-x-2 mt-1">
+                      <Input
+                        id="textColor"
+                        type="color"
+                        value={previewTextColor}
+                        onChange={(e) => setPreviewTextColor(e.target.value)}
+                        className="w-16 h-10 p-1 rounded"
+                      />
+                      <Input
+                        value={previewTextColor}
+                        onChange={(e) => setPreviewTextColor(e.target.value)}
+                        placeholder="#ffffff"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="borderRadius">Border Radius: {previewBorderRadius}px</Label>
+                    <div className="mt-2">
+                      <input
+                        id="borderRadius"
+                        type="range"
+                        min="0"
+                        max="20"
+                        value={previewBorderRadius}
+                        onChange={(e) => setPreviewBorderRadius(Number(e.target.value))}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-slate-500 mt-1">
+                        <span>0px (Square)</span>
+                        <span>20px (Rounded)</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Color Presets */}
+                <div>
+                  <Label>Quick Color Presets</Label>
+                  <div className="grid grid-cols-4 gap-2 mt-2">
+                    {[
+                      { bg: '#3b82f6', text: '#ffffff', name: 'Blue' },
+                      { bg: '#10b981', text: '#ffffff', name: 'Green' },
+                      { bg: '#f59e0b', text: '#ffffff', name: 'Orange' },
+                      { bg: '#ef4444', text: '#ffffff', name: 'Red' },
+                      { bg: '#8b5cf6', text: '#ffffff', name: 'Purple' },
+                      { bg: '#06b6d4', text: '#ffffff', name: 'Cyan' },
+                      { bg: '#000000', text: '#ffffff', name: 'Black' },
+                      { bg: '#ffffff', text: '#000000', name: 'White' }
+                    ].map((preset, index) => (
+                      <button
+                        key={index}
+                        className="aspect-square rounded border-2 hover:scale-105 transition-transform"
+                        style={{ 
+                          backgroundColor: preset.bg,
+                          borderColor: preset.bg === '#ffffff' ? '#e5e7eb' : preset.bg
+                        }}
+                        onClick={() => {
+                          setPreviewColor(preset.bg);
+                          setPreviewTextColor(preset.text);
+                        }}
+                        title={preset.name}
+                      >
+                        <span style={{ color: preset.text }} className="text-xs font-medium">
+                          Aa
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column: Preview */}
+          <div className="space-y-6">
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">Live Preview</h3>
+                
+                <div className="space-y-6">
+                  {/* Single Button Preview */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 text-center">
+                    <h4 className="font-medium text-slate-900 mb-4">Primary Action Button</h4>
+                    <button
+                      style={{
+                        backgroundColor: previewColor,
+                        color: previewTextColor,
+                        borderRadius: `${previewBorderRadius}px`
+                      }}
+                      className="px-6 py-3 font-medium transition-opacity hover:opacity-90 shadow-sm"
+                    >
+                      {buttonText}
+                    </button>
+                  </div>
+
+                  {/* Multiple Buttons Preview (when applicable) */}
+                  {(showBuyNowButton || showAddToCartButton) && (
+                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-6">
+                      <h4 className="font-medium text-slate-900 mb-4 text-center">Synchronized Button Group</h4>
+                      <div className="flex flex-col space-y-2">
+                        <button
+                          style={{
+                            backgroundColor: previewColor,
+                            color: previewTextColor,
+                            borderRadius: `${previewBorderRadius}px`
+                          }}
+                          className="px-4 py-2 font-medium transition-opacity hover:opacity-90 shadow-sm"
+                        >
+                          {buttonText}
+                        </button>
+                        
+                        {showBuyNowButton && (
+                          <button
+                            style={{
+                              backgroundColor: previewColor,
+                              color: previewTextColor,
+                              borderRadius: `${previewBorderRadius}px`
+                            }}
+                            className="px-4 py-2 font-medium transition-opacity hover:opacity-90 shadow-sm"
+                          >
+                            Buy Now
+                          </button>
+                        )}
+                        
+                        {showAddToCartButton && (
+                          <button
+                            style={{
+                              backgroundColor: previewColor,
+                              color: previewTextColor,
+                              borderRadius: `${previewBorderRadius}px`
+                            }}
+                            className="px-4 py-2 font-medium transition-opacity hover:opacity-90 shadow-sm"
+                          >
+                            Add to Cart
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Listing Card Preview */}
+                  <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-3">
+                    <h4 className="font-medium text-slate-900 text-center mb-4">In Directory Context</h4>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h5 className="font-semibold text-slate-900">Sample Business</h5>
+                        <p className="text-sm text-slate-600">123 Main Street</p>
+                        {showPrice && (
+                          <p className="text-lg font-bold text-green-600">$29.99</p>
+                        )}
+                      </div>
+                      <div className="text-yellow-500">★★★★★</div>
+                    </div>
+                    <button
+                      style={{
+                        backgroundColor: previewColor,
+                        color: previewTextColor,
+                        borderRadius: `${previewBorderRadius}px`
+                      }}
+                      className="w-full px-4 py-2 font-medium transition-opacity hover:opacity-90 shadow-sm"
+                    >
+                      {buttonText}
+                    </button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 6: Header Code
+    <Slide key={6}>
+      <div className="space-y-8">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-slate-900">Header Code</h1>
+          <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            Copy this CSS code and paste it in your GoHighLevel page's header tracking code section.
+          </p>
+        </div>
+
+        <div className="max-w-5xl mx-auto space-y-6">
+          {/* Instructions */}
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">Installation Instructions</h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h4 className="font-medium text-slate-900">1. Copy the code below</h4>
+                  <h4 className="font-medium text-slate-900">2. Go to your GoHighLevel page</h4>
+                  <h4 className="font-medium text-slate-900">3. Open Settings → Tracking Code</h4>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-medium text-slate-900">4. Paste in Header section</h4>
+                  <h4 className="font-medium text-slate-900">5. Save and publish</h4>
+                  <h4 className="font-medium text-slate-900">6. Test on your live page</h4>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Code Display */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-slate-900">Header CSS Code</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(generatedCode?.headerCode || '', setHeaderCodeCopied)}
+                  className="flex items-center space-x-2"
+                >
+                  {headerCodeCopied ? (
+                    <>
+                      <Check className="w-4 h-4 text-green-600" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      <span>Copy Code</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+              
+              <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-96 overflow-auto">
+                <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                  {generatedCode?.headerCode || '/* Paste GoHighLevel form embed code in previous slide to generate CSS */'}
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 7: Footer Code
+    <Slide key={7}>
+      <div className="space-y-8">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-slate-900">Footer Code</h1>
+          <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            Copy this JavaScript code and paste it in your GoHighLevel page's footer tracking code section.
+          </p>
+        </div>
+
+        <div className="max-w-5xl mx-auto space-y-6">
+          {/* Instructions */}
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">Installation Instructions</h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h4 className="font-medium text-slate-900">1. Copy the code below</h4>
+                  <h4 className="font-medium text-slate-900">2. Go to your GoHighLevel page</h4>
+                  <h4 className="font-medium text-slate-900">3. Open Settings → Tracking Code</h4>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-medium text-slate-900">4. Paste in Footer section</h4>
+                  <h4 className="font-medium text-slate-900">5. Save and publish</h4>
+                  <h4 className="font-medium text-slate-900">6. Test the popup functionality</h4>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Code Display */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-slate-900">Footer JavaScript Code</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(generatedCode?.footerCode || '', setFooterCodeCopied)}
+                  className="flex items-center space-x-2"
+                >
+                  {footerCodeCopied ? (
+                    <>
+                      <Check className="w-4 h-4 text-green-600" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      <span>Copy Code</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+              
+              <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-96 overflow-auto">
+                <pre className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                  {generatedCode?.footerCode || '/* Paste GoHighLevel form embed code in slide 3 to generate JavaScript */'}
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </Slide>
+  ].filter(Boolean);
+
+  // Filter slides based on toggle states
+  const slides = useMemo(() => {
+    return allSlides.filter((slide, index) => {
+      // Always show core slides
+      return true;
+    });
+  }, [showCartCustomization, showPriceRemoval]);
+
+  const totalSlides = slides.length;
+
+  // Adjust current slide if it becomes invalid due to filtering
+  useEffect(() => {
+    if (currentSlide >= totalSlides) {
+      setCurrentSlide(Math.max(0, totalSlides - 1));
+    }
+  }, [currentSlide, totalSlides]);
 
   const nextSlide = () => {
     if (currentSlide < totalSlides - 1) {
@@ -239,608 +1568,6 @@ document.addEventListener('DOMContentLoaded', function() {
       setCurrentSlide(currentSlide - 1);
     }
   };
-
-  const slides = [
-    // Slide 1: Welcome
-    <Slide key={0}>
-      <div className="text-center">
-        <h1 className="text-5xl font-bold text-slate-900 mb-6">Directory Wizard</h1>
-        <p className="text-xl text-slate-600 mb-8 max-w-3xl mx-auto">
-          Transform your GoHighLevel eCommerce store into a powerful directory platform
-        </p>
-        <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-8 max-w-4xl mx-auto">
-          <h2 className="text-2xl font-semibold text-slate-900 mb-4">What You'll Create</h2>
-          <div className="grid md:grid-cols-3 gap-6 text-left">
-            <div className="flex items-start space-x-3">
-              <div className="bg-blue-100 p-2 rounded-full">
-                <Building2 className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-900">Business Directory</h3>
-                <p className="text-slate-600 text-sm">Dynamic listings with custom fields</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <div className="bg-green-100 p-2 rounded-full">
-                <FileText className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-900">Lead Capture</h3>
-                <p className="text-slate-600 text-sm">Integrated forms for each listing</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <div className="bg-purple-100 p-2 rounded-full">
-                <Settings className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-900">Full Customization</h3>
-                <p className="text-slate-600 text-sm">Complete control over appearance</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Slide>,
-
-    // Slide 2: Google Drive Setup
-    <Slide key={1}>
-      <div className="space-y-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-4">Google Drive Integration</h1>
-          <p className="text-xl text-slate-600">Connect your Google Drive to store directory images</p>
-        </div>
-
-        {!googleDriveConnected ? (
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-8 text-center">
-              <div className="bg-blue-100 p-6 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                <svg className="w-12 h-12 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6.28 3l5.72 9.91-2.86 4.95L.28 3h6zM16.78 3h6l-8.86 15.34L11.78 15 16.78 3zM12 13l2.86-4.95L17.72 21H6.28L12 13z"/>
-                </svg>
-              </div>
-              <h2 className="text-2xl font-semibold text-slate-900 mb-4">Connect Google Drive</h2>
-              <p className="text-slate-600 mb-6">
-                Images will be stored in a "Directory Images" folder in your Google Drive for easy organization and management.
-              </p>
-              <div className="space-y-4">
-                <div className="bg-white p-4 rounded-lg border border-blue-200">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-700">✓ Automatic folder creation</span>
-                  </div>
-                </div>
-                <div className="bg-white p-4 rounded-lg border border-blue-200">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-700">✓ Public URL generation</span>
-                  </div>
-                </div>
-                <div className="bg-white p-4 rounded-lg border border-blue-200">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-700">✓ Secure OAuth authentication</span>
-                  </div>
-                </div>
-              </div>
-              <Button 
-                onClick={() => {
-                  setGoogleDriveConnected(true);
-                  setGoogleDriveEmail('user@example.com');
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg mt-6"
-              >
-                <ExternalLink className="w-5 h-5 mr-2" />
-                Connect Google Drive
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="bg-green-100 p-3 rounded-full mr-4">
-                    <Check className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-green-800">Google Drive Connected</h3>
-                    <p className="text-green-700">Account: {googleDriveEmail}</p>
-                    <p className="text-sm text-green-600">Images stored in "Directory Images" folder</p>
-                  </div>
-                </div>
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    setGoogleDriveConnected(false);
-                    setGoogleDriveEmail('');
-                  }}
-                  className="text-slate-600 hover:text-slate-800"
-                >
-                  Switch Account
-                </Button>
-              </div>
-            </div>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <div className="bg-blue-100 p-2 rounded-full">
-                  <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-blue-800">Automatic Reconnection</h4>
-                  <p className="text-sm text-blue-700">This account will be automatically used for future directories.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </Slide>,
-
-    // Slide 3: Directory Setup
-    <Slide key={2}>
-      <div className="space-y-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-4">Directory Information</h1>
-          <p className="text-xl text-slate-600">Configure your directory name and branding</p>
-        </div>
-
-        <div className="max-w-2xl mx-auto space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="directory-name" className="text-lg font-medium">Directory Name</Label>
-            <Input
-              id="directory-name"
-              placeholder="e.g., Local Business Directory"
-              value={directoryName}
-              onChange={(e) => setDirectoryName(e.target.value)}
-              className="text-lg p-4"
-            />
-            <p className="text-sm text-slate-500">This will be used in form submissions and file organization</p>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-lg font-medium">Directory Logo (Optional)</Label>
-            <div 
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                isDragOver ? 'border-blue-500 bg-blue-50' : 'border-slate-300'
-              }`}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsDragOver(true);
-              }}
-              onDragLeave={() => setIsDragOver(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setIsDragOver(false);
-                const files = Array.from(e.dataTransfer.files);
-                const imageFile = files.find(file => file.type.startsWith('image/'));
-                if (imageFile) {
-                  setLogoFile(imageFile);
-                  setLogoUrl(URL.createObjectURL(imageFile));
-                }
-              }}
-            >
-              {logoUrl ? (
-                <div className="space-y-4">
-                  <img src={logoUrl} alt="Directory Logo" className="max-h-32 mx-auto rounded-lg" />
-                  <div className="flex space-x-2 justify-center">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setLogoUrl('');
-                        setLogoFile(null);
-                      }}
-                    >
-                      Remove
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => document.getElementById('logo-upload')?.click()}
-                    >
-                      Change
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <Upload className="w-12 h-12 text-slate-400 mx-auto" />
-                  <div>
-                    <p className="text-slate-600">Drag and drop your logo here, or</p>
-                    <Button
-                      variant="outline"
-                      onClick={() => document.getElementById('logo-upload')?.click()}
-                    >
-                      Browse Files
-                    </Button>
-                  </div>
-                  <p className="text-sm text-slate-500">PNG, JPG, or GIF up to 5MB</p>
-                </div>
-              )}
-              <input
-                id="logo-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setLogoFile(file);
-                    setLogoUrl(URL.createObjectURL(file));
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </Slide>,
-
-    // Slide 4: Form Integration
-    <Slide key={3}>
-      <div className="space-y-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-4">Form Integration</h1>
-          <p className="text-xl text-slate-600">Configure how visitors will contact listings</p>
-        </div>
-
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div className="space-y-4">
-            <Label className="text-lg font-medium">Integration Method</Label>
-            <div className="grid md:grid-cols-3 gap-4">
-              <Button
-                variant={buttonType === 'popup' ? 'default' : 'outline'}
-                onClick={() => setButtonType('popup')}
-                className="p-6 h-auto flex flex-col items-center space-y-2"
-              >
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <ExternalLink className="w-6 h-6 text-blue-600" />
-                </div>
-                <span className="font-semibold">Popup Form</span>
-                <span className="text-sm text-center">Form opens in overlay</span>
-              </Button>
-              <Button
-                variant={buttonType === 'redirect' ? 'default' : 'outline'}
-                onClick={() => setButtonType('redirect')}
-                className="p-6 h-auto flex flex-col items-center space-y-2"
-              >
-                <div className="bg-green-100 p-3 rounded-full">
-                  <ExternalLink className="w-6 h-6 text-green-600" />
-                </div>
-                <span className="font-semibold">Redirect</span>
-                <span className="text-sm text-center">Navigate to form page</span>
-              </Button>
-              <Button
-                variant={buttonType === 'embed' ? 'default' : 'outline'}
-                onClick={() => setButtonType('embed')}
-                className="p-6 h-auto flex flex-col items-center space-y-2"
-              >
-                <div className="bg-purple-100 p-3 rounded-full">
-                  <FileText className="w-6 h-6 text-purple-600" />
-                </div>
-                <span className="font-semibold">Embedded</span>
-                <span className="text-sm text-center">Form shows on page</span>
-              </Button>
-            </div>
-          </div>
-
-          {/* Form Configuration - Only show for popup */}
-          {buttonType === 'popup' && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="form-embed">
-                  {buttonType === 'popup' ? 'GoHighLevel Iframe Embed Code' : 'GoHighLevel Form Embed Code'}
-                </Label>
-                <div className="space-y-3">
-                  <textarea
-                    id="form-embed"
-                    placeholder="Paste your GoHighLevel iframe embed code here..."
-                    className="w-full h-32 p-3 border-2 border-gray-300 rounded-lg font-mono text-sm"
-                    style={{ 
-                      resize: 'vertical',
-                      minHeight: '120px'
-                    }}
-                    onBlur={(e) => {
-                      if (e.target.value !== formEmbedUrl) {
-                        setFormEmbedUrl(e.target.value);
-                      }
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      const textarea = document.getElementById('form-embed') as HTMLTextAreaElement;
-                      console.log('Button clicked, textarea value:', textarea?.value?.length || 0, 'chars');
-                      if (textarea && textarea.value) {
-                        console.log('Setting formEmbedUrl to:', textarea.value.substring(0, 50) + '...');
-                        setFormEmbedUrl(textarea.value);
-                      } else {
-                        console.log('No textarea value found');
-                      }
-                    }}
-                    className="w-full"
-                  >
-                    Update Code Generation
-                  </Button>
-                </div>
-                {buttonType === 'popup' && parsedEmbedData && (
-                  <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
-                    ✓ Form detected: {parsedEmbedData.width}×{parsedEmbedData.height}px 
-                    → Popup will be {parsedEmbedData.width + 100}×{parsedEmbedData.height + 100}px (+100px spacing)
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="custom-field">Custom Field Name</Label>
-                <Input
-                  id="custom-field"
-                  placeholder="listing"
-                  value={customFieldName}
-                  onChange={(e) => setCustomFieldName(e.target.value)}
-                />
-                <p className="text-sm text-slate-500">
-                  This field will be automatically added to forms with the current listing URL
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </Slide>,
-
-    // Slide 5: Setup Complete
-    <Slide key={4}>
-      <div className="space-y-8">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-6">
-            <div className="bg-green-500 text-white p-6 rounded-full mr-4">
-              <CheckCircle className="w-12 h-12" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-slate-900">Setup Complete!</h1>
-              <p className="text-xl text-slate-600 mt-2">Directory configuration is ready for implementation</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-green-50 to-blue-50 border border-green-200 rounded-xl p-8">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-semibold text-slate-900 mb-3">Next Steps</h2>
-              <p className="text-lg text-slate-700">
-                Your directory wizard configuration is complete. Now it's time to implement the generated code.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-lg border border-slate-200">
-                <div className="flex items-center mb-4">
-                  <div className="bg-orange-100 p-3 rounded-full mr-3">
-                    <ShoppingBag className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <h3 className="font-semibold text-slate-900 text-[17px]">Access The Product Details Page</h3>
-                </div>
-                <p className="text-slate-600 mb-4">
-                  Navigate to your GoHighLevel eCommerce store and open any product details page where you want to add directory functionality.
-                </p>
-                <div className="bg-slate-50 p-3 rounded border text-sm text-slate-700">
-                  <strong>Tip:</strong> Choose a product page that will serve as your directory template
-                </div>
-              </div>
-
-              <div className="bg-white p-6 rounded-lg border border-slate-200">
-                <div className="flex items-center mb-4">
-                  <div className="bg-blue-100 p-3 rounded-full mr-3">
-                    <Code className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-slate-900">Add the Generated Code</h3>
-                </div>
-                <p className="text-slate-600 mb-4">
-                  Copy the CSS and JavaScript code from the next slides and paste them into your product page's custom code sections.
-                </p>
-                <div className="bg-slate-50 p-3 rounded border text-sm text-slate-700">
-                  <strong>Location:</strong> Custom CSS section & Footer Tracking Code
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-start space-x-3">
-                <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-blue-900 mb-2">Ready to Proceed</h4>
-                  <p className="text-blue-800">
-                    Click "Next" to view the CSS code that needs to be added to your Custom CSS section, 
-                    followed by the JavaScript code for your Footer Tracking Code section.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Slide>,
-
-    // Slide 6: Header Code (CSS)
-    <Slide key={5}>
-      <div className="space-y-6">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="bg-blue-500 text-white p-4 rounded-full mr-4">
-              <Code className="w-8 h-8" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Header Code</h1>
-              <p className="text-lg text-slate-600">Add to Custom CSS section in GoHighLevel</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-lg font-medium">Header Code (Add to &lt;head&gt; section)</Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => copyToClipboard(generatedCode.headerCode, setHeaderCodeCopied)}
-                className="flex items-center space-x-2"
-              >
-                {headerCodeCopied ? (
-                  <>
-                    <Check className="w-4 h-4 text-green-600" />
-                    <span>Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    <span>Copy</span>
-                  </>
-                )}
-              </Button>
-            </div>
-            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-80 overflow-auto">
-              <pre className="text-sm whitespace-pre-wrap">{generatedCode.headerCode || '/* No header code generated - ensure form embed code is pasted on slide 4 */'}</pre>
-            </div>
-            <div className="text-xs text-gray-500 mt-2">
-              Debug: Header code length: {generatedCode.headerCode?.length || 0} characters
-            </div>
-          </div>
-        </div>
-      </div>
-    </Slide>,
-
-    // Slide 7: Footer Code
-    <Slide key={6}>
-      <div className="space-y-6">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="bg-purple-500 text-white p-4 rounded-full mr-4">
-              <Code className="w-8 h-8" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Footer Code</h1>
-              <p className="text-lg text-slate-600">Add before closing body tag in GoHighLevel</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-lg font-medium">Footer Code (Add before &lt;/body&gt; tag)</Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => copyToClipboard(generatedCode.footerCode, setFooterCodeCopied)}
-                className="flex items-center space-x-2"
-              >
-                {footerCodeCopied ? (
-                  <>
-                    <Check className="w-4 h-4 text-green-600" />
-                    <span>Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    <span>Copy</span>
-                  </>
-                )}
-              </Button>
-            </div>
-            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg h-80 overflow-auto">
-              <pre className="text-sm whitespace-pre-wrap">{generatedCode.footerCode || '/* No footer code generated - ensure form embed code is pasted on slide 4 */'}</pre>
-            </div>
-            <div className="text-xs text-gray-500 mt-2">
-              Debug: Footer code length: {generatedCode.footerCode?.length || 0} characters
-            </div>
-          </div>
-        </div>
-      </div>
-    </Slide>,
-
-    // Slide 8: Final Instructions
-    <Slide key={7}>
-      <div className="space-y-8">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-6">
-            <div className="bg-green-500 text-white p-6 rounded-full mr-4">
-              <Rocket className="w-12 h-12" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-slate-900">You're All Set!</h1>
-              <p className="text-xl text-slate-600 mt-2">Your directory is ready to launch</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-green-50 to-blue-50 border border-green-200 rounded-xl p-8">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-semibold text-slate-900 mb-3">Implementation Summary</h2>
-              <p className="text-lg text-slate-700">
-                You've successfully configured your directory system. Here's what you accomplished:
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-lg border border-slate-200">
-                <div className="flex items-center mb-4">
-                  <div className="bg-green-100 p-3 rounded-full mr-3">
-                    <Check className="w-6 h-6 text-green-600" />
-                  </div>
-                  <h3 className="font-semibold text-slate-900">Configuration Complete</h3>
-                </div>
-                <ul className="space-y-2 text-slate-600">
-                  <li>✓ Google Drive connected for image storage</li>
-                  <li>✓ Directory name and branding configured</li>
-                  <li>✓ Form integration method selected</li>
-                  <li>✓ Custom code generated for your setup</li>
-                </ul>
-              </div>
-
-              <div className="bg-white p-6 rounded-lg border border-slate-200">
-                <div className="flex items-center mb-4">
-                  <div className="bg-blue-100 p-3 rounded-full mr-3">
-                    <Code className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="font-semibold text-slate-900">Next Steps</h3>
-                </div>
-                <ul className="space-y-2 text-slate-600">
-                  <li>1. Open your GoHighLevel product page</li>
-                  <li>2. Paste header code in Custom CSS section</li>
-                  <li>3. Paste footer code in Footer Tracking Code</li>
-                  <li>4. Test the directory functionality</li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <Button
-                onClick={() => {
-                  // Store configuration in localStorage for potential future use
-                  const config = {
-                    directoryName,
-                    integrationMethod: buttonType,
-                    formEmbedUrl,
-                    customFieldName,
-                    googleDriveConnected
-                  };
-                  localStorage.setItem('slideshowConfig', JSON.stringify(config));
-                  window.location.href = '/';
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
-              >
-                <FolderOpen className="w-5 h-5 mr-2" />
-                Complete Setup
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Slide>
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
