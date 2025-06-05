@@ -827,8 +827,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 <textarea
                   id="form-embed"
                   placeholder="Paste your GoHighLevel iframe embed code here..."
-                  value={formEmbedUrl}
-                  onChange={(e) => setFormEmbedUrl(e.target.value)}
+                  defaultValue={formEmbedUrl}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    setFormEmbedUrl(target.value);
+                  }}
+                  onPaste={(e) => {
+                    setTimeout(() => {
+                      const target = e.target as HTMLTextAreaElement;
+                      setFormEmbedUrl(target.value);
+                    }, 10);
+                  }}
                   className="w-full h-32 p-3 border-2 border-gray-300 rounded-lg font-mono text-sm"
                   style={{ 
                     resize: 'vertical',
