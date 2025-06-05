@@ -1272,26 +1272,30 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
           </p>
         </div>
 
-        {/* Generated CSS Code */}
+        {/* Generated Complete Code */}
         <Card className="bg-white/90 backdrop-blur-sm border border-green-200 text-left">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">GoHighLevel CSS Integration</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Complete GoHighLevel Integration Code</h3>
               <Button
                 onClick={() => {
-                  const cssCode = generateFinalCSS();
-                  navigator.clipboard.writeText(cssCode);
+                  const generatedCode = generateCodeForSelection();
+                  const completeCode = `${generatedCode.headerCode}\n\n${generatedCode.footerCode}`;
+                  navigator.clipboard.writeText(completeCode);
                 }}
                 className="bg-green-600 hover:bg-green-700"
               >
                 <Copy className="w-4 h-4 mr-2" />
-                Copy Code
+                Copy Complete Code
               </Button>
             </div>
             
             <div className="bg-gray-900 text-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto">
               <pre className="text-sm whitespace-pre-wrap">
-                {generateFinalCSS()}
+{(() => {
+  const generatedCode = generateCodeForSelection();
+  return `${generatedCode.headerCode}\n\n${generatedCode.footerCode}`;
+})()}
               </pre>
             </div>
           </CardContent>
