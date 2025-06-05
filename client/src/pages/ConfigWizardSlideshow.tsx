@@ -21,13 +21,19 @@ interface SlideProps {
 
 function Slide({ children, className = "" }: SlideProps) {
   return (
-    <div className={`min-h-screen flex flex-col justify-center items-center px-8 py-16 ${className}`}>
+    <div className={`min-h-screen flex flex-col justify-center items-center p-8 ${className}`}>
       <div className="w-full max-w-6xl mx-auto bg-white border border-white/30 rounded-2xl p-8 shadow-lg">
         {children}
       </div>
     </div>
   );
 }
+
+
+
+
+
+
 
 export default function ConfigWizardSlideshow() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -1611,8 +1617,17 @@ Your marketplace enhancement is now active!`
       </div>
       
       {/* Main Content - Takes remaining space */}
-      <div className="flex-1 overflow-auto pb-20">
-        {slides[currentSlide]}
+      <div className="flex-1 overflow-hidden pb-20 relative">
+        <div 
+          className="flex transition-transform duration-500 ease-in-out h-full"
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        >
+          {slides.map((slide, index) => (
+            <div key={index} className="w-full flex-shrink-0">
+              {slide}
+            </div>
+          ))}
+        </div>
       </div>
       
       {/* Navigation Footer - Fixed at bottom */}
