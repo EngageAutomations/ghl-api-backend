@@ -830,8 +830,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     : 'Paste your GoHighLevel form embed code here...'
                   }
                   value={formEmbedUrl}
-                  onChange={(e) => setFormEmbedUrl(e.target.value)}
-                  className="min-h-[100px]"
+                  onChange={(e) => {
+                    console.log('Textarea onChange triggered:', e.target.value);
+                    setFormEmbedUrl(e.target.value);
+                  }}
+                  onInput={(e) => {
+                    console.log('Textarea onInput triggered:', e.currentTarget.value);
+                    setFormEmbedUrl(e.currentTarget.value);
+                  }}
+                  onPaste={(e) => {
+                    console.log('Textarea onPaste triggered');
+                    setTimeout(() => {
+                      const target = e.target as HTMLTextAreaElement;
+                      setFormEmbedUrl(target.value);
+                    }, 0);
+                  }}
+                  className="min-h-[100px] relative z-10"
+                  autoComplete="off"
+                  spellCheck="false"
+                  style={{ pointerEvents: 'auto' }}
                 />
                 {buttonType === 'popup' && parsedEmbedData && (
                   <div className="text-sm text-green-600 bg-green-50 p-2 rounded">

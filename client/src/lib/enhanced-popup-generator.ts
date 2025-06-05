@@ -37,6 +37,7 @@ export function generateEnhancedPopupCode(config: PopupConfig): PopupGenerationR
     return {
       headerCode: '',
       footerCode: '',
+      fullIntegrationCode: '',
       parsedData: null,
       isValid: false,
       error: 'Unable to parse embed code. Please ensure you have pasted a valid GoHighLevel iframe embed code.'
@@ -48,6 +49,7 @@ export function generateEnhancedPopupCode(config: PopupConfig): PopupGenerationR
     return {
       headerCode: '',
       footerCode: '',
+      fullIntegrationCode: '',
       parsedData,
       isValid: false,
       error: 'Embed code must be from a supported GoHighLevel domain.'
@@ -56,10 +58,12 @@ export function generateEnhancedPopupCode(config: PopupConfig): PopupGenerationR
 
   const headerCode = generatePopupHeaderCode(config, parsedData);
   const footerCode = generatePopupFooterCode(config, parsedData);
+  const fullIntegrationCode = headerCode + '\n' + footerCode;
 
   return {
     headerCode,
     footerCode,
+    fullIntegrationCode,
     parsedData,
     isValid: true
   };
