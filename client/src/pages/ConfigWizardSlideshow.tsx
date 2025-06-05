@@ -1412,8 +1412,8 @@ body:not(.hl-builder) .action-icon {
       </Slide>
     );
 
-    // Add global price hiding CSS slide when price display is enabled
-    if (showPrice) {
+    // Add global price hiding CSS slide when price display is disabled
+    if (!showPrice) {
       baseSlides.splice(-1, 0,
         <Slide key="global-price-css" className="bg-gradient-to-br from-orange-50 to-amber-100">
           <div className="text-center max-w-4xl mx-auto">
