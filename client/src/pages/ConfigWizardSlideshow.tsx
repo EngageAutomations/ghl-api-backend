@@ -1286,7 +1286,7 @@ body:not(.hl-builder) .action-icon {
           {/* Form Preview */}
           <Card className="bg-white/90 backdrop-blur-sm border border-purple-200">
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6 text-center">Create New Listing</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6 text-left">Create New Listing</h3>
               
               <div className="space-y-4">
                 {/* 1. Listing Title - Always show */}
@@ -1374,7 +1374,7 @@ body:not(.hl-builder) .action-icon {
                       <div className="flex items-end gap-2">
                         <div className="w-16">
                           <Label className="text-xs text-gray-600">Icon</Label>
-                          <div className="w-16 h-16 border border-gray-300 rounded flex items-center justify-center bg-white text-xs text-gray-400">
+                          <div className="w-16 h-10 border border-gray-300 rounded flex items-center justify-center bg-white text-xs text-gray-400">
                             📞
                           </div>
                         </div>
@@ -1400,21 +1400,6 @@ body:not(.hl-builder) .action-icon {
                     </div>
                   </div>
                 )}
-
-                {/* Action Button Preview */}
-                <div className="border-t pt-4 mt-6">
-                  <Label className="text-sm font-medium text-gray-700 block mb-2">Generated Action Button</Label>
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded font-medium"
-                    style={{
-                      backgroundColor: previewColor,
-                      color: '#ffffff',
-                    }}
-                  >
-                    {buttonText || 'Get Info'}
-                  </button>
-                </div>
 
                 <div className="flex justify-end space-x-3 pt-4 border-t">
                   <Button variant="outline">Cancel</Button>
