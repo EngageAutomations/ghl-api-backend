@@ -1618,7 +1618,7 @@ Your marketplace enhancement is now active!`
       </div>
       
       {/* Main Content - Takes remaining space */}
-      <div className="flex-1 overflow-hidden pb-20 relative">
+      <div className="flex-1 overflow-hidden relative">
         <div 
           className="flex transition-transform duration-500 ease-in-out h-full"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
