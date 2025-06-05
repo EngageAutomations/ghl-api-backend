@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, Copy, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Check, X, CheckCircle2 as CheckCircle, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, Copy, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Check, X, CheckCircle2 as CheckCircle, Info, ArrowRight } from 'lucide-react';
 
 // Import proven code generation functions from config wizard
 import { parseEmbedCode, ParsedEmbedData } from '@/lib/embed-parser';
@@ -730,17 +730,17 @@ document.addEventListener('DOMContentLoaded', function() {
           </p>
         </div>
 
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6">
-          {/* Popup Option */}
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Action Button: Popup */}
           <Card className={`cursor-pointer transition-all ${buttonType === 'popup' ? 'ring-2 ring-blue-500 border-blue-500' : 'hover:shadow-lg'}`}>
             <CardContent className="p-6 space-y-4" onClick={() => setButtonType('popup')}>
               <div className="text-center">
                 <div className="bg-blue-100 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
                   <ExternalLink className="w-8 h-8 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-slate-900 mt-4">Popup Form</h3>
+                <h3 className="text-lg font-semibold text-slate-900 mt-4">Action Button: Popup</h3>
                 <p className="text-slate-600 mt-2">
-                  Opens GoHighLevel form in an overlay popup
+                  Opens form in overlay popup
                 </p>
               </div>
 
@@ -751,15 +751,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-green-600" />
-                  <span>Keeps users on your site</span>
+                  <span>Keeps users on site</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-green-600" />
-                  <span>Automatic listing tracking</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span>Mobile responsive</span>
+                  <span>Auto-fills product data</span>
                 </div>
               </div>
 
@@ -771,86 +767,193 @@ document.addEventListener('DOMContentLoaded', function() {
             </CardContent>
           </Card>
 
-          {/* Redirect Option */}
-          <Card className={`cursor-pointer transition-all ${buttonType === 'redirect' ? 'ring-2 ring-blue-500 border-blue-500' : 'hover:shadow-lg'}`}>
-            <CardContent className="p-6 space-y-4" onClick={() => setButtonType('redirect')}>
+          {/* Action Button: Download */}
+          <Card className={`cursor-pointer transition-all ${buttonType === 'download' ? 'ring-2 ring-green-500 border-green-500' : 'hover:shadow-lg'}`}>
+            <CardContent className="p-6 space-y-4" onClick={() => setButtonType('download')}>
               <div className="text-center">
-                <div className="bg-purple-100 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
-                  <ExternalLink className="w-8 h-8 text-purple-600" />
+                <div className="bg-green-100 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                  <Download className="w-8 h-8 text-green-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-slate-900 mt-4">Direct Redirect</h3>
+                <h3 className="text-lg font-semibold text-slate-900 mt-4">Action Button: Download</h3>
                 <p className="text-slate-600 mt-2">
-                  Takes users directly to GoHighLevel form page
+                  Direct file download
                 </p>
               </div>
 
               <div className="space-y-2 text-sm text-slate-600">
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>Instant file access</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>No form required</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>Perfect for PDFs/files</span>
+                </div>
+              </div>
+
+              {buttonType === 'download' && (
+                <div className="bg-green-50 border border-green-200 rounded p-3">
+                  <p className="text-green-800 font-medium text-center">✓ Selected</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Action Button: Redirect */}
+          <Card className={`cursor-pointer transition-all ${buttonType === 'redirect' ? 'ring-2 ring-purple-500 border-purple-500' : 'hover:shadow-lg'}`}>
+            <CardContent className="p-6 space-y-4" onClick={() => setButtonType('redirect')}>
+              <div className="text-center">
+                <div className="bg-purple-100 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                  <ArrowRight className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 mt-4">Action Button: Redirect</h3>
+                <p className="text-slate-600 mt-2">
+                  Redirects to form page
+                </p>
+              </div>
+
+              <div className="space-y-2 text-sm text-slate-600">
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span>Full screen form</span>
+                </div>
                 <div className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-green-600" />
                   <span>Simple implementation</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-green-600" />
-                  <span>Works on all devices</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span>Automatic listing tracking</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <X className="w-4 h-4 text-red-500" />
-                  <span>Users leave your site</span>
+                  <span>Auto-fills product data</span>
                 </div>
               </div>
 
               {buttonType === 'redirect' && (
-                <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                  <p className="text-blue-800 font-medium text-center">✓ Selected</p>
+                <div className="bg-purple-50 border border-purple-200 rounded p-3">
+                  <p className="text-purple-800 font-medium text-center">✓ Selected</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Download Option */}
-          <Card className={`cursor-pointer transition-all ${buttonType === 'download' ? 'ring-2 ring-blue-500 border-blue-500' : 'hover:shadow-lg'}`}>
-            <CardContent className="p-6 space-y-4" onClick={() => setButtonType('download')}>
+          {/* Embedded Form */}
+          <Card className={`cursor-pointer transition-all ${buttonType === 'embedded' ? 'ring-2 ring-orange-500 border-orange-500' : 'hover:shadow-lg'}`}>
+            <CardContent className="p-6 space-y-4" onClick={() => setButtonType('embedded')}>
               <div className="text-center">
-                <div className="bg-green-100 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
-                  <Download className="w-8 h-8 text-green-600" />
+                <div className="bg-orange-100 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                  <Code className="w-8 h-8 text-orange-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-slate-900 mt-4">Lead Magnet</h3>
+                <h3 className="text-lg font-semibold text-slate-900 mt-4">Embedded Form</h3>
                 <p className="text-slate-600 mt-2">
-                  Collect info before providing download or contact details
+                  Direct form integration
                 </p>
               </div>
 
               <div className="space-y-2 text-sm text-slate-600">
                 <div className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-green-600" />
-                  <span>High conversion rate</span>
+                  <span>No clicks required</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-green-600" />
-                  <span>Keeps users engaged</span>
+                  <span>Seamless experience</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-green-600" />
-                  <span>Perfect for services</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span>Builds email list</span>
+                  <span>Customizable placement</span>
                 </div>
               </div>
 
-              {buttonType === 'download' && (
-                <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                  <p className="text-blue-800 font-medium text-center">✓ Selected</p>
+              {buttonType === 'embedded' && (
+                <div className="bg-orange-50 border border-orange-200 rounded p-3">
+                  <p className="text-orange-800 font-medium text-center">✓ Selected</p>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
+
+        {/* Action Button Styling Section */}
+        {(buttonType === 'popup' || buttonType === 'download' || buttonType === 'redirect') && (
+          <div className="max-w-5xl mx-auto">
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-xl font-semibold text-slate-900 mb-6">Action Button Customization</h3>
+                
+                <div className="grid md:grid-cols-3 gap-8">
+                  {/* Button Style */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-slate-900">Button Style</h4>
+                    <div className="space-y-3">
+                      {[
+                        { value: 'solid', label: 'Solid' },
+                        { value: 'outline', label: 'Outline' },
+                        { value: 'ghost', label: 'Ghost' }
+                      ].map((style) => (
+                        <label key={style.value} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="buttonStyle"
+                            value={style.value}
+                            checked={buttonStyle === style.value}
+                            onChange={(e) => setButtonStyle(e.target.value)}
+                            className="text-indigo-600"
+                          />
+                          <span className="text-sm">{style.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Border Radius */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-slate-900">Border Radius</h4>
+                    <select
+                      value={borderRadius}
+                      onChange={(e) => setBorderRadius(e.target.value)}
+                      className="w-full p-3 border border-slate-300 rounded-lg"
+                    >
+                      <option value="0">None (0px)</option>
+                      <option value="4">Small (4px)</option>
+                      <option value="8">Medium (8px)</option>
+                      <option value="12">Large (12px)</option>
+                      <option value="20">Extra Large (20px)</option>
+                      <option value="50">Pill (50px)</option>
+                    </select>
+                  </div>
+
+                  {/* Button Preview */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-slate-900">Preview</h4>
+                    <div className="flex flex-col space-y-3">
+                      <button
+                        className={`px-6 py-3 font-medium transition-colors text-center ${
+                          buttonStyle === 'solid'
+                            ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                            : buttonStyle === 'outline'
+                            ? 'border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 bg-white'
+                            : 'text-indigo-600 hover:bg-indigo-50 bg-transparent'
+                        }`}
+                        style={{ borderRadius: `${borderRadius}px` }}
+                      >
+                        {buttonType === 'popup' && 'Get Info'}
+                        {buttonType === 'download' && 'Download'}
+                        {buttonType === 'redirect' && 'Learn More'}
+                      </button>
+                      
+                      <p className="text-xs text-slate-500 text-center">
+                        Button will inherit your page colors
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Configuration Section */}
         <div className="max-w-3xl mx-auto">
@@ -859,7 +962,8 @@ document.addEventListener('DOMContentLoaded', function() {
               <h3 className="text-lg font-semibold text-slate-900">
                 {buttonType === 'popup' && 'Popup Configuration'}
                 {buttonType === 'redirect' && 'Redirect Configuration'}
-                {buttonType === 'download' && 'Lead Magnet Configuration'}
+                {buttonType === 'download' && 'Download Configuration'}
+                {buttonType === 'embedded' && 'Embedded Form Configuration'}
               </h3>
 
               <div className="space-y-4">
@@ -867,7 +971,8 @@ document.addEventListener('DOMContentLoaded', function() {
                   <Label htmlFor="formEmbedUrl">
                     {buttonType === 'popup' && 'GoHighLevel Form Embed Code'}
                     {buttonType === 'redirect' && 'GoHighLevel Form URL'}
-                    {buttonType === 'download' && 'GoHighLevel Form URL'}
+                    {buttonType === 'download' && 'Download File URL'}
+                    {buttonType === 'embedded' && 'GoHighLevel Form Embed Code'}
                   </Label>
                   <Textarea
                     id="formEmbedUrl"
@@ -876,36 +981,46 @@ document.addEventListener('DOMContentLoaded', function() {
                     placeholder={
                       buttonType === 'popup' 
                         ? 'Paste your GoHighLevel iframe embed code here...'
+                        : buttonType === 'download'
+                        ? 'Paste your direct download file URL here...'
+                        : buttonType === 'embedded'
+                        ? 'Paste your GoHighLevel iframe embed code here...'
                         : 'Paste your GoHighLevel form URL here...'
                     }
                     className="mt-1 h-24"
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="buttonText">Button Text</Label>
-                  <Input
-                    id="buttonText"
-                    value={buttonText}
-                    onChange={(e) => setButtonText(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
+                {(buttonType === 'popup' || buttonType === 'download' || buttonType === 'redirect') && (
+                  <div>
+                    <Label htmlFor="buttonText">Button Text</Label>
+                    <Input
+                      id="buttonText"
+                      value={buttonText}
+                      onChange={(e) => setButtonText(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                )}
 
                 {/* Button Preview */}
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                  <h4 className="font-medium text-slate-900 mb-2">Button Preview</h4>
-                  <button
-                    style={{
-                      backgroundColor: previewColor,
-                      color: previewTextColor,
-                      borderRadius: `${previewBorderRadius}px`
-                    }}
-                    className="px-4 py-2 font-medium transition-opacity hover:opacity-90"
-                  >
-                    {buttonText}
-                  </button>
-                </div>
+                {(buttonType === 'popup' || buttonType === 'download' || buttonType === 'redirect') && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                    <h4 className="font-medium text-slate-900 mb-2">Button Preview</h4>
+                    <button
+                      className={`px-6 py-3 font-medium transition-colors ${
+                        buttonStyle === 'solid'
+                          ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                          : buttonStyle === 'outline'
+                          ? 'border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 bg-white'
+                          : 'text-indigo-600 hover:bg-indigo-50 bg-transparent'
+                      }`}
+                      style={{ borderRadius: `${borderRadius}px` }}
+                    >
+                      {buttonText}
+                    </button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
