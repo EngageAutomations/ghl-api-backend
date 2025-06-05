@@ -828,19 +828,11 @@ document.addEventListener('DOMContentLoaded', function() {
                   id="form-embed"
                   placeholder="Paste your GoHighLevel iframe embed code here..."
                   value={formEmbedUrl}
-                  onChange={(e) => {
-                    console.log('Textarea change:', e.target.value.length);
-                    setFormEmbedUrl(e.target.value);
-                  }}
-                  onKeyDown={(e) => console.log('Key pressed:', e.key)}
-                  onFocus={() => console.log('Textarea focused')}
-                  onBlur={() => console.log('Textarea blurred')}
+                  onChange={(e) => setFormEmbedUrl(e.target.value)}
                   className="w-full h-32 p-3 border-2 border-gray-300 rounded-lg font-mono text-sm"
                   style={{ 
                     resize: 'vertical',
-                    minHeight: '120px',
-                    zIndex: 1,
-                    position: 'relative'
+                    minHeight: '120px'
                   }}
                 />
                 {buttonType === 'popup' && parsedEmbedData && (
