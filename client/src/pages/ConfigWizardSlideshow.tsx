@@ -49,9 +49,7 @@ export default function ConfigWizardSlideshow() {
   const [showMaps, setShowMaps] = useState(false);
   const [showPrice, setShowPrice] = useState(false);
 
-  const [showAddToCartButton, setShowAddToCartButton] = useState(false);
   const [showQuantitySelector, setShowQuantitySelector] = useState(false);
-  const [showCartIcon, setShowCartIcon] = useState(true);
   const [integrationMethod, setIntegrationMethod] = useState('popup');
 
   const [buttonText, setButtonText] = useState('Get Info');
@@ -89,7 +87,6 @@ export default function ConfigWizardSlideshow() {
         buttonBorderRadius: 8,
         customFieldName: wizardFormData.fieldName || 'listing',
         formUrl: wizardFormData.embedCode,
-        showAddToCartButton,
         showQuantitySelector
       });
       
@@ -364,7 +361,8 @@ body:not(.hl-builder) button[class*="buy-now"] {
 }`;
     }
 
-    if (!showAddToCartButton) {
+    // Add to cart button visibility is now handled by GoHighLevel web builder
+    if (false) {
       css += `
 
 /* Hide Add to Cart Button */
@@ -399,7 +397,8 @@ body:not(.hl-builder) .action-icon {
 }`;
     }
 
-    if (!showCartIcon) {
+    // Cart icon visibility is now handled by GoHighLevel web builder
+    if (false) {
       css += `
 
 /* Hide Cart Icon - Comprehensive targeting */
@@ -984,49 +983,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-green-50 p-2 rounded-md">
-                    <ShoppingBag className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Show Add to Cart Button</h3>
-                    <p className="text-sm text-gray-500">Display add to cart functionality</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={showAddToCartButton}
-                  onCheckedChange={setShowAddToCartButton}
-                  id="show-add-to-cart" 
-                />
-              </div>
 
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-orange-50 p-2 rounded-md">
-                    <ShoppingCart className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium">Show Cart Icon</h3>
-                    <p className="text-sm text-gray-500">Display shopping cart icon in navigation</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={showCartIcon}
-                  onCheckedChange={setShowCartIcon}
-                  id="show-cart-icon" 
-                />
-              </div>
-
-            </CardContent>
-          </Card>
 
           <Card className="bg-white/80 backdrop-blur-sm border border-indigo-200">
             <CardContent className="p-6">
@@ -1212,18 +1169,12 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                     <span className="ml-2"><strong>Price Display:</strong> {showPrice ? 'Visible' : 'Hidden'}</span>
                   </div>
 
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">➕</span>
-                    <span className="ml-2"><strong>Add to Cart:</strong> {showAddToCartButton ? 'Visible' : 'Hidden'}</span>
-                  </div>
+
                   <div className="flex items-center">
                     <span className="w-6 text-center">🔢</span>
                     <span className="ml-2"><strong>Quantity Selector:</strong> {showQuantitySelector ? 'Visible' : 'Hidden'}</span>
                   </div>
-                  <div className="flex items-center">
-                    <span className="w-6 text-center">🛍️</span>
-                    <span className="ml-2"><strong>Cart Icon:</strong> {showCartIcon ? 'Visible' : 'Hidden'}</span>
-                  </div>
+
                 </div>
               </div>
 
@@ -1333,9 +1284,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                         showMetadata,
                         showMaps,
                         showPrice,
-                        showAddToCartButton,
                         showQuantitySelector,
-                        showCartIcon,
                         formEmbedUrl: wizardFormData.embedCode || "PASTE_YOUR_GOHIGHLEVEL_FORM_CODE_HERE",
                         customFieldName: wizardFormData.fieldName
                       };
