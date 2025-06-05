@@ -826,14 +826,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 </Label>
                 <textarea
                   id="form-embed"
-                  placeholder={buttonType === 'popup' 
-                    ? '<iframe src="https://link.msgsndr.com/form/..." width="500" height="600"></iframe>'
-                    : 'Paste your GoHighLevel form embed code here...'
-                  }
+                  placeholder="Paste your GoHighLevel iframe embed code here..."
                   value={formEmbedUrl}
-                  onChange={(e) => setFormEmbedUrl(e.target.value)}
-                  className="w-full min-h-[100px] p-3 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
-                  rows={6}
+                  onChange={(e) => {
+                    console.log('Textarea change:', e.target.value.length);
+                    setFormEmbedUrl(e.target.value);
+                  }}
+                  onKeyDown={(e) => console.log('Key pressed:', e.key)}
+                  onFocus={() => console.log('Textarea focused')}
+                  onBlur={() => console.log('Textarea blurred')}
+                  className="w-full h-32 p-3 border-2 border-gray-300 rounded-lg font-mono text-sm"
+                  style={{ 
+                    resize: 'vertical',
+                    minHeight: '120px',
+                    zIndex: 1,
+                    position: 'relative'
+                  }}
                 />
                 {buttonType === 'popup' && parsedEmbedData && (
                   <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
