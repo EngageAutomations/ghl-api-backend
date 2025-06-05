@@ -674,19 +674,19 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
 
     // Slide 3: Integration Method
     <Slide key="integration-method" className="bg-gradient-to-br from-green-50 to-emerald-100">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mb-6">
-            <Settings className="w-10 h-10 text-white" />
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-full mb-4">
+            <Settings className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Integration Method</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Select how you want to integrate GoHighLevel forms
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Integration Method</h2>
+          <p className="text-gray-600 mb-6">
+            Choose how visitors interact with your listings and configure button options
           </p>
         </div>
 
-        {/* Integration Options Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* Integration Options Grid - Streamlined */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <Card 
             className={`cursor-pointer transition-all border-2 ${
               integrationMethod === 'popup' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
