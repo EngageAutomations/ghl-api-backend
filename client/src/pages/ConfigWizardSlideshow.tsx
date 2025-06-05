@@ -1289,12 +1289,45 @@ body:not(.hl-builder) .action-icon {
               <h3 className="text-lg font-semibold text-gray-900 mb-6 text-center">Create New Listing</h3>
               
               <div className="space-y-4">
-                {/* Always show basic fields */}
+                {/* 1. Listing Title - Always show */}
                 <div>
                   <Label className="text-sm font-medium text-gray-700">Listing Title *</Label>
                   <Input placeholder="Enter listing title" className="mt-1" />
                 </div>
 
+                {/* 2. Listing Price - Show field or placeholder */}
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Listing Price {!showPrice && <span className="text-xs text-gray-500">(Hidden from display)</span>}
+                  </Label>
+                  <Input 
+                    placeholder={showPrice ? "$50,000" : "$1 (placeholder value)"} 
+                    className="mt-1" 
+                    style={!showPrice ? { backgroundColor: '#f9fafb', color: '#6b7280' } : {}}
+                  />
+                </div>
+
+                {/* 3. Basic Description with AI Summarizer */}
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Description</Label>
+                  <div className="mt-1 space-y-2">
+                    <textarea 
+                      className="w-full p-3 border border-gray-300 rounded-md resize-none"
+                      rows={3}
+                      placeholder="Describe your listing"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      className="text-xs"
+                    >
+                      🤖 Generate AI Bullet Points
+                    </Button>
+                  </div>
+                </div>
+
+                {/* 4. Expanded Description - If enabled */}
                 {showDescription && (
                   <div>
                     <Label className="text-sm font-medium text-gray-700">Expanded Description (Rich Text)</Label>
@@ -1316,29 +1349,13 @@ body:not(.hl-builder) .action-icon {
                   </div>
                 )}
 
+                {/* 5. Image URL */}
                 <div>
                   <Label className="text-sm font-medium text-gray-700">Image URL</Label>
                   <Input placeholder="https://example.com/image.jpg" className="mt-1" />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">Contact Email</Label>
-                    <Input placeholder="contact@example.com" className="mt-1" />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">Contact Phone</Label>
-                    <Input placeholder="(555) 123-4567" className="mt-1" />
-                  </div>
-                </div>
-
-                {showPrice !== false && (
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">Price</Label>
-                    <Input placeholder="$50,000" className="mt-1" />
-                  </div>
-                )}
-
+                {/* 6. Address for Google Maps - If enabled */}
                 {showMaps && (
                   <div>
                     <Label className="text-sm font-medium text-gray-700">Address for Google Maps</Label>
@@ -1346,36 +1363,40 @@ body:not(.hl-builder) .action-icon {
                   </div>
                 )}
 
+                {/* 7. Metadata Bar Fields - If enabled */}
                 {showMetadata && (
                   <div>
                     <Label className="text-sm font-medium text-gray-700">Metadata Bar Fields</Label>
                     <div className="mt-1 space-y-3 border border-gray-300 rounded-md p-3 bg-gray-50">
                       <div className="text-xs text-gray-500 mb-2">Add up to 8 icon + text pairs (Default: 1 field)</div>
                       
-                      {/* Default field */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <Label className="text-xs text-gray-600">Icon Image (SVG/PNG with transparency)</Label>
-                          <Input 
-                            placeholder="📱 or upload icon URL" 
-                            className="text-sm h-8"
-                            defaultValue="📞"
-                          />
+                      {/* Default field row */}
+                      <div className="flex items-end gap-2">
+                        <div className="w-16">
+                          <Label className="text-xs text-gray-600">Icon</Label>
+                          <div className="w-16 h-16 border border-gray-300 rounded flex items-center justify-center bg-white text-xs text-gray-400">
+                            📞
+                          </div>
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <Label className="text-xs text-gray-600">Display Text</Label>
                           <Input 
                             placeholder="Contact information" 
-                            className="text-sm h-8"
+                            className="text-sm"
                             defaultValue="(555) 123-4567"
                           />
                         </div>
                       </div>
                       
-                      <div className="text-xs text-blue-600 flex items-center">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-xs w-full"
+                      >
                         <Plus className="w-3 h-3 mr-1" />
-                        <span>Additional fields can be added (up to 8 total)</span>
-                      </div>
+                        Add Additional Field (up to 8 total)
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -1417,7 +1438,15 @@ body:not(.hl-builder) .action-icon {
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center text-green-600">
                       <span className="w-4 h-4 mr-2">✓</span>
-                      <span>Title (required)</span>
+                      <span>Listing Title (required)</span>
+                    </div>
+                    <div className="flex items-center text-green-600">
+                      <span className="w-4 h-4 mr-2">✓</span>
+                      <span>Listing Price {!showPrice && <span className="text-gray-500">(hidden with $1 placeholder)</span>}</span>
+                    </div>
+                    <div className="flex items-center text-green-600">
+                      <span className="w-4 h-4 mr-2">✓</span>
+                      <span>Basic Description + AI Bullet Points</span>
                     </div>
                     {showDescription && (
                       <div className="flex items-center text-green-600">
@@ -1429,16 +1458,6 @@ body:not(.hl-builder) .action-icon {
                       <span className="w-4 h-4 mr-2">✓</span>
                       <span>Image URL</span>
                     </div>
-                    <div className="flex items-center text-green-600">
-                      <span className="w-4 h-4 mr-2">✓</span>
-                      <span>Contact Information</span>
-                    </div>
-                    {showPrice && (
-                      <div className="flex items-center text-green-600">
-                        <span className="w-4 h-4 mr-2">✓</span>
-                        <span>Price</span>
-                      </div>
-                    )}
                     {showMaps && (
                       <div className="flex items-center text-green-600">
                         <span className="w-4 h-4 mr-2">✓</span>
@@ -1448,7 +1467,7 @@ body:not(.hl-builder) .action-icon {
                     {showMetadata && (
                       <div className="flex items-center text-green-600">
                         <span className="w-4 h-4 mr-2">✓</span>
-                        <span>Metadata Bar (Icon + Text pairs, up to 8)</span>
+                        <span>Metadata Bar (Square Icon + Text pairs, up to 8)</span>
                       </div>
                     )}
                   </div>
