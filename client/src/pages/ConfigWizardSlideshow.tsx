@@ -1412,61 +1412,8 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                 <h3 className="text-lg font-semibold text-gray-900">Header Code</h3>
                 <Button
                   onClick={() => {
-                    let headerCode = `<!-- Enhanced Product Details Header -->
-<script>
-// Enhanced product page functionality
-document.addEventListener('DOMContentLoaded', function() {
-  // URL slug detection
-  const url = new URL(window.location.href);
-  const slug = url.searchParams.get('slug') || url.pathname.split('/').pop();
-`;
-
-                    // Add form integration if embed code exists
-                    if (wizardFormData.embedCode) {
-                      headerCode += `
-  // GoHighLevel Form Integration
-  const formEmbedCode = \`${wizardFormData.embedCode}\`;
-  const customFieldName = '${wizardFormData.fieldName}';
-  console.log('Form integration active with field:', customFieldName);
-  
-  // Embed form into page
-  if (formEmbedCode) {
-    // Process and inject form code
-    console.log('Injecting form embed code');
-  }`;
-                    }
-
-                    // Add enhanced features
-                    if (showDescription) {
-                      headerCode += `
-  
-  // Enhanced description handling
-  if (slug) {
-    // Load enhanced description content
-    console.log('Loading enhanced description for:', slug);
-  }`;
-                    }
-
-                    if (showMetadata) {
-                      headerCode += `
-  
-  // Metadata bar setup
-  // Initialize metadata display
-  console.log('Setting up metadata bar');`;
-                    }
-
-                    if (showMaps) {
-                      headerCode += `
-  
-  // Google Maps integration
-  // Initialize Google Maps widget
-  console.log('Loading Google Maps widget');`;
-                    }
-
-                    headerCode += `
-});
-</script>`;
-                    navigator.clipboard.writeText(headerCode);
+                    const generatedCode = generateCodeForSelection();
+                    navigator.clipboard.writeText(generatedCode.headerCode);
                   }}
                   className="bg-emerald-600 hover:bg-emerald-700"
                 >
