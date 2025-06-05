@@ -1268,7 +1268,197 @@ body:not(.hl-builder) .action-icon {
       </div>
     </Slide>,
 
-    // Slide 7: Generate Code
+    // Slide 7: Form Preview
+    <Slide key="form-preview" className="bg-gradient-to-br from-purple-50 to-indigo-100">
+      <div className="text-center max-w-4xl mx-auto">
+        <div className="mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-600 rounded-full mb-6">
+            <FileText className="w-10 h-10 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Generated Form Preview</h2>
+          <p className="text-lg text-gray-600 mb-8">
+            This is how your directory's listing creation form will appear based on your configuration
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Form Preview */}
+          <Card className="bg-white/90 backdrop-blur-sm border border-purple-200">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6 text-center">Create New Listing</h3>
+              
+              <div className="space-y-4">
+                {/* Always show basic fields */}
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Listing Title *</Label>
+                  <Input placeholder="Enter listing title" className="mt-1" />
+                </div>
+
+                {showDescription !== false && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Description</Label>
+                    <textarea 
+                      className="w-full mt-1 p-3 border border-gray-300 rounded-md resize-none"
+                      rows={3}
+                      placeholder="Describe your listing"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Image URL</Label>
+                  <Input placeholder="https://example.com/image.jpg" className="mt-1" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Contact Email</Label>
+                    <Input placeholder="contact@example.com" className="mt-1" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Contact Phone</Label>
+                    <Input placeholder="(555) 123-4567" className="mt-1" />
+                  </div>
+                </div>
+
+                {showPrice !== false && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Price</Label>
+                    <Input placeholder="$50,000" className="mt-1" />
+                  </div>
+                )}
+
+                {showMaps !== false && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Location/Address</Label>
+                    <Input placeholder="123 Main St, City, State" className="mt-1" />
+                  </div>
+                )}
+
+                {showMetadata !== false && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Additional Details</Label>
+                    <Input placeholder="Business hours, contact info, etc." className="mt-1" />
+                  </div>
+                )}
+
+                {/* Action Button Preview */}
+                <div className="border-t pt-4 mt-6">
+                  <Label className="text-sm font-medium text-gray-700 block mb-2">Generated Action Button</Label>
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded font-medium"
+                    style={{
+                      backgroundColor: buttonColor,
+                      color: '#ffffff',
+                    }}
+                  >
+                    {buttonText || 'Get Info'}
+                  </button>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4 border-t">
+                  <Button variant="outline">Cancel</Button>
+                  <Button className="bg-purple-600 hover:bg-purple-700">Create Listing</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Configuration Summary */}
+          <Card className="bg-white/90 backdrop-blur-sm border border-purple-200">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Form Configuration</h3>
+              
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    <Settings className="w-4 h-4 mr-2 text-purple-600" />
+                    Enabled Fields
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center text-green-600">
+                      <span className="w-4 h-4 mr-2">✓</span>
+                      <span>Title (required)</span>
+                    </div>
+                    {showDescription !== false && (
+                      <div className="flex items-center text-green-600">
+                        <span className="w-4 h-4 mr-2">✓</span>
+                        <span>Description</span>
+                      </div>
+                    )}
+                    <div className="flex items-center text-green-600">
+                      <span className="w-4 h-4 mr-2">✓</span>
+                      <span>Image URL</span>
+                    </div>
+                    <div className="flex items-center text-green-600">
+                      <span className="w-4 h-4 mr-2">✓</span>
+                      <span>Contact Information</span>
+                    </div>
+                    {showPrice !== false && (
+                      <div className="flex items-center text-green-600">
+                        <span className="w-4 h-4 mr-2">✓</span>
+                        <span>Price</span>
+                      </div>
+                    )}
+                    {showMaps !== false && (
+                      <div className="flex items-center text-green-600">
+                        <span className="w-4 h-4 mr-2">✓</span>
+                        <span>Location/Address</span>
+                      </div>
+                    )}
+                    {showMetadata !== false && (
+                      <div className="flex items-center text-green-600">
+                        <span className="w-4 h-4 mr-2">✓</span>
+                        <span>Additional Details</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    <MousePointer className="w-4 h-4 mr-2 text-purple-600" />
+                    Button Configuration
+                  </h4>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div><strong>Type:</strong> {integrationMethod === 'popup' ? 'Popup' : 'Embedded Form'}</div>
+                    <div><strong>Text:</strong> {buttonText || 'Get Info'}</div>
+                    <div><strong>Color:</strong> <span className="inline-block w-4 h-4 rounded ml-1" style={{backgroundColor: buttonColor}}></span></div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    <Code className="w-4 h-4 mr-2 text-purple-600" />
+                    Integration Details
+                  </h4>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div><strong>Method:</strong> {integrationMethod}</div>
+                    <div><strong>Field Name:</strong> {wizardFormData.fieldName || 'listing'}</div>
+                    <div><strong>Directory:</strong> {directoryName || 'My Directory'}</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mt-8 text-center">
+          <p className="text-gray-600 mb-4">
+            This form will be generated automatically when users click "Create New Listing" in your directory
+          </p>
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 max-w-2xl mx-auto">
+            <p className="text-sm text-purple-800">
+              <strong>Integration Note:</strong> The form fields shown above will be dynamically generated based on your configuration. 
+              Users will be able to create listings that match your directory's requirements.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Slide>,
+
+    // Slide 8: Generate Code
     <Slide key="generate-code" className="bg-gradient-to-br from-green-50 to-emerald-100">
       <div className="text-center max-w-4xl mx-auto">
         <div className="mb-8">
