@@ -54,6 +54,9 @@ export default function ConfigWizardSlideshow() {
   const [showCartIcon, setShowCartIcon] = useState(true);
   const [integrationMethod, setIntegrationMethod] = useState('popup');
   const [convertCartToBookmarks, setConvertCartToBookmarks] = useState(false);
+  const [buttonText, setButtonText] = useState('Get Info');
+  const [previewColor, setPreviewColor] = useState('#3b82f6');
+  const [previewTextColor, setPreviewTextColor] = useState('#ffffff');
 
   // Helper function to extract form URL from embed code
   const extractFormUrl = (embedCode: string) => {
