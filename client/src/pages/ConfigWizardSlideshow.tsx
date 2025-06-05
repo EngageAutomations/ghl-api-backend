@@ -1246,7 +1246,7 @@ body:not(.hl-builder) .action-icon {
 
           {/* Configuration Instructions */}
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="font-medium text-blue-800 mb-2">📋 Configuration Instructions</h4>
+            <h4 className="font-medium text-blue-800 mb-2">Add this code to the CSS field inside your product listing page.</h4>
             <div className="text-sm text-blue-700 space-y-2">
               <p><strong>1. Download Config:</strong> Click "Download Config" to get your configuration JSON file</p>
               <p><strong>2. Edit the JSON:</strong> Open the file and replace:</p>
