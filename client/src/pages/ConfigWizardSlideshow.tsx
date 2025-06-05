@@ -871,9 +871,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
                   <ExternalLink className="w-6 h-6 text-green-600" />
                   <div className="text-left">
                     <h4 className="text-lg font-medium text-green-800">Redirect Button</h4>
-                    <p className="text-green-700 mt-2">
-                      Redirect URLs will be configured through your form submissions. The button will redirect users to external pages.
-                    </p>
+                    <p className="text-green-700 mt-2">Redirect URLs will be configured when creating the listings. The button will redirect users to external pages.</p>
                   </div>
                 </div>
               </div>
