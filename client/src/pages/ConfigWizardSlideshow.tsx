@@ -21,7 +21,7 @@ interface SlideProps {
 
 function Slide({ children, className = "" }: SlideProps) {
   return (
-    <div className={`min-h-screen flex flex-col justify-center items-center p-8 ${className}`}>
+    <div className={`min-h-screen flex flex-col justify-center items-center px-8 py-16 ${className}`}>
       <div className="w-full max-w-6xl mx-auto bg-white border border-white/30 rounded-2xl p-8 shadow-lg">
         {children}
       </div>
