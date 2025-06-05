@@ -1612,9 +1612,7 @@ Your marketplace enhancement is now active!`
       
       {/* Main Content - Takes remaining space */}
       <div className="flex-1 overflow-auto pb-20">
-        <div className="max-w-6xl mx-auto">
-          {slides[currentSlide]}
-        </div>
+        {slides[currentSlide]}
       </div>
       
       {/* Navigation Footer - Fixed at bottom */}
