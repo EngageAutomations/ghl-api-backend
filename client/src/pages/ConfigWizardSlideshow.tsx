@@ -47,9 +47,9 @@ export default function ConfigWizardSlideshow() {
   const [showDescription, setShowDescription] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
   const [showMaps, setShowMaps] = useState(false);
-  const [showPrice, setShowPrice] = useState(true);
+  const [showPrice, setShowPrice] = useState(false);
 
-  const [showQuantitySelector, setShowQuantitySelector] = useState(true);
+  const [showQuantitySelector, setShowQuantitySelector] = useState(false);
   const [integrationMethod, setIntegrationMethod] = useState('popup');
 
   const [buttonText, setButtonText] = useState('Get Info');
@@ -335,7 +335,7 @@ body:not(.hl-builder) .hl-product-detail-product-name {
   hyphens: auto !important;
 }`;
 
-    // Add element hiding CSS based on toggles
+    // Add element hiding CSS based on toggles (when toggle is OFF, hide the element)
     if (!showPrice) {
       css += `
 
@@ -349,8 +349,6 @@ body:not(.hl-builder) .hl-product-detail-product-price {
   opacity: 0 !important;
 }`;
     }
-
-
 
     if (!showQuantitySelector) {
       css += `
