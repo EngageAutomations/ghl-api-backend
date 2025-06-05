@@ -1425,7 +1425,7 @@ body:not(.hl-builder) img[src="https://storage.googleapis.com/msgsndr/kQDg6qp2x7
     // Cart bookmark functionality is now handled directly in GoHighLevel web builder
 
     return baseSlides;
-  }, [directoryName, logoFile, integrationMethod, showPrice, showAddToCartButton, showQuantitySelector, showCartIcon, showDescription, showMetadata, showMaps, wizardFormData.embedCode, wizardFormData.fieldName]);
+  }, [directoryName, logoFile, integrationMethod, showPrice, showQuantitySelector, showDescription, showMetadata, showMaps, wizardFormData.embedCode, wizardFormData.fieldName]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
