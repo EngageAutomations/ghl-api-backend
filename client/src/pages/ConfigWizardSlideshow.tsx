@@ -29,12 +29,6 @@ function Slide({ children, className = "" }: SlideProps) {
   );
 }
 
-
-
-
-
-
-
 export default function ConfigWizardSlideshow() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [googleDriveConnected, setGoogleDriveConnected] = useState(false);
@@ -1617,17 +1611,8 @@ Your marketplace enhancement is now active!`
       </div>
       
       {/* Main Content - Takes remaining space */}
-      <div className="flex-1 overflow-hidden pb-20 relative">
-        <div 
-          className="flex transition-transform duration-500 ease-in-out h-full"
-          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-        >
-          {slides.map((slide, index) => (
-            <div key={index} className="w-full flex-shrink-0">
-              {slide}
-            </div>
-          ))}
-        </div>
+      <div className="flex-1 overflow-auto pb-20">
+        {slides[currentSlide]}
       </div>
       
       {/* Navigation Footer - Fixed at bottom */}
