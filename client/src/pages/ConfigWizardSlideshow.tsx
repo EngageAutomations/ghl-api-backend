@@ -1470,9 +1470,7 @@ body:not(.hl-builder) .action-icon {
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Setup Complete!</h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Your GoHighLevel marketplace enhancement is ready to deploy. Download all generated files and implement them in your site.
-            </p>
+            <p className="text-lg text-gray-600 mb-8">Your GoHighLevel marketplace enhancement is ready to deploy. Download all generated code for reference. You can also view your code and modify it in the directory management tab.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
