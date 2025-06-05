@@ -1252,18 +1252,7 @@ body:not(.hl-builder) .action-icon {
                 src="/images/ghl-css-field.png" 
                 alt="GoHighLevel CSS field location screenshot" 
                 className="w-full max-w-2xl mx-auto rounded border shadow-sm"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (nextElement) nextElement.style.display = 'block';
-                }}
               />
-              <div className="text-sm text-gray-700 space-y-2" style={{display: 'none'}}>
-                <p><strong>Step 1:</strong> Go to your GoHighLevel product page editor</p>
-                <p><strong>Step 2:</strong> Look for the CSS field in the styling options</p>
-                <p><strong>Step 3:</strong> Copy the CSS code below and paste it into that field</p>
-                <p><strong>Step 4:</strong> Save your changes</p>
-              </div>
             </div>
           </div>
 
@@ -1344,18 +1333,7 @@ body:not(.hl-builder) .action-icon {
                 src="/images/ghl-css-field.png" 
                 alt="GoHighLevel header tracking code location" 
                 className="w-full max-w-2xl mx-auto rounded border shadow-sm"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (nextElement) nextElement.style.display = 'block';
-                }}
               />
-              <div className="text-sm text-gray-700 space-y-2" style={{display: 'none'}}>
-                <p><strong>Step 1:</strong> Go to Settings → Custom Code</p>
-                <p><strong>Step 2:</strong> Find the Header Tracking Code section</p>
-                <p><strong>Step 3:</strong> Paste the header code below</p>
-                <p><strong>Step 4:</strong> Save your changes</p>
-              </div>
             </div>
           </div>
 
