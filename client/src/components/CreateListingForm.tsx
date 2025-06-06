@@ -13,24 +13,33 @@ interface CreateListingFormProps {
   directoryConfig: any;
   onSuccess: () => void;
   onCancel: () => void;
+  editingListing?: any;
+  editingAddons?: any[];
 }
 
-export function CreateListingForm({ directoryName, directoryConfig, onSuccess, onCancel }: CreateListingFormProps) {
+export function CreateListingForm({ directoryName, directoryConfig, onSuccess, onCancel, editingListing, editingAddons }: CreateListingFormProps) {
+  const isEditing = !!editingListing;
+  
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    imageUrl: '',
-    price: '',
-    location: '',
-    slug: '',
-    userId: 1,
+    title: editingListing?.title || '',
+    description: editingListing?.description || '',
+    imageUrl: editingListing?.imageUrl || '',
+    price: editingListing?.price || '',
+    location: editingListing?.location || '',
+    slug: editingListing?.slug || '',
+    userId: editingListing?.userId || 1,
     directoryName: directoryName,
-    isActive: true,
+    isActive: editingListing?.isActive ?? true,
   });
   
   // Separate state for extended fields that will be saved as addons
-  const [expandedDescription, setExpandedDescription] = useState('');
-  const [metadataFields, setMetadataFields] = useState([{ icon: '', text: '' }]);
+  const expandedDescriptionAddon = editingAddons?.find((addon: any) => addon.type === 'expanded_description');
+  const metadataAddon = editingAddons?.find((addon: any) => addon.type === 'metadata_bar');
+  
+  const [expandedDescription, setExpandedDescription] = useState(expandedDescriptionAddon?.content || '');
+  const [metadataFields, setMetadataFields] = useState(
+    metadataAddon ? JSON.parse(metadataAddon.content || '[]') : [{ icon: '', text: '' }]
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -41,23 +50,31 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     setIsSubmitting(true);
 
     try {
-      // Generate slug from title
-      const slug = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      let listingId: number;
       
-      // Create the main listing
-      const listingData = {
-        ...formData,
-        slug,
-        directoryName,
-      };
+      if (isEditing) {
+        // Update existing listing
+        const slug = formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const listingData = { ...formData, slug, directoryName };
+        
+        await apiRequest(`/api/listings/id/${editingListing.id}`, {
+          method: 'PATCH',
+          data: listingData
+        });
+        
+        listingId = editingListing.id;
+      } else {
+        // Create new listing
+        const slug = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const listingData = { ...formData, slug, directoryName };
 
-      const response = await apiRequest('/api/listings', {
-        method: 'POST',
-        data: listingData
-      });
+        const response = await apiRequest('/api/listings', {
+          method: 'POST',
+          data: listingData
+        });
 
-      // If we have expanded description or metadata, save them as addons
-      const listingId = response.id;
+        listingId = response.id;
+      }
       
       if (features.showDescription && expandedDescription) {
         await apiRequest('/api/listing-addons', {

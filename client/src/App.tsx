@@ -16,6 +16,7 @@ import DeveloperDashboard from "@/pages/DeveloperDashboard";
 import DirectoryForm from "@/pages/DirectoryForm";
 import DirectoriesDashboard from "@/pages/DirectoriesDashboard";
 import DirectoryDetails from "@/pages/DirectoryDetails";
+import ListingView from "@/pages/ListingView";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
@@ -115,6 +116,14 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <EditListing />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/listing/:slug">
+        <ProtectedRoute>
+          <AppLayout>
+            <ListingView />
           </AppLayout>
         </ProtectedRoute>
       </Route>
