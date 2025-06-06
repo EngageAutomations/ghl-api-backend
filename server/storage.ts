@@ -6,7 +6,9 @@ import {
   listingAddons, ListingAddon, InsertListingAddon,
   formConfigurations, FormConfiguration, InsertFormConfiguration,
   formSubmissions, FormSubmission, InsertFormSubmission,
-  googleDriveCredentials, GoogleDriveCredentials, InsertGoogleDriveCredentials
+  googleDriveCredentials, GoogleDriveCredentials, InsertGoogleDriveCredentials,
+  collections, Collection, InsertCollection,
+  collectionItems, CollectionItem, InsertCollectionItem
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -63,6 +65,22 @@ export interface IStorage {
   createGoogleDriveCredentials(credentials: InsertGoogleDriveCredentials): Promise<GoogleDriveCredentials>;
   updateGoogleDriveCredentials(userId: number, credentials: Partial<InsertGoogleDriveCredentials>): Promise<GoogleDriveCredentials | undefined>;
   deactivateGoogleDriveCredentials(userId: number): Promise<boolean>;
+  
+  // Collection methods
+  getCollection(id: number): Promise<Collection | undefined>;
+  getCollectionsByUser(userId: number): Promise<Collection[]>;
+  getCollectionsByDirectory(directoryName: string): Promise<Collection[]>;
+  createCollection(collection: InsertCollection): Promise<Collection>;
+  updateCollection(id: number, collection: Partial<InsertCollection>): Promise<Collection | undefined>;
+  deleteCollection(id: number): Promise<boolean>;
+  
+  // Collection Item methods
+  getCollectionItem(id: number): Promise<CollectionItem | undefined>;
+  getCollectionItemsByCollection(collectionId: number): Promise<CollectionItem[]>;
+  getCollectionItemsByListing(listingId: number): Promise<CollectionItem[]>;
+  addListingToCollection(collectionId: number, listingId: number): Promise<CollectionItem>;
+  removeListingFromCollection(collectionId: number, listingId: number): Promise<boolean>;
+  updateCollectionItem(id: number, item: Partial<InsertCollectionItem>): Promise<CollectionItem | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -73,6 +91,8 @@ export class MemStorage implements IStorage {
   private listingAddons: Map<number, ListingAddon>;
   private formConfigurations: Map<number, FormConfiguration>;
   private googleDriveCredentials: Map<number, GoogleDriveCredentials>;
+  private collections: Map<number, Collection>;
+  private collectionItems: Map<number, CollectionItem>;
   
   currentUserId: number;
   currentConfigId: number;
@@ -81,6 +101,8 @@ export class MemStorage implements IStorage {
   currentListingAddonId: number;
   currentFormConfigId: number;
   currentGoogleDriveCredentialsId: number;
+  currentCollectionId: number;
+  currentCollectionItemId: number;
 
   constructor() {
     this.users = new Map();
@@ -90,6 +112,8 @@ export class MemStorage implements IStorage {
     this.listingAddons = new Map();
     this.formConfigurations = new Map();
     this.googleDriveCredentials = new Map();
+    this.collections = new Map();
+    this.collectionItems = new Map();
     
     this.currentUserId = 1;
     this.currentConfigId = 1;
@@ -98,6 +122,8 @@ export class MemStorage implements IStorage {
     this.currentListingAddonId = 1;
     this.currentFormConfigId = 1;
     this.currentGoogleDriveCredentialsId = 1;
+    this.currentCollectionId = 1;
+    this.currentCollectionItemId = 1;
   }
 
   // User methods
@@ -431,6 +457,128 @@ export class MemStorage implements IStorage {
     return Array.from(this.listings.values()).filter(
       (listing) => listing.directoryName === directoryName
     );
+  }
+
+  // Collection methods
+  async getCollection(id: number): Promise<Collection | undefined> {
+    return this.collections.get(id);
+  }
+
+  async getCollectionsByUser(userId: number): Promise<Collection[]> {
+    return Array.from(this.collections.values()).filter(
+      (collection) => collection.userId === userId
+    );
+  }
+
+  async getCollectionsByDirectory(directoryName: string): Promise<Collection[]> {
+    return Array.from(this.collections.values()).filter(
+      (collection) => collection.directoryName === directoryName
+    );
+  }
+
+  async createCollection(insertCollection: InsertCollection): Promise<Collection> {
+    const id = this.currentCollectionId++;
+    const now = new Date();
+    const collection: Collection = {
+      ...insertCollection,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.collections.set(id, collection);
+    return collection;
+  }
+
+  async updateCollection(id: number, partialCollection: Partial<InsertCollection>): Promise<Collection | undefined> {
+    const existingCollection = this.collections.get(id);
+    
+    if (!existingCollection) {
+      return undefined;
+    }
+    
+    const updatedCollection: Collection = {
+      ...existingCollection,
+      ...partialCollection,
+      updatedAt: new Date()
+    };
+    
+    this.collections.set(id, updatedCollection);
+    return updatedCollection;
+  }
+
+  async deleteCollection(id: number): Promise<boolean> {
+    const exists = this.collections.has(id);
+    if (exists) {
+      // Also delete all collection items
+      const itemsToDelete = Array.from(this.collectionItems.values())
+        .filter(item => item.collectionId === id);
+      itemsToDelete.forEach(item => this.collectionItems.delete(item.id));
+      
+      this.collections.delete(id);
+      return true;
+    }
+    return false;
+  }
+
+  // Collection Item methods
+  async getCollectionItem(id: number): Promise<CollectionItem | undefined> {
+    return this.collectionItems.get(id);
+  }
+
+  async getCollectionItemsByCollection(collectionId: number): Promise<CollectionItem[]> {
+    return Array.from(this.collectionItems.values()).filter(
+      (item) => item.collectionId === collectionId
+    );
+  }
+
+  async getCollectionItemsByListing(listingId: number): Promise<CollectionItem[]> {
+    return Array.from(this.collectionItems.values()).filter(
+      (item) => item.listingId === listingId
+    );
+  }
+
+  async addListingToCollection(collectionId: number, listingId: number): Promise<CollectionItem> {
+    const id = this.currentCollectionItemId++;
+    const now = new Date();
+    const item: CollectionItem = {
+      id,
+      collectionId,
+      listingId,
+      ghlItemId: null,
+      syncStatus: 'pending',
+      syncError: null,
+      addedAt: now
+    };
+    this.collectionItems.set(id, item);
+    return item;
+  }
+
+  async removeListingFromCollection(collectionId: number, listingId: number): Promise<boolean> {
+    const item = Array.from(this.collectionItems.values()).find(
+      (item) => item.collectionId === collectionId && item.listingId === listingId
+    );
+    
+    if (item) {
+      this.collectionItems.delete(item.id);
+      return true;
+    }
+    return false;
+  }
+
+  async updateCollectionItem(id: number, partialItem: Partial<InsertCollectionItem>): Promise<CollectionItem | undefined> {
+    const existingItem = this.collectionItems.get(id);
+    
+    if (!existingItem) {
+      return undefined;
+    }
+    
+    const updatedItem: CollectionItem = {
+      ...existingItem,
+      ...partialItem
+    };
+    
+    this.collectionItems.set(id, updatedItem);
+    return updatedItem;
   }
 }
 

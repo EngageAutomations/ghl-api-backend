@@ -216,3 +216,46 @@ export const insertGoogleDriveCredentialsSchema = createInsertSchema(googleDrive
 
 export type InsertGoogleDriveCredentials = z.infer<typeof insertGoogleDriveCredentialsSchema>;
 export type GoogleDriveCredentials = typeof googleDriveCredentials.$inferSelect;
+
+// Collections schema
+export const collections = pgTable("collections", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  directoryName: text("directory_name").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  ghlCollectionId: text("ghl_collection_id"), // GoHighLevel collection ID
+  syncStatus: text("sync_status").default("pending"), // pending, synced, failed
+  syncError: text("sync_error"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertCollectionSchema = createInsertSchema(collections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertCollection = z.infer<typeof insertCollectionSchema>;
+export type Collection = typeof collections.$inferSelect;
+
+// Collection Items schema - Many-to-many relationship between collections and listings
+export const collectionItems = pgTable("collection_items", {
+  id: serial("id").primaryKey(),
+  collectionId: integer("collection_id").notNull(),
+  listingId: integer("listing_id").notNull(),
+  ghlItemId: text("ghl_item_id"), // GoHighLevel item ID in collection
+  syncStatus: text("sync_status").default("pending"), // pending, synced, failed
+  syncError: text("sync_error"),
+  addedAt: timestamp("added_at").defaultNow(),
+});
+
+export const insertCollectionItemSchema = createInsertSchema(collectionItems).omit({
+  id: true,
+  addedAt: true,
+});
+
+export type InsertCollectionItem = z.infer<typeof insertCollectionItemSchema>;
+export type CollectionItem = typeof collectionItems.$inferSelect;
