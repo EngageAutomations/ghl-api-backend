@@ -242,16 +242,16 @@ export default function ListingView() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Directory Info */}
-            {directory && (
+            {directoryData && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Directory</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <p className="font-medium">{directory.directoryName}</p>
+                    <p className="font-medium">{directoryData.directoryName}</p>
                     <Badge variant="outline">
-                      {directory.locationId}
+                      {directoryData.locationId}
                     </Badge>
                   </div>
                 </CardContent>
@@ -267,28 +267,28 @@ export default function ListingView() {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Status:</span>
-                    <Badge variant={listing.isActive ? "default" : "secondary"}>
-                      {listing.isActive ? "Active" : "Draft"}
+                    <Badge variant={listingData.isActive ? "default" : "secondary"}>
+                      {listingData.isActive ? "Active" : "Draft"}
                     </Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Slug:</span>
-                    <span className="font-mono">{listing.slug}</span>
+                    <span className="font-mono">{listingData.slug}</span>
                   </div>
-                  {listing.category && (
+                  {listingData.category && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Category:</span>
-                      <span>{listing.category}</span>
+                      <span>{listingData.category}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span className="text-gray-600">Created:</span>
-                    <span>{format(new Date(listing.createdAt), 'MMM d, yyyy')}</span>
+                    <span>{format(new Date(listingData.createdAt), 'MMM d, yyyy')}</span>
                   </div>
-                  {listing.updatedAt && (
+                  {listingData.updatedAt && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Updated:</span>
-                      <span>{format(new Date(listing.updatedAt), 'MMM d, yyyy')}</span>
+                      <span>{format(new Date(listingData.updatedAt), 'MMM d, yyyy')}</span>
                     </div>
                   )}
                 </div>
@@ -305,12 +305,12 @@ export default function ListingView() {
             </DialogHeader>
             <div className="max-h-[75vh] overflow-y-auto pr-2">
               <CreateListingForm
-                directoryName={listing.directoryName}
-                directoryConfig={directory?.config}
+                directoryName={listingData.directoryName}
+                directoryConfig={directoryData?.config}
                 onSuccess={handleEditSuccess}
                 onCancel={() => setShowEditForm(false)}
-                editingListing={listing}
-                editingAddons={addons}
+                editingListing={listingData}
+                editingAddons={addonsData}
               />
             </div>
           </DialogContent>
