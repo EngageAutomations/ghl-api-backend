@@ -956,6 +956,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Summarization route
+  app.post("/api/ai/summarize", async (req, res) => {
+    try {
+      const { text } = req.body;
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ error: "Text is required" });
+      }
+
+      const bulletPoints = await generateBulletPoints(text);
+      res.json({ bulletPoints });
+    } catch (error) {
+      console.error("AI summarization error:", error);
+      res.status(500).json({ error: "Failed to generate summary" });
+    }
+  });
+
   // Google Drive OAuth routes
   app.get("/auth/google", async (req, res) => {
     try {

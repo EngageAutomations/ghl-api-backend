@@ -41,6 +41,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     metadataAddon ? JSON.parse(metadataAddon.content || '[]') : [{ icon: '', text: '' }]
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
   const features = directoryConfig?.features || {};
@@ -144,6 +145,40 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     }));
   };
 
+  const handleAISummarize = async () => {
+    if (!formData.description.trim()) return;
+    
+    setIsGenerating(true);
+    try {
+      const response = await apiRequest('/api/ai/summarize', {
+        method: 'POST',
+        data: { text: formData.description }
+      });
+      
+      const data = await response.json();
+      const bulletPoints = data.bulletPoints.join('\n');
+      
+      setFormData(prev => ({
+        ...prev,
+        description: bulletPoints
+      }));
+      
+      toast({
+        title: "AI Summary Generated",
+        description: "Your description has been converted to bullet points.",
+      });
+    } catch (error) {
+      console.error('AI summarization error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate AI summary. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleMetadataChange = (index: number, field: 'icon' | 'text', value: string) => {
     setMetadataFields(prev => 
       prev.map((item, i) => 
@@ -217,8 +252,10 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
                 variant="outline" 
                 size="sm"
                 className="text-xs"
+                onClick={handleAISummarize}
+                disabled={!formData.description.trim() || isGenerating}
               >
-                🤖 Generate AI Bullet Points
+                {isGenerating ? 'Generating...' : '🤖 Generate AI Bullet Points'}
               </Button>
             </div>
           </div>
