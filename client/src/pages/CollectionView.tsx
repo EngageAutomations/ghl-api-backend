@@ -66,9 +66,9 @@ export default function CollectionView() {
   });
 
   // Fetch directory listings for adding products
-  const { data: directoryListings = [] } = useQuery<any[]>({
+  const { data: directoryListings = [], isLoading: listingsLoading } = useQuery<any[]>({
     queryKey: ['/api/listings', collection?.directoryName],
-    enabled: !!collection?.directoryName && showAddProductsModal
+    enabled: !!collection?.directoryName
   });
 
   // Mutation for adding products to collection
@@ -404,20 +404,29 @@ export default function CollectionView() {
 
       {/* Add Products Modal */}
       <Dialog open={showAddProductsModal} onOpenChange={setShowAddProductsModal}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden" aria-describedby="add-products-description">
           <DialogHeader>
             <DialogTitle>Add Products to Collection</DialogTitle>
           </DialogHeader>
           
           <div className="flex flex-col h-full">
             <div className="mb-4">
-              <p className="text-sm text-gray-600">
+              <p id="add-products-description" className="text-sm text-gray-600">
                 Select products from the "{collection?.directoryName}" directory to add to this collection.
+              </p>
+              {/* Debug info */}
+              <p className="text-xs text-gray-400 mt-2">
+                Debug: Found {directoryListings?.length || 0} products, Loading: {listingsLoading ? 'Yes' : 'No'}, Directory: {collection?.directoryName || 'None'}
               </p>
             </div>
 
             <div className="flex-1 overflow-y-auto">
-              {!directoryListings || directoryListings.length === 0 ? (
+              {listingsLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-500">Loading products...</p>
+                </div>
+              ) : !directoryListings || directoryListings.length === 0 ? (
                 <div className="text-center py-8">
                   <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                   <p className="text-gray-500">No products available in this directory</p>
