@@ -1186,6 +1186,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/collections/:id/items", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const items = await storage.getCollectionItemsWithListings(id);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching collection items:", error);
+      res.status(500).json({ error: "Failed to fetch collection items" });
+    }
+  });
+
   app.post("/api/collections", async (req, res) => {
     try {
       const userId = 1; // In production, get from session/auth

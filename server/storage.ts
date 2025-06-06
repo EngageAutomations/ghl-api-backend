@@ -910,6 +910,22 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(collectionItems).where(eq(collectionItems.collectionId, collectionId));
   }
 
+  async getCollectionItemsWithListings(collectionId: number): Promise<(CollectionItem & { listing?: Listing })[]> {
+    const items = await db
+      .select({
+        collectionItem: collectionItems,
+        listing: listings
+      })
+      .from(collectionItems)
+      .leftJoin(listings, eq(collectionItems.listingId, listings.id))
+      .where(eq(collectionItems.collectionId, collectionId));
+
+    return items.map(row => ({
+      ...row.collectionItem,
+      listing: row.listing || undefined
+    }));
+  }
+
   async getCollectionItemsByListing(listingId: number): Promise<CollectionItem[]> {
     return await db.select().from(collectionItems).where(eq(collectionItems.listingId, listingId));
   }

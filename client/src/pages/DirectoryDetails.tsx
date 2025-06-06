@@ -479,6 +479,10 @@ export default function DirectoryDetails() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setLocation(`/collections/${collection.id}`)}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        View
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setEditingCollection(collection)}>
                         <Edit className="h-4 w-4 mr-2" />
                         Edit
