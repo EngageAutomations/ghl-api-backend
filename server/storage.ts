@@ -847,6 +847,90 @@ export class DatabaseStorage implements IStorage {
       .where(eq(googleDriveCredentials.userId, userId));
     return (result.rowCount || 0) > 0;
   }
+
+  // Collection methods
+  async getCollection(id: number): Promise<Collection | undefined> {
+    const [collection] = await db.select().from(collections).where(eq(collections.id, id));
+    return collection || undefined;
+  }
+
+  async getCollectionsByUser(userId: number): Promise<Collection[]> {
+    return await db.select().from(collections).where(eq(collections.userId, userId));
+  }
+
+  async getCollectionsByDirectory(directoryName: string): Promise<Collection[]> {
+    return await db.select().from(collections).where(eq(collections.directoryName, directoryName));
+  }
+
+  async createCollection(insertCollection: InsertCollection): Promise<Collection> {
+    const [collection] = await db
+      .insert(collections)
+      .values(insertCollection)
+      .returning();
+    return collection;
+  }
+
+  async updateCollection(id: number, partialCollection: Partial<InsertCollection>): Promise<Collection | undefined> {
+    const [collection] = await db
+      .update(collections)
+      .set(partialCollection)
+      .where(eq(collections.id, id))
+      .returning();
+    return collection || undefined;
+  }
+
+  async deleteCollection(id: number): Promise<boolean> {
+    // First delete all collection items
+    await db.delete(collectionItems).where(eq(collectionItems.collectionId, id));
+    
+    // Then delete the collection
+    const result = await db.delete(collections).where(eq(collections.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Collection Item methods
+  async getCollectionItem(id: number): Promise<CollectionItem | undefined> {
+    const [item] = await db.select().from(collectionItems).where(eq(collectionItems.id, id));
+    return item || undefined;
+  }
+
+  async getCollectionItemsByCollection(collectionId: number): Promise<CollectionItem[]> {
+    return await db.select().from(collectionItems).where(eq(collectionItems.collectionId, collectionId));
+  }
+
+  async getCollectionItemsByListing(listingId: number): Promise<CollectionItem[]> {
+    return await db.select().from(collectionItems).where(eq(collectionItems.listingId, listingId));
+  }
+
+  async addListingToCollection(collectionId: number, listingId: number): Promise<CollectionItem> {
+    const [item] = await db
+      .insert(collectionItems)
+      .values({
+        collectionId,
+        listingId,
+        syncStatus: 'pending'
+      })
+      .returning();
+    return item;
+  }
+
+  async removeListingFromCollection(collectionId: number, listingId: number): Promise<boolean> {
+    const result = await db.delete(collectionItems)
+      .where(and(
+        eq(collectionItems.collectionId, collectionId),
+        eq(collectionItems.listingId, listingId)
+      ));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async updateCollectionItem(id: number, partialItem: Partial<InsertCollectionItem>): Promise<CollectionItem | undefined> {
+    const [item] = await db
+      .update(collectionItems)
+      .set(partialItem)
+      .where(eq(collectionItems.id, id))
+      .returning();
+    return item || undefined;
+  }
 }
 
 export const storage = new DatabaseStorage();

@@ -8,7 +8,9 @@ import {
   insertPortalDomainSchema,
   insertListingSchema,
   insertListingAddonSchema,
-  insertFormConfigurationSchema
+  insertFormConfigurationSchema,
+  insertCollectionSchema,
+  insertCollectionItemSchema
 } from "@shared/schema";
 import { generateBulletPoints } from "./ai-summarizer";
 import { googleDriveService } from "./google-drive";
@@ -1142,6 +1144,216 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deactivating Google Drive credentials:", error);
       res.status(500).json({ error: "Failed to deactivate credentials" });
+    }
+  });
+
+  // Collections API routes
+  app.get("/api/collections", async (req, res) => {
+    try {
+      const userId = 1; // In production, get from session/auth
+      const collections = await storage.getCollectionsByUser(userId);
+      res.json(collections);
+    } catch (error) {
+      console.error("Error fetching collections:", error);
+      res.status(500).json({ error: "Failed to fetch collections" });
+    }
+  });
+
+  app.get("/api/collections/directory/:directoryName", async (req, res) => {
+    try {
+      const { directoryName } = req.params;
+      const collections = await storage.getCollectionsByDirectory(directoryName);
+      res.json(collections);
+    } catch (error) {
+      console.error("Error fetching collections by directory:", error);
+      res.status(500).json({ error: "Failed to fetch collections" });
+    }
+  });
+
+  app.get("/api/collections/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const collection = await storage.getCollection(id);
+      
+      if (!collection) {
+        return res.status(404).json({ error: "Collection not found" });
+      }
+      
+      res.json(collection);
+    } catch (error) {
+      console.error("Error fetching collection:", error);
+      res.status(500).json({ error: "Failed to fetch collection" });
+    }
+  });
+
+  app.post("/api/collections", async (req, res) => {
+    try {
+      const userId = 1; // In production, get from session/auth
+      const collectionData = insertCollectionSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const collection = await storage.createCollection(collectionData);
+      
+      // TODO: Integrate with GoHighLevel API to create collection
+      // For now, we'll just mark as pending sync
+      
+      res.status(201).json(collection);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid collection data", details: error.errors });
+      }
+      console.error("Error creating collection:", error);
+      res.status(500).json({ error: "Failed to create collection" });
+    }
+  });
+
+  app.patch("/api/collections/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = req.body;
+      
+      const collection = await storage.updateCollection(id, updateData);
+      
+      if (!collection) {
+        return res.status(404).json({ error: "Collection not found" });
+      }
+      
+      // TODO: Sync changes with GoHighLevel API
+      
+      res.json(collection);
+    } catch (error) {
+      console.error("Error updating collection:", error);
+      res.status(500).json({ error: "Failed to update collection" });
+    }
+  });
+
+  app.delete("/api/collections/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteCollection(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Collection not found" });
+      }
+      
+      // TODO: Delete from GoHighLevel API
+      
+      res.json({ message: "Collection deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting collection:", error);
+      res.status(500).json({ error: "Failed to delete collection" });
+    }
+  });
+
+  // Collection Items API routes
+  app.get("/api/collections/:id/items", async (req, res) => {
+    try {
+      const collectionId = parseInt(req.params.id);
+      const items = await storage.getCollectionItemsByCollection(collectionId);
+      
+      // Get full listing details for each item
+      const itemsWithListings = await Promise.all(
+        items.map(async (item) => {
+          const listing = await storage.getListing(item.listingId);
+          return {
+            ...item,
+            listing
+          };
+        })
+      );
+      
+      res.json(itemsWithListings);
+    } catch (error) {
+      console.error("Error fetching collection items:", error);
+      res.status(500).json({ error: "Failed to fetch collection items" });
+    }
+  });
+
+  app.post("/api/collections/:id/items", async (req, res) => {
+    try {
+      const collectionId = parseInt(req.params.id);
+      const { listingId } = req.body;
+      
+      if (!listingId) {
+        return res.status(400).json({ error: "listingId is required" });
+      }
+      
+      // Check if listing is already in collection
+      const existingItems = await storage.getCollectionItemsByCollection(collectionId);
+      const alreadyExists = existingItems.some(item => item.listingId === listingId);
+      
+      if (alreadyExists) {
+        return res.status(400).json({ error: "Listing is already in this collection" });
+      }
+      
+      const item = await storage.addListingToCollection(collectionId, listingId);
+      
+      // TODO: Add to GoHighLevel collection via API
+      
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error adding listing to collection:", error);
+      res.status(500).json({ error: "Failed to add listing to collection" });
+    }
+  });
+
+  app.delete("/api/collections/:id/items/:listingId", async (req, res) => {
+    try {
+      const collectionId = parseInt(req.params.id);
+      const listingId = parseInt(req.params.listingId);
+      
+      const removed = await storage.removeListingFromCollection(collectionId, listingId);
+      
+      if (!removed) {
+        return res.status(404).json({ error: "Listing not found in collection" });
+      }
+      
+      // TODO: Remove from GoHighLevel collection via API
+      
+      res.json({ message: "Listing removed from collection successfully" });
+    } catch (error) {
+      console.error("Error removing listing from collection:", error);
+      res.status(500).json({ error: "Failed to remove listing from collection" });
+    }
+  });
+
+  // Bulk operations for collections
+  app.post("/api/collections/:id/items/bulk", async (req, res) => {
+    try {
+      const collectionId = parseInt(req.params.id);
+      const { listingIds } = req.body;
+      
+      if (!Array.isArray(listingIds)) {
+        return res.status(400).json({ error: "listingIds must be an array" });
+      }
+      
+      const results = [];
+      
+      for (const listingId of listingIds) {
+        try {
+          // Check if already exists
+          const existingItems = await storage.getCollectionItemsByCollection(collectionId);
+          const alreadyExists = existingItems.some(item => item.listingId === listingId);
+          
+          if (!alreadyExists) {
+            const item = await storage.addListingToCollection(collectionId, listingId);
+            results.push({ listingId, success: true, item });
+          } else {
+            results.push({ listingId, success: false, error: "Already in collection" });
+          }
+        } catch (error) {
+          results.push({ listingId, success: false, error: error.message });
+        }
+      }
+      
+      // TODO: Bulk sync with GoHighLevel API
+      
+      res.json(results);
+    } catch (error) {
+      console.error("Error bulk adding listings to collection:", error);
+      res.status(500).json({ error: "Failed to bulk add listings to collection" });
     }
   });
 
