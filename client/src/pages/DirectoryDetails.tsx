@@ -632,7 +632,6 @@ export default function DirectoryDetails() {
             ))}
           </div>
         </>
-      )
       )}
 
       {/* Create Listing Dialog */}

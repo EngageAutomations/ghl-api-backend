@@ -21,24 +21,24 @@ const collectionFormSchema = z.object({
 type CollectionFormData = z.infer<typeof collectionFormSchema>;
 
 interface CreateCollectionFormProps {
-  initialData?: any;
-  onSuccess: (data: CollectionFormData) => void;
+  collection?: any;
+  onSubmit: (data: CollectionFormData) => void;
   onCancel: () => void;
 }
 
 export default function CreateCollectionForm({ 
-  initialData, 
-  onSuccess, 
+  collection, 
+  onSubmit, 
   onCancel 
 }: CreateCollectionFormProps) {
   const form = useForm<CollectionFormData>({
     resolver: zodResolver(collectionFormSchema),
     defaultValues: {
-      name: initialData?.name || '',
-      description: initialData?.description || '',
-      directoryName: initialData?.directoryName || '',
-      isActive: initialData?.isActive ?? true,
-      syncStatus: initialData?.syncStatus || 'pending'
+      name: collection?.name || '',
+      description: collection?.description || '',
+      directoryName: collection?.directoryName || '',
+      isActive: collection?.isActive ?? true,
+      syncStatus: collection?.syncStatus || 'pending'
     }
   });
 
@@ -53,13 +53,13 @@ export default function CreateCollectionForm({
     }
   });
 
-  const onSubmit = (data: CollectionFormData) => {
-    onSuccess(data);
+  const handleSubmit = (data: CollectionFormData) => {
+    onSubmit(data);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Collection Name */}
           <FormField
