@@ -9,7 +9,7 @@ import {
   googleDriveCredentials, GoogleDriveCredentials, InsertGoogleDriveCredentials
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 // Storage interface with all CRUD methods
 export interface IStorage {
@@ -491,8 +491,7 @@ export class DatabaseStorage implements IStorage {
 
   async getPortalDomainBySubdomain(subdomain: string, domain: string): Promise<PortalDomain | undefined> {
     const [result] = await db.select().from(portalDomains)
-      .where(eq(portalDomains.subdomain, subdomain))
-      .where(eq(portalDomains.domain, domain));
+      .where(and(eq(portalDomains.subdomain, subdomain), eq(portalDomains.domain, domain)));
     return result || undefined;
   }
 
@@ -517,9 +516,11 @@ export class DatabaseStorage implements IStorage {
     const [result] = await db
       .update(portalDomains)
       .set({ verified: true })
-      .where(eq(portalDomains.userId, userId))
-      .where(eq(portalDomains.subdomain, subdomain))
-      .where(eq(portalDomains.domain, domain))
+      .where(and(
+        eq(portalDomains.userId, userId),
+        eq(portalDomains.subdomain, subdomain),
+        eq(portalDomains.domain, domain)
+      ))
       .returning();
     return !!result;
   }
@@ -562,7 +563,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteListing(id: number): Promise<boolean> {
     const result = await db.delete(listings).where(eq(listings.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Listing Addon methods
@@ -572,16 +573,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getListingAddonsByListing(listingId: number): Promise<ListingAddon[]> {
-    return await db.select().from(listingAddons)
-      .where(eq(listingAddons.listingId, listingId))
-      .orderBy(listingAddons.displayOrder);
+    const addons = await db.select().from(listingAddons)
+      .where(eq(listingAddons.listingId, listingId));
+    return addons.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
   }
 
   async getListingAddonsByType(listingId: number, type: string): Promise<ListingAddon[]> {
-    return await db.select().from(listingAddons)
-      .where(eq(listingAddons.listingId, listingId))
-      .where(eq(listingAddons.type, type))
-      .orderBy(listingAddons.displayOrder);
+    const addons = await db.select().from(listingAddons)
+      .where(and(eq(listingAddons.listingId, listingId), eq(listingAddons.type, type)));
+    return addons.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
   }
 
   async createListingAddon(insertAddon: InsertListingAddon): Promise<ListingAddon> {
@@ -603,7 +603,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteListingAddon(id: number): Promise<boolean> {
     const result = await db.delete(listingAddons).where(eq(listingAddons.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Form Configuration (Directory) methods
@@ -618,7 +618,12 @@ export class DatabaseStorage implements IStorage {
 
   async getFormConfigurationByName(userId: number, directoryName: string): Promise<FormConfiguration | undefined> {
     const [config] = await db.select().from(formConfigurations)
-      .where(eq(formConfigurations.userId, userId))
+      .where(and(eq(formConfigurations.userId, userId), eq(formConfigurations.directoryName, directoryName)));
+    return config || undefined;
+  }
+
+  async getFormConfigurationByDirectoryName(directoryName: string): Promise<FormConfiguration | undefined> {
+    const [config] = await db.select().from(formConfigurations)
       .where(eq(formConfigurations.directoryName, directoryName));
     return config || undefined;
   }
@@ -642,7 +647,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFormConfiguration(id: number): Promise<boolean> {
     const result = await db.delete(formConfigurations).where(eq(formConfigurations.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Form Submission methods
@@ -655,14 +660,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getFormSubmissionsByConfig(configId: number): Promise<FormSubmission[]> {
-    return await db.select().from(formSubmissions).where(eq(formSubmissions.configId, configId));
+    return await db.select().from(formSubmissions).where(eq(formSubmissions.formConfigurationId, configId));
   }
 
   // Google Drive Credentials methods
   async getGoogleDriveCredentials(userId: number): Promise<GoogleDriveCredentials | undefined> {
     const [credentials] = await db.select().from(googleDriveCredentials)
-      .where(eq(googleDriveCredentials.userId, userId))
-      .where(eq(googleDriveCredentials.isActive, true));
+      .where(and(eq(googleDriveCredentials.userId, userId), eq(googleDriveCredentials.isActive, true)));
     return credentials || undefined;
   }
 
@@ -685,7 +689,15 @@ export class DatabaseStorage implements IStorage {
 
   async deleteGoogleDriveCredentials(id: number): Promise<boolean> {
     const result = await db.delete(googleDriveCredentials).where(eq(googleDriveCredentials.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
+  }
+
+  async deactivateGoogleDriveCredentials(userId: number): Promise<boolean> {
+    const result = await db
+      .update(googleDriveCredentials)
+      .set({ isActive: false })
+      .where(eq(googleDriveCredentials.userId, userId));
+    return (result.rowCount || 0) > 0;
   }
 }
 

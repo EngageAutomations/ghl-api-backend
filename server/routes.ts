@@ -656,7 +656,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/directories/:directoryName", async (req, res) => {
     try {
       const directoryName = req.params.directoryName;
-      const directory = await storage.getFormConfigurationByDirectoryName(directoryName);
+      const userId = 1; // TODO: Get from auth context
+      const directory = await storage.getFormConfigurationByName(userId, directoryName);
       
       if (!directory) {
         return res.status(404).json({ message: "Directory not found" });
