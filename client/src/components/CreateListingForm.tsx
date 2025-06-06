@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import RichTextEditor from '@/components/RichTextEditor';
-import { Plus } from 'lucide-react';
+import { Plus, Upload } from 'lucide-react';
 
 interface CreateListingFormProps {
   directoryName: string;
@@ -287,12 +287,39 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
                   <div key={index} className="flex items-end gap-2">
                     <div className="w-16">
                       <Label className="text-xs text-gray-600">Icon</Label>
-                      <Input
-                        value={field.icon}
-                        onChange={(e) => handleMetadataChange(index, 'icon', e.target.value)}
-                        placeholder="📞"
-                        className="w-16 h-10 text-center text-xs"
-                      />
+                      <div 
+                        className="w-16 h-10 border border-gray-300 rounded bg-white flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (e) => {
+                                const result = e.target?.result as string;
+                                handleMetadataChange(index, 'icon', result);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          };
+                          input.click();
+                        }}
+                      >
+                        {field.icon ? (
+                          field.icon.startsWith('data:') ? (
+                            <img src={field.icon} alt="Icon" className="w-6 h-6 object-contain" />
+                          ) : (
+                            <span className="text-lg">{field.icon}</span>
+                          )
+                        ) : (
+                          <div className="text-xs text-gray-400 text-center">
+                            <Upload className="w-4 h-4 mx-auto mb-1" />
+                            Click
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="flex-1">
                       <Label className="text-xs text-gray-600">Display Text</Label>

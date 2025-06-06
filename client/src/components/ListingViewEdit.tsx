@@ -219,9 +219,15 @@ export function ListingViewEdit({ listingId, directoryName, directoryConfig, onS
                 {metadataFields.map((field: any, index: number) => (
                   <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     {field.icon && (
-                      <span className="text-lg" role="img" aria-label="icon">
-                        {field.icon}
-                      </span>
+                      <div className="w-6 h-6 flex items-center justify-center">
+                        {field.icon.startsWith('data:') ? (
+                          <img src={field.icon} alt="Icon" className="w-6 h-6 object-contain" />
+                        ) : (
+                          <span className="text-lg" role="img" aria-label="icon">
+                            {field.icon}
+                          </span>
+                        )}
+                      </div>
                     )}
                     <span className="text-sm text-gray-900">{field.text}</span>
                   </div>
