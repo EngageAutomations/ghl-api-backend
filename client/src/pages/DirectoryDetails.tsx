@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Filter, Grid3X3, List, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft } from 'lucide-react';
+import { Plus, Search, Filter, Grid3X3, List, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, Archive, Package } from 'lucide-react';
 import { format } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
@@ -15,14 +15,17 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { CreateListingForm } from '@/components/CreateListingForm';
 import { ListingViewEdit } from '@/components/ListingViewEdit';
+import CreateCollectionForm from '@/components/CreateCollectionForm';
 
 type ViewMode = 'grid' | 'list';
 type FilterOption = 'all' | 'active' | 'draft';
 type SortOption = 'newest' | 'oldest' | 'title' | 'price';
+type ContentView = 'collections' | 'products';
 
 export default function DirectoryDetails() {
   const { directoryName } = useParams();
   const [, setLocation] = useLocation();
+  const [contentView, setContentView] = useState<ContentView>('collections');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
@@ -32,6 +35,8 @@ export default function DirectoryDetails() {
   const [selectedListings, setSelectedListings] = useState<number[]>([]);
   const [viewingListingId, setViewingListingId] = useState<number | null>(null);
   const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showCollectionForm, setShowCollectionForm] = useState(false);
+  const [editingCollection, setEditingCollection] = useState<any | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -51,6 +56,17 @@ export default function DirectoryDetails() {
     queryKey: ['/api/listings', directoryName],
     queryFn: async () => {
       const response = await apiRequest(`/api/listings/${directoryName}`);
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!directoryName,
+  });
+
+  // Fetch collections for this directory
+  const { data: collections = [], isLoading: collectionsLoading } = useQuery({
+    queryKey: ['/api/collections/directory', directoryName],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/collections/directory/${directoryName}`);
       const data = await response.json();
       return Array.isArray(data) ? data : [];
     },
