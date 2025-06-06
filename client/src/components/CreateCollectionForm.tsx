@@ -26,12 +26,14 @@ type CollectionFormData = z.infer<typeof collectionFormSchema>;
 
 interface CreateCollectionFormProps {
   collection?: any;
+  defaultDirectoryName?: string;
   onSubmit: (data: CollectionFormData) => void;
   onCancel: () => void;
 }
 
 export default function CreateCollectionForm({ 
   collection, 
+  defaultDirectoryName,
   onSubmit, 
   onCancel 
 }: CreateCollectionFormProps) {
@@ -44,7 +46,7 @@ export default function CreateCollectionForm({
       imageUrl: collection?.imageUrl || '',
       seoTitle: collection?.seoTitle || '',
       seoDescription: collection?.seoDescription || '',
-      directoryName: collection?.directoryName || '',
+      directoryName: collection?.directoryName || defaultDirectoryName || '',
       isActive: collection?.isActive ?? true,
       syncStatus: collection?.syncStatus || 'pending'
     }
@@ -119,20 +121,35 @@ export default function CreateCollectionForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-left block">Directory</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                {defaultDirectoryName ? (
                   <FormControl>
-                    <SelectTrigger className="text-left">
-                      <SelectValue placeholder="Select directory..." />
-                    </SelectTrigger>
+                    <Input 
+                      value={field.value}
+                      readOnly
+                      className="text-left bg-gray-50 cursor-not-allowed"
+                    />
                   </FormControl>
-                  <SelectContent>
-                    {directories.map((directory: any) => (
-                      <SelectItem key={directory.value} value={directory.value}>
-                        {directory.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                ) : (
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="text-left">
+                        <SelectValue placeholder="Select directory..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {directories.map((directory: any) => (
+                        <SelectItem key={directory.value} value={directory.value}>
+                          {directory.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                {defaultDirectoryName && (
+                  <FormDescription className="text-left">
+                    Collection will be created in the current directory
+                  </FormDescription>
+                )}
                 <FormMessage />
               </FormItem>
             )}

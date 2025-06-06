@@ -684,6 +684,7 @@ export default function DirectoryDetails() {
           </DialogHeader>
           <CreateCollectionForm
             collection={editingCollection}
+            defaultDirectoryName={directoryName!}
             onSubmit={(data: any) => {
               if (editingCollection) {
                 // Handle edit
