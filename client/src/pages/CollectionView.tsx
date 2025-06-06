@@ -101,9 +101,11 @@ export default function CollectionView() {
     );
   }
 
-  // Filter and sort items
-  const filteredItems = collectionItems.filter((item: CollectionItem) => {
-    const listing = item.listing;
+  // Filter and sort items - only process if data is loaded
+  const filteredItems = collectionItems && collectionItems.length > 0 ? collectionItems.filter((item: CollectionItem) => {
+    const listing = item?.listing;
+    if (!listing) return false;
+    
     const matchesSearch = !searchQuery || 
       listing.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       listing.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -112,12 +114,16 @@ export default function CollectionView() {
     const matchesFilter = filterBy === 'all' || filterBy === 'active';
     
     return matchesSearch && matchesFilter;
-  });
+  }) : [];
 
   const sortedItems = [...filteredItems].sort((a, b) => {
+    if (!a?.listing || !b?.listing) return 0;
+    
     switch (sortBy) {
       case 'oldest':
-        return new Date(a.listing.createdAt).getTime() - new Date(b.listing.createdAt).getTime();
+        const aDate = a.listing.createdAt ? new Date(a.listing.createdAt).getTime() : 0;
+        const bDate = b.listing.createdAt ? new Date(b.listing.createdAt).getTime() : 0;
+        return aDate - bDate;
       case 'title':
         return (a.listing.title || '').localeCompare(b.listing.title || '');
       case 'price':
@@ -125,7 +131,9 @@ export default function CollectionView() {
         const bPrice = parseFloat(b.listing.price?.replace(/[^0-9.-]+/g, '') || '0');
         return bPrice - aPrice;
       default: // newest
-        return new Date(b.listing.createdAt).getTime() - new Date(a.listing.createdAt).getTime();
+        const aDateNew = a.listing.createdAt ? new Date(a.listing.createdAt).getTime() : 0;
+        const bDateNew = b.listing.createdAt ? new Date(b.listing.createdAt).getTime() : 0;
+        return bDateNew - aDateNew;
     }
   });
 
@@ -298,8 +306,8 @@ export default function CollectionView() {
                   {item.listing.price && (
                     <span className="font-medium text-lg text-green-600">{item.listing.price}</span>
                   )}
-                  <Badge variant={item.isActive ? 'default' : 'secondary'}>
-                    {item.isActive ? 'Active' : 'Draft'}
+                  <Badge variant="default">
+                    Active
                   </Badge>
                 </div>
               </CardContent>
