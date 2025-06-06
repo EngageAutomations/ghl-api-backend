@@ -504,14 +504,14 @@ export default function DirectoryDetails() {
       ) : (
         // Products View
         listingsLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="h-64 bg-gray-200 rounded"></div>
-            </div>
-          ))}
-        </div>
-      ) : processedListings.length === 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-64 bg-gray-200 rounded"></div>
+              </div>
+            ))}
+          </div>
+        ) : processedListings.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
             <Grid3X3 className="h-16 w-16 mx-auto" />
@@ -671,6 +671,32 @@ export default function DirectoryDetails() {
               onClose={handleViewClose}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Collection Dialog */}
+      <Dialog open={showCollectionForm} onOpenChange={setShowCollectionForm}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingCollection ? 'Edit Collection' : 'Create New Collection'}
+            </DialogTitle>
+          </DialogHeader>
+          <CreateCollectionForm
+            collection={editingCollection}
+            onSubmit={(data: any) => {
+              if (editingCollection) {
+                // Handle edit
+                console.log('Edit collection:', data);
+              } else {
+                createCollectionMutation.mutate(data);
+              }
+            }}
+            onCancel={() => {
+              setShowCollectionForm(false);
+              setEditingCollection(null);
+            }}
+          />
         </DialogContent>
       </Dialog>
 
