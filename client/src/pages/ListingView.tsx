@@ -28,16 +28,16 @@ export default function ListingView() {
 
   // Fetch listing addons
   const { data: addons } = useQuery({
-    queryKey: ['/api/listing-addons/listing', listing?.id],
-    queryFn: () => apiRequest(`/api/listing-addons/listing/${listing.id}`),
-    enabled: !!listing?.id,
+    queryKey: ['/api/listing-addons/listing', (listing as any)?.id],
+    queryFn: () => apiRequest(`/api/listing-addons/listing/${(listing as any).id}`),
+    enabled: !!(listing as any)?.id,
   });
 
   // Fetch directory config
   const { data: directory } = useQuery({
-    queryKey: ['/api/directories', listing?.directoryName],
-    queryFn: () => apiRequest(`/api/directories/${listing.directoryName}`),
-    enabled: !!listing?.directoryName,
+    queryKey: ['/api/directories', (listing as any)?.directoryName],
+    queryFn: () => apiRequest(`/api/directories/${(listing as any).directoryName}`),
+    enabled: !!(listing as any)?.directoryName,
   });
 
   // Delete listing mutation
@@ -60,20 +60,22 @@ export default function ListingView() {
   });
 
   const handleDelete = () => {
-    if (listing && confirm(`Are you sure you want to delete "${listing.title}"? This action cannot be undone.`)) {
-      deleteMutation.mutate(listing.id);
+    const listingData = listing as any;
+    if (listingData && confirm(`Are you sure you want to delete "${listingData.title}"? This action cannot be undone.`)) {
+      deleteMutation.mutate(listingData.id);
     }
   };
 
   const handleEditSuccess = () => {
     setShowEditForm(false);
     queryClient.invalidateQueries({ queryKey: ['/api/listings/by-slug', slug] });
-    queryClient.invalidateQueries({ queryKey: ['/api/listing-addons/listing', listing?.id] });
+    queryClient.invalidateQueries({ queryKey: ['/api/listing-addons/listing', (listing as any)?.id] });
   };
 
   // Process addons data
-  const expandedDescription = addons?.find((addon: any) => addon.type === 'expanded_description')?.content || '';
-  const metadataBar = addons?.find((addon: any) => addon.type === 'metadata_bar');
+  const addonsData = (addons as unknown) as any[];
+  const expandedDescription = addonsData?.find((addon: any) => addon.type === 'expanded_description')?.content || '';
+  const metadataBar = addonsData?.find((addon: any) => addon.type === 'metadata_bar');
   const metadataFields = metadataBar ? JSON.parse(metadataBar.content || '[]') : [];
 
   if (isLoading) {
@@ -87,7 +89,10 @@ export default function ListingView() {
     );
   }
 
-  if (error || !listing) {
+  const listingData = listing as any;
+  const directoryData = directory as any;
+
+  if (error || !listingData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -146,41 +151,41 @@ export default function ListingView() {
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
-                      {listing.title}
+                      {listingData.title}
                     </CardTitle>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      {listing.location && (
+                      {listingData.location && (
                         <div className="flex items-center">
                           <MapPin className="w-4 h-4 mr-1" />
-                          {listing.location}
+                          {listingData.location}
                         </div>
                       )}
-                      {listing.createdAt && (
+                      {listingData.createdAt && (
                         <div className="flex items-center">
                           <Calendar className="w-4 h-4 mr-1" />
-                          {format(new Date(listing.createdAt), 'MMM d, yyyy')}
+                          {format(new Date(listingData.createdAt), 'MMM d, yyyy')}
                         </div>
                       )}
                     </div>
                   </div>
                   <div className="text-right">
-                    {listing.price && (
+                    {listingData.price && (
                       <div className="text-2xl font-bold text-green-600 mb-2">
-                        {listing.price}
+                        {listingData.price}
                       </div>
                     )}
-                    <Badge variant={listing.isActive ? "default" : "secondary"}>
-                      {listing.isActive ? "Active" : "Draft"}
+                    <Badge variant={listingData.isActive ? "default" : "secondary"}>
+                      {listingData.isActive ? "Active" : "Draft"}
                     </Badge>
                   </div>
                 </div>
               </CardHeader>
               
-              {listing.imageUrl && (
+              {listingData.imageUrl && (
                 <div className="px-6 pb-6">
                   <img 
-                    src={listing.imageUrl} 
-                    alt={listing.title}
+                    src={listingData.imageUrl} 
+                    alt={listingData.title}
                     className="w-full h-64 object-cover rounded-lg"
                   />
                 </div>
@@ -188,13 +193,13 @@ export default function ListingView() {
             </Card>
 
             {/* Description */}
-            {listing.description && (
+            {listingData.description && (
               <Card>
                 <CardHeader>
                   <CardTitle>Description</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
+                  <p className="text-gray-700 whitespace-pre-wrap">{listingData.description}</p>
                 </CardContent>
               </Card>
             )}

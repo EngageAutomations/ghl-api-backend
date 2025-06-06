@@ -73,7 +73,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           data: listingData
         });
 
-        listingId = response.id;
+        listingId = (response as any).id;
       }
       
       if (features.showDescription && expandedDescription) {
@@ -315,7 +315,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting || !formData.title}>
-            {isSubmitting ? 'Creating...' : 'Create Listing'}
+            {isSubmitting ? 'Saving...' : (isEditing ? 'Update Listing' : 'Create Listing')}
           </Button>
         </div>
       </form>
