@@ -181,6 +181,22 @@ export default function DirectoryDetails() {
     setEditingListing(null);
   };
 
+  const handleViewListing = (listingId: number) => {
+    setViewingListingId(listingId);
+    setShowViewDialog(true);
+  };
+
+  const handleViewSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/listings', directoryName] });
+    queryClient.invalidateQueries({ queryKey: ['/api/listings/by-id', viewingListingId] });
+    queryClient.invalidateQueries({ queryKey: ['/api/listing-addons', viewingListingId] });
+  };
+
+  const handleViewClose = () => {
+    setShowViewDialog(false);
+    setViewingListingId(null);
+  };
+
   if (directoryLoading) {
     return (
       <div className="container mx-auto p-6">
@@ -404,9 +420,9 @@ export default function DirectoryDetails() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => window.open(`/listing/${listing.slug}`, '_blank')}>
+                        <DropdownMenuItem onClick={() => handleViewListing(listing.id)}>
                           <Eye className="h-4 w-4 mr-2" />
-                          View
+                          View Details
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEditListing(listing)}>
                           <Edit className="h-4 w-4 mr-2" />
@@ -467,6 +483,26 @@ export default function DirectoryDetails() {
               onCancel={handleFormClose}
             />
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View/Edit Listing Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Listing Details
+            </DialogTitle>
+          </DialogHeader>
+          {viewingListingId && (
+            <ListingViewEdit
+              listingId={viewingListingId}
+              directoryName={directoryName!}
+              directoryConfig={directory?.config}
+              onSuccess={handleViewSuccess}
+              onClose={handleViewClose}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
