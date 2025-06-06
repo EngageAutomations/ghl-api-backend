@@ -8,6 +8,8 @@ import {
   formSubmissions, FormSubmission, InsertFormSubmission,
   googleDriveCredentials, GoogleDriveCredentials, InsertGoogleDriveCredentials
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 // Storage interface with all CRUD methods
 export interface IStorage {
@@ -432,4 +434,259 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database Storage implementation
+export class DatabaseStorage implements IStorage {
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  // Designer Config methods
+  async getDesignerConfig(userId: number): Promise<DesignerConfig | undefined> {
+    const [config] = await db.select().from(designerConfigs).where(eq(designerConfigs.userId, userId));
+    return config || undefined;
+  }
+
+  async createDesignerConfig(insertConfig: InsertDesignerConfig): Promise<DesignerConfig> {
+    const [config] = await db
+      .insert(designerConfigs)
+      .values(insertConfig)
+      .returning();
+    return config;
+  }
+
+  async updateDesignerConfig(userId: number, partialConfig: Partial<InsertDesignerConfig>): Promise<DesignerConfig | undefined> {
+    const [config] = await db
+      .update(designerConfigs)
+      .set(partialConfig)
+      .where(eq(designerConfigs.userId, userId))
+      .returning();
+    return config || undefined;
+  }
+
+  // Portal Domain methods
+  async getPortalDomain(userId: number): Promise<PortalDomain | undefined> {
+    const [domain] = await db.select().from(portalDomains).where(eq(portalDomains.userId, userId));
+    return domain || undefined;
+  }
+
+  async getPortalDomainBySubdomain(subdomain: string, domain: string): Promise<PortalDomain | undefined> {
+    const [result] = await db.select().from(portalDomains)
+      .where(eq(portalDomains.subdomain, subdomain))
+      .where(eq(portalDomains.domain, domain));
+    return result || undefined;
+  }
+
+  async createPortalDomain(insertDomain: InsertPortalDomain): Promise<PortalDomain> {
+    const [domain] = await db
+      .insert(portalDomains)
+      .values(insertDomain)
+      .returning();
+    return domain;
+  }
+
+  async updatePortalDomain(id: number, partialDomain: Partial<InsertPortalDomain>): Promise<PortalDomain | undefined> {
+    const [domain] = await db
+      .update(portalDomains)
+      .set(partialDomain)
+      .where(eq(portalDomains.id, id))
+      .returning();
+    return domain || undefined;
+  }
+
+  async verifyPortalDomain(userId: number, subdomain: string, domain: string): Promise<boolean> {
+    const [result] = await db
+      .update(portalDomains)
+      .set({ verified: true })
+      .where(eq(portalDomains.userId, userId))
+      .where(eq(portalDomains.subdomain, subdomain))
+      .where(eq(portalDomains.domain, domain))
+      .returning();
+    return !!result;
+  }
+
+  // Listing methods
+  async getListing(id: number): Promise<Listing | undefined> {
+    const [listing] = await db.select().from(listings).where(eq(listings.id, id));
+    return listing || undefined;
+  }
+
+  async getListingBySlug(slug: string): Promise<Listing | undefined> {
+    const [listing] = await db.select().from(listings).where(eq(listings.slug, slug));
+    return listing || undefined;
+  }
+
+  async getListingsByUser(userId: number): Promise<Listing[]> {
+    return await db.select().from(listings).where(eq(listings.userId, userId));
+  }
+
+  async getListingsByDirectory(directoryName: string): Promise<Listing[]> {
+    return await db.select().from(listings).where(eq(listings.directoryName, directoryName));
+  }
+
+  async createListing(insertListing: InsertListing): Promise<Listing> {
+    const [listing] = await db
+      .insert(listings)
+      .values(insertListing)
+      .returning();
+    return listing;
+  }
+
+  async updateListing(id: number, partialListing: Partial<InsertListing>): Promise<Listing | undefined> {
+    const [listing] = await db
+      .update(listings)
+      .set(partialListing)
+      .where(eq(listings.id, id))
+      .returning();
+    return listing || undefined;
+  }
+
+  async deleteListing(id: number): Promise<boolean> {
+    const result = await db.delete(listings).where(eq(listings.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Listing Addon methods
+  async getListingAddon(id: number): Promise<ListingAddon | undefined> {
+    const [addon] = await db.select().from(listingAddons).where(eq(listingAddons.id, id));
+    return addon || undefined;
+  }
+
+  async getListingAddonsByListing(listingId: number): Promise<ListingAddon[]> {
+    return await db.select().from(listingAddons)
+      .where(eq(listingAddons.listingId, listingId))
+      .orderBy(listingAddons.displayOrder);
+  }
+
+  async getListingAddonsByType(listingId: number, type: string): Promise<ListingAddon[]> {
+    return await db.select().from(listingAddons)
+      .where(eq(listingAddons.listingId, listingId))
+      .where(eq(listingAddons.type, type))
+      .orderBy(listingAddons.displayOrder);
+  }
+
+  async createListingAddon(insertAddon: InsertListingAddon): Promise<ListingAddon> {
+    const [addon] = await db
+      .insert(listingAddons)
+      .values(insertAddon)
+      .returning();
+    return addon;
+  }
+
+  async updateListingAddon(id: number, partialAddon: Partial<InsertListingAddon>): Promise<ListingAddon | undefined> {
+    const [addon] = await db
+      .update(listingAddons)
+      .set(partialAddon)
+      .where(eq(listingAddons.id, id))
+      .returning();
+    return addon || undefined;
+  }
+
+  async deleteListingAddon(id: number): Promise<boolean> {
+    const result = await db.delete(listingAddons).where(eq(listingAddons.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Form Configuration (Directory) methods
+  async getFormConfiguration(id: number): Promise<FormConfiguration | undefined> {
+    const [config] = await db.select().from(formConfigurations).where(eq(formConfigurations.id, id));
+    return config || undefined;
+  }
+
+  async getFormConfigurationsByUser(userId: number): Promise<FormConfiguration[]> {
+    return await db.select().from(formConfigurations).where(eq(formConfigurations.userId, userId));
+  }
+
+  async getFormConfigurationByName(userId: number, directoryName: string): Promise<FormConfiguration | undefined> {
+    const [config] = await db.select().from(formConfigurations)
+      .where(eq(formConfigurations.userId, userId))
+      .where(eq(formConfigurations.directoryName, directoryName));
+    return config || undefined;
+  }
+
+  async createFormConfiguration(insertConfig: InsertFormConfiguration): Promise<FormConfiguration> {
+    const [config] = await db
+      .insert(formConfigurations)
+      .values(insertConfig)
+      .returning();
+    return config;
+  }
+
+  async updateFormConfiguration(id: number, partialConfig: Partial<InsertFormConfiguration>): Promise<FormConfiguration | undefined> {
+    const [config] = await db
+      .update(formConfigurations)
+      .set(partialConfig)
+      .where(eq(formConfigurations.id, id))
+      .returning();
+    return config || undefined;
+  }
+
+  async deleteFormConfiguration(id: number): Promise<boolean> {
+    const result = await db.delete(formConfigurations).where(eq(formConfigurations.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Form Submission methods
+  async createFormSubmission(insertSubmission: InsertFormSubmission): Promise<FormSubmission> {
+    const [submission] = await db
+      .insert(formSubmissions)
+      .values(insertSubmission)
+      .returning();
+    return submission;
+  }
+
+  async getFormSubmissionsByConfig(configId: number): Promise<FormSubmission[]> {
+    return await db.select().from(formSubmissions).where(eq(formSubmissions.configId, configId));
+  }
+
+  // Google Drive Credentials methods
+  async getGoogleDriveCredentials(userId: number): Promise<GoogleDriveCredentials | undefined> {
+    const [credentials] = await db.select().from(googleDriveCredentials)
+      .where(eq(googleDriveCredentials.userId, userId))
+      .where(eq(googleDriveCredentials.isActive, true));
+    return credentials || undefined;
+  }
+
+  async createGoogleDriveCredentials(insertCredentials: InsertGoogleDriveCredentials): Promise<GoogleDriveCredentials> {
+    const [credentials] = await db
+      .insert(googleDriveCredentials)
+      .values(insertCredentials)
+      .returning();
+    return credentials;
+  }
+
+  async updateGoogleDriveCredentials(id: number, partialCredentials: Partial<InsertGoogleDriveCredentials>): Promise<GoogleDriveCredentials | undefined> {
+    const [credentials] = await db
+      .update(googleDriveCredentials)
+      .set(partialCredentials)
+      .where(eq(googleDriveCredentials.id, id))
+      .returning();
+    return credentials || undefined;
+  }
+
+  async deleteGoogleDriveCredentials(id: number): Promise<boolean> {
+    const result = await db.delete(googleDriveCredentials).where(eq(googleDriveCredentials.id, id));
+    return result.rowCount > 0;
+  }
+}
+
+export const storage = new DatabaseStorage();
