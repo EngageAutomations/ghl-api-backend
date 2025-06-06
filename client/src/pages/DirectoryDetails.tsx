@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Filter, Grid3X3, List, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Search, Filter, Grid3X3, List, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft } from 'lucide-react';
 import { format } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
@@ -505,6 +505,17 @@ export default function DirectoryDetails() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Prominent Back to Directories Button - Fixed Position */}
+      <div className="fixed bottom-6 left-6 z-50">
+        <Button
+          onClick={() => setLocation('/directories')}
+          className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg px-6 py-3 text-base font-medium rounded-lg flex items-center gap-2"
+        >
+          <ChevronLeft className="h-5 w-5" />
+          Back to Directories
+        </Button>
+      </div>
     </div>
   );
 }
