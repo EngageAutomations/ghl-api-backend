@@ -110,10 +110,10 @@ export default function CollectionView() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-4">
-          <Link href="/collections">
+          <Link href={`/directories/${collection?.directoryName}?tab=collections`}>
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Collections
+              Back to Directory
             </Button>
           </Link>
           

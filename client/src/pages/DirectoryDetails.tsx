@@ -24,7 +24,7 @@ type ContentView = 'collections' | 'products';
 
 export default function DirectoryDetails() {
   const { directoryName } = useParams();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [contentView, setContentView] = useState<ContentView>('collections');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,6 +40,15 @@ export default function DirectoryDetails() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Check URL parameters to set initial tab
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam === 'collections') {
+      setContentView('collections');
+    }
+  }, [location]);
 
   // Fetch directory info
   const { data: directory, isLoading: directoryLoading } = useQuery({
