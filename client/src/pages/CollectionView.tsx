@@ -71,18 +71,7 @@ export default function CollectionView() {
     enabled: !!collection?.directoryName
   });
 
-  // Debug logging
-  useEffect(() => {
-    console.log('CollectionView Debug:', {
-      collectionId,
-      collection,
-      directoryName: collection?.directoryName,
-      directoryListings,
-      listingsLoading,
-      listingsError,
-      queryEnabled: !!collection?.directoryName
-    });
-  }, [collectionId, collection, directoryListings, listingsLoading, listingsError]);
+
 
   // Mutation for adding products to collection
   const addProductsMutation = useMutation({
@@ -93,7 +82,7 @@ export default function CollectionView() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/collections', collectionId, 'items'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/collections/${collectionId}/items`] });
       setShowAddProductsModal(false);
       setSelectedProducts([]);
       toast({
@@ -427,10 +416,7 @@ export default function CollectionView() {
               <p id="add-products-description" className="text-sm text-gray-600">
                 Select products from the "{collection?.directoryName}" directory to add to this collection.
               </p>
-              {/* Debug info */}
-              <p className="text-xs text-gray-400 mt-2">
-                Debug: Found {directoryListings?.length || 0} products, Loading: {listingsLoading ? 'Yes' : 'No'}, Directory: {collection?.directoryName || 'None'}
-              </p>
+
             </div>
 
             <div className="flex-1 overflow-y-auto">
