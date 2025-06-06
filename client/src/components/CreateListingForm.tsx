@@ -77,17 +77,25 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       }
       
       if (features.showDescription && expandedDescription) {
-        await apiRequest('/api/listing-addons', {
-          method: 'POST',
-          data: {
-            listingId,
-            type: 'expanded_description',
-            title: 'Expanded Description',
-            content: expandedDescription,
-            enabled: true,
-            displayOrder: 1,
-          }
-        });
+        console.log('Creating expanded description addon for listing:', listingId);
+        console.log('Expanded description content length:', expandedDescription.length);
+        try {
+          await apiRequest('/api/listing-addons', {
+            method: 'POST',
+            data: {
+              listingId,
+              type: 'expanded_description',
+              title: 'Expanded Description',
+              content: expandedDescription,
+              enabled: true,
+              displayOrder: 1,
+            }
+          });
+          console.log('Expanded description addon created successfully');
+        } catch (addonError) {
+          console.error('Failed to create expanded description addon:', addonError);
+          throw addonError;
+        }
       }
 
       if (features.showMetadata && metadataFields.some(field => field.icon || field.text)) {
