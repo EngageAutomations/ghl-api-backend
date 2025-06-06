@@ -1948,15 +1948,24 @@ Your marketplace enhancement is now active!`
       {/* Navigation Footer - Fixed at bottom */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-4 z-50">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <Button
-            variant="outline"
-            onClick={prevSlide}
-            disabled={currentSlide === 0}
-            className="flex items-center space-x-2"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span>Previous</span>
-          </Button>
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              onClick={() => setLocation('/directories')}
+              className="flex items-center space-x-2 text-red-600 border-red-300 hover:bg-red-50"
+            >
+              <span>Cancel Wizard</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={prevSlide}
+              disabled={currentSlide === 0}
+              className="flex items-center space-x-2"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Previous</span>
+            </Button>
+          </div>
 
           <div className="text-sm text-gray-500">
             Step {currentSlide + 1} of {slides.length}
