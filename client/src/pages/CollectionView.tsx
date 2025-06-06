@@ -14,6 +14,30 @@ type ViewMode = 'grid' | 'list';
 type FilterOption = 'all' | 'active' | 'draft';
 type SortOption = 'newest' | 'oldest' | 'title' | 'price';
 
+interface Collection {
+  id: number;
+  name: string;
+  directoryName: string;
+  description?: string;
+  isActive?: boolean;
+  syncStatus?: string;
+}
+
+interface CollectionItem {
+  id: number;
+  listingId: number;
+  collectionId: number;
+  createdAt: Date;
+  listing: {
+    id: number;
+    title: string;
+    description?: string;
+    price?: string;
+    imageUrl?: string;
+    createdAt: Date;
+  };
+}
+
 export default function CollectionView() {
   const { collectionId } = useParams();
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -22,13 +46,13 @@ export default function CollectionView() {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
 
   // Fetch collection details
-  const { data: collection, isLoading: collectionLoading } = useQuery({
+  const { data: collection, isLoading: collectionLoading } = useQuery<Collection>({
     queryKey: ['/api/collections', collectionId],
     enabled: !!collectionId
   });
 
   // Fetch collection items (products in this collection)
-  const { data: collectionItems = [], isLoading: itemsLoading } = useQuery({
+  const { data: collectionItems = [], isLoading: itemsLoading } = useQuery<CollectionItem[]>({
     queryKey: ['/api/collections', collectionId, 'items'],
     enabled: !!collectionId
   });
@@ -78,14 +102,14 @@ export default function CollectionView() {
   }
 
   // Filter and sort items
-  const filteredItems = collectionItems.filter((item: any) => {
+  const filteredItems = collectionItems.filter((item: CollectionItem) => {
+    const listing = item.listing;
     const matchesSearch = !searchQuery || 
-      item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      listing.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      listing.description?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesFilter = filterBy === 'all' || 
-      (filterBy === 'active' && item.isActive) ||
-      (filterBy === 'draft' && !item.isActive);
+    // For now, assume all items are active since we don't have isActive on listing
+    const matchesFilter = filterBy === 'all' || filterBy === 'active';
     
     return matchesSearch && matchesFilter;
   });
@@ -93,15 +117,15 @@ export default function CollectionView() {
   const sortedItems = [...filteredItems].sort((a, b) => {
     switch (sortBy) {
       case 'oldest':
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        return new Date(a.listing.createdAt).getTime() - new Date(b.listing.createdAt).getTime();
       case 'title':
-        return (a.title || '').localeCompare(b.title || '');
+        return (a.listing.title || '').localeCompare(b.listing.title || '');
       case 'price':
-        const aPrice = parseFloat(a.price?.replace(/[^0-9.-]+/g, '') || '0');
-        const bPrice = parseFloat(b.price?.replace(/[^0-9.-]+/g, '') || '0');
+        const aPrice = parseFloat(a.listing.price?.replace(/[^0-9.-]+/g, '') || '0');
+        const bPrice = parseFloat(b.listing.price?.replace(/[^0-9.-]+/g, '') || '0');
         return bPrice - aPrice;
       default: // newest
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return new Date(b.listing.createdAt).getTime() - new Date(a.listing.createdAt).getTime();
     }
   });
 
@@ -110,7 +134,7 @@ export default function CollectionView() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-4">
-          <Link href={`/directories/${collection?.directoryName}?tab=collections`}>
+          <Link href={collection?.directoryName ? `/directories/${collection.directoryName}?tab=collections` : '/directories'}>
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Directory
@@ -252,27 +276,27 @@ export default function CollectionView() {
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedItems.map((item: any) => (
+          {sortedItems.map((item: CollectionItem) => (
             <Card key={item.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="p-0">
-                {item.imageUrl && (
+                {item.listing.imageUrl && (
                   <div className="aspect-video w-full overflow-hidden rounded-t-lg">
                     <img 
-                      src={item.imageUrl} 
-                      alt={item.title}
+                      src={item.listing.imageUrl} 
+                      alt={item.listing.title}
                       className="w-full h-full object-cover"
                     />
                   </div>
                 )}
               </CardHeader>
               <CardContent className="p-4">
-                <h3 className="font-semibold text-lg mb-2 line-clamp-2">{item.title}</h3>
-                {item.description && (
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-3">{item.description}</p>
+                <h3 className="font-semibold text-lg mb-2 line-clamp-2">{item.listing.title}</h3>
+                {item.listing.description && (
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-3">{item.listing.description}</p>
                 )}
                 <div className="flex items-center justify-between">
-                  {item.price && (
-                    <span className="font-medium text-lg text-green-600">{item.price}</span>
+                  {item.listing.price && (
+                    <span className="font-medium text-lg text-green-600">{item.listing.price}</span>
                   )}
                   <Badge variant={item.isActive ? 'default' : 'secondary'}>
                     {item.isActive ? 'Active' : 'Draft'}
