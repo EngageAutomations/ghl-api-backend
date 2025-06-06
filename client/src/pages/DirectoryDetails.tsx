@@ -513,25 +513,25 @@ export default function DirectoryDetails() {
           </div>
         ) : processedListings.length === 0 ? (
           <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <Grid3X3 className="h-16 w-16 mx-auto" />
+            <div className="text-gray-400 mb-4">
+              <Grid3X3 className="h-16 w-16 mx-auto" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {searchQuery || filterBy !== 'all' ? 'No listings found' : 'No listings yet'}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              {searchQuery || filterBy !== 'all' 
+                ? 'Try adjusting your search or filters'
+                : 'Create your first listing to get started'
+              }
+            </p>
+            {!searchQuery && filterBy === 'all' && (
+              <Button onClick={() => setShowListingForm(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add First Listing
+              </Button>
+            )}
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {searchQuery || filterBy !== 'all' ? 'No listings found' : 'No listings yet'}
-          </h3>
-          <p className="text-gray-600 mb-6">
-            {searchQuery || filterBy !== 'all' 
-              ? 'Try adjusting your search or filters'
-              : 'Create your first listing to get started'
-            }
-          </p>
-          {!searchQuery && filterBy === 'all' && (
-            <Button onClick={() => setShowListingForm(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add First Listing
-            </Button>
-          )}
-        </div>
       ) : (
         <>
           {/* Select all checkbox */}
