@@ -512,7 +512,7 @@ export default function DirectoryDetails() {
             ))}
           </div>
         ) : processedListings.length === 0 ? (
-        <div className="text-center py-12">
+          <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
             <Grid3X3 className="h-16 w-16 mx-auto" />
           </div>

@@ -166,8 +166,8 @@ export default function CreateCollectionForm({
             disabled={form.formState.isSubmitting}
           >
             {form.formState.isSubmitting 
-              ? (initialData ? 'Updating...' : 'Creating...') 
-              : (initialData ? 'Update Collection' : 'Create Collection')
+              ? (collection ? 'Updating...' : 'Creating...') 
+              : (collection ? 'Update Collection' : 'Create Collection')
             }
           </Button>
         </div>

@@ -283,7 +283,7 @@ export default function Collections() {
             <DialogTitle>Create New Collection</DialogTitle>
           </DialogHeader>
           <CreateCollectionForm
-            onSuccess={handleCreateCollection}
+            onSubmit={handleCreateCollection}
             onCancel={() => setShowCreateDialog(false)}
           />
         </DialogContent>
@@ -297,8 +297,8 @@ export default function Collections() {
           </DialogHeader>
           {editingCollection && (
             <CreateCollectionForm
-              initialData={editingCollection}
-              onSuccess={handleUpdateCollection}
+              collection={editingCollection}
+              onSubmit={handleUpdateCollection}
               onCancel={() => setEditingCollection(null)}
             />
           )}
