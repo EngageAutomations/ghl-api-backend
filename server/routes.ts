@@ -513,11 +513,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new addon
   app.post("/api/listing-addons", async (req, res) => {
     try {
+      console.log("Creating addon with data:", req.body);
       const addonData = insertListingAddonSchema.parse(req.body);
+      console.log("Parsed addon data:", addonData);
       const addon = await storage.createListingAddon(addonData);
+      console.log("Created addon:", addon);
       res.status(201).json(addon);
     } catch (error) {
       console.error("Error creating listing addon:", error);
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
       res.status(500).json({ message: "Failed to create listing addon" });
     }
   });
