@@ -1,6 +1,6 @@
 import { useParams, Link } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Package, Plus, Grid3X3, List, Search, Filter, SortAsc } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, Package, Plus, Grid3X3, List, Search, Filter, SortAsc, X } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 type ViewMode = 'grid' | 'list';
 type FilterOption = 'all' | 'active' | 'draft';
@@ -44,6 +48,10 @@ export default function CollectionView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [showAddProductsModal, setShowAddProductsModal] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch collection details
   const { data: collection, isLoading: collectionLoading } = useQuery<Collection>({
@@ -55,6 +63,38 @@ export default function CollectionView() {
   const { data: collectionItems = [], isLoading: itemsLoading } = useQuery<CollectionItem[]>({
     queryKey: ['/api/collections', collectionId, 'items'],
     enabled: !!collectionId
+  });
+
+  // Fetch directory listings for adding products
+  const { data: directoryListings = [] } = useQuery({
+    queryKey: ['/api/listings', collection?.directoryName],
+    enabled: !!collection?.directoryName && showAddProductsModal
+  });
+
+  // Mutation for adding products to collection
+  const addProductsMutation = useMutation({
+    mutationFn: async (listingIds: number[]) => {
+      return apiRequest(`/api/collections/${collectionId}/items`, {
+        method: 'POST',
+        data: { listingIds }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/collections', collectionId, 'items'] });
+      setShowAddProductsModal(false);
+      setSelectedProducts([]);
+      toast({
+        title: "Products added",
+        description: `Successfully added ${selectedProducts.length} product(s) to the collection.`
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add products to collection. Please try again.",
+        variant: "destructive"
+      });
+    }
   });
 
   if (!collectionId) {
@@ -156,9 +196,19 @@ export default function CollectionView() {
             )}
           </div>
 
-          <Badge variant={collection.isActive ? 'default' : 'secondary'}>
-            {collection.isActive ? 'Active' : 'Inactive'}
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setShowAddProductsModal(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Products to Collection
+            </Button>
+            
+            <Badge variant={collection.isActive ? 'default' : 'secondary'}>
+              {collection.isActive ? 'Active' : 'Inactive'}
+            </Badge>
+          </div>
         </div>
 
         {/* Collection metadata */}
