@@ -118,6 +118,49 @@ export default function DirectoryDetails() {
     },
   });
 
+  // Collection mutations
+  const createCollectionMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('/api/collections', {
+      method: 'POST',
+      data: { ...data, directoryName }
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/collections/directory', directoryName] });
+      setShowCollectionForm(false);
+      toast({
+        title: "Success",
+        description: "Collection created successfully"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create collection",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteCollectionMutation = useMutation({
+    mutationFn: (id: number) => apiRequest(`/api/collections/${id}`, {
+      method: 'DELETE'
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/collections/directory', directoryName] });
+      toast({
+        title: "Success",
+        description: "Collection deleted successfully"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete collection",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Filter and sort listings
   const processedListings = Array.isArray(listings) ? listings
     .filter((listing: any) => {
@@ -248,38 +291,76 @@ export default function DirectoryDetails() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{directory.directoryName}</h1>
-            <p className="text-gray-600">
-              {processedListings.length} listing{processedListings.length !== 1 ? 's' : ''}
-            </p>
+          <div className="flex items-center gap-6">
+            <Button
+              variant="ghost"
+              onClick={() => setLocation('/directories')}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Back to Directories
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">{directory.directoryName}</h1>
+              <p className="text-gray-600">
+                {contentView === 'collections' 
+                  ? `${collections.length} collection${collections.length !== 1 ? 's' : ''}`
+                  : `${processedListings.length} listing${processedListings.length !== 1 ? 's' : ''}`
+                }
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <Button
-              onClick={() => setShowListingForm(true)}
+              onClick={() => contentView === 'collections' ? setShowCollectionForm(true) : setShowListingForm(true)}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
-              Add Listing
+              {contentView === 'collections' ? 'New Collection' : 'Add Listing'}
             </Button>
           </div>
         </div>
 
-        {/* Search and filters */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex-1 max-w-md">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search listings..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+        {/* Content Toggle */}
+        <div className="flex items-center gap-2 mb-6">
+          <div className="bg-gray-100 rounded-lg p-1 flex">
+            <Button
+              variant={contentView === 'collections' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setContentView('collections')}
+              className="flex items-center gap-2"
+            >
+              <Archive className="h-4 w-4" />
+              Collections
+            </Button>
+            <Button
+              variant={contentView === 'products' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setContentView('products')}
+              className="flex items-center gap-2"
+            >
+              <Package className="h-4 w-4" />
+              Products
+            </Button>
           </div>
+        </div>
 
-          <div className="flex items-center gap-3">
+        {/* Search and filters - only show for products */}
+        {contentView === 'products' && (
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="flex-1 max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search listings..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
             {/* Bulk actions */}
             {selectedListings.length > 0 && (
               <div className="flex items-center gap-2">
@@ -341,12 +422,88 @@ export default function DirectoryDetails() {
                 <List className="h-4 w-4" />
               </Button>
             </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Listings */}
-      {listingsLoading ? (
+      {/* Content - Collections or Products */}
+      {contentView === 'collections' ? (
+        // Collections View
+        collectionsLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-64 bg-gray-200 rounded"></div>
+              </div>
+            ))}
+          </div>
+        ) : collections.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <Archive className="h-16 w-16 mx-auto" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No collections yet</h3>
+            <p className="text-gray-600 mb-6">Create your first collection to organize your products</p>
+            <Button onClick={() => setShowCollectionForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create First Collection
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {collections.map((collection: any) => (
+              <div key={collection.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{collection.name}</h3>
+                    {collection.description && (
+                      <p className="text-gray-600 text-sm mb-3">{collection.description}</p>
+                    )}
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <Package className="h-4 w-4" />
+                        {collection.itemCount || 0} items
+                      </span>
+                      {collection.syncStatus && (
+                        <Badge variant={collection.syncStatus === 'synced' ? 'default' : 'secondary'}>
+                          {collection.syncStatus}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setEditingCollection(collection)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          if (confirm('Are you sure you want to delete this collection?')) {
+                            deleteCollectionMutation.mutate(collection.id);
+                          }
+                        }}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      ) : (
+        // Products View
+        listingsLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="animate-pulse">
@@ -475,6 +632,7 @@ export default function DirectoryDetails() {
             ))}
           </div>
         </>
+      )
       )}
 
       {/* Create Listing Dialog */}
