@@ -71,6 +71,8 @@ export default function CollectionView() {
     enabled: !!collection?.directoryName
   });
 
+  // Note: Collection lookup feature temporarily disabled for stability
+
 
 
   // Mutation for adding products to collection
@@ -416,7 +418,9 @@ export default function CollectionView() {
               <p id="add-products-description" className="text-sm text-gray-600">
                 Select products from the "{collection?.directoryName}" directory to add to this collection.
               </p>
-
+              <p className="text-xs text-gray-500 mt-1">
+                Note: Products can be added to multiple collections.
+              </p>
             </div>
 
             <div className="flex-1 overflow-y-auto">
@@ -437,6 +441,10 @@ export default function CollectionView() {
                     const isAlreadyInCollection = collectionItems.some(
                       item => item.listing.id === listing.id
                     );
+                    const listingInCollections = listingCollections.data?.[listing.id] || [];
+                    const otherCollections = Array.isArray(listingInCollections) ? listingInCollections.filter(
+                      item => item.collection?.id !== collection?.id
+                    ) : [];
                     
                     return (
                       <div
@@ -489,9 +497,33 @@ export default function CollectionView() {
                                 {listing.price}
                               </p>
                             )}
-                            {isAlreadyInCollection && (
+                            
+                            {/* Show collection membership status */}
+                            {isAlreadyInCollection ? (
                               <p className="text-xs text-gray-500 mt-1">
-                                Already in collection
+                                Already in this collection
+                              </p>
+                            ) : otherCollections.length > 0 ? (
+                              <div className="mt-1">
+                                <p className="text-xs text-blue-600">
+                                  In {otherCollections.length} other collection{otherCollections.length > 1 ? 's' : ''}
+                                </p>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {otherCollections.slice(0, 2).map((item, index) => (
+                                    <Badge key={index} variant="outline" className="text-xs py-0 px-1 h-5">
+                                      {item.collection?.name}
+                                    </Badge>
+                                  ))}
+                                  {otherCollections.length > 2 && (
+                                    <Badge variant="outline" className="text-xs py-0 px-1 h-5">
+                                      +{otherCollections.length - 2}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-xs text-gray-400 mt-1">
+                                Not in any collection
                               </p>
                             )}
                           </div>

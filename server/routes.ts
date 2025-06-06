@@ -1282,6 +1282,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get collections that contain a specific listing
+  app.get("/api/listings/:id/collections", async (req, res) => {
+    try {
+      const listingId = parseInt(req.params.id);
+      const items = await storage.getCollectionItemsByListing(listingId);
+      
+      // Get collection details for each item
+      const collectionsWithDetails = await Promise.all(
+        items.map(async (item) => {
+          const collection = await storage.getCollection(item.collectionId);
+          return {
+            ...item,
+            collection
+          };
+        })
+      );
+      
+      res.json(collectionsWithDetails);
+    } catch (error) {
+      console.error("Error fetching listing collections:", error);
+      res.status(500).json({ error: "Failed to fetch listing collections" });
+    }
+  });
+
   app.post("/api/collections/:id/items", async (req, res) => {
     try {
       const collectionId = parseInt(req.params.id);
