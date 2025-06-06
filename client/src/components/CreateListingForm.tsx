@@ -73,7 +73,13 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           data: listingData
         });
 
-        listingId = (response as any).id;
+        console.log('Listing creation response:', response);
+        listingId = response.id;
+        console.log('Created listing with ID:', listingId);
+        
+        if (!listingId) {
+          throw new Error('Failed to get listing ID from response');
+        }
       }
       
       if (features.showDescription && expandedDescription) {
