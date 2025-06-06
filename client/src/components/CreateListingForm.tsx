@@ -19,12 +19,18 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    expandedDescription: '',
     imageUrl: '',
     price: '',
     location: '',
-    metadataFields: [{ icon: '', text: '' }],
+    slug: '',
+    userId: 1,
+    directoryName: directoryName,
+    isActive: true,
   });
+  
+  // Separate state for extended fields that will be saved as addons
+  const [expandedDescription, setExpandedDescription] = useState('');
+  const [metadataFields, setMetadataFields] = useState([{ icon: '', text: '' }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -35,15 +41,51 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     setIsSubmitting(true);
 
     try {
-      await apiRequest('/api/listings', {
+      // Generate slug from title
+      const slug = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      
+      // Create the main listing
+      const listingData = {
+        ...formData,
+        slug,
+        directoryName,
+      };
+
+      const response = await apiRequest('/api/listings', {
         method: 'POST',
-        data: {
-          ...formData,
-          directoryName,
-          slug: formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          isActive: true,
-        }
+        data: listingData
       });
+
+      // If we have expanded description or metadata, save them as addons
+      const listingId = response.id;
+      
+      if (features.showDescription && expandedDescription) {
+        await apiRequest('/api/listing-addons', {
+          method: 'POST',
+          data: {
+            listingId,
+            type: 'expanded_description',
+            title: 'Expanded Description',
+            content: expandedDescription,
+            enabled: true,
+            displayOrder: 1,
+          }
+        });
+      }
+
+      if (features.showMetadata && metadataFields.some(field => field.icon || field.text)) {
+        await apiRequest('/api/listing-addons', {
+          method: 'POST',
+          data: {
+            listingId,
+            type: 'metadata_bar',
+            title: 'Metadata Bar',
+            content: JSON.stringify(metadataFields.filter(field => field.icon || field.text)),
+            enabled: true,
+            displayOrder: 2,
+          }
+        });
+      }
 
       toast({
         title: "Success",
@@ -52,6 +94,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       
       onSuccess();
     } catch (error) {
+      console.error('Error creating listing:', error);
       toast({
         title: "Error",
         description: "Failed to create listing. Please try again.",
@@ -70,20 +113,16 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   };
 
   const handleMetadataChange = (index: number, field: 'icon' | 'text', value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      metadataFields: prev.metadataFields.map((item, i) => 
+    setMetadataFields(prev => 
+      prev.map((item, i) => 
         i === index ? { ...item, [field]: value } : item
       )
-    }));
+    );
   };
 
   const addMetadataField = () => {
-    if (formData.metadataFields.length < 8) {
-      setFormData(prev => ({
-        ...prev,
-        metadataFields: [...prev.metadataFields, { icon: '', text: '' }]
-      }));
+    if (metadataFields.length < 8) {
+      setMetadataFields(prev => [...prev, { icon: '', text: '' }]);
     }
   };
 
@@ -167,8 +206,8 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
                   <span>HTML Support</span>
                 </div>
                 <RichTextEditor
-                  value={formData.expandedDescription}
-                  onChange={(value) => handleInputChange('expandedDescription', value)}
+                  value={expandedDescription}
+                  onChange={(value) => setExpandedDescription(value)}
                   placeholder="Enter rich content with drag & drop images and text alignment..."
                   className="w-full"
                   disabled={false}
@@ -212,7 +251,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
               <div className="mt-1 space-y-3 border border-gray-300 rounded-md p-3 bg-gray-50">
                 <div className="text-xs text-gray-500 mb-2">Add up to 8 icon + text pairs (Default: 1 field)</div>
                 
-                {formData.metadataFields.map((field, index) => (
+                {metadataFields.map((field, index) => (
                   <div key={index} className="flex items-end gap-2">
                     <div className="w-16">
                       <Label className="text-xs text-gray-600">Icon</Label>
@@ -235,7 +274,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
                   </div>
                 ))}
                 
-                {formData.metadataFields.length < 8 && (
+                {metadataFields.length < 8 && (
                   <Button 
                     type="button" 
                     variant="outline" 
