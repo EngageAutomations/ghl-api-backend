@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { CreateListingForm } from '@/components/CreateListingForm';
+import { ListingViewEdit } from '@/components/ListingViewEdit';
 
 type ViewMode = 'grid' | 'list';
 type FilterOption = 'all' | 'active' | 'draft';
@@ -29,6 +30,8 @@ export default function DirectoryDetails() {
   const [showListingForm, setShowListingForm] = useState(false);
   const [editingListing, setEditingListing] = useState<any | null>(null);
   const [selectedListings, setSelectedListings] = useState<number[]>([]);
+  const [viewingListingId, setViewingListingId] = useState<number | null>(null);
+  const [showViewDialog, setShowViewDialog] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
