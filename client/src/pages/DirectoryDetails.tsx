@@ -507,7 +507,7 @@ export default function DirectoryDetails() {
       </Dialog>
 
       {/* Prominent Back to Directories Button - Fixed Position */}
-      <div className="fixed bottom-6 z-50" style={{ left: 'max(1.5rem, calc(50% - 768px / 2 + 1.5rem))' }}>
+      <div className="fixed bottom-6 z-50" style={{ left: 'max(1.5rem, calc(50% - 768px / 2 + 1.5rem - 50px))' }}>
         <Button
           onClick={() => setLocation('/directories')}
           className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg px-6 py-3 text-base font-medium rounded-lg flex items-center gap-2"
