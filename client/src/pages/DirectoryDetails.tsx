@@ -532,12 +532,12 @@ export default function DirectoryDetails() {
               </Button>
             )}
           </div>
-      ) : (
-        <>
-          {/* Select all checkbox */}
-          {processedListings.length > 0 && (
-            <div className="mb-4">
-              <label className="flex items-center gap-2 cursor-pointer">
+        ) : (
+          <>
+            {/* Select all checkbox */}
+            {processedListings.length > 0 && (
+              <div className="mb-4">
+                <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={selectedListings.length === processedListings.length}
@@ -632,6 +632,7 @@ export default function DirectoryDetails() {
             ))}
           </div>
         </>
+        )
       )}
 
       {/* Create Listing Dialog */}
