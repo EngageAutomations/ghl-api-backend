@@ -240,12 +240,6 @@ export default function DirectoryDetails() {
           </div>
           <div className="flex items-center gap-3">
             <Button
-              variant="outline"
-              onClick={() => setLocation('/directories')}
-            >
-              Back to Directories
-            </Button>
-            <Button
               onClick={() => setShowListingForm(true)}
               className="flex items-center gap-2"
             >
