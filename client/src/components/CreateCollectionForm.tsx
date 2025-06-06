@@ -12,7 +12,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 
 const collectionFormSchema = z.object({
   name: z.string().min(1, 'Collection name is required').max(100, 'Name must be 100 characters or less'),
+  slug: z.string().min(1, 'URL slug is required').max(100, 'Slug must be 100 characters or less'),
   description: z.string().optional(),
+  imageUrl: z.string().url('Please enter a valid image URL').optional().or(z.literal('')),
+  seoTitle: z.string().max(60, 'SEO title should be 60 characters or less').optional(),
+  seoDescription: z.string().max(160, 'SEO description should be 160 characters or less').optional(),
   directoryName: z.string().min(1, 'Directory is required'),
   isActive: z.boolean().default(true),
   syncStatus: z.string().default('pending')
@@ -35,7 +39,11 @@ export default function CreateCollectionForm({
     resolver: zodResolver(collectionFormSchema),
     defaultValues: {
       name: collection?.name || '',
+      slug: collection?.slug || '',
       description: collection?.description || '',
+      imageUrl: collection?.imageUrl || '',
+      seoTitle: collection?.seoTitle || '',
+      seoDescription: collection?.seoDescription || '',
       directoryName: collection?.directoryName || '',
       isActive: collection?.isActive ?? true,
       syncStatus: collection?.syncStatus || 'pending'
@@ -80,6 +88,30 @@ export default function CreateCollectionForm({
             )}
           />
 
+          {/* URL Slug */}
+          <FormField
+            control={form.control}
+            name="slug"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-left block">URL Slug</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="e.g., my-collection-slug" 
+                    {...field} 
+                    className="text-left"
+                  />
+                </FormControl>
+                <FormDescription className="text-left">
+                  URL-friendly version of the collection name
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Directory Selection */}
           <FormField
             control={form.control}
@@ -101,6 +133,29 @@ export default function CreateCollectionForm({
                     ))}
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Image URL */}
+          <FormField
+            control={form.control}
+            name="imageUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-left block">Collection Image URL</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="https://example.com/image.jpg" 
+                    {...field} 
+                    className="text-left"
+                    type="url"
+                  />
+                </FormControl>
+                <FormDescription className="text-left">
+                  Optional image to represent this collection
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

@@ -223,7 +223,11 @@ export const collections = pgTable("collections", {
   userId: integer("user_id").notNull(),
   directoryName: text("directory_name").notNull(),
   name: text("name").notNull(),
+  slug: text("slug"),
   description: text("description"),
+  imageUrl: text("image_url"),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
   ghlCollectionId: text("ghl_collection_id"), // GoHighLevel collection ID
   syncStatus: text("sync_status").default("pending"), // pending, synced, failed
   syncError: text("sync_error"),
