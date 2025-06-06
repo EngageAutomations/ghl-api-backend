@@ -1285,25 +1285,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/collections/:id/items", async (req, res) => {
     try {
       const collectionId = parseInt(req.params.id);
-      const { listingId } = req.body;
+      const { listingId, listingIds } = req.body;
       
-      if (!listingId) {
-        return res.status(400).json({ error: "listingId is required" });
+      // Support both single listingId and batch listingIds
+      const idsToAdd = listingIds || (listingId ? [listingId] : []);
+      
+      if (!idsToAdd || idsToAdd.length === 0) {
+        return res.status(400).json({ error: "listingId or listingIds is required" });
       }
       
-      // Check if listing is already in collection
+      // Check existing items in collection
       const existingItems = await storage.getCollectionItemsByCollection(collectionId);
-      const alreadyExists = existingItems.some(item => item.listingId === listingId);
+      const existingListingIds = existingItems.map(item => item.listingId);
       
-      if (alreadyExists) {
-        return res.status(400).json({ error: "Listing is already in this collection" });
+      // Filter out already existing items
+      const newListingIds = idsToAdd.filter((id: number) => !existingListingIds.includes(id));
+      
+      if (newListingIds.length === 0) {
+        return res.status(400).json({ error: "All specified listings are already in this collection" });
       }
       
-      const item = await storage.addListingToCollection(collectionId, listingId);
+      // Add all new items
+      const addedItems = [];
+      for (const listingId of newListingIds) {
+        const item = await storage.addListingToCollection(collectionId, listingId);
+        addedItems.push(item);
+      }
       
       // TODO: Add to GoHighLevel collection via API
       
-      res.status(201).json(item);
+      res.status(201).json({
+        message: `Successfully added ${addedItems.length} item(s) to collection`,
+        addedItems,
+        skipped: idsToAdd.length - newListingIds.length
+      });
     } catch (error) {
       console.error("Error adding listing to collection:", error);
       res.status(500).json({ error: "Failed to add listing to collection" });

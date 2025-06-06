@@ -66,7 +66,7 @@ export default function CollectionView() {
   });
 
   // Fetch directory listings for adding products
-  const { data: directoryListings = [] } = useQuery({
+  const { data: directoryListings = [] } = useQuery<any[]>({
     queryKey: ['/api/listings', collection?.directoryName],
     enabled: !!collection?.directoryName && showAddProductsModal
   });
@@ -325,12 +325,10 @@ export default function CollectionView() {
               : 'Add products to this collection to get started'
             }
           </p>
-          <Link href={`/directories/${collection.directoryName}`}>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Products to Collection
-            </Button>
-          </Link>
+          <Button onClick={() => setShowAddProductsModal(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Products to Collection
+          </Button>
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -403,6 +401,126 @@ export default function CollectionView() {
           ))}
         </div>
       )}
+
+      {/* Add Products Modal */}
+      <Dialog open={showAddProductsModal} onOpenChange={setShowAddProductsModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Add Products to Collection</DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex flex-col h-full">
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">
+                Select products from the "{collection?.directoryName}" directory to add to this collection.
+              </p>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {!directoryListings || directoryListings.length === 0 ? (
+                <div className="text-center py-8">
+                  <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-500">No products available in this directory</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(directoryListings as any[]).map((listing: any) => {
+                    const isSelected = selectedProducts.includes(listing.id);
+                    const isAlreadyInCollection = collectionItems.some(
+                      item => item.listing.id === listing.id
+                    );
+                    
+                    return (
+                      <div
+                        key={listing.id}
+                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                          isAlreadyInCollection
+                            ? 'bg-gray-100 border-gray-300 cursor-not-allowed'
+                            : isSelected
+                            ? 'bg-blue-50 border-blue-300'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => {
+                          if (isAlreadyInCollection) return;
+                          
+                          setSelectedProducts(prev =>
+                            isSelected
+                              ? prev.filter(id => id !== listing.id)
+                              : [...prev, listing.id]
+                          );
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            checked={isSelected}
+                            disabled={isAlreadyInCollection}
+                            onChange={() => {}} // Controlled by onClick above
+                          />
+                          
+                          {listing.imageUrl && (
+                            <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
+                              <img
+                                src={listing.imageUrl}
+                                alt={listing.title}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm line-clamp-2">
+                              {listing.title}
+                            </h4>
+                            {listing.description && (
+                              <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                                {listing.description}
+                              </p>
+                            )}
+                            {listing.price && (
+                              <p className="text-sm font-medium text-green-600 mt-1">
+                                {listing.price}
+                              </p>
+                            )}
+                            {isAlreadyInCollection && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Already in collection
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t">
+              <p className="text-sm text-gray-600">
+                {selectedProducts.length} product(s) selected
+              </p>
+              
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowAddProductsModal(false);
+                    setSelectedProducts([]);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => addProductsMutation.mutate(selectedProducts)}
+                  disabled={selectedProducts.length === 0 || addProductsMutation.isPending}
+                >
+                  {addProductsMutation.isPending ? 'Adding...' : `Add ${selectedProducts.length} Product(s)`}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
