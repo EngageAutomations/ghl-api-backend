@@ -185,6 +185,60 @@ export default function CreateCollectionForm({
           )}
         />
 
+        {/* SEO Fields */}
+        <div className="space-y-4 border rounded-lg p-4">
+          <h3 className="text-lg font-medium text-left">SEO Settings</h3>
+          
+          <div className="grid grid-cols-1 gap-4">
+            {/* SEO Title */}
+            <FormField
+              control={form.control}
+              name="seoTitle"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-left block">SEO Title</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter SEO title (recommended: 50-60 characters)" 
+                      {...field} 
+                      className="text-left"
+                      maxLength={60}
+                    />
+                  </FormControl>
+                  <FormDescription className="text-left">
+                    Title that appears in search engine results (max 60 characters)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* SEO Description */}
+            <FormField
+              control={form.control}
+              name="seoDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-left block">SEO Description</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Enter SEO description (recommended: 150-160 characters)"
+                      rows={3}
+                      {...field}
+                      className="text-left"
+                      maxLength={160}
+                    />
+                  </FormControl>
+                  <FormDescription className="text-left">
+                    Description that appears in search engine results (max 160 characters)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
         {/* Active Status */}
         <FormField
           control={form.control}
