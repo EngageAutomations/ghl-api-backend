@@ -441,10 +441,7 @@ export default function CollectionView() {
                     const isAlreadyInCollection = collectionItems.some(
                       item => item.listing.id === listing.id
                     );
-                    const listingInCollections = listingCollections.data?.[listing.id] || [];
-                    const otherCollections = Array.isArray(listingInCollections) ? listingInCollections.filter(
-                      item => item.collection?.id !== collection?.id
-                    ) : [];
+                    // Simplified for stability - will show collection membership in future update
                     
                     return (
                       <div
@@ -503,27 +500,9 @@ export default function CollectionView() {
                               <p className="text-xs text-gray-500 mt-1">
                                 Already in this collection
                               </p>
-                            ) : otherCollections.length > 0 ? (
-                              <div className="mt-1">
-                                <p className="text-xs text-blue-600">
-                                  In {otherCollections.length} other collection{otherCollections.length > 1 ? 's' : ''}
-                                </p>
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {otherCollections.slice(0, 2).map((item, index) => (
-                                    <Badge key={index} variant="outline" className="text-xs py-0 px-1 h-5">
-                                      {item.collection?.name}
-                                    </Badge>
-                                  ))}
-                                  {otherCollections.length > 2 && (
-                                    <Badge variant="outline" className="text-xs py-0 px-1 h-5">
-                                      +{otherCollections.length - 2}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
                             ) : (
                               <p className="text-xs text-gray-400 mt-1">
-                                Not in any collection
+                                Available to add
                               </p>
                             )}
                           </div>
