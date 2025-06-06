@@ -18,6 +18,7 @@ import DirectoriesDashboard from "@/pages/DirectoriesDashboard";
 import DirectoryDetails from "@/pages/DirectoryDetails";
 import ListingView from "@/pages/ListingView";
 import Collections from "@/pages/Collections";
+import CollectionView from "@/pages/CollectionView";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
@@ -110,6 +111,14 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <Collections />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/collections/:collectionId">
+        <ProtectedRoute>
+          <AppLayout>
+            <CollectionView />
           </AppLayout>
         </ProtectedRoute>
       </Route>

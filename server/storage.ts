@@ -77,6 +77,7 @@ export interface IStorage {
   // Collection Item methods
   getCollectionItem(id: number): Promise<CollectionItem | undefined>;
   getCollectionItemsByCollection(collectionId: number): Promise<CollectionItem[]>;
+  getCollectionItemsWithListings(collectionId: number): Promise<(CollectionItem & { listing?: Listing })[]>;
   getCollectionItemsByListing(listingId: number): Promise<CollectionItem[]>;
   addListingToCollection(collectionId: number, listingId: number): Promise<CollectionItem>;
   removeListingFromCollection(collectionId: number, listingId: number): Promise<boolean>;
@@ -529,6 +530,17 @@ export class MemStorage implements IStorage {
     return Array.from(this.collectionItems.values()).filter(
       (item) => item.collectionId === collectionId
     );
+  }
+
+  async getCollectionItemsWithListings(collectionId: number): Promise<(CollectionItem & { listing?: Listing })[]> {
+    const items = Array.from(this.collectionItems.values()).filter(
+      (item) => item.collectionId === collectionId
+    );
+    
+    return items.map(item => ({
+      ...item,
+      listing: this.listings.get(item.listingId)
+    }));
   }
 
   async getCollectionItemsByListing(listingId: number): Promise<CollectionItem[]> {
