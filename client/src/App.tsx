@@ -105,6 +105,15 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      {/* Collections routes */}
+      <Route path="/collections">
+        <ProtectedRoute>
+          <AppLayout>
+            <Collections />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
       <Route path="/create-listing">
         <ProtectedRoute>
           <AppLayout>

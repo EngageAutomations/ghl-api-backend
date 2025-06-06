@@ -45,7 +45,7 @@ export default function Collections() {
   const createCollectionMutation = useMutation({
     mutationFn: (data: any) => apiRequest('/api/collections', {
       method: 'POST',
-      body: JSON.stringify(data)
+      data
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/collections'] });
@@ -69,7 +69,7 @@ export default function Collections() {
     mutationFn: ({ id, data }: { id: number; data: any }) => 
       apiRequest(`/api/collections/${id}`, {
         method: 'PATCH',
-        body: JSON.stringify(data)
+        data
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/collections'] });
