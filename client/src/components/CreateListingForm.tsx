@@ -73,8 +73,9 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           data: listingData
         });
 
-        console.log('Listing creation response:', response);
-        listingId = response.id;
+        const responseData = await response.json();
+        console.log('Listing creation response:', responseData);
+        listingId = responseData.id;
         console.log('Created listing with ID:', listingId);
         
         if (!listingId) {

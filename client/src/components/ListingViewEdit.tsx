@@ -26,7 +26,8 @@ export function ListingViewEdit({ listingId, directoryName, directoryConfig, onS
   const { data: listing, isLoading: listingLoading } = useQuery({
     queryKey: ['/api/listings/by-id', listingId],
     queryFn: async () => {
-      return await apiRequest(`/api/listings/by-id/${listingId}`);
+      const response = await apiRequest(`/api/listings/by-id/${listingId}`);
+      return response.json();
     },
     enabled: !!listingId,
   });
@@ -35,7 +36,8 @@ export function ListingViewEdit({ listingId, directoryName, directoryConfig, onS
   const { data: addons = [], isLoading: addonsLoading } = useQuery({
     queryKey: ['/api/listing-addons', listingId],
     queryFn: async () => {
-      return await apiRequest(`/api/listing-addons/listing/${listingId}`);
+      const response = await apiRequest(`/api/listing-addons/listing/${listingId}`);
+      return response.json();
     },
     enabled: !!listingId,
   });
@@ -48,6 +50,9 @@ export function ListingViewEdit({ listingId, directoryName, directoryConfig, onS
   const handleEditCancel = () => {
     setIsEditing(false);
   };
+
+  // Extract addon data with null safety (needed for edit mode)
+  const addonsArray = Array.isArray(addons) ? addons : [];
 
   if (listingLoading || addonsLoading) {
     return (
@@ -81,15 +86,15 @@ export function ListingViewEdit({ listingId, directoryName, directoryConfig, onS
           onSuccess={handleEditSuccess}
           onCancel={handleEditCancel}
           editingListing={listing}
-          editingAddons={addons}
+          editingAddons={addonsArray}
         />
       </div>
     );
   }
 
-  // Extract addon data
-  const expandedDescriptionAddon = addons.find((addon: any) => addon.type === 'expanded_description');
-  const metadataAddon = addons.find((addon: any) => addon.type === 'metadata_bar');
+  // Extract addon data for view mode
+  const expandedDescriptionAddon = addonsArray.find((addon: any) => addon.type === 'expanded_description');
+  const metadataAddon = addonsArray.find((addon: any) => addon.type === 'metadata_bar');
   const metadataFields = metadataAddon ? JSON.parse(metadataAddon.content || '[]') : [];
 
   return (
