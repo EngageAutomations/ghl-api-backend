@@ -1,7 +1,7 @@
 import { useParams, Link } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Package, Plus, Grid3X3, List, Search, Filter, SortAsc, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,21 +55,34 @@ export default function CollectionView() {
 
   // Fetch collection details
   const { data: collection, isLoading: collectionLoading } = useQuery<Collection>({
-    queryKey: ['/api/collections', collectionId],
+    queryKey: [`/api/collections/${collectionId}`],
     enabled: !!collectionId
   });
 
   // Fetch collection items (products in this collection)
   const { data: collectionItems = [], isLoading: itemsLoading } = useQuery<CollectionItem[]>({
-    queryKey: ['/api/collections', collectionId, 'items'],
+    queryKey: [`/api/collections/${collectionId}/items`],
     enabled: !!collectionId
   });
 
   // Fetch directory listings for adding products
-  const { data: directoryListings = [], isLoading: listingsLoading } = useQuery<any[]>({
+  const { data: directoryListings = [], isLoading: listingsLoading, error: listingsError } = useQuery<any[]>({
     queryKey: ['/api/listings', collection?.directoryName],
     enabled: !!collection?.directoryName
   });
+
+  // Debug logging
+  useEffect(() => {
+    console.log('CollectionView Debug:', {
+      collectionId,
+      collection,
+      directoryName: collection?.directoryName,
+      directoryListings,
+      listingsLoading,
+      listingsError,
+      queryEnabled: !!collection?.directoryName
+    });
+  }, [collectionId, collection, directoryListings, listingsLoading, listingsError]);
 
   // Mutation for adding products to collection
   const addProductsMutation = useMutation({
