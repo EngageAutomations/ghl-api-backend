@@ -1399,7 +1399,34 @@ body:not(.hl-builder) .action-icon {
                   <Input placeholder="https://example.com/image.jpg" className="mt-1" />
                 </div>
 
-                {/* 6. Address for Google Maps - If enabled */}
+                {/* 6. Download URL - If action button download is selected */}
+                {integrationMethod === 'download' && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 block text-left">Download URL</Label>
+                    <div className="mt-1 space-y-2">
+                      <Input 
+                        placeholder="https://drive.google.com/file/d/... or https://dropbox.com/s/..." 
+                        className="mt-1" 
+                      />
+                      <div className="text-xs text-gray-500 space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                          <span>Google Drive links automatically converted to direct downloads</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+                          <span>Dropbox links automatically converted to direct downloads</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="inline-block w-2 h-2 bg-gray-500 rounded-full"></span>
+                          <span>Direct download URLs supported as-is</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 7. Address for Google Maps - If enabled */}
                 {showMaps && (
                   <div>
                     <Label className="text-sm font-medium text-gray-700 block text-left">Address for Google Maps</Label>

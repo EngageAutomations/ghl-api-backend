@@ -30,6 +30,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     userId: editingListing?.userId || 1,
     directoryName: directoryName,
     isActive: editingListing?.isActive ?? true,
+    downloadUrl: editingListing?.downloadUrl || '',
   });
   
   // Separate state for extended fields that will be saved as addons
@@ -298,7 +299,38 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
             />
           </div>
 
-          {/* 6. Address for Google Maps - If enabled */}
+          {/* 6. Download URL - If action button download is selected */}
+          {directoryConfig?.integrationMethod === 'download' && (
+            <div>
+              <Label htmlFor="downloadUrl" className="text-sm font-medium text-gray-700 block text-left">Download URL</Label>
+              <div className="mt-1 space-y-2">
+                <Input
+                  id="downloadUrl"
+                  type="url"
+                  value={formData.downloadUrl}
+                  onChange={(e) => handleInputChange('downloadUrl', e.target.value)}
+                  placeholder="https://drive.google.com/file/d/... or https://dropbox.com/s/..."
+                  className="mt-1"
+                />
+                <div className="text-xs text-gray-500 space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span>Google Drive links automatically converted to direct downloads</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span>Dropbox links automatically converted to direct downloads</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="inline-block w-2 h-2 bg-gray-500 rounded-full"></span>
+                    <span>Direct download URLs supported as-is</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 8. Address for Google Maps - If enabled */}
           {features.showMaps && (
             <div>
               <Label htmlFor="location" className="text-sm font-medium text-gray-700 block text-left">Address for Google Maps</Label>
@@ -313,7 +345,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
             </div>
           )}
 
-          {/* 7. Metadata Bar Fields - If enabled */}
+          {/* 9. Metadata Bar Fields - If enabled */}
           {features.showMetadata && (
             <div>
               <Label className="text-sm font-medium text-gray-700 block text-left">Metadata Bar Fields</Label>
