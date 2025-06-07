@@ -204,30 +204,15 @@ export default function ConfigWizardSlideshow() {
   }
   
   function insertDownloadButton() {
-    // Check if button already exists
-    if (document.querySelector('#download-btn')) return;
+    // Use exact working action button logic
+    var priceElement = document.querySelector('.hl-product-detail-product-price');
+    if (!priceElement || document.querySelector('.trigger-download-btn')) return;
     
-    // Find the button container without modifying existing styles
-    var addToCartBtn = document.getElementById('add-to-cart-btn');
-    var buyNowBtn = document.getElementById('buy-now-btn');
-    var buttonContainer = null;
-    
-    if (addToCartBtn) {
-      buttonContainer = addToCartBtn.parentElement;
-    } else if (buyNowBtn) {
-      buttonContainer = buyNowBtn.parentElement;
-    }
-    
-    if (!buttonContainer) {
-      console.log('Button container not found');
-      return;
-    }
-    
-    // Create download button with simple styling
-    var btn = document.createElement('button');
-    btn.id = 'download-btn';
+    var btn = document.createElement('div');
+    btn.className = 'trigger-download-btn';
     btn.textContent = buttonText;
     btn.style.cssText = \`
+      display: inline-block;
       background-color: \${buttonColor};
       color: \${buttonTextColor};
       padding: 12px 20px;
@@ -235,15 +220,12 @@ export default function ConfigWizardSlideshow() {
       font-weight: bold;
       font-size: 16px;
       cursor: pointer;
-      border: none;
-      margin-left: 10px;
-      vertical-align: top;
+      margin: 20px 0;
+      text-align: center;
     \`;
     btn.addEventListener('click', handleDownload);
     
-    // Simply append without changing container styles
-    buttonContainer.appendChild(btn);
-    console.log('Download button added');
+    priceElement.parentNode.insertBefore(btn, priceElement.nextSibling);
   }
   
 
