@@ -223,12 +223,22 @@ export default function ConfigWizardSlideshow() {
       var allDivs = document.querySelectorAll('div');
       for (var i = 0; i < allDivs.length; i++) {
         var div = allDivs[i];
-        var hasAddToCart = div.querySelector('button')?.textContent?.toLowerCase().includes('add to cart') ||
-                          div.querySelector('.primary-btn');
-        var hasBuyNow = div.querySelector('button')?.textContent?.toLowerCase().includes('buy now') ||
-                       div.querySelector('.secondary-btn');
+        var buttons = div.querySelectorAll('button');
+        var hasAddToCart = false;
+        var hasBuyNow = false;
         
-        if (hasAddToCart && hasBuyNow) {
+        for (var j = 0; j < buttons.length; j++) {
+          var btnText = buttons[j].textContent;
+          if (btnText && btnText.toLowerCase().indexOf('add to cart') !== -1) {
+            hasAddToCart = true;
+          }
+          if (btnText && btnText.toLowerCase().indexOf('buy now') !== -1) {
+            hasBuyNow = true;
+          }
+        }
+        
+        if ((hasAddToCart || div.querySelector('.primary-btn')) && 
+            (hasBuyNow || div.querySelector('.secondary-btn'))) {
           buttonContainer = div;
           break;
         }
@@ -239,10 +249,13 @@ export default function ConfigWizardSlideshow() {
     if (!buttonContainer) {
       var buttons = document.querySelectorAll('button');
       for (var i = 0; i < buttons.length; i++) {
-        var btnText = buttons[i].textContent?.toLowerCase();
-        if (btnText && (btnText.includes('cart') || btnText.includes('buy'))) {
-          buttonContainer = buttons[i].parentElement;
-          break;
+        var btnText = buttons[i].textContent;
+        if (btnText) {
+          var lowerText = btnText.toLowerCase();
+          if (lowerText.indexOf('cart') !== -1 || lowerText.indexOf('buy') !== -1) {
+            buttonContainer = buttons[i].parentElement;
+            break;
+          }
         }
       }
     }
