@@ -831,7 +831,7 @@ body:not(.hl-builder) .action-icon {
 
         {/* Button Configuration for Action Button Types */}
         {(integrationMethod === 'popup' || integrationMethod === 'redirect' || integrationMethod === 'download') && (
-          <Card className="mb-6">
+          <Card className="mb-6" key={`button-config-${integrationMethod}`}>
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Button Configuration</h3>
               
@@ -902,10 +902,12 @@ body:not(.hl-builder) .action-icon {
                       <Label className="text-xs text-gray-600">Preview</Label>
                       <div className="flex items-center justify-center mt-1 p-3 bg-gray-50 rounded border h-[42px]">
                         <button
-                          className="px-4 py-1.5 font-medium transition-colors hover:opacity-90 text-sm"
+                          key={`preview-${integrationMethod}-${previewColor}-${previewTextColor}`}
+                          className="px-4 py-1.5 font-medium transition-colors hover:opacity-90 text-sm rounded"
                           style={{ 
                             backgroundColor: previewColor,
-                            color: previewTextColor
+                            color: previewTextColor,
+                            border: 'none'
                           }}
                         >
                           {buttonText || (
