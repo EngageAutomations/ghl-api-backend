@@ -521,6 +521,35 @@ export class MemStorage implements IStorage {
     return false;
   }
 
+  // Get all methods for AI agent
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async getAllDirectories(): Promise<DirectoryConfig[]> {
+    return Array.from(this.directories.values());
+  }
+
+  async getAllListings(): Promise<Listing[]> {
+    return Array.from(this.listings.values());
+  }
+
+  async getAllCollections(): Promise<Collection[]> {
+    return Array.from(this.collections.values());
+  }
+
+  async getDirectoriesByUser(userId: number): Promise<DirectoryConfig[]> {
+    return Array.from(this.directories.values()).filter(dir => dir.userId === userId);
+  }
+
+  async getListingsByUser(userId: number): Promise<Listing[]> {
+    return Array.from(this.listings.values()).filter(listing => listing.userId === userId);
+  }
+
+  async getCollectionsByUser(userId: number): Promise<Collection[]> {
+    return Array.from(this.collections.values()).filter(collection => collection.userId === userId);
+  }
+
   // Collection Item methods
   async getCollectionItem(id: number): Promise<CollectionItem | undefined> {
     return this.collectionItems.get(id);

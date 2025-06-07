@@ -16,6 +16,7 @@ import { generateBulletPoints } from "./ai-summarizer";
 import { googleDriveService } from "./google-drive";
 import { runTestSuite, runFormTests, generateCode, getFeatureDocumentation, updateConfigurationCode } from "./dev-tools";
 import { handleFormSubmission, getFormSubmissions, downloadJSONFile } from "./form-submission-handler";
+import { aiAgent, AIRequest } from "./ai-agent";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
@@ -1408,5 +1409,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  // AI Agent API routes
+  app.post("/api/ai/chat", async (req, res) => {
+    try {
+      const { message, requestType, userId } = req.body;
+      
+      if (!message || !requestType) {
+        return res.status(400).json({ error: "Message and requestType are required" });
+      }
+
+      const aiRequest: AIRequest = {
+        message,
+        requestType,
+        userId
+      };
+
+      const response = await aiAgent.processQuery(aiRequest);
+      res.json(response);
+    } catch (error) {
+      console.error("AI Agent chat error:", error);
+      res.status(500).json({ error: "Failed to process AI request" });
+    }
+  });
+
+  app.get("/api/ai/analytics/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId ? parseInt(req.params.userId) : undefined;
+      const analytics = await aiAgent.getUserAnalytics(userId);
+      res.json(analytics);
+    } catch (error) {
+      console.error("AI Agent analytics error:", error);
+      res.status(500).json({ error: "Failed to get analytics" });
+    }
+  });
+
+  app.get("/api/ai/system-insights", async (req, res) => {
+    try {
+      const insights = await aiAgent.getSystemInsights();
+      res.json(insights);
+    } catch (error) {
+      console.error("AI Agent system insights error:", error);
+      res.status(500).json({ error: "Failed to get system insights" });
+    }
+  });
+
+  app.post("/api/ai/analyze-code", async (req, res) => {
+    try {
+      const { filePath } = req.body;
+      
+      if (!filePath) {
+        return res.status(400).json({ error: "filePath is required" });
+      }
+
+      const analysis = await aiAgent.analyzeCode(filePath);
+      res.json(analysis);
+    } catch (error) {
+      console.error("AI Agent code analysis error:", error);
+      res.status(500).json({ error: "Failed to analyze code" });
+    }
+  });
+
+  app.post("/api/ai/propose-change", async (req, res) => {
+    try {
+      const { filePath, description, currentCode } = req.body;
+      
+      if (!filePath || !description) {
+        return res.status(400).json({ error: "filePath and description are required" });
+      }
+
+      const proposal = await aiAgent.proposeCodeChange(filePath, description, currentCode);
+      res.json(proposal);
+    } catch (error) {
+      console.error("AI Agent code proposal error:", error);
+      res.status(500).json({ error: "Failed to propose code change" });
+    }
+  });
+
   return httpServer;
 }
