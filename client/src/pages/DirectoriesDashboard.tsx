@@ -9,7 +9,7 @@ import { FolderOpen, Plus, Settings, Trash2, Eye, FileText, Calendar, Activity }
 import { FormConfiguration } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import AIAssistant from '@/components/AIAssistant';
+
 
 interface DirectoryWithStats extends FormConfiguration {
   listingCount: number;
