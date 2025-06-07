@@ -247,8 +247,14 @@ export default function ConfigWizardSlideshow() {
   function handleDownload() {
     console.log('Fetching product data for slug:', slug);
     
+    // Determine API endpoint (test mode for development)
+    var isTestMode = window.location.hostname === 'localhost' || window.location.hostname.includes('replit');
+    var apiEndpoint = isTestMode ? '/api/test/listing/' + slug : '/api/listings/by-slug/' + slug;
+    
+    console.log('Using API endpoint:', apiEndpoint, '(test mode:', isTestMode + ')');
+    
     // Fetch product data from your database API
-    fetch('/api/listings/by-slug/' + slug)
+    fetch(apiEndpoint)
       .then(function(response) {
         if (!response.ok) {
           throw new Error('Product not found');

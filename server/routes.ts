@@ -355,6 +355,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test endpoint for download button functionality
+  app.get("/api/test/listing/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      
+      const testListing = {
+        id: 999,
+        title: `Test Product: ${slug}`,
+        slug: slug,
+        downloadUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        description: "This is a test product for download button functionality",
+        category: "Test Category",
+        userId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      console.log(`[TEST] Returning test listing for slug: ${slug}`);
+      res.status(200).json(testListing);
+    } catch (error) {
+      console.error("Error in test endpoint:", error);
+      res.status(500).json({ message: "Test endpoint error" });
+    }
+  });
+
   // Get a specific listing by slug
   app.get("/api/listings/by-slug/:slug", async (req, res) => {
     try {
