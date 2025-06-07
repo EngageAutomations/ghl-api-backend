@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import AIAssistant from "@/components/AIAssistant";
 
 export default function Dashboard() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<any>(null);
   
   // Load user from localStorage
   useEffect(() => {

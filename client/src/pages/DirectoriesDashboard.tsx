@@ -97,10 +97,8 @@ export default function DirectoriesDashboard() {
         </Button>
       </div>
 
-      {/* Main Content Grid - Directories and AI Assistant */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {/* Directories Section */}
-        <div className="xl:col-span-2">
+      {/* Directories Section */}
+      <div>
           {/* Directories Grid */}
           {directories.length === 0 ? (
         <div className="text-center py-12">
@@ -179,12 +177,6 @@ export default function DirectoriesDashboard() {
         </div>
           )}
         </div>
-
-        {/* AI Assistant Section - Admin Only */}
-        <div className="xl:col-span-1">
-          <AIAssistant />
-        </div>
-      </div>
     </div>
   );
 }
