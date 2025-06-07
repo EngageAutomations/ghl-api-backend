@@ -97,13 +97,13 @@ Always respond with valid JSON format containing a "message" field with your res
 
   async getSystemInsights() {
     try {
-      const directories = await storage.getDirectoriesByUserId(1);
+      const directories = await storage.getFormConfigurationsByUser(1);
       let totalListings = 0;
       let totalCollections = 0;
 
       for (const directory of directories) {
         if (directory.directoryName) {
-          const listings = await storage.getListingsByDirectoryName(directory.directoryName);
+          const listings = await storage.getListingsByDirectory(directory.directoryName);
           totalListings += listings.length;
           
           try {
@@ -144,13 +144,13 @@ Always respond with valid JSON format containing a "message" field with your res
 
   async getUserAnalytics() {
     try {
-      const directories = await storage.getDirectoriesByUserId(1);
+      const directories = await storage.getFormConfigurationsByUser(1);
       let totalListings = 0;
       let totalCollections = 0;
 
       for (const directory of directories) {
         if (directory.directoryName) {
-          const listings = await storage.getListingsByDirectoryName(directory.directoryName);
+          const listings = await storage.getListingsByDirectory(directory.directoryName);
           totalListings += listings.length;
           
           try {
@@ -169,7 +169,7 @@ Always respond with valid JSON format containing a "message" field with your res
           totalListings: totalListings,
           totalCollections: totalCollections
         },
-        directoryBreakdown: directories.map(dir => ({
+        directoryBreakdown: directories.map((dir: any) => ({
           name: dir.directoryName,
           id: dir.id,
           created: dir.createdAt
