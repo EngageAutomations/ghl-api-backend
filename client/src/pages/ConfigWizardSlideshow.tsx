@@ -177,129 +177,98 @@ export default function ConfigWizardSlideshow() {
 </style>`;
 
     const footerCode = `<script>
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('Download button script loading...');
+// Download Button Integration Script
+(function() {
+  var slug = '';
+  var downloadBaseUrl = '${config.downloadUrl || 'https://example.com/downloads/your-file.pdf'}';
+  var fieldName = '${config.customFieldName}';
+  var buttonText = '${config.buttonText}';
   
-  // Get the current page slug from the URL
-  const pathSegments = window.location.pathname.split('/').filter(segment => segment.length > 0);
-  const slug = pathSegments[pathSegments.length - 1] || 'demo-product';
-  
-  console.log('Download button initialized for slug:', slug);
-  console.log('Full URL path:', window.location.pathname);
-  
-  // Find download buttons and set up click handlers
-  document.querySelectorAll('.directory-download-button, [data-action="download"]').forEach(button => {
-    button.addEventListener('click', function(e) {
-      e.preventDefault();
-      
-      // Get base download URL from button data attribute, or construct from slug
-      let downloadUrl = this.getAttribute('data-download-url') || 
-                       this.getAttribute('href') || 
-                       '';
-      
-      // Always ensure we have a download URL for the button to work
-      if (!downloadUrl) {
-        var configuredUrl = '${config.downloadUrl || ''}';
-        if (configuredUrl) {
-          downloadUrl = configuredUrl;
-        } else if (slug) {
-          downloadUrl = 'https://example.com/download/' + slug;
-        } else {
-          downloadUrl = 'https://example.com/download/sample-product';
-        }
-        console.log('Using download URL:', downloadUrl);
-      }
-      
-      if (downloadUrl) {
-        // Add tracking parameters to download URL
-        try {
-          const url = new URL(downloadUrl, window.location.origin);
-          url.searchParams.set('${config.customFieldName}', slug);
-          url.searchParams.set('timestamp', Date.now().toString());
-          url.searchParams.set('source', 'directory');
-          
-          // Trigger download
-          window.location.href = url.toString();
-          
-          console.log('Download initiated for slug "' + slug + '":', url.toString());
-        } catch (error) {
-          // Fallback for relative URLs or malformed URLs
-          const separator = downloadUrl.includes('?') ? '&' : '?';
-          const trackedUrl = downloadUrl + separator + '${config.customFieldName}=' + encodeURIComponent(slug) + '&timestamp=' + Date.now();
-          window.location.href = trackedUrl;
-          
-          console.log('Download initiated (fallback) for slug "' + slug + '":', trackedUrl);
-        }
-      } else {
-        console.warn('No download URL found and no slug available to construct URL');
-        alert('Download URL not configured. Please contact the administrator.');
-      }
+  function init() {
+    console.log('Download button script loading...');
+    
+    // Extract slug from URL
+    var pathSegments = window.location.pathname.split('/').filter(function(segment) {
+      return segment.length > 0;
     });
-  });
+    slug = pathSegments[pathSegments.length - 1] || 'demo-product';
+    
+    console.log('Page slug detected:', slug);
+    
+    // Create and inject download button
+    createDownloadButton();
+    
+    // Set up click handlers for any existing buttons
+    setupClickHandlers();
+  }
   
-  // Always inject standalone download button directly into page
-  console.log('Checking for existing download button...');
-  const existingDownloadButton = document.querySelector('.directory-download-button');
-  
-  if (existingDownloadButton) {
-    console.log('Download button already exists, skipping injection');
-  } else {
-    console.log('Creating new download button...');
-    const downloadButton = document.createElement('button');
-    downloadButton.className = 'directory-download-button';
-    downloadButton.setAttribute('data-download-url', '${config.downloadUrl || ''}');
-    downloadButton.innerHTML = \`
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7,10 12,15 17,10"/>
-        <line x1="12" x2="12" y1="15" y2="3"/>
-      </svg>
-      ${config.buttonText}
-    \`;
+  function createDownloadButton() {
+    if (document.querySelector('.directory-download-button')) {
+      console.log('Download button already exists');
+      return;
+    }
     
-    console.log('Button HTML created:', downloadButton.outerHTML);
+    console.log('Creating download button...');
     
-    // Try multiple injection points for maximum compatibility
-    const injectionTargets = [
-      '.cstore-product-detail',
-      '.product-detail-container', 
-      '.hl-product-detail',
-      '.c-product-details',
-      '.product-content',
-      '.main-content',
-      'main',
-      'body'
-    ];
+    var button = document.createElement('button');
+    button.className = 'directory-download-button';
+    button.setAttribute('data-download-url', downloadBaseUrl);
+    button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>' + buttonText;
     
-    console.log('Attempting button injection...');
-    let buttonInjected = false;
-    for (const selector of injectionTargets) {
-      const target = document.querySelector(selector);
-      console.log('Checking selector:', selector, 'Found:', !!target);
-      if (target && !buttonInjected) {
-        target.appendChild(downloadButton);
-        buttonInjected = true;
-        console.log('SUCCESS: Download button injected into:', selector);
+    // Try to inject into page
+    var injected = false;
+    var selectors = ['.cstore-product-detail', '.product-detail-container', '.hl-product-detail', '.c-product-details', 'main', 'body'];
+    
+    for (var i = 0; i < selectors.length; i++) {
+      var target = document.querySelector(selectors[i]);
+      if (target && !injected) {
+        target.appendChild(button);
+        injected = true;
+        console.log('Download button injected into:', selectors[i]);
         break;
       }
     }
     
-    if (!buttonInjected) {
-      // Final fallback - append to body
-      document.body.appendChild(downloadButton);
-      console.log('FALLBACK: Download button injected into body');
+    if (!injected) {
+      document.body.appendChild(button);
+      console.log('Download button injected into body (fallback)');
+    }
+  }
+  
+  function setupClickHandlers() {
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('directory-download-button') || e.target.closest('.directory-download-button')) {
+        e.preventDefault();
+        handleDownload();
+      }
+    });
+  }
+  
+  function handleDownload() {
+    var finalUrl = downloadBaseUrl;
+    
+    try {
+      var url = new URL(finalUrl, window.location.origin);
+      url.searchParams.set(fieldName, slug);
+      url.searchParams.set('timestamp', Date.now().toString());
+      url.searchParams.set('source', 'directory');
+      finalUrl = url.toString();
+    } catch (error) {
+      var separator = finalUrl.includes('?') ? '&' : '?';
+      finalUrl = finalUrl + separator + fieldName + '=' + encodeURIComponent(slug) + '&timestamp=' + Date.now();
     }
     
-    // Verify button is in DOM
-    setTimeout(function() {
-      const verifyButton = document.querySelector('.directory-download-button');
-      console.log('Button verification after injection:', !!verifyButton);
-      if (verifyButton) {
-        console.log('Button is visible in DOM at:', verifyButton.getBoundingClientRect());
-      }
-    }, 100);
+    console.log('Initiating download for slug "' + slug + '":', finalUrl);
+    window.location.href = finalUrl;
   }
-});
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </script>`;
 
     return {
