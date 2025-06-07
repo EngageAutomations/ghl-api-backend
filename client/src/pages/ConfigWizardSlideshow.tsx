@@ -1530,28 +1530,53 @@ body:not(.hl-builder) .action-icon {
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center text-left">
                     <MousePointer className="w-4 h-4 mr-2 text-purple-600" />
                     Button Configuration
                   </h4>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div><strong>Type:</strong> {integrationMethod === 'popup' ? 'Popup' : 'Embedded Form'}</div>
+                  <div className="space-y-2 text-sm text-gray-600 text-left">
+                    <div><strong>Type:</strong> {integrationMethod === 'popup' ? 'Popup' : integrationMethod === 'download' ? 'Download' : integrationMethod === 'redirect' ? 'Redirect' : 'Embedded Form'}</div>
                     <div><strong>Text:</strong> {buttonText || 'Get Info'}</div>
                     <div><strong>Color:</strong> <span className="inline-block w-4 h-4 rounded ml-1" style={{backgroundColor: previewColor}}></span></div>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center text-left">
                     <Code className="w-4 h-4 mr-2 text-purple-600" />
                     Integration Details
                   </h4>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-600 text-left">
                     <div><strong>Method:</strong> {integrationMethod}</div>
                     <div><strong>Field Name:</strong> {wizardFormData.fieldName || 'listing'}</div>
                     <div><strong>Directory:</strong> {directoryName || 'My Directory'}</div>
                   </div>
                 </div>
+
+                {/* Embed Code Field for popup and embed methods */}
+                {(integrationMethod === 'popup' || integrationMethod === 'embed') && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3 flex items-center text-left">
+                      <FileText className="w-4 h-4 mr-2 text-purple-600" />
+                      GoHighLevel Embed Code
+                    </h4>
+                    <div className="space-y-3 text-left">
+                      <Label htmlFor="embedCode" className="text-sm font-medium text-gray-700 block text-left">
+                        {integrationMethod === 'popup' ? 'Popup Form Embed Code' : 'Embedded Form Code'}
+                      </Label>
+                      <textarea
+                        id="embedCode"
+                        value={wizardFormData.embedCode || ''}
+                        onChange={(e) => setWizardFormData(prev => ({...prev, embedCode: e.target.value}))}
+                        placeholder="Paste your GoHighLevel form embed code here..."
+                        className="w-full h-32 p-3 border border-gray-300 rounded-md text-sm font-mono resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                      <p className="text-xs text-gray-500">
+                        Copy the embed code from your GoHighLevel form and paste it here. This will be used to integrate your form with the directory listings.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
