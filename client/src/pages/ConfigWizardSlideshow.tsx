@@ -213,23 +213,82 @@ export default function ConfigWizardSlideshow() {
     var button = document.createElement('button');
     button.className = 'directory-download-button';
     button.setAttribute('data-download-url', downloadBaseUrl);
+    button.style.cssText = \`
+      background-color: \${buttonColor};
+      color: \${buttonTextColor};
+      border: none;
+      padding: 12px 24px;
+      border-radius: \${buttonBorderRadius}px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 10px;
+    \`;
     button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>' + buttonText;
     
-    // Try to inject into page
-    var injected = false;
-    var selectors = ['.cstore-product-detail', '.product-detail-container', '.hl-product-detail', '.c-product-details', 'main', 'body'];
+    // Add hover effects
+    button.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-2px)';
+      this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+    });
     
-    for (var i = 0; i < selectors.length; i++) {
-      var target = document.querySelector(selectors[i]);
-      if (target && !injected) {
-        target.appendChild(button);
-        injected = true;
-        console.log('Download button injected into:', selectors[i]);
-        break;
+    button.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+      this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+    });
+    
+    // Find the specific button container with Add to Cart and Buy now buttons
+    var buttonContainer = null;
+    var addToCartBtn = document.getElementById('add-to-cart-btn');
+    var buyNowBtn = document.getElementById('buy-now-btn');
+    
+    if (addToCartBtn) {
+      buttonContainer = addToCartBtn.parentElement;
+      console.log('Found Add to Cart button container');
+    } else if (buyNowBtn) {
+      buttonContainer = buyNowBtn.parentElement;
+      console.log('Found Buy Now button container');
+    } else {
+      // Look for buttons with these text patterns
+      var buttons = document.querySelectorAll('button');
+      for (var i = 0; i < buttons.length; i++) {
+        var btnText = buttons[i].textContent.toLowerCase();
+        if (btnText.includes('add to cart') || btnText.includes('buy now')) {
+          buttonContainer = buttons[i].parentElement;
+          console.log('Found button container via text match:', btnText);
+          break;
+        }
       }
     }
     
-    if (!injected) {
+    // Fallback selectors if specific buttons not found
+    if (!buttonContainer) {
+      var selectors = ['.primary-btn', '.secondary-btn', '.product-actions', '.button-group', '.action-buttons', '.cstore-product-detail', '.product-detail-container'];
+      for (var i = 0; i < selectors.length; i++) {
+        var element = document.querySelector(selectors[i]);
+        if (element) {
+          buttonContainer = element.parentElement || element;
+          console.log('Using fallback container:', selectors[i]);
+          break;
+        }
+      }
+    }
+    
+    // Ensure container has proper styling for button alignment
+    if (buttonContainer) {
+      var containerStyle = window.getComputedStyle(buttonContainer);
+      if (containerStyle.display !== 'flex' && containerStyle.display !== 'inline-flex') {
+        buttonContainer.style.cssText += 'display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 35px 0;';
+      }
+      
+      buttonContainer.appendChild(button);
+      console.log('Download button injected into button container');
+    } else {
       document.body.appendChild(button);
       console.log('Download button injected into body (fallback)');
     }
