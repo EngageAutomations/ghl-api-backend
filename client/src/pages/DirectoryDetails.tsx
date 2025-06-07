@@ -300,24 +300,14 @@ export default function DirectoryDetails() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-6">
-            <Button
-              variant="ghost"
-              onClick={() => setLocation('/directories')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Back to Directories
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{directory.directoryName}</h1>
-              <p className="text-gray-600">
-                {contentView === 'collections' 
-                  ? `${collections.length} collection${collections.length !== 1 ? 's' : ''}`
-                  : `${processedListings.length} listing${processedListings.length !== 1 ? 's' : ''}`
-                }
-              </p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{directory.directoryName}</h1>
+            <p className="text-gray-600">
+              {contentView === 'collections' 
+                ? `${collections.length} collection${collections.length !== 1 ? 's' : ''}`
+                : `${processedListings.length} listing${processedListings.length !== 1 ? 's' : ''}`
+              }
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <Button
