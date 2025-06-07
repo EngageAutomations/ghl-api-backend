@@ -245,21 +245,65 @@ export default function ConfigWizardSlideshow() {
   }
   
   function handleDownload() {
-    var finalUrl = downloadBaseUrl;
+    console.log('Fetching product data for slug:', slug);
     
-    try {
-      var url = new URL(finalUrl, window.location.origin);
-      url.searchParams.set(fieldName, slug);
-      url.searchParams.set('timestamp', Date.now().toString());
-      url.searchParams.set('source', 'directory');
-      finalUrl = url.toString();
-    } catch (error) {
-      var separator = finalUrl.includes('?') ? '&' : '?';
-      finalUrl = finalUrl + separator + fieldName + '=' + encodeURIComponent(slug) + '&timestamp=' + Date.now();
-    }
-    
-    console.log('Initiating download for slug "' + slug + '":', finalUrl);
-    window.location.href = finalUrl;
+    // Fetch product data from your database API
+    fetch('/api/listings/by-slug/' + slug)
+      .then(function(response) {
+        if (!response.ok) {
+          throw new Error('Product not found');
+        }
+        return response.json();
+      })
+      .then(function(productData) {
+        console.log('Product data retrieved:', productData);
+        
+        var downloadUrl = productData.downloadUrl || productData.download_url || downloadBaseUrl;
+        
+        if (!downloadUrl) {
+          alert('Download not available for this product');
+          return;
+        }
+        
+        // Add tracking parameters to the actual download URL
+        var finalUrl = downloadUrl;
+        try {
+          var url = new URL(finalUrl, window.location.origin);
+          url.searchParams.set(fieldName, slug);
+          url.searchParams.set('timestamp', Date.now().toString());
+          url.searchParams.set('source', 'directory');
+          finalUrl = url.toString();
+        } catch (error) {
+          var separator = finalUrl.includes('?') ? '&' : '?';
+          finalUrl = finalUrl + separator + fieldName + '=' + encodeURIComponent(slug) + '&timestamp=' + Date.now();
+        }
+        
+        console.log('Initiating download for "' + productData.title + '":', finalUrl);
+        window.location.href = finalUrl;
+      })
+      .catch(function(error) {
+        console.error('Error fetching product data:', error);
+        
+        // Fallback to configured URL if API fails
+        if (downloadBaseUrl && downloadBaseUrl !== 'https://example.com/downloads/your-file.pdf') {
+          var finalUrl = downloadBaseUrl;
+          try {
+            var url = new URL(finalUrl, window.location.origin);
+            url.searchParams.set(fieldName, slug);
+            url.searchParams.set('timestamp', Date.now().toString());
+            url.searchParams.set('source', 'directory');
+            finalUrl = url.toString();
+          } catch (error) {
+            var separator = finalUrl.includes('?') ? '&' : '?';
+            finalUrl = finalUrl + separator + fieldName + '=' + encodeURIComponent(slug) + '&timestamp=' + Date.now();
+          }
+          
+          console.log('Using fallback download URL:', finalUrl);
+          window.location.href = finalUrl;
+        } else {
+          alert('Download not available. Please contact support.');
+        }
+      });
   }
   
   // Initialize when DOM is ready
