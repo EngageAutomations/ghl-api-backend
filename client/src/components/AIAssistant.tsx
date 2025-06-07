@@ -229,7 +229,7 @@ export default function AIAssistant() {
                   {systemInsights.performanceMetrics && (
                     <div className="bg-gray-50 p-2 rounded">
                       <p className="font-medium">Avg Listings/Directory</p>
-                      <p>{systemInsights.performanceMetrics.averageListingsPerDirectory?.toFixed(1) || 0}</p>
+                      <p>{systemInsights.performanceMetrics.averageListingsPerDirectory || 0}</p>
                     </div>
                   )}
                 </div>
