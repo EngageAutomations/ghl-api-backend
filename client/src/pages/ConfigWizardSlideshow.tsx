@@ -195,89 +195,90 @@ export default function ConfigWizardSlideshow() {
     
     console.log('Page slug detected:', slug);
     
-    // Initialize using proven action button logic
-    addDownloadButton();
+    // Initialize using exact working action button logic
+    insertDownloadButton();
     
     // Set up mutation observer to handle dynamic content (same as action button)
-    var observer = new MutationObserver(addDownloadButton);
+    var observer = new MutationObserver(insertDownloadButton);
     observer.observe(document.body, { childList: true, subtree: true });
   }
   
-  function addDownloadButton() {
-    // Look for quantity selector elements in GoHighLevel pages (same logic as action button)
-    var quantitySelectors = [
-      '.quantity-container',
-      '.hl-quantity-input-container',
-      '.pdp-quantity-container',
-      '.hl-product-detail-selectors',
-      '[class*="quantity"]',
-      'input[type="number"]'
-    ];
+  function insertDownloadButton() {
+    // Check if button already exists
+    if (document.querySelector('#download-btn')) return;
     
-    var quantityElement = null;
-    for (var i = 0; i < quantitySelectors.length; i++) {
-      quantityElement = document.querySelector(quantitySelectors[i]);
-      if (quantityElement) break;
+    // Target the exact container with Add to Cart and Buy now buttons
+    var addToCartBtn = document.getElementById('add-to-cart-btn');
+    var buyNowBtn = document.getElementById('buy-now-btn');
+    var buttonContainer = null;
+    
+    if (addToCartBtn && addToCartBtn.parentElement) {
+      buttonContainer = addToCartBtn.parentElement;
+    } else if (buyNowBtn && buyNowBtn.parentElement) {
+      buttonContainer = buyNowBtn.parentElement;
     }
     
-    // If no quantity element found, fallback to price element
-    if (!quantityElement) {
-      var priceSelectors = [
-        '.hl-product-detail-product-price',
-        '.ecomm-price-desktop-container', 
-        '.price-container',
-        '[class*="price"]'
-      ];
-      
-      for (var i = 0; i < priceSelectors.length; i++) {
-        quantityElement = document.querySelector(priceSelectors[i]);
-        if (quantityElement) break;
+    // Fallback: find any div containing both button types
+    if (!buttonContainer) {
+      var allDivs = document.querySelectorAll('div');
+      for (var i = 0; i < allDivs.length; i++) {
+        var div = allDivs[i];
+        var hasAddToCart = div.querySelector('button')?.textContent?.toLowerCase().includes('add to cart') ||
+                          div.querySelector('.primary-btn');
+        var hasBuyNow = div.querySelector('button')?.textContent?.toLowerCase().includes('buy now') ||
+                       div.querySelector('.secondary-btn');
+        
+        if (hasAddToCart && hasBuyNow) {
+          buttonContainer = div;
+          break;
+        }
       }
     }
     
-    // If still no element found, try to find any container
-    if (!quantityElement) {
-      quantityElement = document.querySelector('.fullSection .inner') || document.body;
+    // Final fallback: find any container with buttons
+    if (!buttonContainer) {
+      var buttons = document.querySelectorAll('button');
+      for (var i = 0; i < buttons.length; i++) {
+        var btnText = buttons[i].textContent?.toLowerCase();
+        if (btnText && (btnText.includes('cart') || btnText.includes('buy'))) {
+          buttonContainer = buttons[i].parentElement;
+          break;
+        }
+      }
     }
     
-    // Check if button already exists
-    if (document.querySelector('#custom-download-btn')) return;
+    if (!buttonContainer) {
+      console.log('No suitable button container found');
+      return;
+    }
     
-    // Create and insert button matching the exact Add to Cart structure
-    var button = document.createElement('button');
-    button.id = 'custom-download-btn';
-    button.className = 'primary-btn';
-    button.textContent = buttonText;
-    button.onclick = handleDownload;
+    // Ensure container can hold multiple buttons
+    var containerStyle = window.getComputedStyle(buttonContainer);
+    if (containerStyle.display !== 'flex') {
+      buttonContainer.style.cssText += 'display: flex; gap: 10px; align-items: center; padding: 35px 0;';
+    }
     
-    // Copy the exact inline styles from Add to Cart button with proper width
-    button.style.cssText = \`
+    // Create download button
+    var btn = document.createElement('button');
+    btn.id = 'download-btn';
+    btn.className = 'primary-btn';
+    btn.textContent = buttonText;
+    btn.style.cssText = \`
       background-color: \${buttonColor} !important;
       color: \${buttonTextColor} !important;
+      padding: 12px 20px !important;
       border-radius: \${buttonBorderRadius}px !important;
-      padding: 10px 16px !important;
-      font-size: 14px !important;
-      font-weight: 500 !important;
-      border: 1px solid transparent !important;
+      font-weight: bold !important;
+      font-size: 16px !important;
       cursor: pointer !important;
-      display: inline-block !important;
-      text-align: center !important;
-      vertical-align: middle !important;
-      white-space: nowrap !important;
-      line-height: 1.42857143 !important;
-      margin: 5px 5px 0 0 !important;
-      width: 460px !important;
-      min-width: 460px !important;
+      border: none !important;
+      margin: 0 !important;
     \`;
+    btn.addEventListener('click', handleDownload);
     
-    // Insert after quantity element or append to container
-    if (quantityElement.parentNode) {
-      quantityElement.parentNode.insertBefore(button, quantityElement.nextSibling);
-    } else {
-      quantityElement.appendChild(button);
-    }
-    
-    console.log('Download button added using proven action button logic');
+    // Append to the container with other buttons
+    buttonContainer.appendChild(btn);
+    console.log('Download button added to button container with', buttonContainer.children.length, 'total buttons');
   }
   
 
@@ -350,12 +351,21 @@ export default function ConfigWizardSlideshow() {
       });
   }
   
-  // Initialize when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
+  // Initialize using exact working pattern
+  document.addEventListener('DOMContentLoaded', function() {
     init();
+    insertDownloadButton();
+  });
+  
+  // Also run immediately if DOM already loaded
+  if (document.readyState !== 'loading') {
+    init();
+    insertDownloadButton();
   }
+  
+  // Set up mutation observer for dynamic content
+  var observer = new MutationObserver(insertDownloadButton);
+  observer.observe(document.body, { childList: true, subtree: true });
 })();
 </script>`;
 

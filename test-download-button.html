@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Download Button Test</title>
+</head>
+<body>
+    <!-- Simulate GoHighLevel page structure -->
+    <div class="cstore-product-detail">
+        <div class="product-detail-container">
+            <div class="hl-product-detail-product-price">$99.99</div>
+            <div><button id="add-to-cart-btn" class="primary-btn">Add to Cart</button><button id="buy-now-btn" class="secondary-btn">Buy now</button></div>
+        </div>
+    </div>
+
+    <script>
+        // Copy the exact generated code here to test
+        var slug = 'test-product';
+        var downloadBaseUrl = 'https://example.com/downloads/test.pdf';
+        var fieldName = 'listing_id';
+        var buttonText = 'Download Now';
+        var buttonColor = '#4F46E5';
+        var buttonTextColor = '#FFFFFF';
+        var buttonBorderRadius = 6;
+
+        function insertDownloadButton() {
+            console.log('Looking for download button...');
+            
+            // Check if button already exists
+            if (document.querySelector('#download-btn')) {
+                console.log('Button already exists');
+                return;
+            }
+            
+            // Target the exact container with Add to Cart and Buy now buttons
+            var buttonContainer = document.getElementById('add-to-cart-btn')?.parentElement ||
+                                 document.getElementById('buy-now-btn')?.parentElement;
+            
+            console.log('Button container found:', buttonContainer);
+            
+            if (!buttonContainer) {
+                console.log('No button container found');
+                return;
+            }
+            
+            // Ensure container can hold multiple buttons
+            buttonContainer.style.cssText += 'display: flex; gap: 10px; align-items: center; padding: 35px 0;';
+            
+            // Create download button
+            var btn = document.createElement('button');
+            btn.id = 'download-btn';
+            btn.className = 'primary-btn';
+            btn.textContent = buttonText;
+            btn.style.cssText = `
+              background-color: ${buttonColor} !important;
+              color: ${buttonTextColor} !important;
+              padding: 12px 20px !important;
+              border-radius: ${buttonBorderRadius}px !important;
+              font-weight: bold !important;
+              font-size: 16px !important;
+              cursor: pointer !important;
+              border: none !important;
+              margin: 0 !important;
+            `;
+            btn.addEventListener('click', function() {
+                alert('Download button clicked for: ' + slug);
+            });
+            
+            // Append to the container with other buttons
+            buttonContainer.appendChild(btn);
+            console.log('Download button added to button container with', buttonContainer.children.length, 'total buttons');
+        }
+
+        // Test immediately
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, inserting button...');
+            insertDownloadButton();
+        });
+
+        // Also run if already loaded
+        if (document.readyState !== 'loading') {
+            console.log('DOM already loaded, inserting button...');
+            insertDownloadButton();
+        }
+    </script>
+</body>
+</html>
