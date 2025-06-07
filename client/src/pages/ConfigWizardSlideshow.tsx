@@ -207,91 +207,43 @@ export default function ConfigWizardSlideshow() {
     // Check if button already exists
     if (document.querySelector('#download-btn')) return;
     
-    // Target the exact container with Add to Cart and Buy now buttons
+    // Find the button container without modifying existing styles
     var addToCartBtn = document.getElementById('add-to-cart-btn');
     var buyNowBtn = document.getElementById('buy-now-btn');
     var buttonContainer = null;
     
-    if (addToCartBtn && addToCartBtn.parentElement) {
+    if (addToCartBtn) {
       buttonContainer = addToCartBtn.parentElement;
-    } else if (buyNowBtn && buyNowBtn.parentElement) {
+    } else if (buyNowBtn) {
       buttonContainer = buyNowBtn.parentElement;
     }
     
-    // Fallback: find any div containing both button types
     if (!buttonContainer) {
-      var allDivs = document.querySelectorAll('div');
-      for (var i = 0; i < allDivs.length; i++) {
-        var div = allDivs[i];
-        var buttons = div.querySelectorAll('button');
-        var hasAddToCart = false;
-        var hasBuyNow = false;
-        
-        for (var j = 0; j < buttons.length; j++) {
-          var btnText = buttons[j].textContent;
-          if (btnText && btnText.toLowerCase().indexOf('add to cart') !== -1) {
-            hasAddToCart = true;
-          }
-          if (btnText && btnText.toLowerCase().indexOf('buy now') !== -1) {
-            hasBuyNow = true;
-          }
-        }
-        
-        if ((hasAddToCart || div.querySelector('.primary-btn')) && 
-            (hasBuyNow || div.querySelector('.secondary-btn'))) {
-          buttonContainer = div;
-          break;
-        }
-      }
-    }
-    
-    // Final fallback: find any container with buttons
-    if (!buttonContainer) {
-      var buttons = document.querySelectorAll('button');
-      for (var i = 0; i < buttons.length; i++) {
-        var btnText = buttons[i].textContent;
-        if (btnText) {
-          var lowerText = btnText.toLowerCase();
-          if (lowerText.indexOf('cart') !== -1 || lowerText.indexOf('buy') !== -1) {
-            buttonContainer = buttons[i].parentElement;
-            break;
-          }
-        }
-      }
-    }
-    
-    if (!buttonContainer) {
-      console.log('No suitable button container found');
+      console.log('Button container not found');
       return;
     }
     
-    // Ensure container can hold multiple buttons
-    var containerStyle = window.getComputedStyle(buttonContainer);
-    if (containerStyle.display !== 'flex') {
-      buttonContainer.style.cssText += 'display: flex; gap: 10px; align-items: center; padding: 35px 0;';
-    }
-    
-    // Create download button
+    // Create download button with simple styling
     var btn = document.createElement('button');
     btn.id = 'download-btn';
-    btn.className = 'primary-btn';
     btn.textContent = buttonText;
     btn.style.cssText = \`
-      background-color: \${buttonColor} !important;
-      color: \${buttonTextColor} !important;
-      padding: 12px 20px !important;
-      border-radius: \${buttonBorderRadius}px !important;
-      font-weight: bold !important;
-      font-size: 16px !important;
-      cursor: pointer !important;
-      border: none !important;
-      margin: 0 !important;
+      background-color: \${buttonColor};
+      color: \${buttonTextColor};
+      padding: 12px 20px;
+      border-radius: \${buttonBorderRadius}px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      margin-left: 10px;
+      vertical-align: top;
     \`;
     btn.addEventListener('click', handleDownload);
     
-    // Append to the container with other buttons
+    // Simply append without changing container styles
     buttonContainer.appendChild(btn);
-    console.log('Download button added to button container with', buttonContainer.children.length, 'total buttons');
+    console.log('Download button added');
   }
   
 
