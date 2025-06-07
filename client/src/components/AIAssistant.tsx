@@ -52,10 +52,11 @@ export default function AIAssistant() {
   // Chat mutation
   const chatMutation = useMutation({
     mutationFn: async ({ message, requestType }: { message: string; requestType: RequestType }) => {
-      return apiRequest('/api/ai/chat', {
+      const response = await apiRequest('/api/ai/chat', {
         method: 'POST',
         data: { message, requestType, userId: 1 }
       });
+      return response.json();
     },
     onSuccess: (response: any) => {
       console.log('AI Assistant Response:', response);
