@@ -871,12 +871,28 @@ body:not(.hl-builder) .action-icon {
                           id="buttonColor"
                           type="color"
                           value={previewColor}
-                          onChange={(e) => setPreviewColor(e.target.value)}
+                          onChange={(e) => {
+                            const newColor = e.target.value;
+                            setPreviewColor(newColor);
+                            // Force immediate DOM update
+                            const previewButton = document.querySelector('.button-preview-element');
+                            if (previewButton) {
+                              (previewButton as HTMLElement).style.backgroundColor = newColor;
+                            }
+                          }}
                           className="w-10 h-8 rounded border border-gray-300 cursor-pointer"
                         />
                         <Input
                           value={previewColor}
-                          onChange={(e) => setPreviewColor(e.target.value)}
+                          onChange={(e) => {
+                            const newColor = e.target.value;
+                            setPreviewColor(newColor);
+                            // Force immediate DOM update
+                            const previewButton = document.querySelector('.button-preview-element');
+                            if (previewButton) {
+                              (previewButton as HTMLElement).style.backgroundColor = newColor;
+                            }
+                          }}
                           placeholder="#3b82f6"
                           className="flex-1 text-xs"
                         />
@@ -891,12 +907,28 @@ body:not(.hl-builder) .action-icon {
                           id="textColor"
                           type="color"
                           value={previewTextColor}
-                          onChange={(e) => setPreviewTextColor(e.target.value)}
+                          onChange={(e) => {
+                            const newColor = e.target.value;
+                            setPreviewTextColor(newColor);
+                            // Force immediate DOM update
+                            const previewButton = document.querySelector('.button-preview-element');
+                            if (previewButton) {
+                              (previewButton as HTMLElement).style.color = newColor;
+                            }
+                          }}
                           className="w-10 h-8 rounded border border-gray-300 cursor-pointer"
                         />
                         <Input
                           value={previewTextColor}
-                          onChange={(e) => setPreviewTextColor(e.target.value)}
+                          onChange={(e) => {
+                            const newColor = e.target.value;
+                            setPreviewTextColor(newColor);
+                            // Force immediate DOM update
+                            const previewButton = document.querySelector('.button-preview-element');
+                            if (previewButton) {
+                              (previewButton as HTMLElement).style.color = newColor;
+                            }
+                          }}
                           placeholder="#ffffff"
                           className="flex-1 text-xs"
                         />
@@ -909,7 +941,7 @@ body:not(.hl-builder) .action-icon {
                       <div className="flex items-center justify-center mt-1 p-3 bg-gray-50 rounded border h-[42px]">
                         <div
                           key={previewKey}
-                          className="px-4 py-1.5 font-medium text-sm rounded cursor-pointer select-none"
+                          className="button-preview-element px-4 py-1.5 font-medium text-sm rounded cursor-pointer select-none"
                           style={{ 
                             backgroundColor: previewColor,
                             color: previewTextColor,
