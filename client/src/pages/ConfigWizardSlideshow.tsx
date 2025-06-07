@@ -325,10 +325,10 @@ document.addEventListener('DOMContentLoaded', function() {
       });
 
       return {
-        headerCode: downloadButtonCode.cssCode + 
+        headerCode: downloadButtonCode.headerCode + 
                    (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
                    (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
-        footerCode: downloadButtonCode.jsCode + 
+        footerCode: downloadButtonCode.footerCode + 
                    (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '') +
                    (metadataCode.jsCode ? '\n\n' + metadataCode.jsCode : '')
       };
