@@ -68,6 +68,7 @@ export default function ConfigWizardSlideshow() {
 
   const [showQuantitySelector, setShowQuantitySelector] = useState(false);
   const [integrationMethod, setIntegrationMethod] = useState('popup');
+  const [downloadUrl, setDownloadUrl] = useState('');
 
   const [buttonText, setButtonText] = useState('Get Info');
   const [buttonColor, setButtonColor] = useState('#3b82f6');
@@ -133,6 +134,7 @@ export default function ConfigWizardSlideshow() {
     buttonTextColor: string;
     buttonBorderRadius: number;
     customFieldName: string;
+    downloadUrl?: string;
   }) => {
     const headerCode = `<style>
 /* Download Action Button Styles */
@@ -181,10 +183,17 @@ document.addEventListener('DOMContentLoaded', function() {
     button.addEventListener('click', function(e) {
       e.preventDefault();
       
-      // Get download URL from button data attribute or form data
-      const downloadUrl = this.getAttribute('data-download-url') || 
-                         this.getAttribute('href') || 
-                         '';
+      // Get base download URL from button data attribute, or construct from slug
+      let downloadUrl = this.getAttribute('data-download-url') || 
+                       this.getAttribute('href') || 
+                       '';
+      
+      // If no download URL is set, use the configured URL or construct from slug
+      if (!downloadUrl && slug) {
+        var configuredUrl = '${config.downloadUrl || ''}';
+        downloadUrl = configuredUrl || '/download/' + slug;
+        console.log('Using download URL:', downloadUrl);
+      }
       
       if (downloadUrl) {
         // Add tracking parameters to download URL
@@ -197,17 +206,18 @@ document.addEventListener('DOMContentLoaded', function() {
           // Trigger download
           window.location.href = url.toString();
           
-          console.log('Download initiated:', url.toString());
+          console.log('Download initiated for slug "' + slug + '":', url.toString());
         } catch (error) {
           // Fallback for relative URLs or malformed URLs
           const separator = downloadUrl.includes('?') ? '&' : '?';
           const trackedUrl = downloadUrl + separator + '${config.customFieldName}=' + encodeURIComponent(slug) + '&timestamp=' + Date.now();
           window.location.href = trackedUrl;
           
-          console.log('Download initiated (fallback):', trackedUrl);
+          console.log('Download initiated (fallback) for slug "' + slug + '":', trackedUrl);
         }
       } else {
-        console.warn('No download URL found on button');
+        console.warn('No download URL found and no slug available to construct URL');
+        alert('Download URL not configured. Please contact the administrator.');
       }
     });
   });
@@ -1664,6 +1674,8 @@ input[class*="qty"],
                     <Label className="text-sm font-medium text-gray-700 block text-left">Download URL</Label>
                     <div className="mt-1 space-y-2">
                       <Input 
+                        value={downloadUrl}
+                        onChange={(e) => setDownloadUrl(e.target.value)}
                         placeholder="https://drive.google.com/file/d/... or https://dropbox.com/s/..." 
                         className="mt-1" 
                       />
