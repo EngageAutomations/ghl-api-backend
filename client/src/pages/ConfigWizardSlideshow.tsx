@@ -443,38 +443,92 @@ body:not(.hl-builder) span[class*="currency"] {
   // Base CSS for element hiding
   const generateElementHidingCSS = () => {
     let css = `<style>
-/* GoHighLevel Essential Fixes - Always Applied */
-body:not(.hl-builder) * { 
-  text-overflow: unset !important; 
-  -webkit-line-clamp: unset !important; 
-  white-space: normal !important;
-  overflow: visible !important;
-}
+/* GoHighLevel Product Page Fixes - Targeted Approach */
 
-body:not(.hl-builder) [class*="product-title"],
-body:not(.hl-builder) [class*="product-name"],
-body:not(.hl-builder) .hl-product-detail-product-name {
+/* Title wrapping - specific selectors only */
+.hl-product-detail-product-name,
+p.hl-product-detail-product-name.truncate-text,
+.product-title,
+.product-name {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
   -webkit-line-clamp: unset !important;
   max-height: none !important;
   height: auto !important;
-  max-width: 600px !important;
+  width: 800px !important;
+  max-width: 800px !important;
   word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  hyphens: auto !important;
+  display: block !important;
+}
+
+/* Description expansion - specific selectors only */
+.hl-product-detail-product-description,
+.product-description,
+.c-product-details p,
+#description {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Remove show more buttons - specific selectors only */
+.show-more-btn,
+.read-more,
+.show-more {
+  display: none !important;
+}
+
+/* Fix gallery and description container scrolling - specific selectors only */
+.hl-product-image-container,
+.product-image-container,
+.product-description-container {
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Fix section scrolling - specific GoHighLevel selectors only */
+.cstore-product-detail .fullSection,
+.cstore-product-detail .c-section,
+.cstore-product-detail .c-wrapper,
+.product-detail-container .fullSection,
+.product-detail-container .c-section,
+.product-detail-container .c-wrapper {
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Enhanced product detail layout */
+.product-detail-container {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+}
+
+/* Specific price element spacing */
+.hl-product-detail-product-price,
+.ecomm-price-desktop-container,
+.price-container {
+  margin-bottom: 20px !important;
 }`;
 
     // Add element hiding CSS based on toggles (when toggle is OFF, hide the element)
     if (!showPrice) {
       css += `
 
-/* Hide Price Display */
-body:not(.hl-builder) .cstore-product-detail [class*="price"],
-body:not(.hl-builder) .product-detail-container [class*="price"],
-body:not(.hl-builder) .hl-product-price,
-body:not(.hl-builder) .hl-product-detail-product-price {
+/* Hide Price Display - Targeted Selectors */
+.cstore-product-detail [class*="price"],
+.product-detail-container [class*="price"],
+.hl-product-price,
+.hl-product-detail-product-price,
+.ecomm-price-desktop-container,
+.price-container {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
@@ -484,18 +538,18 @@ body:not(.hl-builder) .hl-product-detail-product-price {
     if (!showQuantitySelector) {
       css += `
 
-/* Hide Quantity Selector */
-body:not(.hl-builder) .hl-product-detail-selectors,
-body:not(.hl-builder) .cstore-product-detail [class*="quantity"], 
-body:not(.hl-builder) .product-detail-container [class*="qty"],
-body:not(.hl-builder) .cstore-product-detail input[type="number"],
-body:not(.hl-builder) input[class*="quantity"],
-body:not(.hl-builder) input[class*="qty"],
-body:not(.hl-builder) .quantity-container,
-body:not(.hl-builder) .hl-quantity-input-container,
-body:not(.hl-builder) .pdp-quantity-container,
-body:not(.hl-builder) .hl-quantity-input,
-body:not(.hl-builder) .action-icon {
+/* Hide Quantity Selector - Targeted Selectors */
+.hl-product-detail-selectors,
+.cstore-product-detail [class*="quantity"], 
+.product-detail-container [class*="qty"],
+.cstore-product-detail input[type="number"],
+input[class*="quantity"],
+input[class*="qty"],
+.quantity-container,
+.hl-quantity-input-container,
+.pdp-quantity-container,
+.hl-quantity-input,
+.action-icon {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
