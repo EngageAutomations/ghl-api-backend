@@ -126,6 +126,122 @@ export default function ConfigWizardSlideshow() {
     return embedCode;
   };
 
+  // Generate download action button code
+  const generateDownloadActionButtonCode = (config: {
+    buttonText: string;
+    buttonColor: string;
+    buttonTextColor: string;
+    buttonBorderRadius: number;
+    customFieldName: string;
+  }) => {
+    const headerCode = `<style>
+/* Download Action Button Styles */
+.directory-download-button {
+  background-color: ${config.buttonColor};
+  color: ${config.buttonTextColor};
+  border: none;
+  padding: 12px 24px;
+  border-radius: ${config.buttonBorderRadius}px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-size: 16px;
+  margin: 10px 0;
+}
+
+.directory-download-button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.directory-download-button:active {
+  transform: translateY(0);
+}
+
+.directory-download-button svg {
+  width: 18px;
+  height: 18px;
+}
+</style>`;
+
+    const footerCode = `<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get the current page slug from the URL
+  const pathSegments = window.location.pathname.split('/').filter(segment => segment.length > 0);
+  const slug = pathSegments[pathSegments.length - 1] || '';
+  
+  console.log('Download button initialized for slug:', slug);
+  
+  // Find download buttons and set up click handlers
+  document.querySelectorAll('.directory-download-button, [data-action="download"]').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Get download URL from button data attribute or form data
+      const downloadUrl = this.getAttribute('data-download-url') || 
+                         this.getAttribute('href') || 
+                         '';
+      
+      if (downloadUrl) {
+        // Add tracking parameters to download URL
+        try {
+          const url = new URL(downloadUrl, window.location.origin);
+          url.searchParams.set('${config.customFieldName}', slug);
+          url.searchParams.set('timestamp', Date.now().toString());
+          url.searchParams.set('source', 'directory');
+          
+          // Trigger download
+          window.location.href = url.toString();
+          
+          console.log('Download initiated:', url.toString());
+        } catch (error) {
+          // Fallback for relative URLs or malformed URLs
+          const separator = downloadUrl.includes('?') ? '&' : '?';
+          const trackedUrl = downloadUrl + separator + '${config.customFieldName}=' + encodeURIComponent(slug) + '&timestamp=' + Date.now();
+          window.location.href = trackedUrl;
+          
+          console.log('Download initiated (fallback):', trackedUrl);
+        }
+      } else {
+        console.warn('No download URL found on button');
+      }
+    });
+  });
+  
+  // Auto-inject download button if buy button exists but no download button found
+  const buyButton = document.querySelector('.hl-product-buy-button, .primary-btn, [class*="buy-now"]');
+  const existingDownloadButton = document.querySelector('.directory-download-button');
+  
+  if (buyButton && !existingDownloadButton) {
+    const downloadButton = document.createElement('button');
+    downloadButton.className = 'directory-download-button';
+    downloadButton.innerHTML = \`
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7,10 12,15 17,10"/>
+        <line x1="12" x2="12" y1="15" y2="3"/>
+      </svg>
+      ${config.buttonText}
+    \`;
+    
+    // Insert download button after buy button
+    buyButton.parentNode.insertBefore(downloadButton, buyButton.nextSibling);
+    
+    console.log('Auto-injected download button');
+  }
+});
+</script>`;
+
+    return {
+      headerCode,
+      footerCode
+    };
+  };
+
   // Generate custom action button popup code (matches config wizard exactly)
   const generateFullPopupCode = () => {
     if (integrationMethod === 'popup' && wizardFormData.embedCode) {
@@ -151,7 +267,72 @@ export default function ConfigWizardSlideshow() {
 
   // Generate code using wizard's proven logic
   const generateCodeForSelection = () => {
-    if (wizardFormData.embedCode && wizardFormData.embedCode.trim()) {
+    if (integrationMethod === 'download') {
+      // Generate download action button code
+      const downloadButtonCode = generateDownloadActionButtonCode({
+        buttonText: buttonText || 'Download',
+        buttonColor: previewColor || '#3b82f6',
+        buttonTextColor: previewTextColor || '#ffffff',
+        buttonBorderRadius: 8,
+        customFieldName: wizardFormData.fieldName || 'listing'
+      });
+
+      // Generate expanded description code if enabled
+      const expandedDescCode = generateExpandedDescriptionCode({
+        enabled: showDescription,
+        content: `<h2>Product Details</h2>
+<p>This is enhanced content that appears below the main product details.</p>
+<p><strong>Key Features:</strong></p>
+<ul>
+  <li>Professional quality and service</li>
+  <li>Local expertise and knowledge</li>
+  <li>Competitive pricing and value</li>
+</ul>`,
+        fadeInAnimation: true,
+        customClass: 'expanded-description'
+      });
+
+      // Generate metadata bar code if enabled
+      const metadataCode = generateMetadataBarCode({
+        enabled: showMetadata,
+        position: 'bottom',
+        fields: [
+          {
+            id: 'phone',
+            label: 'Phone',
+            icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
+            defaultValue: '(555) 123-4567'
+          },
+          {
+            id: 'hours',
+            label: 'Hours',
+            icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
+            defaultValue: 'Mon-Fri 9AM-6PM'
+          },
+          {
+            id: 'location',
+            label: 'Address',
+            icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
+            defaultValue: '123 Main St, City, State'
+          }
+        ],
+        customClass: 'listing-metadata-bar',
+        backgroundColor: 'transparent',
+        textColor: '#374151',
+        borderRadius: 0,
+        fontFamily: 'system-ui, sans-serif',
+        showMaps: showMaps
+      });
+
+      return {
+        headerCode: downloadButtonCode.cssCode + 
+                   (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
+                   (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
+        footerCode: downloadButtonCode.jsCode + 
+                   (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '') +
+                   (metadataCode.jsCode ? '\n\n' + metadataCode.jsCode : '')
+      };
+    } else if (wizardFormData.embedCode && wizardFormData.embedCode.trim()) {
       if (integrationMethod === 'popup') {
         // Generate popup template with 100px spacing (matches config wizard)
         const popupCode = generateFullPopupCode();
