@@ -195,113 +195,92 @@ export default function ConfigWizardSlideshow() {
     
     console.log('Page slug detected:', slug);
     
-    // Create and inject download button
-    createDownloadButton();
+    // Initialize using proven action button logic
+    addDownloadButton();
     
-    // Set up click handlers for any existing buttons
-    setupClickHandlers();
+    // Set up mutation observer to handle dynamic content (same as action button)
+    var observer = new MutationObserver(addDownloadButton);
+    observer.observe(document.body, { childList: true, subtree: true });
   }
   
-  function createDownloadButton() {
-    if (document.querySelector('.directory-download-button')) {
-      console.log('Download button already exists');
-      return;
+  function addDownloadButton() {
+    // Look for quantity selector elements in GoHighLevel pages (same logic as action button)
+    var quantitySelectors = [
+      '.quantity-container',
+      '.hl-quantity-input-container',
+      '.pdp-quantity-container',
+      '.hl-product-detail-selectors',
+      '[class*="quantity"]',
+      'input[type="number"]'
+    ];
+    
+    var quantityElement = null;
+    for (var i = 0; i < quantitySelectors.length; i++) {
+      quantityElement = document.querySelector(quantitySelectors[i]);
+      if (quantityElement) break;
     }
     
-    console.log('Creating download button...');
-    
-    var button = document.createElement('button');
-    button.className = 'directory-download-button';
-    button.setAttribute('data-download-url', downloadBaseUrl);
-    button.style.cssText = \`
-      background-color: \${buttonColor};
-      color: \${buttonTextColor};
-      border: none;
-      padding: 12px 24px;
-      border-radius: \${buttonBorderRadius}px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-left: 10px;
-    \`;
-    button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>' + buttonText;
-    
-    // Add hover effects
-    button.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateY(-2px)';
-      this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
-    });
-    
-    button.addEventListener('mouseleave', function() {
-      this.style.transform = 'translateY(0)';
-      this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-    });
-    
-    // Find the specific button container with Add to Cart and Buy now buttons
-    var buttonContainer = null;
-    var addToCartBtn = document.getElementById('add-to-cart-btn');
-    var buyNowBtn = document.getElementById('buy-now-btn');
-    
-    if (addToCartBtn) {
-      buttonContainer = addToCartBtn.parentElement;
-      console.log('Found Add to Cart button container');
-    } else if (buyNowBtn) {
-      buttonContainer = buyNowBtn.parentElement;
-      console.log('Found Buy Now button container');
-    } else {
-      // Look for buttons with these text patterns
-      var buttons = document.querySelectorAll('button');
-      for (var i = 0; i < buttons.length; i++) {
-        var btnText = buttons[i].textContent.toLowerCase();
-        if (btnText.includes('add to cart') || btnText.includes('buy now')) {
-          buttonContainer = buttons[i].parentElement;
-          console.log('Found button container via text match:', btnText);
-          break;
-        }
-      }
-    }
-    
-    // Fallback selectors if specific buttons not found
-    if (!buttonContainer) {
-      var selectors = ['.primary-btn', '.secondary-btn', '.product-actions', '.button-group', '.action-buttons', '.cstore-product-detail', '.product-detail-container'];
-      for (var i = 0; i < selectors.length; i++) {
-        var element = document.querySelector(selectors[i]);
-        if (element) {
-          buttonContainer = element.parentElement || element;
-          console.log('Using fallback container:', selectors[i]);
-          break;
-        }
-      }
-    }
-    
-    // Ensure container has proper styling for button alignment
-    if (buttonContainer) {
-      var containerStyle = window.getComputedStyle(buttonContainer);
-      if (containerStyle.display !== 'flex' && containerStyle.display !== 'inline-flex') {
-        buttonContainer.style.cssText += 'display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 35px 0;';
-      }
+    // If no quantity element found, fallback to price element
+    if (!quantityElement) {
+      var priceSelectors = [
+        '.hl-product-detail-product-price',
+        '.ecomm-price-desktop-container', 
+        '.price-container',
+        '[class*="price"]'
+      ];
       
-      buttonContainer.appendChild(button);
-      console.log('Download button injected into button container');
-    } else {
-      document.body.appendChild(button);
-      console.log('Download button injected into body (fallback)');
+      for (var i = 0; i < priceSelectors.length; i++) {
+        quantityElement = document.querySelector(priceSelectors[i]);
+        if (quantityElement) break;
+      }
     }
+    
+    // If still no element found, try to find any container
+    if (!quantityElement) {
+      quantityElement = document.querySelector('.fullSection .inner') || document.body;
+    }
+    
+    // Check if button already exists
+    if (document.querySelector('#custom-download-btn')) return;
+    
+    // Create and insert button matching the exact Add to Cart structure
+    var button = document.createElement('button');
+    button.id = 'custom-download-btn';
+    button.className = 'primary-btn';
+    button.textContent = buttonText;
+    button.onclick = handleDownload;
+    
+    // Copy the exact inline styles from Add to Cart button with proper width
+    button.style.cssText = \`
+      background-color: \${buttonColor} !important;
+      color: \${buttonTextColor} !important;
+      border-radius: \${buttonBorderRadius}px !important;
+      padding: 10px 16px !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      border: 1px solid transparent !important;
+      cursor: pointer !important;
+      display: inline-block !important;
+      text-align: center !important;
+      vertical-align: middle !important;
+      white-space: nowrap !important;
+      line-height: 1.42857143 !important;
+      margin: 5px 5px 0 0 !important;
+      width: 460px !important;
+      min-width: 460px !important;
+    \`;
+    
+    // Insert after quantity element or append to container
+    if (quantityElement.parentNode) {
+      quantityElement.parentNode.insertBefore(button, quantityElement.nextSibling);
+    } else {
+      quantityElement.appendChild(button);
+    }
+    
+    console.log('Download button added using proven action button logic');
   }
   
-  function setupClickHandlers() {
-    document.addEventListener('click', function(e) {
-      if (e.target.classList.contains('directory-download-button') || e.target.closest('.directory-download-button')) {
-        e.preventDefault();
-        handleDownload();
-      }
-    });
-  }
+
   
   function handleDownload() {
     console.log('Fetching product data for slug:', slug);
