@@ -9,6 +9,7 @@ import { FolderOpen, Plus, Settings, Trash2, Eye, FileText, Calendar, Activity }
 import { FormConfiguration } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import AIAssistant from '@/components/AIAssistant';
 
 interface DirectoryWithStats extends FormConfiguration {
   listingCount: number;
@@ -96,8 +97,12 @@ export default function DirectoriesDashboard() {
         </Button>
       </div>
 
-      {/* Directories Grid */}
-      {directories.length === 0 ? (
+      {/* Main Content Grid - Directories and AI Assistant */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        {/* Directories Section */}
+        <div className="xl:col-span-2">
+          {/* Directories Grid */}
+          {directories.length === 0 ? (
         <div className="text-center py-12">
           <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No directories yet</h3>
