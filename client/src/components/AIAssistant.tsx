@@ -193,19 +193,19 @@ export default function AIAssistant() {
                 <>
                   <div className="bg-blue-50 p-2 rounded">
                     <p className="font-medium">Total Users</p>
-                    <p className="text-lg">{userAnalytics.overview?.totalUsers || 0}</p>
+                    <p className="text-lg">{(userAnalytics as any)?.overview?.totalUsers || 0}</p>
                   </div>
                   <div className="bg-green-50 p-2 rounded">
                     <p className="font-medium">Directories</p>
-                    <p className="text-lg">{userAnalytics.overview?.totalDirectories || 0}</p>
+                    <p className="text-lg">{(userAnalytics as any)?.overview?.totalDirectories || 0}</p>
                   </div>
                   <div className="bg-yellow-50 p-2 rounded">
                     <p className="font-medium">Products</p>
-                    <p className="text-lg">{userAnalytics.overview?.totalListings || 0}</p>
+                    <p className="text-lg">{(userAnalytics as any)?.overview?.totalListings || 0}</p>
                   </div>
                   <div className="bg-purple-50 p-2 rounded">
                     <p className="font-medium">Collections</p>
-                    <p className="text-lg">{userAnalytics.overview?.totalCollections || 0}</p>
+                    <p className="text-lg">{(userAnalytics as any)?.overview?.totalCollections || 0}</p>
                   </div>
                 </>
               ) : (

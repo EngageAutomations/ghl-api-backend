@@ -16,7 +16,7 @@ import { generateBulletPoints } from "./ai-summarizer";
 import { googleDriveService } from "./google-drive";
 import { runTestSuite, runFormTests, generateCode, getFeatureDocumentation, updateConfigurationCode } from "./dev-tools";
 import { handleFormSubmission, getFormSubmissions, downloadJSONFile } from "./form-submission-handler";
-import { aiAgent, AIRequest } from "./ai-agent";
+import { aiAgent, AIRequest } from "./ai-agent-simple";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
@@ -1434,8 +1434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/ai/analytics/:userId?", async (req, res) => {
     try {
-      const userId = req.params.userId ? parseInt(req.params.userId) : undefined;
-      const analytics = await aiAgent.getUserAnalytics(userId);
+      const analytics = await aiAgent.getUserAnalytics();
       res.json(analytics);
     } catch (error) {
       console.error("AI Agent analytics error:", error);
@@ -1450,38 +1449,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("AI Agent system insights error:", error);
       res.status(500).json({ error: "Failed to get system insights" });
-    }
-  });
-
-  app.post("/api/ai/analyze-code", async (req, res) => {
-    try {
-      const { filePath } = req.body;
-      
-      if (!filePath) {
-        return res.status(400).json({ error: "filePath is required" });
-      }
-
-      const analysis = await aiAgent.analyzeCode(filePath);
-      res.json(analysis);
-    } catch (error) {
-      console.error("AI Agent code analysis error:", error);
-      res.status(500).json({ error: "Failed to analyze code" });
-    }
-  });
-
-  app.post("/api/ai/propose-change", async (req, res) => {
-    try {
-      const { filePath, description, currentCode } = req.body;
-      
-      if (!filePath || !description) {
-        return res.status(400).json({ error: "filePath and description are required" });
-      }
-
-      const proposal = await aiAgent.proposeCodeChange(filePath, description, currentCode);
-      res.json(proposal);
-    } catch (error) {
-      console.error("AI Agent code proposal error:", error);
-      res.status(500).json({ error: "Failed to propose code change" });
     }
   });
 

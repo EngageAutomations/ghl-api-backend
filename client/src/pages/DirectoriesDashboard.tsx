@@ -113,7 +113,7 @@ export default function DirectoriesDashboard() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {directories.map((directory) => (
             <Card key={directory.id} className="hover:shadow-lg transition-shadow border border-gray-200">
               <CardHeader className="pb-3">
@@ -149,7 +149,7 @@ export default function DirectoriesDashboard() {
                   <div className="flex items-center space-x-2">
                     <Calendar className="w-4 h-4 text-gray-400" />
                     <span className="text-sm text-gray-600">
-                      {new Date(directory.createdAt).toLocaleDateString()}
+                      {directory.createdAt ? new Date(directory.createdAt).toLocaleDateString() : 'N/A'}
                     </span>
                   </div>
                 </div>
@@ -177,7 +177,14 @@ export default function DirectoriesDashboard() {
             </Card>
           ))}
         </div>
-      )}
+          )}
+        </div>
+
+        {/* AI Assistant Section - Admin Only */}
+        <div className="xl:col-span-1">
+          <AIAssistant />
+        </div>
+      </div>
     </div>
   );
 }
