@@ -58,6 +58,7 @@ export default function AIAssistant() {
       });
     },
     onSuccess: (response: any) => {
+      console.log('AI Assistant Response:', response);
       const aiMessage: AIMessage = {
         id: Date.now().toString(),
         role: 'assistant',
@@ -68,7 +69,13 @@ export default function AIAssistant() {
         suggestedActions: response.suggestedActions,
         codeChanges: response.codeChanges
       };
-      setMessages(prev => [...prev, aiMessage]);
+      console.log('AI Message to add:', aiMessage);
+      setMessages(prev => {
+        console.log('Current messages:', prev);
+        const newMessages = [...prev, aiMessage];
+        console.log('New messages:', newMessages);
+        return newMessages;
+      });
       scrollToBottom();
     }
   });
