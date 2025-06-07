@@ -151,6 +151,231 @@ export default function ConfigWizardSlideshow() {
 
   // Generate code using wizard's proven logic
   const generateCodeForSelection = () => {
+    // Handle download actions first (no embed code needed)
+    if (integrationMethod === 'download') {
+      // Generate expanded description code if enabled
+      const expandedDescCode = generateExpandedDescriptionCode({
+        enabled: showDescription,
+        content: `<h2>Product Details</h2>
+<p>This is enhanced content that appears below the main product details.</p>
+<p><strong>Key Features:</strong></p>
+<ul>
+  <li>Professional quality and service</li>
+  <li>Local expertise and knowledge</li>
+  <li>Competitive pricing and value</li>
+</ul>`,
+        fadeInAnimation: true,
+        customClass: 'expanded-description'
+      });
+
+      // Generate metadata bar code if enabled
+      const metadataCode = generateMetadataBarCode({
+        enabled: showMetadata,
+        position: 'bottom',
+        fields: [
+          {
+            id: 'phone',
+            label: 'Phone',
+            icon: '<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>',
+            defaultValue: '(555) 123-4567'
+          },
+          {
+            id: 'hours',
+            label: 'Hours',
+            icon: '<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>',
+            defaultValue: 'Mon-Fri 9AM-6PM'
+          },
+          {
+            id: 'location',
+            label: 'Address',
+            icon: '<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>',
+            defaultValue: '123 Main St, City, State'
+          }
+        ],
+        customClass: 'listing-metadata-bar',
+        backgroundColor: 'transparent',
+        textColor: '#374151',
+        borderRadius: 0,
+        fontFamily: 'system-ui, sans-serif',
+        showMaps: showMaps
+      });
+
+      return {
+        headerCode: `<style>
+/* GoHighLevel Essential Fixes - Always Applied */
+
+/* Nuclear truncation fix - Apply first to prevent any truncation */
+body:not(.hl-builder) * { 
+  text-overflow: unset !important; 
+  -webkit-line-clamp: unset !important; 
+  white-space: normal !important;
+  overflow: visible !important;
+}
+
+/* Remove title truncation and set width */
+body:not(.hl-builder) [class*="product-title"],
+body:not(.hl-builder) [class*="product-name"],
+body:not(.hl-builder) .hl-product-detail-product-name,
+body:not(.hl-builder) p.hl-product-detail-product-name.truncate-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+  height: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Fix independent scrolling containers */
+body:not(.hl-builder) .product-detail-container,
+body:not(.hl-builder) .hl-product-image-container,
+body:not(.hl-builder) .image-wrap {
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Remove "Show More" button and expand description */
+body:not(.hl-builder) .show-more-btn,
+body:not(.hl-builder) [class*="show-more"],
+body:not(.hl-builder) [class*="expand"],
+body:not(.hl-builder) button[class*="more"] {
+  display: none !important;
+}
+
+/* Ensure description is fully visible */
+body:not(.hl-builder) .hl-product-detail-description,
+body:not(.hl-builder) [class*="product-description"],
+body:not(.hl-builder) [class*="description"] {
+  max-height: none !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  white-space: normal !important;
+}
+
+/* Fix action button display */
+body:not(.hl-builder) .hl-product-detail-add-to-cart,
+body:not(.hl-builder) [class*="add-to-cart"],
+body:not(.hl-builder) [class*="action-button"],
+body:not(.hl-builder) .hl-product-detail-buy-now {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background-color: ${previewColor} !important;
+  color: ${previewTextColor || '#ffffff'} !important;
+  border-radius: 8px !important;
+  padding: 12px 24px !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  margin: 16px 0 !important;
+}
+
+/* Action button hover effect */
+body:not(.hl-builder) .hl-product-detail-add-to-cart:hover,
+body:not(.hl-builder) [class*="add-to-cart"]:hover,
+body:not(.hl-builder) [class*="action-button"]:hover,
+body:not(.hl-builder) .hl-product-detail-buy-now:hover {
+  opacity: 0.9 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Update button text for download */
+body:not(.hl-builder) .hl-product-detail-add-to-cart::after,
+body:not(.hl-builder) [class*="add-to-cart"]::after {
+  content: '${buttonText || 'Download'}' !important;
+  font-size: 0 !important;
+}
+
+body:not(.hl-builder) .hl-product-detail-add-to-cart,
+body:not(.hl-builder) [class*="add-to-cart"] {
+  font-size: 0 !important;
+}
+
+/* Ensure product containers don't have scroll */
+body:not(.hl-builder) .cstore-product-detail,
+body:not(.hl-builder) .product-detail-container {
+  overflow: visible !important;
+  display: block !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+/* Fix layout and spacing */
+body:not(.hl-builder) .fullSection {
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+</style>` + (expandedDescCode.cssCode ? '\n\n' + expandedDescCode.cssCode : '') +
+    (metadataCode.cssCode ? '\n\n' + metadataCode.cssCode : ''),
+        footerCode: `<script>
+// Download Button Enhancement Script
+document.addEventListener('DOMContentLoaded', function() {
+  const customFieldName = '${wizardFormData.fieldName || 'listing'}';
+  
+  // Get current page slug from URL
+  const slug = window.location.pathname.split('/').pop() || window.location.pathname.split('/').slice(-2, -1)[0];
+  
+  // Find and enhance download buttons
+  const downloadButtons = document.querySelectorAll('.hl-product-detail-add-to-cart, [class*="add-to-cart"], [class*="action-button"], .hl-product-detail-buy-now');
+  
+  downloadButtons.forEach(button => {
+    // Update button text and styling
+    button.textContent = '${buttonText || 'Download'}';
+    button.style.backgroundColor = '${previewColor}';
+    button.style.color = '${previewTextColor || '#ffffff'}';
+    
+    // Add download functionality
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Get download URL from listing data or form field
+      const downloadUrlField = document.querySelector('input[name="downloadUrl"], [data-download-url]');
+      let downloadUrl = '';
+      
+      if (downloadUrlField) {
+        downloadUrl = downloadUrlField.value || downloadUrlField.getAttribute('data-download-url');
+      }
+      
+      if (downloadUrl) {
+        // Convert Google Drive and Dropbox links to direct download
+        if (downloadUrl.includes('drive.google.com')) {
+          const fileId = downloadUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+          if (fileId) {
+            downloadUrl = \`https://drive.google.com/uc?export=download&id=\${fileId[1]}\`;
+          }
+        } else if (downloadUrl.includes('dropbox.com')) {
+          downloadUrl = downloadUrl.replace('?dl=0', '?dl=1');
+        }
+        
+        // Trigger download
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = '';
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        console.warn('No download URL found for this listing');
+        alert('Download not available for this item.');
+      }
+    });
+  });
+  
+  console.log(\`Enhanced \${downloadButtons.length} download buttons with slug \${slug}\`);
+});
+</script>` + (expandedDescCode.jsCode ? '\n\n' + expandedDescCode.jsCode : '') +
+         (metadataCode.jsCode ? '\n\n' + metadataCode.jsCode : '')
+      };
+    }
+    
     if (wizardFormData.embedCode && wizardFormData.embedCode.trim()) {
       if (integrationMethod === 'popup') {
         // Generate popup template with 100px spacing (matches config wizard)
