@@ -212,13 +212,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  // Auto-inject download button if buy button exists but no download button found
-  const buyButton = document.querySelector('.hl-product-buy-button, .primary-btn, [class*="buy-now"]');
+  // Always inject standalone download button directly into page
   const existingDownloadButton = document.querySelector('.directory-download-button');
   
-  if (buyButton && !existingDownloadButton) {
+  if (!existingDownloadButton) {
     const downloadButton = document.createElement('button');
     downloadButton.className = 'directory-download-button';
+    downloadButton.setAttribute('data-download-url', ''); // To be configured by user
     downloadButton.innerHTML = \`
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -228,10 +228,34 @@ document.addEventListener('DOMContentLoaded', function() {
       ${config.buttonText}
     \`;
     
-    // Insert download button after buy button
-    buyButton.parentNode.insertBefore(downloadButton, buyButton.nextSibling);
+    // Try multiple injection points for maximum compatibility
+    const injectionTargets = [
+      '.cstore-product-detail',
+      '.product-detail-container',
+      '.hl-product-detail',
+      '.c-product-details',
+      '.product-content',
+      '.main-content',
+      'main',
+      'body'
+    ];
     
-    console.log('Auto-injected download button');
+    let buttonInjected = false;
+    for (const selector of injectionTargets) {
+      const target = document.querySelector(selector);
+      if (target && !buttonInjected) {
+        target.appendChild(downloadButton);
+        buttonInjected = true;
+        console.log('Download button injected into:', selector);
+        break;
+      }
+    }
+    
+    if (!buttonInjected) {
+      // Final fallback - append to body
+      document.body.appendChild(downloadButton);
+      console.log('Download button injected into body as fallback');
+    }
   }
 });
 </script>`;
