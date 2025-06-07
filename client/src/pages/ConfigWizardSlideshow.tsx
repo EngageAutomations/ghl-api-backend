@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -73,6 +73,12 @@ export default function ConfigWizardSlideshow() {
   const [buttonColor, setButtonColor] = useState('#3b82f6');
   const [previewColor, setPreviewColor] = useState('#3b82f6');
   const [previewTextColor, setPreviewTextColor] = useState('#ffffff');
+  const [forceUpdate, setForceUpdate] = useState(0);
+
+  // Force re-render when integration method changes
+  useEffect(() => {
+    setForceUpdate(prev => prev + 1);
+  }, [integrationMethod]);
 
   // Create directory mutation
   const createDirectoryMutation = useMutation({
@@ -865,12 +871,20 @@ body:not(.hl-builder) .action-icon {
                           id="buttonColor"
                           type="color"
                           value={previewColor}
-                          onChange={(e) => setPreviewColor(e.target.value)}
+                          onChange={(e) => {
+                            const newColor = e.target.value;
+                            setPreviewColor(newColor);
+                            setForceUpdate(prev => prev + 1);
+                          }}
                           className="w-10 h-8 rounded border border-gray-300 cursor-pointer"
                         />
                         <Input
                           value={previewColor}
-                          onChange={(e) => setPreviewColor(e.target.value)}
+                          onChange={(e) => {
+                            const newColor = e.target.value;
+                            setPreviewColor(newColor);
+                            setForceUpdate(prev => prev + 1);
+                          }}
                           placeholder="#3b82f6"
                           className="flex-1 text-xs"
                         />
@@ -885,12 +899,20 @@ body:not(.hl-builder) .action-icon {
                           id="textColor"
                           type="color"
                           value={previewTextColor}
-                          onChange={(e) => setPreviewTextColor(e.target.value)}
+                          onChange={(e) => {
+                            const newColor = e.target.value;
+                            setPreviewTextColor(newColor);
+                            setForceUpdate(prev => prev + 1);
+                          }}
                           className="w-10 h-8 rounded border border-gray-300 cursor-pointer"
                         />
                         <Input
                           value={previewTextColor}
-                          onChange={(e) => setPreviewTextColor(e.target.value)}
+                          onChange={(e) => {
+                            const newColor = e.target.value;
+                            setPreviewTextColor(newColor);
+                            setForceUpdate(prev => prev + 1);
+                          }}
                           placeholder="#ffffff"
                           className="flex-1 text-xs"
                         />
@@ -902,7 +924,7 @@ body:not(.hl-builder) .action-icon {
                       <Label className="text-xs text-gray-600">Preview</Label>
                       <div className="flex items-center justify-center mt-1 p-3 bg-gray-50 rounded border h-[42px]">
                         <button
-                          key={`preview-${integrationMethod}-${previewColor}-${previewTextColor}`}
+                          key={`preview-${integrationMethod}-${previewColor}-${previewTextColor}-${forceUpdate}`}
                           className="px-4 py-1.5 font-medium transition-colors hover:opacity-90 text-sm rounded"
                           style={{ 
                             backgroundColor: previewColor,
