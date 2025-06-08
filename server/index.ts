@@ -2,8 +2,14 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { privateDeploymentGuard, ipWhitelist } from "./privacy";
+import { setupDomainRedirects, setupCORS } from "./domain-config";
 
 const app = express();
+
+// Domain and CORS setup
+app.use(setupDomainRedirects);
+app.use(setupCORS);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

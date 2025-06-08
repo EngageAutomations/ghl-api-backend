@@ -1586,5 +1586,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Domain status endpoint
+  app.get("/api/domain/status", (req, res) => {
+    const host = req.get('host');
+    const protocol = req.get('x-forwarded-proto') || req.protocol;
+    const isSecure = protocol === 'https';
+    
+    res.json({
+      host,
+      protocol,
+      isSecure,
+      customDomain: process.env.CUSTOM_DOMAIN || null,
+      replitDomain: process.env.REPLIT_DOMAINS || null,
+      domainConfig: (req as any).domainConfig || null
+    });
+  });
+
   return httpServer;
 }
