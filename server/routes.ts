@@ -17,6 +17,7 @@ import { googleDriveService } from "./google-drive";
 import { runTestSuite, runFormTests, generateCode, getFeatureDocumentation, updateConfigurationCode } from "./dev-tools";
 import { handleFormSubmission, getFormSubmissions, downloadJSONFile } from "./form-submission-handler";
 import { aiAgent, AIRequest } from "./ai-agent-simple";
+import { ghlAPI } from "./ghl-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
@@ -1474,6 +1475,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("AI Agent system insights error:", error);
       res.status(500).json({ error: "Failed to get system insights" });
+    }
+  });
+
+  // GoHighLevel API routes
+  app.get("/api/ghl/health", async (req, res) => {
+    try {
+      const health = await ghlAPI.testConnection();
+      res.json(health);
+    } catch (error) {
+      console.error("GHL health check error:", error);
+      res.status(500).json({ error: "Failed to check GHL connection" });
+    }
+  });
+
+  app.get("/api/ghl/contacts", async (req, res) => {
+    try {
+      const { limit = 100, offset = 0 } = req.query;
+      const contacts = await ghlAPI.getContacts(Number(limit), Number(offset));
+      res.json(contacts);
+    } catch (error) {
+      console.error("GHL contacts error:", error);
+      res.status(500).json({ error: "Failed to fetch contacts from GHL" });
+    }
+  });
+
+  app.get("/api/ghl/contacts/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const contact = await ghlAPI.getContact(id);
+      res.json(contact);
+    } catch (error) {
+      console.error("GHL contact error:", error);
+      res.status(500).json({ error: "Failed to fetch contact from GHL" });
+    }
+  });
+
+  app.post("/api/ghl/contacts", async (req, res) => {
+    try {
+      const contactData = req.body;
+      const contact = await ghlAPI.createContact(contactData);
+      res.status(201).json(contact);
+    } catch (error) {
+      console.error("GHL create contact error:", error);
+      res.status(500).json({ error: "Failed to create contact in GHL" });
+    }
+  });
+
+  app.put("/api/ghl/contacts/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const contact = await ghlAPI.updateContact(id, updates);
+      res.json(contact);
+    } catch (error) {
+      console.error("GHL update contact error:", error);
+      res.status(500).json({ error: "Failed to update contact in GHL" });
+    }
+  });
+
+  app.delete("/api/ghl/contacts/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await ghlAPI.deleteContact(id);
+      res.json({ message: "Contact deleted successfully" });
+    } catch (error) {
+      console.error("GHL delete contact error:", error);
+      res.status(500).json({ error: "Failed to delete contact from GHL" });
+    }
+  });
+
+  app.get("/api/ghl/directories", async (req, res) => {
+    try {
+      const directories = await ghlAPI.getDirectories();
+      res.json(directories);
+    } catch (error) {
+      console.error("GHL directories error:", error);
+      res.status(500).json({ error: "Failed to fetch directories from GHL" });
+    }
+  });
+
+  app.post("/api/ghl/directories", async (req, res) => {
+    try {
+      const directoryData = req.body;
+      const directory = await ghlAPI.createDirectory(directoryData);
+      res.status(201).json(directory);
+    } catch (error) {
+      console.error("GHL create directory error:", error);
+      res.status(500).json({ error: "Failed to create directory in GHL" });
+    }
+  });
+
+  app.post("/api/ghl/sync/contacts", async (req, res) => {
+    try {
+      const result = await ghlAPI.syncContactsToLocal();
+      res.json(result);
+    } catch (error) {
+      console.error("GHL sync contacts error:", error);
+      res.status(500).json({ error: "Failed to sync contacts from GHL" });
+    }
+  });
+
+  app.post("/api/ghl/sync/directories", async (req, res) => {
+    try {
+      const result = await ghlAPI.syncDirectoriesToLocal();
+      res.json(result);
+    } catch (error) {
+      console.error("GHL sync directories error:", error);
+      res.status(500).json({ error: "Failed to sync directories from GHL" });
     }
   });
 
