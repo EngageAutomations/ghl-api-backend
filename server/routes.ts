@@ -18,6 +18,9 @@ import { runTestSuite, runFormTests, generateCode, getFeatureDocumentation, upda
 import { handleFormSubmission, getFormSubmissions, downloadJSONFile } from "./form-submission-handler";
 import { aiAgent, AIRequest } from "./ai-agent-simple";
 import { ghlAPI } from "./ghl-api";
+import { ghlOAuth } from "./ghl-oauth";
+import { authenticateToken } from "./auth-middleware";
+import jwt from "jsonwebtoken";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
@@ -1653,6 +1656,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     res.redirect("/google-drive-setup");
+  });
+
+  // GoHighLevel OAuth Routes
+  app.get("/auth/ghl/authorize", (req, res) => {
+    try {
+      const state = Math.random().toString(36).substring(7);
+      const authUrl = ghlOAuth.getAuthorizationUrl(state);
+      
+      // Store state in session for validation
+      res.cookie('oauth_state', state, { 
+        httpOnly: true, 
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 10 * 60 * 1000 // 10 minutes
+      });
+      
+      res.redirect(authUrl);
+    } catch (error) {
+      console.error("OAuth authorization error:", error);
+      res.status(500).json({ error: "Failed to initiate OAuth" });
+    }
+  });
+
+  app.get("/auth/ghl/callback", async (req, res) => {
+    try {
+      const { code, state, error } = req.query;
+      
+      if (error) {
+        return res.redirect(`/oauth-error?error=${error}`);
+      }
+
+      if (!code) {
+        return res.redirect("/oauth-error?error=no_code");
+      }
+
+      // Validate state parameter
+      const storedState = req.cookies.oauth_state;
+      if (!storedState || storedState !== state) {
+        return res.redirect("/oauth-error?error=invalid_state");
+      }
+
+      // Exchange code for tokens
+      const tokens = await ghlOAuth.exchangeCodeForTokens(code as string);
+      
+      // Get user info from GHL
+      const userInfo = await ghlOAuth.getUserInfo(tokens.access_token);
+      
+      // Check if user exists by GHL ID
+      let user = await storage.getUserByGhlId(userInfo.id);
+      
+      if (!user) {
+        // Create new OAuth user
+        user = await storage.createOAuthUser({
+          email: userInfo.email,
+          name: userInfo.name,
+          ghlUserId: userInfo.id,
+          ghlLocationId: '', // Will be updated when location is selected
+          ghlLocationName: '',
+          ghlScopes: tokens.scope,
+        });
+      }
+
+      // Update tokens
+      await storage.updateUserOAuthTokens(user.id, {
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        expiresIn: tokens.expires_in,
+      });
+
+      // Create session token
+      const sessionToken = jwt.sign(
+        { userId: user.id, authType: 'oauth' },
+        process.env.JWT_SECRET || 'fallback-secret',
+        { expiresIn: '7d' }
+      );
+
+      // Set session cookie
+      res.cookie('session_token', sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      // Clear state cookie
+      res.clearCookie('oauth_state');
+
+      // Redirect to dashboard
+      res.redirect('/');
+    } catch (error) {
+      console.error("OAuth callback error:", error);
+      res.redirect("/oauth-error?error=callback_failed");
+    }
+  });
+
+  app.post("/auth/ghl/logout", authenticateToken, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      
+      if (user?.ghlAccessToken) {
+        // Revoke GHL token
+        await ghlOAuth.revokeToken(user.ghlAccessToken);
+      }
+
+      // Clear session cookie
+      res.clearCookie('session_token');
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({ error: "Logout failed" });
+    }
+  });
+
+  app.get("/api/auth/me", authenticateToken, (req, res) => {
+    const user = (req as any).user;
+    
+    // Return user info without sensitive data
+    res.json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      displayName: user.displayName,
+      authType: user.authType,
+      ghlLocationId: user.ghlLocationId,
+      ghlLocationName: user.ghlLocationName,
+      isActive: user.isActive,
+    });
   });
 
   return httpServer;

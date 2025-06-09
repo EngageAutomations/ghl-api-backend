@@ -10,7 +10,9 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGHL: () => void;
   logout: () => Promise<void>;
+  checkAuthStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -19,7 +21,9 @@ const AuthContext = createContext<AuthContextType>({
   loading: false,
   error: null,
   login: async () => {},
+  loginWithGHL: () => {},
   logout: async () => {},
+  checkAuthStatus: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {

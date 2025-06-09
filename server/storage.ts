@@ -17,9 +17,13 @@ import { eq, and } from "drizzle-orm";
 export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
+  getUserById(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByGhlId(ghlUserId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  createOAuthUser(user: any): Promise<User>;
+  updateUserOAuthTokens(userId: number, tokens: { accessToken: string; refreshToken: string; expiresIn: number }): Promise<void>;
   
   // Designer Config methods
   getDesignerConfig(userId: number): Promise<DesignerConfig | undefined>;
@@ -647,6 +651,48 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  // OAuth-specific user methods
+  async getUserById(id: number): Promise<User | undefined> {
+    return this.getUser(id);
+  }
+
+  async getUserByGhlId(ghlUserId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.ghlUserId, ghlUserId));
+    return user || undefined;
+  }
+
+  async createOAuthUser(userData: any): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        username: userData.email,
+        email: userData.email,
+        displayName: userData.name,
+        ghlUserId: userData.ghlUserId,
+        ghlLocationId: userData.ghlLocationId,
+        ghlLocationName: userData.ghlLocationName,
+        ghlScopes: userData.ghlScopes,
+        authType: 'oauth',
+        isActive: true,
+      })
+      .returning();
+    return user;
+  }
+
+  async updateUserOAuthTokens(userId: number, tokens: { accessToken: string; refreshToken: string; expiresIn: number }): Promise<void> {
+    const expiryDate = new Date(Date.now() + tokens.expiresIn * 1000);
+    
+    await db
+      .update(users)
+      .set({
+        ghlAccessToken: tokens.accessToken,
+        ghlRefreshToken: tokens.refreshToken,
+        ghlTokenExpiry: expiryDate,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
   }
 
   // Designer Config methods
