@@ -198,9 +198,13 @@ export default function Login() {
             </Button>
             
             <div className="text-center p-3 bg-amber-50 rounded-lg border border-amber-200">
-              <p className="text-xs text-amber-700">
+              <p className="text-xs text-amber-700 mb-2">
                 <strong>Note:</strong> This button tests the OAuth flow. In production, users are redirected here when they install your app from the GoHighLevel marketplace.
               </p>
+              <div className="text-xs text-blue-600 bg-blue-50 rounded p-2">
+                <strong>Test URL:</strong><br/>
+                <code className="break-all">https://api.leadconnectorhq.com/oauth/authorize?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2Foauth%2Fcallback&scope=contacts.read%20contacts.write%20locations.read&state=test123</code>
+              </div>
             </div>
           </CardContent>
           
