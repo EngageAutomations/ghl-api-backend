@@ -23,7 +23,9 @@ export default function Login() {
   
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  const { loginWithGHL } = useAuth();
+  const authContext = useAuth();
+  console.log('Auth context:', authContext);
+  const { loginWithGHL } = authContext;
   
   // Check if user is already logged in
   useEffect(() => {
@@ -182,7 +184,8 @@ export default function Login() {
             <Button 
               onClick={() => {
                 console.log('GoHighLevel OAuth button clicked');
-                loginWithGHL();
+                console.log('Redirecting to OAuth endpoint');
+                window.location.href = '/auth/ghl/authorize';
               }}
               variant="outline" 
               className="w-full"
