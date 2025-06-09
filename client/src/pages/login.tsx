@@ -175,7 +175,7 @@ export default function Login() {
                 <Separator className="w-full" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+                <span className="bg-white px-2 text-muted-foreground">Marketplace Installation</span>
               </div>
             </div>
           </div>
@@ -188,14 +188,20 @@ export default function Login() {
                 window.location.href = '/auth/ghl/authorize';
               }}
               variant="outline" 
-              className="w-full"
+              className="w-full mb-4"
               type="button"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
               </svg>
-              Sign in with GoHighLevel
+              Test OAuth Flow
             </Button>
+            
+            <div className="text-center p-3 bg-amber-50 rounded-lg border border-amber-200">
+              <p className="text-xs text-amber-700">
+                <strong>Note:</strong> This button tests the OAuth flow. In production, users are redirected here when they install your app from the GoHighLevel marketplace.
+              </p>
+            </div>
           </CardContent>
           
           <CardFooter className="flex justify-center text-xs text-slate-500">
