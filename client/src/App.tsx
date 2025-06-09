@@ -8,6 +8,7 @@ import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import OAuthError from "@/pages/OAuthError";
+import OAuthTest from "@/pages/OAuthTest";
 import Listings from "@/pages/listings";
 import ConfigWizardDemo from "@/pages/ConfigWizardDemo";
 import ConfigWizardSlideshow from "@/pages/ConfigWizardSlideshow";
@@ -71,6 +72,11 @@ function Router() {
       {/* OAuth error page */}
       <Route path="/oauth-error">
         <OAuthError />
+      </Route>
+      
+      {/* OAuth test page */}
+      <Route path="/oauth-test">
+        <OAuthTest />
       </Route>
       
       {/* Directory Form - Public route */}
