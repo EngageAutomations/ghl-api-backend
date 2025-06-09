@@ -58,7 +58,7 @@ export class GoHighLevelOAuth {
   constructor() {
     this.clientId = process.env.GHL_CLIENT_ID || '';
     this.clientSecret = process.env.GHL_CLIENT_SECRET || '';
-    this.redirectUri = process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/auth/ghl/callback';
+    this.redirectUri = process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/oauth/callback';
     this.scopes = (process.env.GHL_SCOPES || 'contacts.read contacts.write locations.read').split(' ').filter(Boolean);
 
     if (!this.clientId || !this.clientSecret) {

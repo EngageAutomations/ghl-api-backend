@@ -1682,7 +1682,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/auth/ghl/callback", async (req, res) => {
+  app.get("/oauth/callback", async (req, res) => {
     try {
       const { code, state, error } = req.query;
       
