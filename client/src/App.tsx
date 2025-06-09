@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
+import OAuthError from "@/pages/OAuthError";
 import Listings from "@/pages/listings";
 import ConfigWizardDemo from "@/pages/ConfigWizardDemo";
 import ConfigWizardSlideshow from "@/pages/ConfigWizardSlideshow";
@@ -65,6 +66,11 @@ function Router() {
       {/* Public routes that don't require auth */}
       <Route path="/login">
         <Login />
+      </Route>
+      
+      {/* OAuth error page */}
+      <Route path="/oauth-error">
+        <OAuthError />
       </Route>
       
       {/* Directory Form - Public route */}

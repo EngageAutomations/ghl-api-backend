@@ -166,9 +166,35 @@ export default function Login() {
               </Button>
             </form>
           </CardContent>
+          
+          <div className="px-6 pb-4">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+          </div>
+          
+          <CardContent className="pt-0">
+            <Button 
+              onClick={loginWithGHL}
+              variant="outline" 
+              className="w-full"
+              type="button"
+            >
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+              Sign in with GoHighLevel
+            </Button>
+          </CardContent>
+          
           <CardFooter className="flex justify-center text-xs text-slate-500">
             <p>
-              For demo use: Enter any email and password. New users will be automatically registered.
+              Use GoHighLevel OAuth for marketplace apps or traditional login for testing.
             </p>
           </CardFooter>
         </Card>
