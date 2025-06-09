@@ -180,7 +180,10 @@ export default function Login() {
           
           <CardContent className="pt-0">
             <Button 
-              onClick={loginWithGHL}
+              onClick={() => {
+                console.log('GoHighLevel OAuth button clicked');
+                loginWithGHL();
+              }}
               variant="outline" 
               className="w-full"
               type="button"

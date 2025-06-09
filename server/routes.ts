@@ -1661,8 +1661,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GoHighLevel OAuth Routes
   app.get("/auth/ghl/authorize", (req, res) => {
     try {
+      console.log("OAuth authorization request received");
       const state = Math.random().toString(36).substring(7);
       const authUrl = ghlOAuth.getAuthorizationUrl(state);
+      
+      console.log("Generated OAuth URL:", authUrl);
+      console.log("OAuth state:", state);
       
       // Store state in session for validation
       res.cookie('oauth_state', state, { 

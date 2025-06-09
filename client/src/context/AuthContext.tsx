@@ -134,16 +134,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   
   const loginWithGHL = () => {
+    console.log('OAuth login initiated');
     window.location.href = '/auth/ghl/authorize';
   };
 
   const checkAuthStatus = async () => {
     try {
-      const userData = await apiRequest('/api/auth/me');
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+      } else {
+        setUser(null);
+        localStorage.removeItem('user');
+      }
     } catch (error) {
-      // User not authenticated via OAuth, clear any stored data
       setUser(null);
       localStorage.removeItem('user');
     }
