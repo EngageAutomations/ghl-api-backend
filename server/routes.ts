@@ -1602,5 +1602,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Google Drive OAuth routes
+  app.get("/api/google-drive/auth-url", (req, res) => {
+    try {
+      const authUrl = googleDriveService.getAuthUrl();
+      res.json({ authUrl });
+    } catch (error) {
+      console.error("Error generating auth URL:", error);
+      res.status(500).json({ error: "Failed to generate auth URL" });
+    }
+  });
+
+  app.post("/api/google-drive/exchange-token", async (req, res) => {
+    try {
+      const { code, folderName } = req.body;
+      
+      if (!code) {
+        return res.status(400).json({ error: "Authorization code is required" });
+      }
+
+      const tokens = await googleDriveService.getTokens(code);
+      
+      // Set credentials to get user info
+      googleDriveService.setCredentials(tokens);
+      const userInfo = await googleDriveService.getUserInfo();
+      
+      res.json({
+        email: userInfo.email,
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        expiryDate: tokens.expiry_date,
+        folderName: folderName || 'Directory Images'
+      });
+    } catch (error) {
+      console.error("Error exchanging token:", error);
+      res.status(500).json({ error: "Failed to exchange authorization code" });
+    }
+  });
+
+  // OAuth callback route
+  app.get("/auth/google/callback", (req, res) => {
+    const { code, error } = req.query;
+    
+    if (error) {
+      return res.redirect(`/?error=${error}`);
+    }
+    
+    if (code) {
+      return res.redirect(`/google-drive-setup?code=${code}`);
+    }
+    
+    res.redirect("/google-drive-setup");
+  });
+
   return httpServer;
 }

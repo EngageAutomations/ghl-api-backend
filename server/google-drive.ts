@@ -10,10 +10,15 @@ export class GoogleDriveService {
   private oauth2Client: OAuth2Client;
 
   constructor() {
+    // Use custom domain if available, otherwise fall back to Replit domain
+    const baseUrl = process.env.CUSTOM_DOMAIN 
+      ? `https://${process.env.CUSTOM_DOMAIN}`
+      : process.env.REPL_URL || 'http://localhost:5000';
+      
     this.oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
-      `${process.env.REPL_URL || 'http://localhost:5000'}/auth/google/callback`
+      `${baseUrl}/auth/google/callback`
     );
   }
 
@@ -125,6 +130,19 @@ export class GoogleDriveService {
    */
   getPublicImageUrl(fileId: string): string {
     return `https://drive.google.com/uc?id=${fileId}&export=view`;
+  }
+
+  /**
+   * Get user information from Google
+   */
+  async getUserInfo() {
+    const oauth2 = google.oauth2({ version: 'v2', auth: this.oauth2Client });
+    const { data } = await oauth2.userinfo.get();
+    return {
+      email: data.email || '',
+      name: data.name || '',
+      picture: data.picture || ''
+    };
   }
 }
 

@@ -19,6 +19,7 @@ import DirectoryDetails from "@/pages/DirectoryDetails";
 import ListingView from "@/pages/ListingView";
 import Collections from "@/pages/Collections";
 import CollectionView from "@/pages/CollectionView";
+import GoogleDriveSetup from "@/pages/GoogleDriveSetup";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
@@ -119,6 +120,15 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <CollectionView />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      {/* Google Drive Integration */}
+      <Route path="/google-drive-setup">
+        <ProtectedRoute>
+          <AppLayout>
+            <GoogleDriveSetup />
           </AppLayout>
         </ProtectedRoute>
       </Route>
