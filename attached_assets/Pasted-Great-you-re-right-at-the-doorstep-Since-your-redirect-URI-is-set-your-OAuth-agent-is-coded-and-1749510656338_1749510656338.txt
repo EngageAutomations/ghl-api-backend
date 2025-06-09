@@ -1,0 +1,94 @@
+Great — you’re right at the doorstep. Since your redirect URI is set, your OAuth agent is coded, and the [HighLevel Authorization Flow](https://highlevel.stoplight.io/docs/integrations/a04191c0fabf9-authorization) was followed, here’s exactly **what to do next to test if everything works.**
+
+---
+
+## ✅ FINAL TESTING CHECKLIST
+
+---
+
+### ✅ Step 1: **Build the Authorization URL**
+
+Manually construct this URL and open it in a browser (while logged into a HighLevel test account):
+
+```
+https://api.leadconnectorhq.com/oauth/authorize
+  ?response_type=code
+  &client_id=YOUR_CLIENT_ID
+  &redirect_uri=https://dir.engageautomations.com/oauth/callback
+  &scope=contacts.read contacts.write products.read products.write
+  &state=test123
+```
+
+🔹 Replace:
+
+* `YOUR_CLIENT_ID` with your actual HighLevel client ID
+* `scope` with whatever scopes your app needs
+* `state` with anything — it’s optional but good for testing auth flow integrity
+
+---
+
+### ✅ Step 2: **Authorize the App**
+
+1. Paste that URL in the browser
+2. Authorize the app when prompted
+3. You’ll be redirected to:
+
+```
+https://dir.engageautomations.com/oauth/callback?code=abc123&state=test123
+```
+
+---
+
+### ✅ Step 3: **Check If Your Callback Works**
+
+At this point, **your `/oauth/callback` route should:**
+
+* Grab `req.query.code`
+* Exchange it for an access token
+* (Optionally) store the token + locationId + refresh token
+* Redirect the user somewhere (like `/dashboard` or `/wizard`)
+
+✅ If you land on your dashboard and your console shows a token exchange — **you’re in business.**
+
+---
+
+### ✅ Step 4: **Test an Authenticated API Call**
+
+Try calling the products endpoint with the access token:
+
+```bash
+curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+     https://services.leadconnectorhq.com/products/
+```
+
+You should get a list of products (or an empty list if none exist).
+
+---
+
+### 🚫 Common Errors to Watch For
+
+| Problem               | Message or Symptom                             |
+| --------------------- | ---------------------------------------------- |
+| Redirect URI mismatch | "redirect\_uri does not match"                 |
+| Token exchange fails  | 400 Bad Request during token POST              |
+| Scope denied          | 403 or empty data                              |
+| Auth loop             | Callback doesn't redirect after token exchange |
+
+---
+
+### ✅ If That Works — You’re Done 🎉
+
+Next you can:
+
+* Automatically create products for the user
+* Show connected status in your UI
+* Store tokens for future use (with refresh logic)
+
+---
+
+Would you like me to help you:
+
+1. Log the full token exchange in your Replit server?
+2. Build a minimal test dashboard showing “You are connected to HighLevel” with the user’s name/location?
+
+Let me know where you want to go from here.

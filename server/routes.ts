@@ -1658,12 +1658,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.redirect("/google-drive-setup");
   });
 
+  // Test OAuth URL generation
+  app.get("/api/oauth/test-url", (req, res) => {
+    try {
+      const state = "test123";
+      const authUrl = ghlOAuth.getAuthorizationUrl(state, false); // Use standard flow
+      
+      res.json({
+        authUrl,
+        redirectUri: 'https://dir.engageautomations.com/oauth/callback',
+        clientId: process.env.GHL_CLIENT_ID,
+        state,
+        instructions: "Copy this URL and open it in a browser while logged into HighLevel to test the OAuth flow"
+      });
+    } catch (error) {
+      console.error("Error generating test URL:", error);
+      res.status(500).json({ error: "Failed to generate test URL" });
+    }
+  });
+
   // GoHighLevel OAuth Routes
   app.get("/auth/ghl/authorize", (req, res) => {
     try {
       console.log("OAuth authorization request received");
       const state = Math.random().toString(36).substring(7);
-      const authUrl = ghlOAuth.getAuthorizationUrl(state);
+      const authUrl = ghlOAuth.getAuthorizationUrl(state, false); // Use standard flow
       
       console.log("Generated OAuth URL:", authUrl);
       console.log("OAuth state:", state);
@@ -1684,27 +1703,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/oauth/callback", async (req, res) => {
     try {
+      console.log("=== OAUTH CALLBACK STARTED ===");
+      console.log("Query params:", req.query);
+      console.log("Cookies:", req.cookies);
+      
       const { code, state, error } = req.query;
       
       if (error) {
+        console.log("OAuth error received:", error);
         return res.redirect(`/oauth-error?error=${error}`);
       }
 
       if (!code) {
+        console.log("No authorization code received");
         return res.redirect("/oauth-error?error=no_code");
       }
 
       // Validate state parameter
       const storedState = req.cookies.oauth_state;
+      console.log("State validation - received:", state, "stored:", storedState);
       if (!storedState || storedState !== state) {
+        console.log("State validation failed");
         return res.redirect("/oauth-error?error=invalid_state");
       }
 
       // Exchange code for tokens
+      console.log("Exchanging code for tokens...");
       const tokens = await ghlOAuth.exchangeCodeForTokens(code as string);
+      console.log("Token exchange successful:", { 
+        access_token: tokens.access_token ? "present" : "missing",
+        token_type: tokens.token_type,
+        expires_in: tokens.expires_in,
+        scope: tokens.scope
+      });
       
       // Get user info from GHL
+      console.log("Getting user info from GHL...");
       const userInfo = await ghlOAuth.getUserInfo(tokens.access_token);
+      console.log("User info received:", {
+        id: userInfo.id,
+        email: userInfo.email,
+        name: userInfo.name
+      });
       
       // Check if user exists by GHL ID
       let user = await storage.getUserByGhlId(userInfo.id);

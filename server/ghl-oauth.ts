@@ -3,12 +3,14 @@ import { z } from 'zod';
 // GoHighLevel OAuth Configuration
 export const GHL_OAUTH_CONFIG = {
   // Standard flow
-  authUrl: 'https://marketplace.gohighlevel.com/oauth/chooselocation',
+  authUrl: 'https://api.leadconnectorhq.com/oauth/authorize',
+  // Alternative marketplace flow
+  marketplaceAuthUrl: 'https://marketplace.gohighlevel.com/oauth/chooselocation',
   // White-labeled flow (if needed)
   whitelabelAuthUrl: 'https://marketplace.leadconnectorhq.com/oauth/chooselocation',
-  tokenUrl: 'https://rest.gohighlevel.com/v1/oauth/token',
-  userInfoUrl: 'https://rest.gohighlevel.com/v1/users/me',
-  apiBaseUrl: 'https://rest.gohighlevel.com/v1',
+  tokenUrl: 'https://api.leadconnectorhq.com/oauth/token',
+  userInfoUrl: 'https://api.leadconnectorhq.com/users/me',
+  apiBaseUrl: 'https://services.leadconnectorhq.com',
 };
 
 // OAuth Token Response Schema
@@ -72,9 +74,9 @@ export class GoHighLevelOAuth {
   /**
    * Generate the authorization URL for GoHighLevel OAuth
    */
-  getAuthorizationUrl(state?: string, useWhiteLabel = false): string {
-    const baseUrl = useWhiteLabel 
-      ? GHL_OAUTH_CONFIG.whitelabelAuthUrl 
+  getAuthorizationUrl(state?: string, useMarketplace = false): string {
+    const baseUrl = useMarketplace 
+      ? GHL_OAUTH_CONFIG.marketplaceAuthUrl 
       : GHL_OAUTH_CONFIG.authUrl;
 
     const params = new URLSearchParams({
