@@ -133,9 +133,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
+  const loginWithGHL = () => {
+    window.location.href = '/auth/ghl/authorize';
+  };
+
+  const checkAuthStatus = async () => {
+    try {
+      const userData = await apiRequest('/api/auth/me');
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+    } catch (error) {
+      // User not authenticated via OAuth, clear any stored data
+      setUser(null);
+      localStorage.removeItem('user');
+    }
+  };
+
   const logout = async () => {
     try {
-      await signOutUser();
+      // Check if user is OAuth authenticated
+      if (user?.authType === 'oauth') {
+        await apiRequest('/auth/ghl/logout', { method: 'POST' });
+      } else {
+        await signOutUser();
+      }
       
       // Clear localStorage
       localStorage.removeItem('user');
@@ -146,11 +167,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Logout error");
+      // Clear state anyway on logout error
+      setUser(null);
+      setMockUser(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('mockUser');
     }
   };
+
+  // Check OAuth status on mount
+  useEffect(() => {
+    if (!user && !mockUser) {
+      checkAuthStatus();
+    }
+  }, []);
   
   return (
-    <AuthContext.Provider value={{ user, mockUser, loading, error, login, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      mockUser, 
+      loading, 
+      error, 
+      login, 
+      loginWithGHL, 
+      logout, 
+      checkAuthStatus 
+    }}>
       {children}
     </AuthContext.Provider>
   );

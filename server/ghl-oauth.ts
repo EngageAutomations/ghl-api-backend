@@ -58,11 +58,14 @@ export class GoHighLevelOAuth {
   constructor() {
     this.clientId = process.env.GHL_CLIENT_ID || '';
     this.clientSecret = process.env.GHL_CLIENT_SECRET || '';
-    this.redirectUri = process.env.GHL_REDIRECT_URI || '';
-    this.scopes = (process.env.GHL_SCOPES || '').split(' ').filter(Boolean);
+    this.redirectUri = process.env.GHL_REDIRECT_URI || `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/auth/ghl/callback`;
+    this.scopes = (process.env.GHL_SCOPES || 'contacts.read contacts.write locations.read').split(' ').filter(Boolean);
 
-    if (!this.clientId || !this.clientSecret || !this.redirectUri) {
+    if (!this.clientId || !this.clientSecret) {
       console.warn('GHL OAuth credentials not fully configured');
+    } else {
+      console.log('GHL OAuth configured successfully');
+      console.log('Redirect URI:', this.redirectUri);
     }
   }
 

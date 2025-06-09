@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
+import { Separator } from "@/components/ui/separator";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -21,6 +23,7 @@ export default function Login() {
   
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const { loginWithGHL } = useAuth();
   
   // Check if user is already logged in
   useEffect(() => {
