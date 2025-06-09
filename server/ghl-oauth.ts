@@ -74,7 +74,7 @@ export class GoHighLevelOAuth {
   /**
    * Generate the authorization URL for GoHighLevel OAuth
    */
-  getAuthorizationUrl(state?: string, useMarketplace = false): string {
+  getAuthorizationUrl(state?: string, useMarketplace = true): string {
     const baseUrl = useMarketplace 
       ? GHL_OAUTH_CONFIG.marketplaceAuthUrl 
       : GHL_OAUTH_CONFIG.authUrl;

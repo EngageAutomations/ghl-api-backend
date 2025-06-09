@@ -203,7 +203,7 @@ export default function Login() {
               </p>
               <div className="text-xs text-blue-600 bg-blue-50 rounded p-2">
                 <strong>Test URL:</strong><br/>
-                <code className="break-all">https://api.leadconnectorhq.com/oauth/authorize?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2Foauth%2Fcallback&scope=contacts.read%20contacts.write%20locations.read&state=test123</code>
+                <code className="break-all">https://marketplace.gohighlevel.com/oauth/chooselocation?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2Foauth%2Fcallback&scope=contacts.read%20contacts.write%20locations.read&state=test123</code>
               </div>
             </div>
           </CardContent>
