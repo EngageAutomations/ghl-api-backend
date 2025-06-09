@@ -5,16 +5,53 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  password: text("password"), // Made optional for OAuth users
   displayName: text("display_name"),
   email: text("email"),
+  // GoHighLevel OAuth fields
+  ghlUserId: text("ghl_user_id").unique(),
+  ghlAccessToken: text("ghl_access_token"), // Will be encrypted
+  ghlRefreshToken: text("ghl_refresh_token"), // Will be encrypted
+  ghlTokenExpiry: timestamp("ghl_token_expiry"),
+  ghlScopes: text("ghl_scopes"), // Space-separated scopes
+  ghlLocationId: text("ghl_location_id"),
+  ghlLocationName: text("ghl_location_name"),
+  authType: text("auth_type").notNull().default("local"), // 'local' or 'oauth'
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// OAuth-specific insert schema
+export const insertOAuthUserSchema = createInsertSchema(users).pick({
+  username: true,
+  displayName: true,
+  email: true,
+  ghlUserId: true,
+  ghlLocationId: true,
+  ghlLocationName: true,
+  ghlScopes: true,
+  authType: true,
+});
+
+// Traditional user schema (keeping for backward compatibility)
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   displayName: true,
   email: true,
+});
+
+// OAuth session table for secure token storage
+export const oauthSessions = pgTable("oauth_sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  sessionToken: text("session_token").notNull().unique(),
+  ghlAccessToken: text("ghl_access_token").notNull(), // Encrypted
+  ghlRefreshToken: text("ghl_refresh_token").notNull(), // Encrypted
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

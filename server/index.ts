@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { privateDeploymentGuard, ipWhitelist } from "./privacy";
@@ -10,6 +11,7 @@ const app = express();
 app.use(setupDomainRedirects);
 app.use(setupCORS);
 
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
