@@ -58,6 +58,11 @@ function Router() {
         <OAuthTest />
       </Route>
       
+      {/* GHL Products demo */}
+      <Route path="/ghl-products">
+        <GHLProductDemo />
+      </Route>
+      
       {/* Directory Form - Public route */}
       <Route path="/form/:locationId/:directoryName">
         <DirectoryForm />

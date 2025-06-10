@@ -87,7 +87,7 @@ export function GHLProductDemo() {
 
       const result = await apiRequest('/api/ghl/create-product', {
         method: 'POST',
-        body: JSON.stringify(formData),
+        data: formData,
       });
 
       setResponse(result);

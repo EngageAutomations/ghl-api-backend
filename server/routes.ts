@@ -2059,6 +2059,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GoHighLevel Product Creation endpoint - following exact API documentation
+  app.post('/api/ghl/create-product', async (req, res) => {
+    try {
+      const formSubmission = req.body;
+      
+      // Extract GoHighLevel credentials
+      const locationId = formSubmission.ghl_location_id;
+      const accessToken = formSubmission.ghl_access_token;
+      
+      if (!locationId || !accessToken) {
+        return res.status(400).json({
+          success: false,
+          errors: ['Location ID and Access Token are required'],
+          message: 'Missing GoHighLevel credentials'
+        });
+      }
+
+      // Parse the JSON fields
+      let pricingData = null;
+      let variantsData = null;
+      let inventoryData = null;
+
+      try {
+        if (formSubmission.pricing_config) {
+          pricingData = JSON.parse(formSubmission.pricing_config);
+        }
+        if (formSubmission.product_variants) {
+          variantsData = JSON.parse(formSubmission.product_variants);
+        }
+        if (formSubmission.inventory_management) {
+          inventoryData = JSON.parse(formSubmission.inventory_management);
+        }
+      } catch (parseError) {
+        return res.status(400).json({
+          success: false,
+          errors: ['Invalid JSON in configuration fields'],
+          message: 'Failed to parse JSON configuration'
+        });
+      }
+
+      // Step 1: Create Product
+      const productPayload = {
+        name: formSubmission.product_name || 'Untitled Product',
+        description: formSubmission.product_description || '',
+        productType: 'PHYSICAL' as const,
+        availableInStore: true,
+        locationId
+      };
+
+      // Add image if provided
+      if (formSubmission.product_image) {
+        productPayload['image'] = formSubmission.product_image;
+      }
+
+      // Add variants structure if provided
+      if (variantsData?.options) {
+        const variants = variantsData.options.map((option: any) => ({
+          id: `variant_${option.name.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`,
+          name: option.name,
+          options: option.values.map((value: string) => ({
+            id: `option_${value.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`,
+            name: value
+          }))
+        }));
+        
+        if (variants.length > 0) {
+          productPayload['variants'] = variants;
+        }
+      }
+
+      // Create product using direct API call
+      const productResponse = await fetch(`https://services.leadconnectorhq.com/products/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'Version': '2021-07-28'
+        },
+        body: JSON.stringify(productPayload)
+      });
+
+      if (!productResponse.ok) {
+        const errorData = await productResponse.text();
+        throw new Error(`Product creation failed: ${productResponse.status} - ${errorData}`);
+      }
+
+      const product = await productResponse.json();
+
+      // Step 2: Create Price for Product
+      let prices = [];
+      
+      if (pricingData) {
+        const pricePayload = {
+          product: product.id,
+          locationId: locationId,
+          name: 'Base Price',
+          type: pricingData.type === 'recurring' ? 'recurring' : 'one_time',
+          currency: 'usd',
+          amount: Math.round(parseFloat(pricingData.amount) * 100), // Convert to cents
+          trackInventory: inventoryData?.trackInventory || false
+        };
+
+        // Add description if compare price exists
+        if (pricingData.compareAtPrice) {
+          pricePayload['description'] = `Compare at $${pricingData.compareAtPrice}`;
+        }
+
+        // Add inventory quantity if tracking
+        if (inventoryData?.trackInventory && inventoryData?.currentStock) {
+          pricePayload['availableQuantity'] = inventoryData.currentStock;
+        }
+
+        const priceResponse = await fetch(`https://services.leadconnectorhq.com/products/prices`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Version': '2021-07-28'
+          },
+          body: JSON.stringify(pricePayload)
+        });
+
+        if (!priceResponse.ok) {
+          const errorData = await priceResponse.text();
+          console.warn(`Price creation failed: ${priceResponse.status} - ${errorData}`);
+        } else {
+          const price = await priceResponse.json();
+          prices.push(price);
+        }
+      }
+
+      res.json({
+        success: true,
+        product,
+        prices,
+        message: 'Product created successfully in GoHighLevel'
+      });
+
+    } catch (error) {
+      console.error('GHL Product Creation Error:', error);
+      res.status(500).json({
+        success: false,
+        errors: [error instanceof Error ? error.message : 'Unknown error occurred'],
+        message: 'Failed to create product in GoHighLevel'
+      });
+    }
+  });
+
   app.post("/api/ghl/sync/contacts", async (req, res) => {
     try {
       const { locationId, accessToken } = req.body;
