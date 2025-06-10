@@ -11,6 +11,7 @@ import { generateActionButtonPopup } from '@/lib/custom-popup-generator';
 import { generateEmbeddedFormCode } from '@/lib/embedded-form-generator';
 import { generateExpandedDescriptionCode } from '@/lib/expanded-description-generator';
 import { generateMetadataBarCode, MetadataField } from '@/lib/metadata-bar-generator';
+import DynamicFormFieldManager from '@/components/DynamicFormFieldManager';
 
 interface WizardStepProps {
   title: string;

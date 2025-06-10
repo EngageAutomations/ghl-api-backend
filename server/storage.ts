@@ -6,6 +6,7 @@ import {
   listingAddons, ListingAddon, InsertListingAddon,
   formConfigurations, FormConfiguration, InsertFormConfiguration,
   formSubmissions, FormSubmission, InsertFormSubmission,
+  formFields, FormField, InsertFormField,
   googleDriveCredentials, GoogleDriveCredentials, InsertGoogleDriveCredentials,
   collections, Collection, InsertCollection,
   collectionItems, CollectionItem, InsertCollectionItem
