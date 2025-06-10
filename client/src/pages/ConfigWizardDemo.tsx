@@ -1386,7 +1386,41 @@ body:not(.hl-builder) .action-icon {
           </div>
         </WizardStep>
 
-        {/* Step 4: Code Preview */}
+        {/* Step 4: Dynamic Form Fields */}
+        <WizardStep 
+          title="Dynamic Form Fields" 
+          description="Configure custom fields for your forms that will automatically create directory listings"
+        >
+          <div className="space-y-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <div className="bg-blue-500 text-white p-2 rounded-md">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 12h6"/>
+                    <path d="M9 16h6"/>
+                    <path d="m5 8 2 2 4-4"/>
+                    <rect width="16" height="20" x="4" y="2" rx="2"/>
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-blue-800 mb-1">Smart Form Management</h4>
+                  <p className="text-sm text-blue-700">
+                    Add custom fields that collect specific information for your directory. Fields automatically map to listing properties and sync with GoHighLevel contacts.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <DynamicFormFieldManager 
+              formConfigId={1} 
+              onFieldsChange={(fields) => {
+                console.log('Form fields updated:', fields);
+              }}
+            />
+          </div>
+        </WizardStep>
+
+        {/* Step 5: Code Preview */}
         <WizardStep 
           title="Generated Code Preview" 
           description="Review and copy the generated integration code"
