@@ -1,0 +1,111 @@
+🧭 GOAL
+Create a product (directory listing, item, etc.) in a user's GoHighLevel sub-account using a valid OAuth access token.
+
+✅ PREREQUISITES
+You need:
+✅ OAuth access token
+
+✅ GoHighLevel locationId (from token response or stored)
+
+✅ products.write scope included in your OAuth request
+
+✅ A backend route to send the API call securely
+
+📤 STEP-BY-STEP GUIDE
+🔐 Step 1: Make sure you have the access token
+From the OAuth exchange flow:
+
+json
+Copy
+Edit
+{
+  "access_token": "abc123",
+  "refresh_token": "def456",
+  "locationId": "abc_location_789"
+}
+✍️ Step 2: Create the product payload
+json
+Copy
+Edit
+{
+  "locationId": "abc_location_789",
+  "name": "Premium Property Listing",
+  "description": "Gorgeous 3-bedroom home with modern updates.",
+  "imageUrl": "https://cdn.leadconnectorhq.com/media/property-abc.jpg",
+  "price": "350000"
+}
+You can also omit price if you’re handling pricing with a separate price object.
+
+📡 Step 3: Send the request to HighLevel
+http
+Copy
+Edit
+POST https://services.leadconnectorhq.com/products/
+Authorization: Bearer ACCESS_TOKEN
+Content-Type: application/json
+Example in Node.js using Axios:
+ts
+Copy
+Edit
+import axios from 'axios';
+
+async function createProduct({ accessToken, locationId, product }) {
+  const payload = {
+    locationId,
+    name: product.name,
+    description: product.description,
+    imageUrl: product.imageUrl,
+    price: product.price
+  };
+
+  const res = await axios.post(
+    'https://services.leadconnectorhq.com/products/',
+    payload,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  return res.data;
+}
+📥 Step 4: Example response
+json
+Copy
+Edit
+{
+  "id": "product_abc123",
+  "name": "Premium Property Listing",
+  "imageUrl": "https://cdn.leadconnectorhq.com/media/property-abc.jpg",
+  "locationId": "abc_location_789",
+  "price": "350000",
+  ...
+}
+✅ Use the returned product.id to:
+
+Update product info later
+
+Add pricing separately
+
+Include/exclude it from the store
+
+🧠 TIPS
+Task	Tip
+Access token expires	Use refresh_token to get a new one
+Need to attach file first?	Upload with /media/, use returned url
+Dynamic pricing	Use POST /products/prices/ after creating product
+Image not showing?	Confirm media is in HighLevel’s library and URL is valid
+
+✅ Final Checklist
+ OAuth scopes include products.write
+
+ Access token is valid (not expired)
+
+ Payload includes locationId and name
+
+ Content-Type is application/json
+
+ Bearer token in header
+

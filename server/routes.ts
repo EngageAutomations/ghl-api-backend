@@ -2018,37 +2018,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create GoHighLevel Product from Form Submission
+  // Create GoHighLevel Product via OAuth
   app.post("/api/ghl/create-product", async (req, res) => {
     try {
-      const { formSubmission, locationId, accessToken } = req.body;
+      const { locationId, accessToken, product } = req.body;
       
-      if (!formSubmission || !locationId || !accessToken) {
+      if (!locationId || !accessToken || !product) {
         return res.status(400).json({ 
-          error: "Form submission, location ID, and access token are required" 
+          error: "Location ID, access token, and product data are required" 
         });
       }
 
-      const result = await ghlProductCreator.createProductFromSubmission(
-        formSubmission,
+      // Prepare payload for GoHighLevel API
+      const payload = {
         locationId,
-        accessToken
-      );
+        name: product.name,
+        description: product.description || '',
+        imageUrl: product.imageUrl || '',
+        price: product.price || ''
+      };
 
-      if (result.success) {
-        res.json({
-          success: true,
-          product: result.product,
-          prices: result.prices,
-          message: "Product created successfully in GoHighLevel"
-        });
-      } else {
-        res.status(400).json({
+      // Make direct API call to GoHighLevel
+      const response = await fetch('https://services.leadconnectorhq.com/products/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('GHL API Error:', response.status, errorData);
+        return res.status(response.status).json({
           success: false,
-          errors: result.errors,
-          message: "Product creation failed"
+          error: `GoHighLevel API error: ${response.status}`,
+          message: errorData || 'Failed to create product'
         });
       }
+
+      const createdProduct = await response.json();
+
+      res.json({
+        success: true,
+        product: createdProduct,
+        message: "Product created successfully in GoHighLevel"
+      });
+
     } catch (error) {
       console.error("GHL product creation error:", error);
       res.status(500).json({ 

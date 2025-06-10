@@ -29,6 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { GHLProductTestForm } from "@/components/GHLProductTestForm";
 
 interface NavLinkProps {
   href: string;
@@ -130,6 +131,7 @@ export default function TopNavbar() {
           
           {/* Right side items */}
           <div className="hidden md:flex items-center space-x-2">
+            <GHLProductTestForm />
             <Button variant="ghost" size="icon" className="text-slate-600 hover:text-primary-500">
               <Bell className="h-5 w-5" />
             </Button>
