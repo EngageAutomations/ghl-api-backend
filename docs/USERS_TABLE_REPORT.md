@@ -142,7 +142,59 @@ ALTER TABLE users ALTER COLUMN password DROP NOT NULL;
 3. Backfill created_at/updated_at for existing records
 4. Apply unique constraint on ghl_user_id
 
-## Related Tables
+## Database Architecture
+
+### Single Database Design
+All application data is stored in a single PostgreSQL database with the following tables:
+
+| Table | Records | Purpose |
+|-------|---------|---------|
+| `users` | 3 | User accounts and authentication |
+| `listings` | 2 | Directory listings/products |
+| `collections` | - | Grouped listings |
+| `collection_items` | - | Collection membership |
+| `designer_configs` | - | UI customization settings |
+| `form_configurations` | - | Directory form configs |
+| `form_submissions` | - | User form submissions |
+| `google_drive_credentials` | - | Drive integration tokens |
+| `listing_addons` | - | Listing extensions |
+| `portal_domains` | - | Custom domain configs |
+
+### Data Relationships
+
+**Users → Listings Relationship:**
+```sql
+listings.user_id → users.id (Foreign Key)
+```
+
+**Key Connections:**
+- Each user can own multiple listings
+- Listings are isolated by user_id
+- OAuth users will inherit same listing capabilities
+- Collections group listings for better organization
+
+### Listings Table Structure
+```sql
+CREATE TABLE listings (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  title TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  directory_name TEXT, -- Links to directory code
+  category TEXT,
+  location TEXT,
+  description TEXT,
+  price TEXT,
+  download_url TEXT,
+  link_url TEXT,
+  popup_url TEXT,
+  embed_form_url TEXT,
+  image_url TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+```
 
 ### OAuth Sessions Table
 
