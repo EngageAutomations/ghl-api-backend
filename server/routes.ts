@@ -1870,6 +1870,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dynamic Form Fields Management
+  app.get("/api/form-fields/:formConfigId", async (req, res) => {
+    try {
+      const { formConfigId } = req.params;
+      const fields = await storage.getFormFieldsByConfig(parseInt(formConfigId));
+      res.json(fields);
+    } catch (error) {
+      console.error("Get form fields error:", error);
+      res.status(500).json({ error: "Failed to fetch form fields" });
+    }
+  });
+
+  app.post("/api/form-fields", async (req, res) => {
+    try {
+      const field = await storage.createFormField(req.body);
+      res.status(201).json(field);
+    } catch (error) {
+      console.error("Create form field error:", error);
+      res.status(500).json({ error: "Failed to create form field" });
+    }
+  });
+
+  app.put("/api/form-fields/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const field = await storage.updateFormField(parseInt(id), req.body);
+      res.json(field);
+    } catch (error) {
+      console.error("Update form field error:", error);
+      res.status(500).json({ error: "Failed to update form field" });
+    }
+  });
+
+  app.delete("/api/form-fields/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteFormField(parseInt(id));
+      res.json({ message: "Form field deleted successfully" });
+    } catch (error) {
+      console.error("Delete form field error:", error);
+      res.status(500).json({ error: "Failed to delete form field" });
+    }
+  });
+
+  app.post("/api/form-fields/reorder", async (req, res) => {
+    try {
+      const { fieldIds } = req.body; // Array of field IDs in new order
+      await storage.reorderFormFields(fieldIds);
+      res.json({ message: "Form fields reordered successfully" });
+    } catch (error) {
+      console.error("Reorder form fields error:", error);
+      res.status(500).json({ error: "Failed to reorder form fields" });
+    }
+  });
+
+  app.post("/api/form-fields/duplicate/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const duplicatedField = await storage.duplicateFormField(parseInt(id));
+      res.status(201).json(duplicatedField);
+    } catch (error) {
+      console.error("Duplicate form field error:", error);
+      res.status(500).json({ error: "Failed to duplicate form field" });
+    }
+  });
+
+  // GHL Custom Fields Integration
+  app.post("/api/form-fields/:id/sync-ghl", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { locationId, accessToken } = req.body;
+      
+      const field = await storage.getFormFieldById(parseInt(id));
+      if (!field) {
+        return res.status(404).json({ error: "Form field not found" });
+      }
+
+      // Map field types to GHL types
+      const mapFieldTypeToGHL = (fieldType: string) => {
+        const mapping: Record<string, string> = {
+          'text': 'TEXT',
+          'email': 'EMAIL',
+          'phone': 'PHONE',
+          'textarea': 'TEXTAREA',
+          'number': 'NUMBER',
+          'select': 'SINGLE_OPTIONS',
+          'radio': 'SINGLE_OPTIONS',
+          'checkbox': 'CHECKBOX',
+          'date': 'DATE',
+          'file': 'FILE_UPLOAD',
+          'url': 'TEXT',
+          'hidden': 'TEXT'
+        };
+        return mapping[fieldType] || 'TEXT';
+      };
+
+      // Create custom field in GHL
+      const ghlField = await ghlAPI.createCustomField(locationId, {
+        name: field.fieldLabel,
+        fieldKey: field.fieldName,
+        dataType: mapFieldTypeToGHL(field.fieldType),
+        isRequired: field.isRequired,
+        placeholder: field.fieldPlaceholder || '',
+        position: field.displayOrder || 0,
+        picklistOptions: field.fieldOptions ? JSON.parse(field.fieldOptions).options : undefined
+      }, accessToken);
+
+      // Update local field with GHL ID
+      await storage.updateFormField(parseInt(id), {
+        ghlCustomFieldId: ghlField.id
+      });
+
+      res.json({ message: "Field synced to GHL successfully", ghlField });
+    } catch (error) {
+      console.error("Sync field to GHL error:", error);
+      res.status(500).json({ error: "Failed to sync field to GHL" });
+    }
+  });
+
   // OAuth token management
   app.post("/api/ghl/refresh-token", async (req, res) => {
     try {

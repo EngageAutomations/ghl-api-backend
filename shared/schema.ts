@@ -132,6 +132,43 @@ export const insertFormSubmissionSchema = createInsertSchema(formSubmissions).om
 export type InsertFormSubmission = z.infer<typeof insertFormSubmissionSchema>;
 export type FormSubmission = typeof formSubmissions.$inferSelect;
 
+// Dynamic Form Fields schema
+export const formFields = pgTable("form_fields", {
+  id: serial("id").primaryKey(),
+  formConfigId: integer("form_config_id").notNull(),
+  fieldName: text("field_name").notNull(), // Technical name (e.g., "business_category")
+  fieldLabel: text("field_label").notNull(), // Display label (e.g., "Business Category")
+  fieldType: text("field_type").notNull(), // text, email, phone, select, textarea, number, file, date, checkbox, radio
+  fieldPlaceholder: text("field_placeholder"),
+  isRequired: boolean("is_required").default(false),
+  isVisible: boolean("is_visible").default(true),
+  displayOrder: integer("display_order").default(0),
+  
+  // Field validation and options
+  validationRules: jsonb("validation_rules"), // min/max length, patterns, etc.
+  fieldOptions: jsonb("field_options"), // For select/radio fields
+  defaultValue: text("default_value"),
+  
+  // GHL integration
+  ghlCustomFieldId: text("ghl_custom_field_id"), // Maps to GHL custom field
+  ghlFieldMapping: text("ghl_field_mapping"), // Maps to standard GHL fields
+  
+  // Listing field mapping
+  listingFieldMapping: text("listing_field_mapping"), // Maps to listing table columns
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertFormFieldSchema = createInsertSchema(formFields).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertFormField = z.infer<typeof insertFormFieldSchema>;
+export type FormField = typeof formFields.$inferSelect;
+
 // Designer configuration schema
 export const designerConfigs = pgTable("designer_configs", {
   id: serial("id").primaryKey(),

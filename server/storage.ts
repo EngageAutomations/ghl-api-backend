@@ -948,6 +948,74 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
+  // Dynamic Form Fields Management
+  async getFormFieldsByConfig(formConfigId: number): Promise<FormField[]> {
+    const fields = await db
+      .select()
+      .from(formFields)
+      .where(eq(formFields.formConfigId, formConfigId))
+      .orderBy(formFields.displayOrder);
+    return fields;
+  }
+
+  async getFormFieldById(id: number): Promise<FormField | null> {
+    const [field] = await db
+      .select()
+      .from(formFields)
+      .where(eq(formFields.id, id));
+    return field || null;
+  }
+
+  async createFormField(insertFormField: InsertFormField): Promise<FormField> {
+    const [field] = await db
+      .insert(formFields)
+      .values(insertFormField)
+      .returning();
+    return field;
+  }
+
+  async updateFormField(id: number, updates: Partial<InsertFormField>): Promise<FormField> {
+    const [field] = await db
+      .update(formFields)
+      .set(updates)
+      .where(eq(formFields.id, id))
+      .returning();
+    return field;
+  }
+
+  async deleteFormField(id: number): Promise<void> {
+    await db
+      .delete(formFields)
+      .where(eq(formFields.id, id));
+  }
+
+  async duplicateFormField(id: number): Promise<FormField> {
+    const originalField = await this.getFormFieldById(id);
+    if (!originalField) {
+      throw new Error("Field not found");
+    }
+
+    const { id: _, ...fieldData } = originalField;
+    const duplicatedField = {
+      ...fieldData,
+      fieldLabel: `${originalField.fieldLabel} (Copy)`,
+      fieldName: `${originalField.fieldName}_copy`,
+      displayOrder: originalField.displayOrder + 1
+    };
+
+    return this.createFormField(duplicatedField);
+  }
+
+  async reorderFormFields(fieldIds: number[]): Promise<void> {
+    // Update display order for each field
+    for (let i = 0; i < fieldIds.length; i++) {
+      await db
+        .update(formFields)
+        .set({ displayOrder: i })
+        .where(eq(formFields.id, fieldIds[i]));
+    }
+  }
+
   // Collection methods
   async getCollection(id: number): Promise<Collection | undefined> {
     const [collection] = await db.select().from(collections).where(eq(collections.id, id));
