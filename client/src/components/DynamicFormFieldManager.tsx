@@ -45,6 +45,7 @@ interface DynamicFormFieldManagerProps {
 }
 
 const FIELD_TYPES = [
+  // Basic Fields
   { value: "text", label: "Text Input" },
   { value: "email", label: "Email" },
   { value: "phone", label: "Phone Number" },
@@ -65,7 +66,12 @@ const FIELD_TYPES = [
   { value: "multi-select", label: "Multi-Select Dropdown" },
   { value: "tags", label: "Tag Input" },
   { value: "address", label: "Address Lookup" },
-  { value: "hidden", label: "Hidden Field" }
+  { value: "hidden", label: "Hidden Field" },
+  
+  // E-commerce Specialized Fields
+  { value: "pricing-type", label: "Pricing Configuration" },
+  { value: "product-variants", label: "Product Variations" },
+  { value: "inventory-tracking", label: "Inventory Management" }
 ];
 
 const LISTING_FIELD_MAPPINGS = [

@@ -1970,7 +1970,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'multi-select': 'MULTIPLE_OPTIONS',
           'tags': 'TEXT',
           'address': 'TEXT',
-          'hidden': 'TEXT'
+          'hidden': 'TEXT',
+          // E-commerce specialized fields
+          'pricing-type': 'TEXT',
+          'product-variants': 'TEXT',
+          'inventory-tracking': 'NUMBER'
         };
         return mapping[fieldType] || 'TEXT';
       };
