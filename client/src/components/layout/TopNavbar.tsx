@@ -16,8 +16,7 @@ import {
   Presentation,
   FolderOpen,
   Archive,
-  Cloud,
-  ShoppingCart
+  Cloud
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -89,7 +88,6 @@ export default function TopNavbar() {
     { href: "/directories", icon: <FolderOpen className="h-4 w-4" />, label: "Directories" },
     { href: "/listings", icon: <GanttChart className="h-4 w-4" />, label: "Listings" },
     { href: "/collections", icon: <Archive className="h-4 w-4" />, label: "Collections" },
-    { href: "/ghl-product-demo", icon: <ShoppingCart className="h-4 w-4" />, label: "GHL Products" },
     { href: "/google-drive-setup", icon: <Cloud className="h-4 w-4" />, label: "Google Drive" },
     { href: "/wizard", icon: <Presentation className="h-4 w-4" />, label: "Slideshow Wizard" },
     { href: "/config-wizard", icon: <Settings className="h-4 w-4" />, label: "Config Wizard" },

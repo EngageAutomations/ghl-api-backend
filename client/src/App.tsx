@@ -25,10 +25,35 @@ import GoogleDriveSetup from "@/pages/GoogleDriveSetup";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
-import { GHLProductDemo } from "@/components/GHLProductDemo";
 
-// No authentication required - direct access
+// Simple protected route component that checks for user in localStorage
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const [, navigate] = useLocation();
+  
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    
+    if (!user) {
+      console.log("No user found in localStorage, redirecting to login");
+      window.location.href = "/login";
+    } else {
+      console.log("User authenticated from localStorage:", JSON.parse(user).email || JSON.parse(user).username);
+    }
+  }, [navigate]);
+  
+  // If we have a user in localStorage, render the children
+  const user = localStorage.getItem('user');
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-lg font-medium text-gray-700">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
+  
   return <>{children}</>;
 }
 
@@ -39,13 +64,9 @@ function Router() {
   
   return (
     <Switch>
-      {/* Login redirect to dashboard */}
+      {/* Public routes that don't require auth */}
       <Route path="/login">
-        <ProtectedRoute>
-          <AppLayout>
-            <Dashboard />
-          </AppLayout>
-        </ProtectedRoute>
+        <Login />
       </Route>
       
       {/* OAuth error page */}
@@ -56,11 +77,6 @@ function Router() {
       {/* OAuth test page */}
       <Route path="/oauth-test">
         <OAuthTest />
-      </Route>
-      
-      {/* GHL Products demo */}
-      <Route path="/ghl-products">
-        <GHLProductDemo />
       </Route>
       
       {/* Directory Form - Public route */}
@@ -125,15 +141,6 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <GoogleDriveSetup />
-          </AppLayout>
-        </ProtectedRoute>
-      </Route>
-      
-      {/* GoHighLevel Product Creation Demo */}
-      <Route path="/ghl-product-demo">
-        <ProtectedRoute>
-          <AppLayout>
-            <GHLProductDemo />
           </AppLayout>
         </ProtectedRoute>
       </Route>
