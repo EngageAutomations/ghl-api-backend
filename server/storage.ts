@@ -27,8 +27,9 @@ export interface IStorage {
   
   // Designer Config methods
   getDesignerConfig(userId: number): Promise<DesignerConfig | undefined>;
+  getDesignerConfigByDirectory(directoryName: string, userId?: number): Promise<DesignerConfig | undefined>;
   createDesignerConfig(config: InsertDesignerConfig): Promise<DesignerConfig>;
-  updateDesignerConfig(userId: number, config: Partial<InsertDesignerConfig>): Promise<DesignerConfig | undefined>;
+  updateDesignerConfig(id: number, config: Partial<InsertDesignerConfig>): Promise<DesignerConfig | undefined>;
   
   // Portal Domain methods
   getPortalDomain(userId: number): Promise<PortalDomain | undefined>;

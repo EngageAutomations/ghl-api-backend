@@ -1481,6 +1481,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Designer Config API routes - Save generated code
+  app.post("/api/designer-configs", async (req, res) => {
+    try {
+      const configData = req.body;
+      const config = await storage.createDesignerConfig(configData);
+      res.json(config);
+    } catch (error) {
+      console.error("Error creating designer config:", error);
+      res.status(500).json({ error: "Failed to create designer config" });
+    }
+  });
+
+  app.put("/api/designer-configs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const configData = req.body;
+      const config = await storage.updateDesignerConfig(id, configData);
+      res.json(config);
+    } catch (error) {
+      console.error("Error updating designer config:", error);
+      res.status(500).json({ error: "Failed to update designer config" });
+    }
+  });
+
+  app.get("/api/designer-configs/directory/:directoryName", async (req, res) => {
+    try {
+      const { directoryName } = req.params;
+      const { userId } = req.query;
+      const config = await storage.getDesignerConfigByDirectory(directoryName, userId ? parseInt(userId as string) : undefined);
+      res.json(config);
+    } catch (error) {
+      console.error("Error fetching designer config:", error);
+      res.status(500).json({ error: "Failed to fetch designer config" });
+    }
+  });
+
   // GoHighLevel API routes
   app.get("/api/ghl/health", async (req, res) => {
     try {

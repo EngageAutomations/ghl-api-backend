@@ -182,6 +182,10 @@ export const designerConfigs = pgTable("designer_configs", {
   // Portal Domain Configuration
   portalSubdomain: text("portal_subdomain"),
   domainVerified: boolean("domain_verified").default(false),
+  
+  // Generated Code Storage
+  headerCode: text("header_code"),
+  footerCode: text("footer_code"),
 });
 
 export const insertDesignerConfigSchema = createInsertSchema(designerConfigs).omit({
