@@ -25,6 +25,7 @@ import GoogleDriveSetup from "@/pages/GoogleDriveSetup";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
+import { GHLProductDemo } from "@/components/GHLProductDemo";
 
 // Simple protected route component that checks for user in localStorage
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -141,6 +142,15 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <GoogleDriveSetup />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      {/* GoHighLevel Product Creation Demo */}
+      <Route path="/ghl-product-demo">
+        <ProtectedRoute>
+          <AppLayout>
+            <GHLProductDemo />
           </AppLayout>
         </ProtectedRoute>
       </Route>
