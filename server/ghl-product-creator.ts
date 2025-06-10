@@ -162,34 +162,35 @@ export class GHLProductCreator {
       return 'LB';
     };
 
-    // Build variants array for GHL
+    // Build variants array for GHL - following exact API structure
     const variants = variantsData?.options.map(option => ({
       id: this.generateVariantId(option.name),
       name: option.name,
-      values: option.values.filter(v => v.trim())
+      options: option.values.filter(v => v.trim()).map(value => ({
+        id: this.generateVariantId(`${option.name}-${value}`),
+        name: value
+      }))
     })) || [];
 
-    return {
+    const productData: any = {
       name: submission.product_name || 'Untitled Product',
       description: submission.product_description || '',
-      image: submission.product_image || '',
       productType: 'PHYSICAL' as const,
       status: 'ACTIVE' as const,
       availableInStore: true,
-      // Inventory management
-      inventoryTracking: inventoryData?.trackInventory || false,
-      allowOutOfStockPurchases: inventoryData?.continueSellingWhenOutOfStock || false,
-      trackQuantity: inventoryData?.trackInventory || false,
-      availableQuantity: inventoryData?.currentStock || 0,
-      // Product identification
-      sku: inventoryData?.sku || '',
-      // Shipping
-      requiresShipping: inventoryData?.requiresShipping !== false,
-      weight: inventoryData?.weight ? parseFloat(inventoryData.weight) : undefined,
-      weightUnit: inventoryData?.weightUnit ? convertWeightUnit(inventoryData.weightUnit) : undefined,
-      // Variants
-      variants: variants.length > 0 ? variants : undefined,
     };
+
+    // Add image if provided
+    if (submission.product_image) {
+      productData.image = submission.product_image;
+    }
+
+    // Add variants if they exist
+    if (variants.length > 0) {
+      productData.variants = variants;
+    }
+
+    return productData;
   }
 
   private async createBasePricing(
@@ -201,12 +202,13 @@ export class GHLProductCreator {
     const amount = this.parseAmount(pricingData.amount);
     const compareAtAmount = pricingData.compareAtPrice ? this.parseAmount(pricingData.compareAtPrice) : undefined;
 
-    const priceData: Omit<GHLPrice, 'id' | 'productId' | 'createdAt' | 'updatedAt'> = {
+    const priceData = {
+      product: productId,
+      locationId: locationId,
       name: 'Base Price',
-      currency: 'USD',
+      type: pricingData.type === 'recurring' ? 'recurring' : 'one_time',
+      currency: 'usd',
       amount,
-      type: pricingData.type === 'recurring' ? 'RECURRING' : 'ONE_TIME',
-      compareAtPrice: compareAtAmount,
     };
 
     // Add recurring configuration

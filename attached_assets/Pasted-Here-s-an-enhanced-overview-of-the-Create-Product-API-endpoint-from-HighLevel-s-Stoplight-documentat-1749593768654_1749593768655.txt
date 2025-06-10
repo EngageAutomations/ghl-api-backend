@@ -1,0 +1,120 @@
+Here's an enhanced overview of the Create Product API endpoint from HighLevel’s Stoplight documentation, as well as how it integrates with creating prices and variants:
+
+🛍️ 1. Create Product Endpoint
+🧩 Purpose
+Adds a new product entity to the system. Intended for simple products, digital or physical, with or without variants. 
+help.gohighlevel.com
++7
+highlevel.stoplight.io
++7
+help.gohighlevel.com
++7
+
+🔐 Required Authentication
+Requires authorization (via API key for v1 or OAuth 2.0 token for v2) scoped to agency or location.
+
+📝 Key Request Fields
+name: Product title
+
+locationId: Sub-account/store identifier
+
+description: Brief product summary (shown in storefronts/invoices)
+
+productType: "DIGITAL" or "PHYSICAL"
+
+image: URL to the featured image
+
+availableInStore: Boolean to enable storefront visibility
+
+medias: Array of media items with { id, title, url, type:"image", isFeatured }
+
+variants (optional): Array representing variant groups (e.g., color, size), each with id, name, and options (each option with its own id and name) 
+highlevel.stoplight.io
+pipedream.com
++2
+help.gohighlevel.com
++2
+ideas.gohighlevel.com
++2
+
+🔹 Variants Payload Example
+json
+Copy
+Edit
+"variants":[
+  {
+    "id":"...","name":"Color",
+    "options":[{"id":"...","name":"Red"}, ...]
+  },
+  {
+    "id":"...","name":"Size",
+    "options":[{"id":"...","name":"Small"}, ...]
+  }
+]
+Captures variant grouping and their possible values. IDs are essential for later price creation. 
+help.gohighlevel.com
++1
+highlevel.stoplight.io
++1
+
+💰 2. Create Price for a Product
+Weapons of commerce: once the product entity exists, attach pricing.
+
+🔐 Required Endpoint
+Uses the Create Price for Product API (separate endpoint). 
+help.gohighlevel.com
++8
+highlevel.stoplight.io
++8
+help.gohighlevel.com
++8
+
+📝 Key Fields
+product: Product ID
+
+locationId: Sub-account/store identifier
+
+name: Price label
+
+type: "one_time" or "recurring"
+
+currency & amount
+
+description (optional)
+
+variantOptionIds: Required for variant products — list of variant option IDs defining a specific variation (e.g., Red/Small) 
+pipedream.com
+help.gohighlevel.com
++6
+help.gohighlevel.com
++6
+pipedream.com
++6
+
+trackInventory: boolean
+
+availableQuantity: integer, if inventory tracking is enabled
+
+🔁 How It Works
+After creating the product (with or without variants), you'll receive a product _id. Then, for simple products, create a single price linked to the product. For variant-enabled products, create multiple price entries — one per permutation of variant options — each with its own variantOptionIds, pricing, inventory, and recurrence settings.
+
+🖼️ 3. Variant Image Management
+For products with variants, you can upload specific images at the price (variant) level.
+
+This uses a media update API, referencing the Price ID returned from the previous call. 
+help.gohighlevel.com
+
+📌 Summary Workflow
+POST to Create Product
+
+Specify all product-level data + variant structure (if applicable).
+
+Response includes product._id.
+
+POST to Create Price for Product, once per variant combination (or once for simple products)
+
+Include product ID, pricing details, and optionally variantOptionIds, inventory tracking, and recurrence.
+
+(Optional) Attach variant-specific image(s)
+
+Use Price ID(s) along with media update endpoint.
