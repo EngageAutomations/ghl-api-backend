@@ -1959,8 +1959,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'radio': 'SINGLE_OPTIONS',
           'checkbox': 'CHECKBOX',
           'date': 'DATE',
+          'time': 'TEXT',
+          'datetime': 'DATETIME',
           'file': 'FILE_UPLOAD',
+          'image': 'FILE_UPLOAD',
           'url': 'TEXT',
+          'color': 'TEXT',
+          'range': 'NUMBER',
+          'rating': 'NUMBER',
+          'multi-select': 'MULTIPLE_OPTIONS',
+          'tags': 'TEXT',
+          'address': 'TEXT',
           'hidden': 'TEXT'
         };
         return mapping[fieldType] || 'TEXT';

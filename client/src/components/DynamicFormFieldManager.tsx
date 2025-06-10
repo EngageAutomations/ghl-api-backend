@@ -54,8 +54,17 @@ const FIELD_TYPES = [
   { value: "radio", label: "Radio Buttons" },
   { value: "checkbox", label: "Checkbox" },
   { value: "date", label: "Date Picker" },
+  { value: "time", label: "Time Picker" },
+  { value: "datetime", label: "Date & Time" },
   { value: "file", label: "File Upload" },
+  { value: "image", label: "Image Upload" },
   { value: "url", label: "URL" },
+  { value: "color", label: "Color Picker" },
+  { value: "range", label: "Range Slider" },
+  { value: "rating", label: "Star Rating" },
+  { value: "multi-select", label: "Multi-Select Dropdown" },
+  { value: "tags", label: "Tag Input" },
+  { value: "address", label: "Address Lookup" },
   { value: "hidden", label: "Hidden Field" }
 ];
 
