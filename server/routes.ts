@@ -20,6 +20,7 @@ import { aiAgent, AIRequest } from "./ai-agent-simple";
 import { ghlAPI } from "./ghl-api";
 import { ghlOAuth } from "./ghl-oauth";
 import { authenticateToken } from "./auth-middleware";
+import { ghlProductCreator } from "./ghl-product-creator";
 import jwt from "jsonwebtoken";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -2014,6 +2015,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("GHL token refresh error:", error);
       res.status(500).json({ error: "Failed to refresh token" });
+    }
+  });
+
+  // Create GoHighLevel Product from Form Submission
+  app.post("/api/ghl/create-product", async (req, res) => {
+    try {
+      const { formSubmission, locationId, accessToken } = req.body;
+      
+      if (!formSubmission || !locationId || !accessToken) {
+        return res.status(400).json({ 
+          error: "Form submission, location ID, and access token are required" 
+        });
+      }
+
+      const result = await ghlProductCreator.createProductFromSubmission(
+        formSubmission,
+        locationId,
+        accessToken
+      );
+
+      if (result.success) {
+        res.json({
+          success: true,
+          product: result.product,
+          prices: result.prices,
+          message: "Product created successfully in GoHighLevel"
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          errors: result.errors,
+          message: "Product creation failed"
+        });
+      }
+    } catch (error) {
+      console.error("GHL product creation error:", error);
+      res.status(500).json({ 
+        success: false,
+        error: "Failed to create product in GoHighLevel",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
