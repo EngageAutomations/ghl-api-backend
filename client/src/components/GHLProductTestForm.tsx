@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertCircle, Loader2, ShoppingCart } from "lucide-react";
+import { CheckCircle, AlertCircle, Loader2, ShoppingCart, Users } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -13,6 +13,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
 interface ProductCreationResult {
@@ -22,25 +29,59 @@ interface ProductCreationResult {
   message?: string;
 }
 
+interface OAuthUser {
+  id: number;
+  username: string;
+  displayName: string | null;
+  ghlLocationId: string | null;
+  ghlLocationName: string | null;
+}
+
 export function GHLProductTestForm() {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [result, setResult] = useState<ProductCreationResult | null>(null);
+  const [oauthUsers, setOauthUsers] = useState<OAuthUser[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "Premium Directory Listing",
     description: "Featured listing with enhanced visibility and lead generation tools.",
     imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400",
-    price: "299.99",
-    locationId: "",
-    accessToken: ""
+    price: "299.99"
   });
 
+  // Load OAuth users when panel opens
+  useEffect(() => {
+    if (isOpen) {
+      loadOAuthUsers();
+    }
+  }, [isOpen]);
+
+  const loadOAuthUsers = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const response = await fetch("/api/ghl/oauth-users");
+      if (response.ok) {
+        const users = await response.json();
+        setOauthUsers(users);
+        if (users.length === 1) {
+          setSelectedUserId(users[0].id.toString());
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load OAuth users:", error);
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
   const createProduct = async () => {
-    if (!formData.locationId || !formData.accessToken) {
+    if (!selectedUserId) {
       toast({
-        title: "Missing OAuth Data",
-        description: "Please provide your GoHighLevel location ID and access token",
+        title: "No OAuth User Selected",
+        description: "Please select an OAuth user or add OAuth credentials",
         variant: "destructive"
       });
       return;
@@ -56,8 +97,7 @@ export function GHLProductTestForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          locationId: formData.locationId,
-          accessToken: formData.accessToken,
+          userId: parseInt(selectedUserId),
           product: {
             name: formData.name,
             description: formData.description,
@@ -120,30 +160,43 @@ export function GHLProductTestForm() {
         </SheetHeader>
 
         <div className="mt-6 space-y-4">
-          {/* OAuth Credentials */}
+          {/* OAuth User Selection */}
           <div className="space-y-3 p-4 bg-blue-50 rounded-lg">
-            <Label className="text-sm font-medium text-blue-900">OAuth Configuration</Label>
-            <div>
-              <Label htmlFor="locationId" className="text-xs">Location ID</Label>
-              <Input
-                id="locationId"
-                value={formData.locationId}
-                onChange={(e) => setFormData(prev => ({ ...prev, locationId: e.target.value }))}
-                placeholder="Your GHL location ID"
-                className="text-sm"
-              />
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-blue-700" />
+              <Label className="text-sm font-medium text-blue-900">OAuth Account</Label>
             </div>
-            <div>
-              <Label htmlFor="accessToken" className="text-xs">Access Token</Label>
-              <Input
-                id="accessToken"
-                type="password"
-                value={formData.accessToken}
-                onChange={(e) => setFormData(prev => ({ ...prev, accessToken: e.target.value }))}
-                placeholder="Your OAuth access token"
-                className="text-sm"
-              />
-            </div>
+            
+            {isLoadingUsers ? (
+              <div className="flex items-center gap-2 py-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-blue-700">Loading OAuth users...</span>
+              </div>
+            ) : oauthUsers.length > 0 ? (
+              <div>
+                <Label htmlFor="oauthUser" className="text-xs">Select OAuth Account</Label>
+                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="Choose an OAuth account" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {oauthUsers.map((user) => (
+                      <SelectItem key={user.id} value={user.id.toString()}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{user.displayName || user.username}</span>
+                          <span className="text-xs text-gray-500">{user.ghlLocationName || user.ghlLocationId}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="text-sm text-amber-700 bg-amber-50 p-3 rounded border border-amber-200">
+                <p><strong>No OAuth accounts found</strong></p>
+                <p>Complete the OAuth flow first to link your GoHighLevel account.</p>
+              </div>
+            )}
           </div>
 
           {/* Product Details */}
@@ -196,7 +249,7 @@ export function GHLProductTestForm() {
           {/* Action Button */}
           <Button 
             onClick={createProduct} 
-            disabled={isCreating || !formData.locationId || !formData.accessToken}
+            disabled={isCreating || !selectedUserId}
             className="w-full"
           >
             {isCreating ? (

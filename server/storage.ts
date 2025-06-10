@@ -88,6 +88,14 @@ export interface IStorage {
   addListingToCollection(collectionId: number, listingId: number): Promise<CollectionItem>;
   removeListingFromCollection(collectionId: number, listingId: number): Promise<boolean>;
   updateCollectionItem(id: number, item: Partial<InsertCollectionItem>): Promise<CollectionItem | undefined>;
+
+  // OAuth methods
+  getUserById(id: number): Promise<User | undefined>;
+  getUserByGhlId(ghlUserId: string): Promise<User | undefined>;
+  createOAuthUser(user: any): Promise<User>;
+  updateUserOAuthTokens(userId: number, tokens: any): Promise<User | undefined>;
+  getOAuthUsers(): Promise<User[]>;
+  getDesignerConfigByDirectory(directoryName: string): Promise<DesignerConfig | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -1115,6 +1123,65 @@ export class DatabaseStorage implements IStorage {
       .where(eq(collectionItems.id, id))
       .returning();
     return item || undefined;
+  }
+
+  // OAuth methods implementation
+  async getUserById(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByGhlId(ghlUserId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.ghlUserId, ghlUserId));
+    return user || undefined;
+  }
+
+  async createOAuthUser(userData: any): Promise<User> {
+    const [user] = await db.insert(users).values({
+      username: userData.username,
+      displayName: userData.displayName,
+      email: userData.email,
+      ghlUserId: userData.ghlUserId,
+      ghlAccessToken: userData.ghlAccessToken,
+      ghlRefreshToken: userData.ghlRefreshToken,
+      ghlTokenExpiry: userData.ghlTokenExpiry,
+      ghlScopes: userData.ghlScopes,
+      ghlLocationId: userData.ghlLocationId,
+      ghlLocationName: userData.ghlLocationName,
+      authType: 'oauth',
+      isActive: true
+    }).returning();
+    return user;
+  }
+
+  async updateUserOAuthTokens(userId: number, tokens: any): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({
+        ghlAccessToken: tokens.accessToken,
+        ghlRefreshToken: tokens.refreshToken,
+        ghlTokenExpiry: tokens.expiresAt,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user || undefined;
+  }
+
+  async getOAuthUsers(): Promise<User[]> {
+    return await db.select({
+      id: users.id,
+      username: users.username,
+      displayName: users.displayName,
+      ghlLocationId: users.ghlLocationId,
+      ghlLocationName: users.ghlLocationName,
+      authType: users.authType
+    }).from(users).where(eq(users.authType, 'oauth'));
+  }
+
+  async getDesignerConfigByDirectory(directoryName: string): Promise<DesignerConfig | undefined> {
+    const [config] = await db.select().from(designerConfigs).where(eq(designerConfigs.directoryName, directoryName));
+    return config || undefined;
   }
 }
 

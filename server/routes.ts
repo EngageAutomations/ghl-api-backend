@@ -2018,12 +2018,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get OAuth users for dropdown selection
+  app.get("/api/ghl/oauth-users", async (req, res) => {
+    try {
+      const oauthUsers = await storage.getOAuthUsers();
+      res.json(oauthUsers);
+    } catch (error) {
+      console.error("Error fetching OAuth users:", error);
+      res.status(500).json({ error: "Failed to fetch OAuth users" });
+    }
+  });
+
   // Create GoHighLevel Product via OAuth
   app.post("/api/ghl/create-product", async (req, res) => {
     try {
-      const { locationId, accessToken, product } = req.body;
+      const { userId, product, locationId, accessToken } = req.body;
       
-      if (!locationId || !accessToken || !product) {
+      let finalLocationId = locationId;
+      let finalAccessToken = accessToken;
+
+      // If userId provided, fetch OAuth credentials from database
+      if (userId && !locationId && !accessToken) {
+        const user = await storage.getUserById(userId);
+        if (!user || !user.ghlLocationId || !user.ghlAccessToken) {
+          return res.status(400).json({ 
+            error: "User not found or missing OAuth credentials" 
+          });
+        }
+        finalLocationId = user.ghlLocationId;
+        finalAccessToken = user.ghlAccessToken;
+      }
+
+      if (!finalLocationId || !finalAccessToken || !product) {
         return res.status(400).json({ 
           error: "Location ID, access token, and product data are required" 
         });
@@ -2031,7 +2057,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Prepare payload for GoHighLevel API
       const payload = {
-        locationId,
+        locationId: finalLocationId,
         name: product.name,
         description: product.description || '',
         imageUrl: product.imageUrl || '',
@@ -2042,7 +2068,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch('https://services.leadconnectorhq.com/products/', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          'Authorization': `Bearer ${finalAccessToken}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
