@@ -202,12 +202,34 @@ CREATE TABLE listings (
 - **Action Integration:** Download links, external links, form submissions
 - **SEO Optimization:** Unique slugs, categorization, location data
 
-**Current Data Examples:**
-- 2 active listings with full descriptions (300+ characters each)
-- Complete address data: "8745 Temple Terrace Hwy, Temple Terrace, FL 33637"
-- Rich content: Property features, room details, amenities
-- Pricing information: "$20,000" format
-- Image assets: Google Drive hosted images
+**Current Listing Data Analysis:**
+
+| Field | Usage | Data Examples |
+|-------|-------|---------------|
+| **title** | Property names | "big house 1", "bigger house" |
+| **slug** | URL identifiers | "big-house", "bigger-house" |
+| **directory_name** | Code reference | "Land for sale" |
+| **category** | Classification | Empty (not categorized) |
+| **location** | Full addresses | "8745 Temple Terrace Hwy, Temple Terrace, FL 33637" |
+| **description** | Rich content | 324-character detailed property descriptions |
+| **price** | Pricing | "$20,000" format |
+| **download_url** | File links | Currently empty |
+| **link_url** | External links | Currently empty |
+| **popup_url** | Modal content | Currently empty |
+| **embed_form_url** | Form integration | Currently empty |
+| **image_url** | Media assets | Google Storage URLs |
+| **is_active** | Status | All listings active (true) |
+| **created_at** | Timestamps | June 6, 2025 |
+
+**Sample Description Content:**
+```
+"Welcome to your future home! Nestled on a tree-lined street, this beautifully maintained 3-bedroom, 2-bathroom bungalow blends classic charm with modern updates. The spacious open-concept living and dining area features original hardwood floors, a cozy fireplace, and large windows that flood the space with natural light."
+```
+
+**Data Ownership:**
+- Both listings owned by user: `dewitt_daugherty@ourtimesupport.com`
+- User isolation enforced through foreign key relationships
+- OAuth users will inherit identical data capabilities
 
 ### OAuth Sessions Table
 
