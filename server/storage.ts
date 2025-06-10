@@ -710,11 +710,23 @@ export class DatabaseStorage implements IStorage {
     return config;
   }
 
-  async updateDesignerConfig(userId: number, partialConfig: Partial<InsertDesignerConfig>): Promise<DesignerConfig | undefined> {
+  async getDesignerConfigByDirectory(directoryName: string, userId?: number): Promise<DesignerConfig | undefined> {
+    if (userId) {
+      const [config] = await db.select().from(designerConfigs).where(
+        and(eq(designerConfigs.directoryName, directoryName), eq(designerConfigs.userId, userId))
+      );
+      return config || undefined;
+    }
+    
+    const [config] = await db.select().from(designerConfigs).where(eq(designerConfigs.directoryName, directoryName));
+    return config || undefined;
+  }
+
+  async updateDesignerConfig(id: number, partialConfig: Partial<InsertDesignerConfig>): Promise<DesignerConfig | undefined> {
     const [config] = await db
       .update(designerConfigs)
       .set(partialConfig)
-      .where(eq(designerConfigs.userId, userId))
+      .where(eq(designerConfigs.id, id))
       .returning();
     return config || undefined;
   }
