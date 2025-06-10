@@ -27,34 +27,8 @@ import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
 import { GHLProductDemo } from "@/components/GHLProductDemo";
 
-// Simple protected route component that checks for user in localStorage
+// No authentication required - direct access
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const [, navigate] = useLocation();
-  
-  useEffect(() => {
-    const user = localStorage.getItem('user');
-    
-    if (!user) {
-      console.log("No user found in localStorage, redirecting to login");
-      window.location.href = "/login";
-    } else {
-      console.log("User authenticated from localStorage:", JSON.parse(user).email || JSON.parse(user).username);
-    }
-  }, [navigate]);
-  
-  // If we have a user in localStorage, render the children
-  const user = localStorage.getItem('user');
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-lg font-medium text-gray-700">Redirecting to login...</p>
-        </div>
-      </div>
-    );
-  }
-  
   return <>{children}</>;
 }
 
@@ -65,9 +39,13 @@ function Router() {
   
   return (
     <Switch>
-      {/* Public routes that don't require auth */}
+      {/* Login redirect to dashboard */}
       <Route path="/login">
-        <Login />
+        <ProtectedRoute>
+          <AppLayout>
+            <Dashboard />
+          </AppLayout>
+        </ProtectedRoute>
       </Route>
       
       {/* OAuth error page */}
