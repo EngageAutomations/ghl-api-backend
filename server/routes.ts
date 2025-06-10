@@ -1528,10 +1528,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/ghl/contacts", async (req, res) => {
+  // OAuth-based GoHighLevel API endpoints
+  app.get("/api/ghl/user-info", async (req, res) => {
     try {
-      const { limit = 100, offset = 0 } = req.query;
-      const contacts = await ghlAPI.getContacts(Number(limit), Number(offset));
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const userInfo = await ghlAPI.getUserInfo(accessToken as string);
+      res.json(userInfo);
+    } catch (error) {
+      console.error("GHL user info error:", error);
+      res.status(500).json({ error: "Failed to fetch user info from GHL" });
+    }
+  });
+
+  app.get("/api/ghl/locations", async (req, res) => {
+    try {
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const locations = await ghlAPI.getLocations(accessToken as string);
+      res.json(locations);
+    } catch (error) {
+      console.error("GHL locations error:", error);
+      res.status(500).json({ error: "Failed to fetch locations from GHL" });
+    }
+  });
+
+  app.get("/api/ghl/locations/:locationId/contacts", async (req, res) => {
+    try {
+      const { locationId } = req.params;
+      const { accessToken, limit = 100, offset = 0 } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const contacts = await ghlAPI.getContacts(locationId, accessToken as string, Number(limit), Number(offset));
       res.json(contacts);
     } catch (error) {
       console.error("GHL contacts error:", error);
@@ -1539,10 +1572,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/ghl/contacts/:id", async (req, res) => {
+  app.get("/api/ghl/locations/:locationId/contacts/:contactId", async (req, res) => {
     try {
-      const { id } = req.params;
-      const contact = await ghlAPI.getContact(id);
+      const { locationId, contactId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const contact = await ghlAPI.getContact(locationId, contactId, accessToken as string);
       res.json(contact);
     } catch (error) {
       console.error("GHL contact error:", error);
@@ -1550,10 +1587,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/ghl/contacts", async (req, res) => {
+  app.post("/api/ghl/locations/:locationId/contacts", async (req, res) => {
     try {
-      const contactData = req.body;
-      const contact = await ghlAPI.createContact(contactData);
+      const { locationId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const contact = await ghlAPI.createContact(locationId, req.body, accessToken as string);
       res.status(201).json(contact);
     } catch (error) {
       console.error("GHL create contact error:", error);
@@ -1561,11 +1602,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/ghl/contacts/:id", async (req, res) => {
+  app.put("/api/ghl/locations/:locationId/contacts/:contactId", async (req, res) => {
     try {
-      const { id } = req.params;
-      const updates = req.body;
-      const contact = await ghlAPI.updateContact(id, updates);
+      const { locationId, contactId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const contact = await ghlAPI.updateContact(locationId, contactId, req.body, accessToken as string);
       res.json(contact);
     } catch (error) {
       console.error("GHL update contact error:", error);
@@ -1573,10 +1617,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/ghl/contacts/:id", async (req, res) => {
+  app.delete("/api/ghl/locations/:locationId/contacts/:contactId", async (req, res) => {
     try {
-      const { id } = req.params;
-      await ghlAPI.deleteContact(id);
+      const { locationId, contactId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      await ghlAPI.deleteContact(locationId, contactId, accessToken as string);
       res.json({ message: "Contact deleted successfully" });
     } catch (error) {
       console.error("GHL delete contact error:", error);
@@ -1584,30 +1632,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/ghl/directories", async (req, res) => {
+  app.get("/api/ghl/locations/:locationId/custom-fields", async (req, res) => {
     try {
-      const directories = await ghlAPI.getDirectories();
-      res.json(directories);
+      const { locationId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const customFields = await ghlAPI.getCustomFields(locationId, accessToken as string);
+      res.json(customFields);
     } catch (error) {
-      console.error("GHL directories error:", error);
-      res.status(500).json({ error: "Failed to fetch directories from GHL" });
+      console.error("GHL custom fields error:", error);
+      res.status(500).json({ error: "Failed to fetch custom fields from GHL" });
     }
   });
 
-  app.post("/api/ghl/directories", async (req, res) => {
+  app.post("/api/ghl/locations/:locationId/custom-fields", async (req, res) => {
     try {
-      const directoryData = req.body;
-      const directory = await ghlAPI.createDirectory(directoryData);
-      res.status(201).json(directory);
+      const { locationId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const customField = await ghlAPI.createCustomField(locationId, req.body, accessToken as string);
+      res.status(201).json(customField);
     } catch (error) {
-      console.error("GHL create directory error:", error);
-      res.status(500).json({ error: "Failed to create directory in GHL" });
+      console.error("GHL create custom field error:", error);
+      res.status(500).json({ error: "Failed to create custom field in GHL" });
+    }
+  });
+
+  // OAuth token management
+  app.post("/api/ghl/refresh-token", async (req, res) => {
+    try {
+      const { refreshToken } = req.body;
+      if (!refreshToken) {
+        return res.status(400).json({ error: "Refresh token is required" });
+      }
+      const tokenResponse = await ghlAPI.refreshAccessToken(refreshToken);
+      res.json(tokenResponse);
+    } catch (error) {
+      console.error("GHL token refresh error:", error);
+      res.status(500).json({ error: "Failed to refresh token" });
     }
   });
 
   app.post("/api/ghl/sync/contacts", async (req, res) => {
     try {
-      const result = await ghlAPI.syncContactsToLocal();
+      const { locationId, accessToken } = req.body;
+      if (!locationId || !accessToken) {
+        return res.status(400).json({ error: "Location ID and access token are required" });
+      }
+      const result = await ghlAPI.syncContactsToLocal(locationId, accessToken);
       res.json(result);
     } catch (error) {
       console.error("GHL sync contacts error:", error);
@@ -1615,13 +1691,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/ghl/sync/directories", async (req, res) => {
+  app.post("/api/ghl/sync/locations", async (req, res) => {
     try {
-      const result = await ghlAPI.syncDirectoriesToLocal();
+      const { accessToken } = req.body;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const result = await ghlAPI.syncUserLocations(accessToken);
       res.json(result);
     } catch (error) {
-      console.error("GHL sync directories error:", error);
-      res.status(500).json({ error: "Failed to sync directories from GHL" });
+      console.error("GHL sync locations error:", error);
+      res.status(500).json({ error: "Failed to sync locations from GHL" });
     }
   });
 
