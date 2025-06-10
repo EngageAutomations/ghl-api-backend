@@ -121,11 +121,86 @@ export const GHLCustomFieldSchema = z.object({
   placeholder: z.string().optional(),
 });
 
+// Media/File Schema
+export const GHLFileSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  url: z.string(),
+  type: z.string(),
+  size: z.number(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  locationId: z.string(),
+  folderId: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+// Product Schema
+export const GHLProductSchema = z.object({
+  id: z.string(),
+  locationId: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  image: z.string().optional(),
+  productType: z.enum(['PHYSICAL', 'DIGITAL', 'SERVICE']),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT']),
+  availableInStore: z.boolean(),
+  taxable: z.boolean().optional(),
+  weight: z.number().optional(),
+  weightUnit: z.enum(['LB', 'KG']).optional(),
+  variants: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    values: z.array(z.string()),
+  })).optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+// Price Schema
+export const GHLPriceSchema = z.object({
+  id: z.string(),
+  productId: z.string(),
+  name: z.string(),
+  currency: z.string(),
+  amount: z.number(),
+  type: z.enum(['ONE_TIME', 'RECURRING']),
+  recurring: z.object({
+    interval: z.enum(['DAY', 'WEEK', 'MONTH', 'YEAR']),
+    intervalCount: z.number(),
+  }).optional(),
+  compareAtPrice: z.number().optional(),
+  trial: z.object({
+    enabled: z.boolean(),
+    interval: z.enum(['DAY', 'WEEK', 'MONTH']),
+    intervalCount: z.number(),
+  }).optional(),
+  setup: z.object({
+    enabled: z.boolean(),
+    amount: z.number(),
+  }).optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+// File Upload Response Schema
+export const GHLFileUploadSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  name: z.string(),
+  type: z.string(),
+  size: z.number(),
+});
+
 export type GHLTokenResponse = z.infer<typeof GHLTokenResponseSchema>;
 export type GHLUserInfo = z.infer<typeof GHLUserInfoSchema>;
 export type GHLContact = z.infer<typeof GHLContactSchema>;
 export type GHLLocation = z.infer<typeof GHLLocationSchema>;
 export type GHLCustomField = z.infer<typeof GHLCustomFieldSchema>;
+export type GHLFile = z.infer<typeof GHLFileSchema>;
+export type GHLProduct = z.infer<typeof GHLProductSchema>;
+export type GHLPrice = z.infer<typeof GHLPriceSchema>;
+export type GHLFileUpload = z.infer<typeof GHLFileUploadSchema>;
 
 export class GoHighLevelAPI {
   private clientId: string;
@@ -299,6 +374,158 @@ export class GoHighLevelAPI {
       }
     );
     return GHLCustomFieldSchema.parse(response.customField);
+  }
+
+  // Media/Files Management
+  async getFiles(locationId: string, accessToken: string, limit = 100, offset = 0): Promise<GHLFile[]> {
+    const response = await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/medias/files?limit=${limit}&offset=${offset}`, 
+      accessToken
+    );
+    return z.array(GHLFileSchema).parse(response.files || []);
+  }
+
+  async uploadFile(locationId: string, file: FormData, accessToken: string): Promise<GHLFileUpload> {
+    const response = await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/medias/upload-file`, 
+      accessToken, 
+      {
+        method: 'POST',
+        body: file,
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Version': '2021-07-28',
+          // Don't set Content-Type for FormData, let browser set it
+        },
+      }
+    );
+    return GHLFileUploadSchema.parse(response);
+  }
+
+  // Products Management
+  async getProducts(locationId: string, accessToken: string, limit = 100, offset = 0): Promise<GHLProduct[]> {
+    const response = await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/products?limit=${limit}&offset=${offset}`, 
+      accessToken
+    );
+    return z.array(GHLProductSchema).parse(response.products || []);
+  }
+
+  async getProduct(locationId: string, productId: string, accessToken: string): Promise<GHLProduct> {
+    const response = await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/products/${productId}`, 
+      accessToken
+    );
+    return GHLProductSchema.parse(response.product);
+  }
+
+  async createProduct(locationId: string, product: Omit<GHLProduct, 'id' | 'locationId' | 'createdAt' | 'updatedAt'>, accessToken: string): Promise<GHLProduct> {
+    const response = await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/products`, 
+      accessToken, 
+      {
+        method: 'POST',
+        body: JSON.stringify(product),
+      }
+    );
+    return GHLProductSchema.parse(response.product);
+  }
+
+  async updateProduct(locationId: string, productId: string, updates: Partial<GHLProduct>, accessToken: string): Promise<GHLProduct> {
+    const response = await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/products/${productId}`, 
+      accessToken, 
+      {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      }
+    );
+    return GHLProductSchema.parse(response.product);
+  }
+
+  async deleteProduct(locationId: string, productId: string, accessToken: string): Promise<boolean> {
+    await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/products/${productId}`, 
+      accessToken, 
+      {
+        method: 'DELETE',
+      }
+    );
+    return true;
+  }
+
+  async includeProductInStore(locationId: string, productId: string, accessToken: string): Promise<GHLProduct> {
+    const response = await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/products/${productId}/include`, 
+      accessToken, 
+      {
+        method: 'POST',
+      }
+    );
+    return GHLProductSchema.parse(response.product);
+  }
+
+  async excludeProductFromStore(locationId: string, productId: string, accessToken: string): Promise<GHLProduct> {
+    const response = await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/products/${productId}/exclude`, 
+      accessToken, 
+      {
+        method: 'POST',
+      }
+    );
+    return GHLProductSchema.parse(response.product);
+  }
+
+  // Prices Management (under Products)
+  async getProductPrices(locationId: string, productId: string, accessToken: string): Promise<GHLPrice[]> {
+    const response = await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/products/${productId}/prices`, 
+      accessToken
+    );
+    return z.array(GHLPriceSchema).parse(response.prices || []);
+  }
+
+  async getProductPrice(locationId: string, productId: string, priceId: string, accessToken: string): Promise<GHLPrice> {
+    const response = await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/products/${productId}/prices/${priceId}`, 
+      accessToken
+    );
+    return GHLPriceSchema.parse(response.price);
+  }
+
+  async createProductPrice(locationId: string, productId: string, price: Omit<GHLPrice, 'id' | 'productId' | 'createdAt' | 'updatedAt'>, accessToken: string): Promise<GHLPrice> {
+    const response = await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/products/${productId}/prices`, 
+      accessToken, 
+      {
+        method: 'POST',
+        body: JSON.stringify(price),
+      }
+    );
+    return GHLPriceSchema.parse(response.price);
+  }
+
+  async updateProductPrice(locationId: string, productId: string, priceId: string, updates: Partial<GHLPrice>, accessToken: string): Promise<GHLPrice> {
+    const response = await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/products/${productId}/prices/${priceId}`, 
+      accessToken, 
+      {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      }
+    );
+    return GHLPriceSchema.parse(response.price);
+  }
+
+  async deleteProductPrice(locationId: string, productId: string, priceId: string, accessToken: string): Promise<boolean> {
+    await this.makeAuthenticatedRequest(
+      `/locations/${locationId}/products/${productId}/prices/${priceId}`, 
+      accessToken, 
+      {
+        method: 'DELETE',
+      }
+    );
+    return true;
   }
 
   // Sync methods for OAuth-based users

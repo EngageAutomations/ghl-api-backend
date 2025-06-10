@@ -1662,6 +1662,214 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Media Library/Files Management
+  app.get("/api/ghl/locations/:locationId/files", async (req, res) => {
+    try {
+      const { locationId } = req.params;
+      const { accessToken, limit = 100, offset = 0 } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const files = await ghlAPI.getFiles(locationId, accessToken as string, Number(limit), Number(offset));
+      res.json(files);
+    } catch (error) {
+      console.error("GHL files error:", error);
+      res.status(500).json({ error: "Failed to fetch files from GHL" });
+    }
+  });
+
+  app.post("/api/ghl/locations/:locationId/files/upload", async (req, res) => {
+    try {
+      const { locationId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      // req.body should be FormData for file upload
+      const uploadResult = await ghlAPI.uploadFile(locationId, req.body, accessToken as string);
+      res.status(201).json(uploadResult);
+    } catch (error) {
+      console.error("GHL file upload error:", error);
+      res.status(500).json({ error: "Failed to upload file to GHL" });
+    }
+  });
+
+  // Products Management
+  app.get("/api/ghl/locations/:locationId/products", async (req, res) => {
+    try {
+      const { locationId } = req.params;
+      const { accessToken, limit = 100, offset = 0 } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const products = await ghlAPI.getProducts(locationId, accessToken as string, Number(limit), Number(offset));
+      res.json(products);
+    } catch (error) {
+      console.error("GHL products error:", error);
+      res.status(500).json({ error: "Failed to fetch products from GHL" });
+    }
+  });
+
+  app.get("/api/ghl/locations/:locationId/products/:productId", async (req, res) => {
+    try {
+      const { locationId, productId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const product = await ghlAPI.getProduct(locationId, productId, accessToken as string);
+      res.json(product);
+    } catch (error) {
+      console.error("GHL product error:", error);
+      res.status(500).json({ error: "Failed to fetch product from GHL" });
+    }
+  });
+
+  app.post("/api/ghl/locations/:locationId/products", async (req, res) => {
+    try {
+      const { locationId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const product = await ghlAPI.createProduct(locationId, req.body, accessToken as string);
+      res.status(201).json(product);
+    } catch (error) {
+      console.error("GHL create product error:", error);
+      res.status(500).json({ error: "Failed to create product in GHL" });
+    }
+  });
+
+  app.put("/api/ghl/locations/:locationId/products/:productId", async (req, res) => {
+    try {
+      const { locationId, productId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const product = await ghlAPI.updateProduct(locationId, productId, req.body, accessToken as string);
+      res.json(product);
+    } catch (error) {
+      console.error("GHL update product error:", error);
+      res.status(500).json({ error: "Failed to update product in GHL" });
+    }
+  });
+
+  app.delete("/api/ghl/locations/:locationId/products/:productId", async (req, res) => {
+    try {
+      const { locationId, productId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      await ghlAPI.deleteProduct(locationId, productId, accessToken as string);
+      res.json({ message: "Product deleted successfully" });
+    } catch (error) {
+      console.error("GHL delete product error:", error);
+      res.status(500).json({ error: "Failed to delete product from GHL" });
+    }
+  });
+
+  app.post("/api/ghl/locations/:locationId/products/:productId/toggle-store", async (req, res) => {
+    try {
+      const { locationId, productId } = req.params;
+      const { accessToken, action } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      
+      let product;
+      if (action === 'include') {
+        product = await ghlAPI.includeProductInStore(locationId, productId, accessToken as string);
+      } else if (action === 'exclude') {
+        product = await ghlAPI.excludeProductFromStore(locationId, productId, accessToken as string);
+      } else {
+        return res.status(400).json({ error: "Action must be 'include' or 'exclude'" });
+      }
+      
+      res.json(product);
+    } catch (error) {
+      console.error("GHL toggle product store error:", error);
+      res.status(500).json({ error: "Failed to toggle product store status in GHL" });
+    }
+  });
+
+  // Product Prices Management
+  app.get("/api/ghl/locations/:locationId/products/:productId/prices", async (req, res) => {
+    try {
+      const { locationId, productId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const prices = await ghlAPI.getProductPrices(locationId, productId, accessToken as string);
+      res.json(prices);
+    } catch (error) {
+      console.error("GHL product prices error:", error);
+      res.status(500).json({ error: "Failed to fetch product prices from GHL" });
+    }
+  });
+
+  app.get("/api/ghl/locations/:locationId/products/:productId/prices/:priceId", async (req, res) => {
+    try {
+      const { locationId, productId, priceId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const price = await ghlAPI.getProductPrice(locationId, productId, priceId, accessToken as string);
+      res.json(price);
+    } catch (error) {
+      console.error("GHL product price error:", error);
+      res.status(500).json({ error: "Failed to fetch product price from GHL" });
+    }
+  });
+
+  app.post("/api/ghl/locations/:locationId/products/:productId/prices", async (req, res) => {
+    try {
+      const { locationId, productId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const price = await ghlAPI.createProductPrice(locationId, productId, req.body, accessToken as string);
+      res.status(201).json(price);
+    } catch (error) {
+      console.error("GHL create product price error:", error);
+      res.status(500).json({ error: "Failed to create product price in GHL" });
+    }
+  });
+
+  app.put("/api/ghl/locations/:locationId/products/:productId/prices/:priceId", async (req, res) => {
+    try {
+      const { locationId, productId, priceId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      const price = await ghlAPI.updateProductPrice(locationId, productId, priceId, req.body, accessToken as string);
+      res.json(price);
+    } catch (error) {
+      console.error("GHL update product price error:", error);
+      res.status(500).json({ error: "Failed to update product price in GHL" });
+    }
+  });
+
+  app.delete("/api/ghl/locations/:locationId/products/:productId/prices/:priceId", async (req, res) => {
+    try {
+      const { locationId, productId, priceId } = req.params;
+      const { accessToken } = req.query;
+      if (!accessToken) {
+        return res.status(400).json({ error: "Access token is required" });
+      }
+      await ghlAPI.deleteProductPrice(locationId, productId, priceId, accessToken as string);
+      res.json({ message: "Product price deleted successfully" });
+    } catch (error) {
+      console.error("GHL delete product price error:", error);
+      res.status(500).json({ error: "Failed to delete product price from GHL" });
+    }
+  });
+
   // OAuth token management
   app.post("/api/ghl/refresh-token", async (req, res) => {
     try {

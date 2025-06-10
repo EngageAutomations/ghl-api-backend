@@ -24,6 +24,25 @@ Comprehensive OAuth-based GoHighLevel API integration with v2 API endpoints for 
 - `GET /api/ghl/locations/:locationId/custom-fields` - Get location's custom fields
 - `POST /api/ghl/locations/:locationId/custom-fields` - Create custom field
 
+### Media Library/Files Management
+- `GET /api/ghl/locations/:locationId/files` - List media files in location
+- `POST /api/ghl/locations/:locationId/files/upload` - Upload file to GHL media library
+
+### Products Management
+- `GET /api/ghl/locations/:locationId/products` - List products in location
+- `GET /api/ghl/locations/:locationId/products/:productId` - Get specific product
+- `POST /api/ghl/locations/:locationId/products` - Create new product
+- `PUT /api/ghl/locations/:locationId/products/:productId` - Update product
+- `DELETE /api/ghl/locations/:locationId/products/:productId` - Delete product
+- `POST /api/ghl/locations/:locationId/products/:productId/toggle-store` - Include/exclude from store
+
+### Product Prices Management
+- `GET /api/ghl/locations/:locationId/products/:productId/prices` - List product prices
+- `GET /api/ghl/locations/:locationId/products/:productId/prices/:priceId` - Get specific price
+- `POST /api/ghl/locations/:locationId/products/:productId/prices` - Create product price
+- `PUT /api/ghl/locations/:locationId/products/:productId/prices/:priceId` - Update price
+- `DELETE /api/ghl/locations/:locationId/products/:productId/prices/:priceId` - Delete price
+
 ### Data Synchronization
 - `POST /api/ghl/sync/contacts` - Sync contacts from GHL to local database
 - `POST /api/ghl/sync/locations` - Sync user locations from GHL
@@ -81,6 +100,102 @@ const contact = await fetch(`/api/ghl/locations/${locationId}/contacts?accessTok
     phone: "+1234567890"
   })
 });
+```
+
+### Media Library Management
+```javascript
+// Get files from media library
+const files = await fetch(
+  `/api/ghl/locations/${locationId}/files?accessToken=${token}&limit=50`
+);
+
+// Upload file to media library
+const formData = new FormData();
+formData.append('file', fileInput.files[0]);
+const uploadResult = await fetch(
+  `/api/ghl/locations/${locationId}/files/upload?accessToken=${token}`, 
+  {
+    method: 'POST',
+    body: formData
+  }
+);
+```
+
+### Products Management
+```javascript
+// Get all products for a location
+const products = await fetch(
+  `/api/ghl/locations/${locationId}/products?accessToken=${token}`
+);
+
+// Create new product
+const newProduct = await fetch(
+  `/api/ghl/locations/${locationId}/products?accessToken=${token}`, 
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      name: "Premium Widget",
+      description: "High-quality widget for professionals",
+      productType: "PHYSICAL",
+      status: "ACTIVE",
+      availableInStore: true
+    })
+  }
+);
+
+// Toggle product store visibility
+const toggleResult = await fetch(
+  `/api/ghl/locations/${locationId}/products/${productId}/toggle-store?accessToken=${token}&action=include`, 
+  {
+    method: 'POST'
+  }
+);
+```
+
+### Product Pricing
+```javascript
+// Get all prices for a product
+const prices = await fetch(
+  `/api/ghl/locations/${locationId}/products/${productId}/prices?accessToken=${token}`
+);
+
+// Create recurring subscription price
+const subscriptionPrice = await fetch(
+  `/api/ghl/locations/${locationId}/products/${productId}/prices?accessToken=${token}`, 
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      name: "Monthly Subscription",
+      currency: "USD",
+      amount: 2999, // $29.99 in cents
+      type: "RECURRING",
+      recurring: {
+        interval: "MONTH",
+        intervalCount: 1
+      },
+      trial: {
+        enabled: true,
+        interval: "DAY",
+        intervalCount: 7
+      }
+    })
+  }
+);
+
+// Create one-time purchase price
+const oneTimePrice = await fetch(
+  `/api/ghl/locations/${locationId}/products/${productId}/prices?accessToken=${token}`, 
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      name: "One-time Purchase",
+      currency: "USD",
+      amount: 9999, // $99.99 in cents
+      type: "ONE_TIME",
+      compareAtPrice: 12999 // $129.99 comparison price
+    })
+  }
+);
 ```
 
 ### Data Synchronization
