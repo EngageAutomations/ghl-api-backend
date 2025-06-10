@@ -183,7 +183,7 @@ CREATE TABLE listings (
   directory_name TEXT, -- Links to directory code
   category TEXT,
   location TEXT,
-  description TEXT,
+  description TEXT, -- Full expanded descriptions (unlimited length)
   price TEXT,
   download_url TEXT,
   link_url TEXT,
@@ -195,6 +195,19 @@ CREATE TABLE listings (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 ```
+
+**Content Storage Capabilities:**
+- **Rich Descriptions:** Unlimited text length for detailed property/listing descriptions
+- **Multi-media Support:** Image URLs, popup URLs, embedded forms
+- **Action Integration:** Download links, external links, form submissions
+- **SEO Optimization:** Unique slugs, categorization, location data
+
+**Current Data Examples:**
+- 2 active listings with full descriptions (300+ characters each)
+- Complete address data: "8745 Temple Terrace Hwy, Temple Terrace, FL 33637"
+- Rich content: Property features, room details, amenities
+- Pricing information: "$20,000" format
+- Image assets: Google Drive hosted images
 
 ### OAuth Sessions Table
 
