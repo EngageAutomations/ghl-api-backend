@@ -181,6 +181,17 @@ function setupOAuthRoutesProduction(app: express.Express) {
   });
   
   console.log('OAuth routes registered successfully for production');
+  
+  // Debug: Log all registered routes to verify OAuth endpoints
+  console.log('=== REGISTERED ROUTES DEBUG ===');
+  app._router.stack.forEach((middleware, index) => {
+    if (middleware.route) {
+      console.log(`Route ${index}: ${Object.keys(middleware.route.methods)} ${middleware.route.path}`);
+    } else if (middleware.name && middleware.regexp) {
+      console.log(`Middleware ${index}: ${middleware.name} - ${middleware.regexp}`);
+    }
+  });
+  console.log('=== END ROUTES DEBUG ===');
 }
 
 const app = express();
@@ -300,6 +311,9 @@ app.use((req, res, next) => {
   // Force production mode for OAuth routing to work properly
   const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
   const forceProductionMode = process.env.FORCE_PRODUCTION === 'true' || process.env.NODE_ENV === 'production';
+  
+  // Register API routes BEFORE static routing
+  registerRoutes(app);
   
   if (forceProductionMode) {
     console.log("Setting up production routing for OAuth compatibility...");
