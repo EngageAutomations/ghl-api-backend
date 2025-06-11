@@ -48,7 +48,7 @@ app.use((req, res, next) => {
 
 (async () => {
   // Critical: Register OAuth callback routes FIRST to prevent routing conflicts
-  app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
+  app.get(['/api/oauth/callback', '/oauth/callback'], async (req: any, res: any) => {
     try {
       console.log('✅ Callback route reached with code:', req.query.code);
       console.log('Full query params:', req.query);
