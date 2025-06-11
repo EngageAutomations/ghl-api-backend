@@ -25,7 +25,7 @@ try {
     target: 'es2022',
     format: 'esm',
     outdir: 'dist',
-    outExtension: { '.js': '.mjs' },
+    outExtension: { '.js': '.js' },
     external: [
       // Keep database drivers external
       'pg',
@@ -71,12 +71,19 @@ const productionPackage = {
   "name": "ghl-marketplace-app",
   "version": "1.0.0",
   "type": "module",
-  "main": "production-index.mjs",
+  "main": "production-index.js",
   "scripts": {
-    "start": "node production-index.mjs"
+    "start": "node production-index.js"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "cookie-parser": "^1.4.7",
+    "jsonwebtoken": "^9.0.2",
+    "@neondatabase/serverless": "^0.10.4",
+    "drizzle-orm": "^0.39.1"
   }
 };
 
@@ -88,10 +95,10 @@ console.log('4. Creating startup script...');
 const startupScript = `#!/usr/bin/env node
 
 // Production startup with comprehensive error handling
-import './production-index.mjs';
+import './production-index.js';
 `;
 
-fs.writeFileSync('dist/start.mjs', startupScript);
+fs.writeFileSync('dist/start.js', startupScript);
 console.log('✅ Startup script created');
 
 console.log('\n🎉 Production build complete!');
