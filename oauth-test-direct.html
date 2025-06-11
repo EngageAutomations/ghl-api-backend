@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAuth Test - Direct Link</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
+    .oauth-url { background: #f8f9fa; padding: 15px; border: 1px solid #ddd; border-radius: 4px; word-break: break-all; margin: 20px 0; }
+    .btn { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 4px; text-decoration: none; display: inline-block; margin: 10px 0; }
+    .btn:hover { background: #0056b3; }
+    .status { padding: 15px; margin: 15px 0; border-radius: 4px; }
+    .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+    .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>GoHighLevel OAuth Test - Direct</h1>
+    
+    <p>OAuth callback error encountered. Testing with corrected OAuth URL:</p>
+    
+    <div class="oauth-url" id="oauthUrl">
+      https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2Fapi%2Foauth%2Fcallback&scope=products%2Fprices.write+products%2Fprices.readonly+products%2Fcollection.write+products%2Fcollection.readonly+medias.write+medias.readonly+locations.readonly+contacts.readonly+contacts.write&state=test_oauth_fix
+    </div>
+    
+    <a href="https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2Fapi%2Foauth%2Fcallback&scope=products%2Fprices.write+products%2Fprices.readonly+products%2Fcollection.write+products%2Fcollection.readonly+medias.write+medias.readonly+locations.readonly+contacts.readonly+contacts.write&state=test_oauth_fix" 
+       class="btn" target="_blank">
+      Test OAuth with Corrected Settings
+    </a>
+    
+    <div id="status"></div>
+    
+    <h3>Configuration Details</h3>
+    <ul>
+      <li><strong>Domain:</strong> marketplace.leadconnectorhq.com (corrected)</li>
+      <li><strong>Redirect URI:</strong> /api/oauth/callback (working endpoint)</li>
+      <li><strong>Scopes:</strong> Products, Collections, Media, Locations, Contacts</li>
+      <li><strong>Client ID:</strong> 68474924a586bce22a6e64f7-mbpkmyu4</li>
+    </ul>
+  </div>
+
+  <script>
+    // Check for results
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = document.getElementById('status');
+    
+    if (urlParams.get('error')) {
+      status.innerHTML = `
+        <div class="status error">
+          OAuth Error: ${urlParams.get('error')}
+        </div>
+      `;
+    } else if (urlParams.get('success')) {
+      status.innerHTML = `
+        <div class="status success">
+          OAuth successful! ${urlParams.get('message') || ''}
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

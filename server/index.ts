@@ -436,7 +436,7 @@ app.use((req, res, next) => {
   
   // Force production mode for OAuth routing to work properly
   const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
-  const forceProductionMode = process.env.FORCE_PRODUCTION === 'true' || process.env.NODE_ENV === 'production';
+  const forceProductionMode = process.env.FORCE_PRODUCTION === 'true' || process.env.NODE_ENV === 'production' || isReplit;
   
   // Register API routes ONCE - AFTER OAuth routes
   const server = await registerRoutes(app);
