@@ -97,34 +97,57 @@ export class GoHighLevelOAuth {
    * Exchange authorization code for access token
    */
   async exchangeCodeForTokens(code: string): Promise<GHLTokenResponse> {
+    console.log('=== TOKEN EXCHANGE REQUEST ===');
+    console.log('URL:', GHL_OAUTH_CONFIG.tokenUrl);
+    console.log('Client ID:', this.clientId ? 'present' : 'missing');
+    console.log('Client Secret:', this.clientSecret ? 'present' : 'missing');
+    console.log('Redirect URI:', this.redirectUri);
+    console.log('Code length:', code.length);
+    
+    const requestBody = new URLSearchParams({
+      grant_type: 'authorization_code',
+      client_id: this.clientId,
+      client_secret: this.clientSecret,
+      code,
+      redirect_uri: this.redirectUri,
+    });
+    
+    console.log('Request body params:', Object.fromEntries(requestBody.entries()));
+    
     const response = await fetch(GHL_OAUTH_CONFIG.tokenUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
       },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        client_id: this.clientId,
-        client_secret: this.clientSecret,
-        code,
-        redirect_uri: this.redirectUri,
-      }),
+      body: requestBody,
     });
+
+    console.log('Response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('GHL Token Exchange Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText,
-        clientId: this.clientId,
-        redirectUri: this.redirectUri,
-        codeLength: code.length
-      });
+      console.error('=== GHL TOKEN EXCHANGE FAILED ===');
+      console.error('Status:', response.status);
+      console.error('Status Text:', response.statusText);
+      console.error('Error Response:', errorText);
+      console.error('Request URL:', GHL_OAUTH_CONFIG.tokenUrl);
+      console.error('Client ID:', this.clientId ? `${this.clientId.substring(0, 8)}...` : 'missing');
+      console.error('Redirect URI:', this.redirectUri);
+      console.error('Code (first 10 chars):', code.substring(0, 10));
+      console.error('================================');
       throw new Error(`Failed to exchange code for tokens: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('Token exchange successful:', {
+      access_token: data.access_token ? 'present' : 'missing',
+      token_type: data.token_type,
+      expires_in: data.expires_in,
+      scope: data.scope
+    });
+    
     return GHLTokenResponseSchema.parse(data);
   }
 
