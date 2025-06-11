@@ -110,9 +110,15 @@ app.use((req, res, next) => {
     next();
   });
 
+  // Test route to verify backend routing
+  app.get('/test', (req, res) => {
+    console.log('✅ /test route hit - backend is running');
+    res.send('Server test route is working! Backend routing confirmed.');
+  });
+
   // OAuth callback redirect to static bridge page
   app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
-    console.log('OAuth callback endpoint accessed');
+    console.log('✅ OAuth callback endpoint accessed - routing is working');
     console.log('Query params:', req.query);
     console.log('URL:', req.url);
 
@@ -320,15 +326,18 @@ app.use((req, res, next) => {
   const isDevelopment = nodeEnv === "development";
   console.log(`Environment: ${nodeEnv}, isDevelopment: ${isDevelopment}`);
   
-  // Force development mode for Replit environment to ensure OAuth routes work
+  // Force production mode for OAuth routing to work properly
   const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
-  const forceDevMode = isReplit && !process.env.FORCE_PRODUCTION;
+  const forceProductionMode = process.env.FORCE_PRODUCTION === 'true' || process.env.NODE_ENV === 'production';
   
-  if (isDevelopment || forceDevMode) {
+  if (forceProductionMode) {
+    console.log("Setting up production routing for OAuth compatibility...");
+    setupProductionRouting(app);
+  } else if (isDevelopment && !isReplit) {
     console.log("Setting up development mode with Vite...");
     await setupVite(app, server);
   } else {
-    console.log("Setting up production routing...");
+    console.log("Setting up production routing for Replit OAuth compatibility...");
     setupProductionRouting(app);
   }
 
