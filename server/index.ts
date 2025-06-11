@@ -54,7 +54,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
   });
 
   // OAuth token exchange endpoint
-  app.post('/api/oauth/exchange', async (req, res) => {
+  app.post('/api/oauth/exchange', express.json(), async (req, res) => {
     try {
       console.log('OAuth token exchange endpoint hit in production');
       const { code, state } = req.body;
