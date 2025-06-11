@@ -234,38 +234,7 @@ app.use((req, res, next) => {
     next();
   });
 
-  // Test route to verify backend routing
-  app.get('/test', (req, res) => {
-    console.log('✅ /test route hit - backend is running');
-    res.send('Server test route is working! Backend routing confirmed.');
-  });
-
-  // OAuth callback redirect to static bridge page
-  app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
-    console.log('✅ OAuth callback endpoint accessed - routing is working');
-    console.log('Query params:', req.query);
-    console.log('URL:', req.url);
-
-    const code = req.query.code;
-    const state = req.query.state;
-    const error = req.query.error;
-    
-    if (!code && !error) {
-      console.log('No parameters - test endpoint');
-      return res.send('OAuth callback hit successfully - route is working!');
-    }
-    
-    // Redirect to static OAuth complete page with parameters preserved
-    const params = new URLSearchParams();
-    if (code) params.set('code', code);
-    if (state) params.set('state', state);
-    if (error) params.set('error', error);
-    
-    const redirectUrl = `/oauth-complete.html?${params.toString()}`;
-    console.log('Redirecting to OAuth complete page:', redirectUrl);
-    
-    res.redirect(redirectUrl);
-  });
+  // Remove duplicate route definitions - these are already handled by setupOAuthRoutesProduction
 
 
 

@@ -21,15 +21,12 @@ export function setupProductionRouting(app: Express) {
   if (!distPath) {
     console.warn("No static build directory found, serving API routes only");
     // Just serve a simple fallback for non-API routes
-    app.use("*", (req: Request, res: Response) => {
+    app.use("*", (req: Request, res: Response, next: NextFunction) => {
       if (req.originalUrl.startsWith('/api/') || 
           req.originalUrl.startsWith('/oauth/') ||
           req.originalUrl.startsWith('/auth/')) {
-        return res.status(404).json({ 
-          error: 'API endpoint not found',
-          path: req.originalUrl,
-          timestamp: new Date().toISOString()
-        });
+        // Don't handle API routes here - let them pass to registered handlers
+        return next();
       }
       res.send(`
         <!DOCTYPE html>
@@ -60,15 +57,15 @@ export function setupProductionRouting(app: Express) {
   });
 
   // Final catch-all - serve index.html for frontend routes ONLY
-  app.use("*", (req: Request, res: Response) => {
+  app.use("*", (req: Request, res: Response, next: NextFunction) => {
     const url = req.originalUrl;
     
     // Skip API routes entirely - they should be handled by registered handlers
     if (url.startsWith('/api/') || 
         url.startsWith('/oauth/') ||
         url.startsWith('/auth/')) {
-      // Don't intercept - let Express continue to the next handler
-      return;
+      // Don't handle these routes here at all
+      return next();
     }
     
     // Serve index.html ONLY for frontend SPA routes
