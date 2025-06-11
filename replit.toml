@@ -1,0 +1,27 @@
+[deployment]
+deploymentTarget = "autoscale"
+build = ["npm", "run", "build"]
+run = ["npm", "run", "start"]
+
+# Ensure all API routes are handled by Express, not static serving
+[[deployment.config]]
+name = "api_routing"
+value = "express"
+
+# Route configuration to ensure POST requests reach Express
+[[deployment.routes]]
+source = "/api/*"
+destination = "/api/$1"
+type = "rewrite"
+
+[[deployment.routes]]
+source = "/oauth/*"
+destination = "/oauth/$1"
+type = "rewrite"
+
+# Static file serving for everything else
+[[deployment.routes]]
+source = "/(.*)"
+destination = "/index.html"
+type = "rewrite"
+condition = "file_not_found"
