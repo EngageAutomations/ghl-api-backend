@@ -2438,21 +2438,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "✅ API routing working correctly", timestamp: new Date().toISOString() });
   });
 
-  // Simple test version of OAuth callback to verify routing
-  app.get("/api/oauth/callback", (req, res) => {
-    console.log('✅ OAuth callback route hit successfully');
+  // OAuth callback endpoint with enhanced error logging
+  app.get("/api/oauth/callback", async (req, res) => {
+    console.log('=== OAUTH CALLBACK STARTED ===');
     console.log('Query params:', req.query);
+    console.log('Headers:', req.headers);
     
-    if (req.query.code) {
-      // Proceed with actual OAuth handling
-      return handleOAuthCallback(req, res);
-    } else {
-      // Test response to confirm route works
-      res.json({ 
-        message: "✅ OAuth callback route is working", 
-        timestamp: new Date().toISOString(),
-        note: "Add ?code=test to trigger full OAuth flow"
-      });
+    if (!req.query.code) {
+      console.log('No code provided - returning test response');
+      return res.send('OAuth callback hit successfully - route is working!');
+    }
+    
+    try {
+      console.log('Processing OAuth callback with code length:', req.query.code.length);
+      await handleOAuthCallback(req, res);
+    } catch (error) {
+      console.error('OAuth callback wrapper error:', error);
+      res.redirect("/oauth-error?error=callback_failed");
     }
   });
 
