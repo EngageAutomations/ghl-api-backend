@@ -2315,26 +2315,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "✅ API routing working correctly", timestamp: new Date().toISOString() });
   });
 
-  // OAuth callback handler - registered after Vite middleware to override catch-all
-  app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
-    try {
-      const code = req.query.code;
-      console.log('✅ OAuth callback hit in routes.ts with code:', code);
-      console.log('Query params:', req.query);
-      console.log('URL:', req.url);
-
-      if (!code) {
-        console.log('No code provided - returning test response');
-        return res.send('OAuth callback hit successfully - route is working!');
-      }
-
-      // Dummy response for test - this proves the route is working
-      res.send(`✅ OAuth callback processed in routes.ts. Code received: ${code}`);
-    } catch (err) {
-      console.error('❌ OAuth callback failed:', err);
-      res.redirect('/oauth-error?error=callback_failed');
-    }
-  });
+  // OAuth callback route moved to server/index.ts before Vite middleware
 
   app.post("/auth/ghl/logout", authenticateToken, async (req, res) => {
     try {

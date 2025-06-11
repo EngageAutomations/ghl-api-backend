@@ -81,6 +81,27 @@ app.use((req, res, next) => {
     next();
   });
 
+  // Register OAuth callback BEFORE any other middleware to prevent interference
+  app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
+    try {
+      const code = req.query.code;
+      console.log('✅ OAuth callback hit in index.ts with code:', code);
+      console.log('Query params:', req.query);
+      console.log('URL:', req.url);
+
+      if (!code) {
+        console.log('No code provided - returning test response');
+        return res.send('OAuth callback hit successfully - route is working!');
+      }
+
+      // Success response for test - this proves the route is working
+      res.send(`✅ OAuth callback processed successfully. Code received: ${code}`);
+    } catch (err) {
+      console.error('❌ OAuth callback failed:', err);
+      res.redirect('/oauth-error?error=callback_failed');
+    }
+  });
+
   // Add OAuth routes before Vite middleware to prevent catch-all interference
   const { ghlOAuth } = await import('./ghl-oauth.js');
   const jwt = (await import('jsonwebtoken')).default;
