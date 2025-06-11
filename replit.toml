@@ -8,16 +8,16 @@ run = ["npm", "run", "start"]
 name = "api_routing"
 value = "express"
 
-# Route configuration to ensure POST requests reach Express
+# Route configuration to ensure all server routes reach Express
 [[deployment.routes]]
-source = "/api/*"
+source = "/api/(.*)"
 destination = "/api/$1"
-type = "rewrite"
+type = "proxy"
 
 [[deployment.routes]]
-source = "/oauth/*"
+source = "/oauth/(.*)"
 destination = "/oauth/$1"
-type = "rewrite"
+type = "proxy"
 
 # Static file serving for everything else
 [[deployment.routes]]
