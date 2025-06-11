@@ -3,13 +3,13 @@ import { z } from 'zod';
 // GoHighLevel OAuth Configuration
 export const GHL_OAUTH_CONFIG = {
   // Standard flow
-  authUrl: 'https://api.leadconnectorhq.com/oauth/authorize',
+  authUrl: 'https://marketplace.gohighlevel.com/oauth/chooselocation',
   // Alternative marketplace flow
   marketplaceAuthUrl: 'https://marketplace.gohighlevel.com/oauth/chooselocation',
   // White-labeled flow (if needed)
   whitelabelAuthUrl: 'https://marketplace.leadconnectorhq.com/oauth/chooselocation',
-  tokenUrl: 'https://api.leadconnectorhq.com/oauth/token',
-  userInfoUrl: 'https://api.leadconnectorhq.com/users/me',
+  tokenUrl: 'https://services.leadconnectorhq.com/oauth/token',
+  userInfoUrl: 'https://services.leadconnectorhq.com/users/me',
   apiBaseUrl: 'https://services.leadconnectorhq.com',
 };
 
