@@ -71,9 +71,9 @@ app.use((req, res, next) => {
       }
 
       // Import OAuth service inline to avoid circular dependencies
-      const { ghlOAuth } = await import('./ghl-oauth');
-      const { storage } = await import('./storage');
-      const jwt = require('jsonwebtoken');
+      const { ghlOAuth } = await import('./ghl-oauth.js');
+      const { storage } = await import('./storage.js');
+      const jwt = (await import('jsonwebtoken')).default;
 
       console.log('Exchanging code for tokens...');
       const tokens = await ghlOAuth.exchangeCodeForTokens(code as string);

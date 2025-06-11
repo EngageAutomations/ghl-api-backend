@@ -1,25 +1,33 @@
-// Simple production OAuth callback test
+// Simple OAuth test server for production deployment
 const express = require('express');
+const path = require('path');
+
 const app = express();
 
-// Register OAuth callback route FIRST
-app.get(['/api/oauth/callback', '/oauth/callback'], (req, res) => {
-  console.log('✅ OAuth callback reached with query:', req.query);
+// OAuth callback - must be registered before static files
+app.get('/api/oauth/callback', (req, res) => {
+  console.log('OAuth callback reached:', req.query);
   res.json({
     success: true,
-    message: 'OAuth callback working!',
-    query: req.query,
-    timestamp: new Date().toISOString()
+    code: req.query.code,
+    timestamp: new Date().toISOString(),
+    message: 'OAuth callback working in production'
   });
 });
 
-// Test route
-app.get('/test', (req, res) => {
-  res.json({ message: 'Server is running' });
+// Serve static files
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Fallback for SPA
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api/')) {
+    res.status(404).json({ error: 'API endpoint not found' });
+  } else {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+  }
 });
 
-// Start server
-const port = process.env.PORT || 5000;
-app.listen(port, '0.0.0.0', () => {
-  console.log(`OAuth test server running on port ${port}`);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`OAuth test server running on port ${PORT}`);
 });

@@ -1,7 +1,8 @@
-// Minimal production OAuth callback server - bypasses TypeScript issues
+// Production OAuth callback server - bypasses TypeScript issues
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 
 const app = express();
 app.use(cookieParser());
@@ -10,9 +11,13 @@ app.use(express.json());
 // Environment variables
 const GHL_CLIENT_ID = process.env.GHL_CLIENT_ID;
 const GHL_CLIENT_SECRET = process.env.GHL_CLIENT_SECRET;
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'oauth-jwt-secret-2024';
+const REDIRECT_URI = 'https://dir.engageautomations.com/api/oauth/callback';
 
-console.log('OAuth server starting with client ID:', GHL_CLIENT_ID ? 'configured' : 'missing');
+console.log('OAuth Production Server Starting');
+console.log('Client ID:', GHL_CLIENT_ID ? 'configured' : 'MISSING');
+console.log('Client Secret:', GHL_CLIENT_SECRET ? 'configured' : 'MISSING');
+console.log('Redirect URI:', REDIRECT_URI);
 
 // OAuth callback handler - registered FIRST
 app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
@@ -41,7 +46,7 @@ app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
         client_id: GHL_CLIENT_ID,
         client_secret: GHL_CLIENT_SECRET,
         code: code,
-        redirect_uri: 'https://dir.engageautomations.com/api/oauth/callback'
+        redirect_uri: REDIRECT_URI
       })
     });
 
