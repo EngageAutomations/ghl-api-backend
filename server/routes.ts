@@ -2310,10 +2310,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // OAuth callback handler - supports both /oauth/callback and /api/oauth/callback
   const handleOAuthCallback = async (req, res) => {
+    // Force console output visibility
+    process.stdout.write('\n=== OAUTH CALLBACK HIT ===\n');
+    process.stdout.write(`URL: ${req.url}\n`);
+    process.stdout.write(`Query: ${JSON.stringify(req.query)}\n`);
+    process.stdout.write(`Method: ${req.method}\n`);
+    
     try {
       console.log("=== OAUTH CALLBACK STARTED ===");
       console.log("Query params:", req.query);
       console.log("Cookies:", req.cookies);
+      console.log("Headers:", JSON.stringify(req.headers, null, 2));
       
       const { code, state, error } = req.query;
       
@@ -2440,6 +2447,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // OAuth callback endpoint with enhanced error logging
   app.get("/api/oauth/callback", async (req, res) => {
+    // Force immediate console output
+    process.stdout.write('\n=== API OAUTH CALLBACK HIT ===\n');
+    process.stdout.write(`URL: ${req.url}\n`);
+    process.stdout.write(`Query params: ${JSON.stringify(req.query)}\n`);
+    
     console.log('=== OAUTH CALLBACK STARTED ===');
     console.log('Query params:', req.query);
     console.log('Headers:', req.headers);
