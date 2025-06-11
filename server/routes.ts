@@ -2265,7 +2265,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/oauth/callback", async (req, res) => {
+  // OAuth callback handler - supports both /oauth/callback and /api/oauth/callback
+  const handleOAuthCallback = async (req, res) => {
     try {
       console.log("=== OAUTH CALLBACK STARTED ===");
       console.log("Query params:", req.query);
@@ -2384,7 +2385,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("OAuth callback error:", error);
       res.redirect("/oauth-error?error=callback_failed");
     }
-  });
+  };
+
+  // Register OAuth callback on both paths for compatibility
+  app.get("/oauth/callback", handleOAuthCallback);
+  app.get("/api/oauth/callback", handleOAuthCallback);
 
   app.post("/auth/ghl/logout", authenticateToken, async (req, res) => {
     try {
