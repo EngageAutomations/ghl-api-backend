@@ -19,82 +19,11 @@ console.log('Client ID:', GHL_CLIENT_ID ? 'configured' : 'MISSING');
 console.log('Client Secret:', GHL_CLIENT_SECRET ? 'configured' : 'MISSING');
 console.log('Redirect URI:', REDIRECT_URI);
 
-// OAuth callback handler - registered FIRST
-app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
-  console.log('OAuth callback hit:', req.query);
-  
-  try {
-    const { code, error } = req.query;
-    
-    if (error) {
-      console.log('OAuth error:', error);
-      return res.redirect(`/oauth-error?error=${error}`);
-    }
-
-    if (!code) {
-      console.log('No authorization code');
-      return res.redirect('/oauth-error?error=no_code');
-    }
-
-    // Exchange code for tokens
-    console.log('Exchanging code for tokens...');
-    const tokenResponse = await fetch('https://api.leadconnectorhq.com/oauth/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        client_id: GHL_CLIENT_ID,
-        client_secret: GHL_CLIENT_SECRET,
-        code: code,
-        redirect_uri: REDIRECT_URI
-      })
-    });
-
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error('Token exchange failed:', errorText);
-      return res.redirect('/oauth-error?error=token_exchange_failed');
-    }
-
-    const tokens = await tokenResponse.json();
-    console.log('Tokens received:', { access_token: tokens.access_token ? 'present' : 'missing' });
-
-    // Get user info
-    const userResponse = await fetch('https://api.leadconnectorhq.com/users/me', {
-      headers: { 'Authorization': `Bearer ${tokens.access_token}` }
-    });
-
-    if (!userResponse.ok) {
-      console.error('User info failed');
-      return res.redirect('/oauth-error?error=user_info_failed');
-    }
-
-    const userInfo = await userResponse.json();
-    console.log('User info:', { id: userInfo.id, email: userInfo.email });
-
-    // Create session token
-    const sessionToken = jwt.sign(
-      { userId: userInfo.id, email: userInfo.email, authType: 'oauth' },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    // Set cookie and redirect
-    res.cookie('session_token', sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
-
-    console.log('OAuth success - redirecting to dashboard');
-    res.redirect('/dashboard');
-
-  } catch (error) {
-    console.error('OAuth callback error:', error);
-    res.redirect('/oauth-error?error=callback_failed');
-  }
-});
+// OAuth callback handler DISABLED - handled by main server in server/index.ts
+// app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
+//   console.log('OAuth callback hit:', req.query);
+//   ... handler code disabled to prevent conflicts
+// });
 
 // Test endpoint
 app.get('/oauth-test', (req, res) => {
