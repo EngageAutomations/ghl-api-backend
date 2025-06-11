@@ -9,6 +9,7 @@ import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import OAuthError from "@/pages/OAuthError";
 import OAuthTest from "@/pages/OAuthTest";
+import OAuthSignupTest from "@/pages/OAuthSignupTest";
 import Listings from "@/pages/listings";
 import ConfigWizardDemo from "@/pages/ConfigWizardDemo";
 import ConfigWizardSlideshow from "@/pages/ConfigWizardSlideshow";
@@ -56,6 +57,11 @@ function Router() {
       {/* OAuth test page */}
       <Route path="/oauth-test">
         <OAuthTest />
+      </Route>
+      
+      {/* OAuth signup test page */}
+      <Route path="/oauth-signup-test">
+        <OAuthSignupTest />
       </Route>
       
       {/* Directory Form - Public route */}

@@ -20,6 +20,8 @@ export default function OAuthError() {
         return 'Authorization code was not received. Please try again.';
       case 'callback_failed':
         return 'Authentication callback failed. Please try again or contact support.';
+      case 'invalid_user_data':
+        return 'Required user information is missing from GoHighLevel. Please ensure your GHL account has a valid email and name.';
       default:
         return 'An unexpected error occurred during authentication. Please try again.';
     }

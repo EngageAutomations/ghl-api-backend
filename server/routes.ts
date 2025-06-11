@@ -2382,6 +2382,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OAuth users endpoint for testing
+  app.get("/api/users/oauth", async (req, res) => {
+    try {
+      const oauthUsers = await storage.getOAuthUsers();
+      res.json(oauthUsers);
+    } catch (error) {
+      console.error("Error fetching OAuth users:", error);
+      res.status(500).json({ error: "Failed to fetch OAuth users" });
+    }
+  });
+
   app.get("/api/auth/me", authenticateToken, (req, res) => {
     const user = (req as any).user;
     
