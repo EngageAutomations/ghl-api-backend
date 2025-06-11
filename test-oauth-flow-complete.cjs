@@ -1,127 +1,168 @@
-#!/usr/bin/env node
+const https = require('https');
+const { URL } = require('url');
 
 /**
- * Complete OAuth Flow Test - Tests the working OAuth callback endpoint
- * and demonstrates the complete OAuth integration for GoHighLevel
+ * Complete OAuth Flow Test
+ * Tests the Railway OAuth callback and Replit integration
  */
 
-const https = require('https');
+// Test configuration
+const RAILWAY_DOMAIN = process.argv[2] || 'your-railway-url.up.railway.app';
+const REPLIT_DOMAIN = 'dir.engageautomations.com';
 
-const BASE_URL = 'https://dir.engageautomations.com';
+console.log('🚀 Testing Complete OAuth Flow');
+console.log(`Railway Domain: ${RAILWAY_DOMAIN}`);
+console.log(`Replit Domain: ${REPLIT_DOMAIN}`);
 
-async function makeRequest(method, path, data = null) {
+function makeRequest(url, options = {}) {
   return new Promise((resolve, reject) => {
-    const url = new URL(path, BASE_URL);
-    
-    const options = {
-      hostname: url.hostname,
-      port: url.port || 443,
-      path: url.pathname + url.search,
-      method: method,
+    const parsedUrl = new URL(url);
+    const requestOptions = {
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+      path: parsedUrl.pathname + parsedUrl.search,
+      method: options.method || 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'OAuth-Flow-Test/1.0'
+        'User-Agent': 'OAuth-Test-Client/1.0',
+        ...options.headers
       }
     };
 
-    const req = https.request(options, (res) => {
+    const req = https.request(requestOptions, (res) => {
       let data = '';
-      res.on('data', (chunk) => data += chunk);
+      res.on('data', chunk => data += chunk);
       res.on('end', () => {
-        try {
-          const parsed = JSON.parse(data);
-          resolve({ status: res.statusCode, data: parsed, headers: res.headers });
-        } catch (e) {
-          resolve({ status: res.statusCode, data: data, headers: res.headers });
-        }
+        resolve({
+          statusCode: res.statusCode,
+          headers: res.headers,
+          body: data,
+          redirectLocation: res.headers.location
+        });
       });
     });
 
     req.on('error', reject);
-    
-    if (method === 'POST' && data) {
-      req.write(JSON.stringify(data));
-    }
-    
-    req.end();
+    req.end(options.body);
   });
 }
 
-async function testCompleteOAuthFlow() {
-  console.log('🧪 Testing Complete OAuth Flow');
-  console.log('==============================\n');
-
-  // Test 1: Verify OAuth callback endpoint works
-  console.log('1️⃣ Testing OAuth callback endpoint (basic)...');
+async function testHealthEndpoint() {
+  console.log('\n📋 Testing Railway Health Endpoint...');
   try {
-    const result = await makeRequest('GET', '/api/oauth/callback');
-    console.log(`   Status: ${result.status}`);
-    console.log(`   Response: ${JSON.stringify(result.data)}`);
+    const response = await makeRequest(`https://${RAILWAY_DOMAIN}/health`);
+    console.log(`Status: ${response.statusCode}`);
+    console.log(`Response: ${response.body}`);
     
-    if (result.status === 200) {
-      console.log('   ✅ OAuth callback endpoint working!\n');
+    if (response.statusCode === 200) {
+      console.log('✅ Railway health check passed');
+      return true;
     } else {
-      console.log('   ❌ OAuth callback endpoint failed\n');
-      return;
+      console.log('❌ Railway health check failed');
+      return false;
     }
   } catch (error) {
-    console.log(`   ❌ OAuth callback error: ${error.message}\n`);
-    return;
+    console.log('❌ Railway health check error:', error.message);
+    return false;
   }
-
-  // Test 2: Test OAuth callback with action parameter
-  console.log('2️⃣ Testing OAuth callback with action parameter...');
-  try {
-    const result = await makeRequest('GET', '/api/oauth/callback?action=generate-url&state=test_state_456');
-    console.log(`   Status: ${result.status}`);
-    console.log(`   Response: ${JSON.stringify(result.data, null, 2)}`);
-    
-    if (result.status === 200 && result.data.authUrl) {
-      console.log('   ✅ OAuth URL generation working via callback endpoint!\n');
-      console.log(`   🔗 Generated Auth URL: ${result.data.authUrl}\n`);
-      return result.data.authUrl; // Return for manual testing
-    } else {
-      console.log('   ❌ OAuth URL generation failed via callback endpoint\n');
-    }
-  } catch (error) {
-    console.log(`   ❌ OAuth URL generation error: ${error.message}\n`);
-  }
-
-  // Test 3: Test OAuth callback with simulated code return
-  console.log('3️⃣ Testing OAuth callback with simulated code...');
-  try {
-    const result = await makeRequest('GET', '/api/oauth/callback?code=test_code_789&state=test_state_456');
-    console.log(`   Status: ${result.status}`);
-    console.log(`   Response: ${JSON.stringify(result.data, null, 2)}`);
-    
-    if (result.status === 302 || result.status === 500) {
-      console.log('   ✅ OAuth code processing endpoint reachable (expected error with dummy code)\n');
-    } else if (result.status === 200) {
-      console.log('   ✅ OAuth code processing working!\n');
-    } else {
-      console.log('   ❌ OAuth code processing endpoint not working\n');
-    }
-  } catch (error) {
-    console.log(`   ❌ OAuth code processing error: ${error.message}\n`);
-  }
-
-  console.log('🎯 OAuth Flow Summary');
-  console.log('====================');
-  console.log('✅ OAuth callback endpoint: Working');
-  console.log('❓ OAuth URL generation: Check results above');
-  console.log('❓ OAuth code processing: Check results above');
-  console.log('\n📋 Manual Testing Steps:');
-  console.log('1. If URL generation worked, copy the auth URL');
-  console.log('2. Open it in a browser to test the GoHighLevel OAuth flow');
-  console.log('3. Complete the OAuth authorization in GoHighLevel');
-  console.log('4. Verify the callback processes the code correctly');
-  
-  console.log('\n🔧 Technical Details:');
-  console.log('- OAuth callback endpoint handles complete flow');
-  console.log('- Uses action=generate-url for URL generation');
-  console.log('- Processes code parameter for token exchange');
-  console.log('- Bypasses Replit routing limitations');
 }
 
-// Run the complete test
-testCompleteOAuthFlow().catch(console.error);
+async function testOAuthCallback() {
+  console.log('\n🔐 Testing OAuth Callback Flow...');
+  
+  // Simulate GoHighLevel OAuth callback with test parameters
+  const testCode = 'test_auth_code_12345';
+  const testState = 'test_state_xyz';
+  
+  try {
+    const callbackUrl = `https://${RAILWAY_DOMAIN}/api/oauth/callback?code=${testCode}&state=${testState}`;
+    console.log(`Testing callback URL: ${callbackUrl}`);
+    
+    const response = await makeRequest(callbackUrl, {
+      headers: { 'Accept': 'text/html,application/xhtml+xml' }
+    });
+    
+    console.log(`Status: ${response.statusCode}`);
+    console.log(`Redirect Location: ${response.redirectLocation || 'None'}`);
+    
+    if (response.statusCode === 302 || response.statusCode === 301) {
+      console.log('✅ OAuth callback received redirect');
+      
+      if (response.redirectLocation && response.redirectLocation.includes(REPLIT_DOMAIN)) {
+        console.log('✅ Redirect points to Replit domain');
+        return true;
+      } else {
+        console.log('❌ Redirect does not point to Replit');
+        return false;
+      }
+    } else {
+      console.log('❌ OAuth callback did not redirect');
+      return false;
+    }
+  } catch (error) {
+    console.log('❌ OAuth callback test error:', error.message);
+    return false;
+  }
+}
+
+async function testReplitEndpoint() {
+  console.log('\n🎯 Testing Replit OAuth Endpoint...');
+  
+  try {
+    const testUrl = `https://${REPLIT_DOMAIN}/api/oauth/callback?code=test_code&state=test_state`;
+    const response = await makeRequest(testUrl);
+    
+    console.log(`Status: ${response.statusCode}`);
+    console.log(`Response length: ${response.body.length} chars`);
+    
+    if (response.statusCode === 200 || response.statusCode === 302) {
+      console.log('✅ Replit OAuth endpoint is accessible');
+      return true;
+    } else {
+      console.log('⚠️ Replit OAuth endpoint returned unexpected status');
+      return false;
+    }
+  } catch (error) {
+    console.log('❌ Replit endpoint test error:', error.message);
+    return false;
+  }
+}
+
+async function runCompleteTest() {
+  console.log('=' .repeat(60));
+  console.log('COMPLETE OAUTH FLOW TEST');
+  console.log('=' .repeat(60));
+  
+  const results = {
+    railway_health: await testHealthEndpoint(),
+    oauth_callback: await testOAuthCallback(),
+    replit_endpoint: await testReplitEndpoint()
+  };
+  
+  console.log('\n' + '=' .repeat(60));
+  console.log('TEST RESULTS SUMMARY');
+  console.log('=' .repeat(60));
+  
+  Object.entries(results).forEach(([test, passed]) => {
+    console.log(`${passed ? '✅' : '❌'} ${test.replace('_', ' ').toUpperCase()}: ${passed ? 'PASSED' : 'FAILED'}`);
+  });
+  
+  const allPassed = Object.values(results).every(result => result);
+  
+  console.log('\n' + (allPassed ? '🎉 ALL TESTS PASSED!' : '⚠️ SOME TESTS FAILED'));
+  
+  if (allPassed) {
+    console.log('\n✅ Your OAuth flow is ready!');
+    console.log('✅ Railway is properly receiving callbacks');
+    console.log('✅ Callbacks are being forwarded to Replit');
+    console.log('\nYou can now test with a real OAuth authorization.');
+  } else {
+    console.log('\n❌ Issues detected. Check the failed tests above.');
+  }
+}
+
+// Run the test
+if (require.main === module) {
+  runCompleteTest().catch(console.error);
+}
+
+module.exports = { testHealthEndpoint, testOAuthCallback, testReplitEndpoint };
