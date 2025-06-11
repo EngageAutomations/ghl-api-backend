@@ -2317,12 +2317,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     process.stdout.write(`Method: ${req.method}\n`);
     
     try {
-      console.log("=== OAUTH CALLBACK STARTED ===");
-      console.log("Query params:", req.query);
-      console.log("Cookies:", req.cookies);
-      console.log("Headers:", JSON.stringify(req.headers, null, 2));
+      console.error("=== OAUTH CALLBACK STARTED ===");
+      console.error("Query params:", req.query);
+      console.error("Cookies:", req.cookies);
       
+      // Add step-by-step debugging to identify exact failure point
+      console.error("Step 1: Extracting query parameters");
       const { code, state, error } = req.query;
+      console.error("Extracted:", { code: code ? 'present' : 'missing', state, error });
       
       if (error) {
         console.log("OAuth error received:", error);
@@ -2447,10 +2449,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // OAuth callback endpoint with enhanced error logging
   app.get("/api/oauth/callback", async (req, res) => {
-    // Force immediate console output
-    process.stdout.write('\n=== API OAUTH CALLBACK HIT ===\n');
-    process.stdout.write(`URL: ${req.url}\n`);
-    process.stdout.write(`Query params: ${JSON.stringify(req.query)}\n`);
+    // Multiple immediate output methods to ensure visibility
+    console.error('🔥 OAUTH CALLBACK HIT - IMMEDIATE LOG');
+    process.stderr.write('🔥 OAUTH CALLBACK HIT - STDERR\n');
+    process.stdout.write('🔥 OAUTH CALLBACK HIT - STDOUT\n');
     
     console.log('=== OAUTH CALLBACK STARTED ===');
     console.log('Query params:', req.query);
