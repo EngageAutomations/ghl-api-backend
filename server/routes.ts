@@ -2291,23 +2291,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let user = await storage.getUserByGhlId(userInfo.id);
       
       if (!user) {
-        // Create new OAuth user
+        // Validate required user info from GHL
+        if (!userInfo.email || !userInfo.name || !userInfo.id) {
+          console.log("Missing required user info from GHL:", userInfo);
+          return res.redirect("/oauth-error?error=invalid_user_data");
+        }
+
+        // Generate username from email or name
+        const username = userInfo.email || `${userInfo.name.toLowerCase().replace(/\s+/g, '_')}_${userInfo.id.slice(-6)}`;
+        
+        // Calculate token expiry timestamp
+        const tokenExpiryDate = new Date(Date.now() + (tokens.expires_in * 1000));
+        
+        // Create new OAuth user with properly structured data
         user = await storage.createOAuthUser({
+          username: username,
+          displayName: userInfo.name,
           email: userInfo.email,
-          name: userInfo.name,
           ghlUserId: userInfo.id,
+          ghlAccessToken: tokens.access_token,
+          ghlRefreshToken: tokens.refresh_token,
+          ghlTokenExpiry: tokenExpiryDate,
+          ghlScopes: tokens.scope,
           ghlLocationId: '', // Will be updated when location is selected
           ghlLocationName: '',
-          ghlScopes: tokens.scope,
+          authType: 'oauth',
+          isActive: true
         });
+        
+        console.log("Created new OAuth user:", { 
+          id: user.id, 
+          username: user.username, 
+          email: user.email,
+          ghlUserId: user.ghlUserId 
+        });
+      } else {
+        // Update existing user's tokens
+        const tokenExpiryDate = new Date(Date.now() + (tokens.expires_in * 1000));
+        
+        await storage.updateUserOAuthTokens(user.id, {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          expiresAt: tokenExpiryDate,
+        });
+        
+        console.log("Updated tokens for existing OAuth user:", user.id);
       }
-
-      // Update tokens
-      await storage.updateUserOAuthTokens(user.id, {
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-        expiresIn: tokens.expires_in,
-      });
 
       // Create session token
       const sessionToken = jwt.sign(
