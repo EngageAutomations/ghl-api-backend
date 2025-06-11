@@ -79,9 +79,19 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
+  const nodeEnv = process.env.NODE_ENV || "development";
+  const isDevelopment = nodeEnv === "development";
+  console.log(`Environment: ${nodeEnv}, isDevelopment: ${isDevelopment}`);
+  
+  // Force development mode for Replit environment to ensure OAuth routes work
+  const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
+  const forceDevMode = isReplit && !process.env.FORCE_PRODUCTION;
+  
+  if (isDevelopment || forceDevMode) {
+    console.log("Setting up development mode with Vite...");
     await setupVite(app, server);
   } else {
+    console.log("Setting up production routing...");
     setupProductionRouting(app);
   }
 

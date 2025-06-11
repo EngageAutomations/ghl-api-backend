@@ -68,12 +68,14 @@ export function setupProductionRouting(app: Express) {
         url.startsWith('/oauth/') ||
         url.startsWith('/auth/')) {
       console.log(`❌ API route ${url} not found - returning 404`);
+      console.log(`Available routes should have been registered by registerRoutes()`);
       return res.status(404).json({ 
         error: 'API endpoint not found',
         path: url,
         method: req.method,
         timestamp: new Date().toISOString(),
-        note: 'This route should be handled by Express, not static serving'
+        note: 'This route should be handled by Express, not static serving',
+        hint: 'OAuth routes may not be properly registered'
       });
     }
     
