@@ -308,10 +308,15 @@ export function GHLProductTestForm() {
 
           {/* OAuth Instructions */}
           <div className="text-xs text-gray-600 p-3 bg-gray-50 rounded">
-            <p><strong>OAuth Setup:</strong></p>
-            <p>1. Get your location ID from GHL account settings</p>
-            <p>2. Use OAuth flow to obtain access token with <code>products.write</code> scope</p>
-            <p>3. Ensure token has not expired before testing</p>
+            <p><strong>OAuth Integration:</strong></p>
+            <p>• Your authenticated GoHighLevel accounts are automatically loaded</p>
+            <p>• Location ID and access tokens are retrieved from secure storage</p>
+            <p>• Simply select an account and create products directly</p>
+            {oauthUsers.length === 0 && (
+              <p className="text-amber-600 mt-2">
+                <strong>Note:</strong> Complete OAuth authentication first to see your accounts here
+              </p>
+            )}
           </div>
         </div>
       </SheetContent>
