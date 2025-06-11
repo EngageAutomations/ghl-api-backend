@@ -2458,24 +2458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // OAuth authorization endpoint
-  app.get("/api/auth/ghl/authorize", (req, res) => {
-    console.log('OAuth authorization endpoint hit');
-    
-    const state = Math.random().toString(36).substring(2, 15);
-    
-    // Set state cookie for validation
-    res.cookie('oauth_state', state, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 10 * 60 * 1000, // 10 minutes
-    });
-    
-    const authUrl = ghlOAuth.getAuthorizationUrl(state, true);
-    console.log('Redirecting to GHL auth URL:', authUrl);
-    
-    res.redirect(authUrl);
-  });
+  // OAuth authorization endpoint moved to index.ts to prevent Vite middleware interference
 
   // Register OAuth callback on both paths for compatibility
   app.get("/oauth/callback", handleOAuthCallback);

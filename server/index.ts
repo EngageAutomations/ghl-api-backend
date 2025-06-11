@@ -66,6 +66,15 @@ app.use((req, res, next) => {
     });
   });
 
+  // Test authorization endpoint with simpler path
+  app.get("/auth/ghl/start", (req, res) => {
+    console.log('Simple OAuth auth endpoint hit');
+    res.json({
+      message: 'OAuth auth endpoint accessible',
+      timestamp: new Date().toISOString()
+    });
+  });
+
   // Add OAuth routes before Vite middleware to prevent catch-all interference
   const { ghlOAuth } = await import('./ghl-oauth.js');
   const jwt = (await import('jsonwebtoken')).default;
@@ -93,6 +102,25 @@ app.use((req, res, next) => {
   app.get("/api/oauth/callback", async (req, res) => {
     console.log('=== OAUTH CALLBACK STARTED ===');
     console.log('Query params:', req.query);
+    
+    // Handle authorization initiation
+    if (req.query.action === 'authorize') {
+      console.log('OAuth authorization request');
+      
+      const state = Math.random().toString(36).substring(2, 15);
+      
+      // Set state cookie for validation
+      res.cookie('oauth_state', state, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 10 * 60 * 1000, // 10 minutes
+      });
+      
+      const authUrl = ghlOAuth.getAuthorizationUrl(state, true);
+      console.log('Redirecting to GHL auth URL:', authUrl);
+      
+      return res.redirect(authUrl);
+    }
     
     if (!req.query.code) {
       console.log('No code provided - returning test response');
