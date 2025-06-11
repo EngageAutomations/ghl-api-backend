@@ -2239,6 +2239,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OAuth configuration verification endpoint
+  app.get("/api/oauth/config", async (req, res) => {
+    try {
+      const config = {
+        clientId: process.env.GHL_CLIENT_ID ? 'configured' : 'missing',
+        clientSecret: process.env.GHL_CLIENT_SECRET ? 'configured' : 'missing',
+        redirectUri: process.env.GHL_REDIRECT_URI || 'using_fallback',
+        scopes: process.env.GHL_SCOPES || 'using_default',
+        authUrl: ghlOAuth.getAuthorizationUrl('test_state', true),
+        callbackUrl: 'https://dir.engageautomations.com/api/oauth/callback'
+      };
+      res.json(config);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get OAuth config', details: error.message });
+    }
+  });
+
   // GoHighLevel OAuth Routes
   // Standard OAuth start endpoint for marketplace apps
   app.get("/oauth/start", async (req, res) => {

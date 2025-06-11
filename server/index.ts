@@ -86,10 +86,24 @@ app.use((req, res, next) => {
       const jwt = (await import('jsonwebtoken')).default;
 
       console.log('Exchanging code for tokens...');
-      const tokens = await ghlOAuth.exchangeCodeForTokens(code as string);
+      let tokens;
+      try {
+        tokens = await ghlOAuth.exchangeCodeForTokens(code as string);
+        console.log('Token exchange successful');
+      } catch (tokenError) {
+        console.error('Token exchange failed:', tokenError.message);
+        throw new Error(`Token exchange failed: ${tokenError.message}`);
+      }
       
       console.log('Getting user info...');
-      const userInfo = await ghlOAuth.getUserInfo(tokens.access_token);
+      let userInfo;
+      try {
+        userInfo = await ghlOAuth.getUserInfo(tokens.access_token);
+        console.log('User info retrieved successfully');
+      } catch (userError) {
+        console.error('User info retrieval failed:', userError.message);
+        throw new Error(`User info failed: ${userError.message}`);
+      }
       
       // Check if user exists
       let user = await storage.getUserByGhlId(userInfo.id);
@@ -145,6 +159,13 @@ app.use((req, res, next) => {
       
     } catch (error) {
       console.error('Production OAuth callback error:', error);
+      console.error('Error stack:', error.stack);
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name,
+        code: req.query.code ? 'present' : 'missing',
+        query: req.query
+      });
       res.redirect('/oauth-error?error=callback_failed');
     }
   });
