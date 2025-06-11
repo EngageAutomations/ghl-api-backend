@@ -2315,50 +2315,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "✅ API routing working correctly", timestamp: new Date().toISOString() });
   });
 
-  // Temporary dummy token exchange function for testing
-  async function dummyExchangeCodeForTokens(code: string) {
-    console.log('🎯 Simulated token exchange for:', code);
-    return {
-      access_token: 'dummy-access-token',
-      refresh_token: 'dummy-refresh-token',
-      expires_in: 3600,
-      token_type: 'Bearer',
-      scope: 'contacts.readonly contacts.write'
-    };
-  }
-
-  // Single OAuth callback handler for both paths - IMMEDIATE LOGGING
+  // OAuth callback handler - registered after Vite middleware to override catch-all
   app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
-    // Force immediate output to stderr and stdout
-    process.stderr.write('\n🚨 CALLBACK HIT - IMMEDIATE STDERR\n');
-    process.stdout.write('\n🚨 CALLBACK HIT - IMMEDIATE STDOUT\n');
-    console.error('🚨 CALLBACK HIT - CONSOLE ERROR');
-    console.log('🚨 CALLBACK HIT - CONSOLE LOG');
-    
     try {
-      console.error('✅ OAuth callback received');
-      console.error('Query params:', req.query);
-      console.error('URL:', req.url);
-      console.error('Method:', req.method);
-      
-      const code = req.query.code as string;
+      const code = req.query.code;
+      console.log('✅ OAuth callback hit in routes.ts with code:', code);
+      console.log('Query params:', req.query);
+      console.log('URL:', req.url);
+
       if (!code) {
-        console.error('No code provided - returning test response');
+        console.log('No code provided - returning test response');
         return res.send('OAuth callback hit successfully - route is working!');
       }
 
-      console.error('✅ Code received:', code.substring(0, 10) + '...');
-
-      // Use dummy token exchange for now to test route functionality
-      const tokenResponse = await dummyExchangeCodeForTokens(code);
-      console.error('✅ Token response:', tokenResponse);
-
-      res.send('OAuth successful! Token exchange completed.');
+      // Dummy response for test - this proves the route is working
+      res.send(`✅ OAuth callback processed in routes.ts. Code received: ${code}`);
     } catch (err) {
       console.error('❌ OAuth callback failed:', err);
-      console.error('Error details:', err.message);
-      console.error('Error stack:', err.stack);
-      res.status(500).send(`OAuth failure: ${err.message}`);
+      res.redirect('/oauth-error?error=callback_failed');
     }
   });
 
