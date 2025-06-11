@@ -47,17 +47,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Add middleware to prioritize API routes before static serving
-  app.use((req, res, next) => {
-    // Force API routes to be processed, skip static serving
-    if (req.originalUrl.startsWith('/api/') || 
-        req.originalUrl.startsWith('/oauth/') ||
-        req.originalUrl.startsWith('/auth/')) {
-      req.url = req.originalUrl; // Ensure route matching works
-    }
-    next();
-  });
-
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

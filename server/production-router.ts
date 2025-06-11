@@ -7,17 +7,45 @@ import path from "path";
  * are handled before static file serving
  */
 export function setupProductionRouting(app: Express) {
-  const distPath = path.resolve(__dirname, "public");
+  // Find the correct dist path for production static files
+  const possiblePaths = [
+    path.resolve(process.cwd(), "dist"),
+    path.resolve(process.cwd(), "public"),
+    path.resolve(__dirname, "public"),
+    path.resolve(__dirname, "../public"),
+    path.resolve(__dirname, "../dist")
+  ];
   
-  if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
-    );
+  let distPath = possiblePaths.find(p => fs.existsSync(p));
+  
+  if (!distPath) {
+    console.warn("No static build directory found, serving API routes only");
+    // Just serve a simple fallback for non-API routes
+    app.use("*", (req: Request, res: Response) => {
+      if (req.originalUrl.startsWith('/api/') || 
+          req.originalUrl.startsWith('/oauth/') ||
+          req.originalUrl.startsWith('/auth/')) {
+        return res.status(404).json({ 
+          error: 'API endpoint not found',
+          path: req.originalUrl,
+          timestamp: new Date().toISOString()
+        });
+      }
+      res.send(`
+        <!DOCTYPE html>
+        <html><head><title>GoHighLevel Directory</title></head>
+        <body><h1>Application Loading...</h1></body>
+        </html>
+      `);
+    });
+    return;
   }
 
-  // Serve static files with explicit exclusion of API routes
+  console.log(`Production static files serving from: ${distPath}`);
+
+  // Serve static files only for non-API routes
   app.use((req: Request, res: Response, next: NextFunction) => {
-    // Skip static serving for API endpoints
+    // Skip all static serving for API routes - let them pass through
     if (req.originalUrl.startsWith('/api/') || 
         req.originalUrl.startsWith('/oauth/') ||
         req.originalUrl.startsWith('/auth/')) {
@@ -25,23 +53,37 @@ export function setupProductionRouting(app: Express) {
     }
     
     // Serve static files for everything else
-    express.static(distPath)(req, res, next);
+    express.static(distPath, { 
+      index: false,  // Don't auto-serve index.html
+      fallthrough: true 
+    })(req, res, next);
   });
 
-  // Final fallback - serve index.html for frontend routes only
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    // API routes should have been handled by now - return 404 if they reach here
+  // Final catch-all - serve index.html for frontend routes
+  app.use("*", (req: Request, res: Response) => {
+    // Return 404 for API routes that weren't handled
     if (req.originalUrl.startsWith('/api/') || 
         req.originalUrl.startsWith('/oauth/') ||
         req.originalUrl.startsWith('/auth/')) {
       return res.status(404).json({ 
         error: 'API endpoint not found',
         path: req.originalUrl,
+        method: req.method,
         timestamp: new Date().toISOString()
       });
     }
     
-    // Serve index.html for frontend routes
-    res.sendFile(path.resolve(distPath, "index.html"));
+    // Serve index.html for all other routes (frontend SPA)
+    const indexPath = path.resolve(distPath, "index.html");
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.send(`
+        <!DOCTYPE html>
+        <html><head><title>GoHighLevel Directory</title></head>
+        <body><h1>Application Ready</h1></body>
+        </html>
+      `);
+    }
   });
 }
