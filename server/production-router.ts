@@ -59,21 +59,26 @@ export function setupProductionRouting(app: Express) {
     })(req, res, next);
   });
 
-  // Final catch-all - serve index.html for frontend routes
+  // Final catch-all - serve index.html for frontend routes ONLY
   app.use("*", (req: Request, res: Response) => {
-    // Return 404 for API routes that weren't handled
-    if (req.originalUrl.startsWith('/api/') || 
-        req.originalUrl.startsWith('/oauth/') ||
-        req.originalUrl.startsWith('/auth/')) {
+    const url = req.originalUrl;
+    
+    // CRITICAL: Never serve static files for API, OAuth, or Auth routes
+    if (url.startsWith('/api/') || 
+        url.startsWith('/oauth/') ||
+        url.startsWith('/auth/')) {
+      console.log(`❌ API route ${url} not found - returning 404`);
       return res.status(404).json({ 
         error: 'API endpoint not found',
-        path: req.originalUrl,
+        path: url,
         method: req.method,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        note: 'This route should be handled by Express, not static serving'
       });
     }
     
-    // Serve index.html for all other routes (frontend SPA)
+    // Serve index.html ONLY for frontend SPA routes
+    console.log(`📄 Serving index.html for frontend route: ${url}`);
     const indexPath = path.resolve(distPath, "index.html");
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);

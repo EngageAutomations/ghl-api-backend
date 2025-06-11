@@ -50,9 +50,13 @@ app.use((req, res, next) => {
   // Critical: Register OAuth callback routes FIRST to prevent routing conflicts
   app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
     try {
-      console.log('🔥 PRODUCTION OAUTH CALLBACK - Direct handler');
-      console.log('Query params:', req.query);
-      console.log('Headers:', req.headers);
+      console.log('✅ Callback route reached with code:', req.query.code);
+      console.log('Full query params:', req.query);
+      
+      // Test response to confirm route works
+      if (!req.query.code || req.query.code === 'TEST123') {
+        return res.send('OAuth callback hit successfully - route is working!');
+      }
       
       const { code, state, error } = req.query;
       
