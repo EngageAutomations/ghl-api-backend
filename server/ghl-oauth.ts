@@ -113,6 +113,14 @@ export class GoHighLevelOAuth {
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('GHL Token Exchange Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText,
+        clientId: this.clientId,
+        redirectUri: this.redirectUri,
+        codeLength: code.length
+      });
       throw new Error(`Failed to exchange code for tokens: ${response.status} ${errorText}`);
     }
 

@@ -2332,6 +2332,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Exchange code for tokens
       console.log("Exchanging code for tokens...");
+      console.log("Authorization code received:", code?.toString().substring(0, 10) + "...");
+      console.log("Using redirect URI:", process.env.GHL_REDIRECT_URI);
+      
       const tokens = await ghlOAuth.exchangeCodeForTokens(code as string);
       console.log("Token exchange successful:", { 
         access_token: tokens.access_token ? "present" : "missing",
@@ -2420,7 +2423,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Redirect to dashboard
       res.redirect('/');
     } catch (error) {
-      console.error("OAuth callback error:", error);
+      console.error("=== OAUTH CALLBACK ERROR ===");
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+      console.error("Request query:", req.query);
+      console.error("Request headers:", req.headers);
+      console.error("================================");
       res.redirect("/oauth-error?error=callback_failed");
     }
   };
