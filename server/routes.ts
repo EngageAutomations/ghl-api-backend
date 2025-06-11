@@ -2265,7 +2265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/oauth/callback", async (req, res) => {
+  app.get("/api/oauth/callback", async (req, res) => {
     try {
       console.log("=== OAUTH CALLBACK STARTED ===");
       console.log("Query params:", req.query);
