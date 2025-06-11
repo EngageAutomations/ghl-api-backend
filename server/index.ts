@@ -47,6 +47,29 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Add explicit OAuth callback route handler before anything else in production
+  if (app.get("env") !== "development") {
+    app.get("/api/oauth/callback", (req, res) => {
+      res.json({
+        message: "✅ OAuth callback route working",
+        timestamp: new Date().toISOString(),
+        query: req.query,
+        headers: req.headers,
+        method: req.method
+      });
+    });
+    
+    app.get("/oauth/callback", (req, res) => {
+      res.json({
+        message: "✅ OAuth callback route working (legacy path)",
+        timestamp: new Date().toISOString(),
+        query: req.query,
+        headers: req.headers,
+        method: req.method
+      });
+    });
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
