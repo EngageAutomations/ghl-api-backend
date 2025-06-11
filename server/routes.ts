@@ -2315,7 +2315,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "✅ API routing working correctly", timestamp: new Date().toISOString() });
   });
 
-  // OAuth callback route moved to server/index.ts before Vite middleware
+  // OAuth token exchange endpoint for JavaScript bridge
+  app.post('/api/oauth/exchange', async (req, res) => {
+    try {
+      console.log('OAuth token exchange endpoint hit');
+      const { code, state } = req.body;
+      
+      if (!code) {
+        return res.status(400).json({ error: 'No authorization code provided' });
+      }
+
+      console.log('Processing OAuth code:', code.substring(0, 10) + '...');
+      
+      // Import OAuth functionality
+      const { ghlOAuth } = await import('./ghl-oauth.js');
+      
+      // Exchange code for tokens
+      const tokenData = await ghlOAuth.exchangeCodeForTokens(code, state);
+      
+      if (tokenData && tokenData.access_token) {
+        console.log('OAuth tokens received successfully');
+        
+        // Store token in session/cookie
+        res.cookie('oauth_token', tokenData.access_token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+        
+        res.json({ 
+          success: true, 
+          message: 'OAuth tokens exchanged successfully',
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        throw new Error('No access token received from GoHighLevel');
+      }
+      
+    } catch (error) {
+      console.error('OAuth token exchange error:', error);
+      res.status(500).json({ 
+        success: false,
+        error: 'OAuth token exchange failed',
+        details: error.message 
+      });
+    }
+  });
 
   app.post("/auth/ghl/logout", authenticateToken, async (req, res) => {
     try {
