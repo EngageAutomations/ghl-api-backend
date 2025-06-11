@@ -2,10 +2,10 @@ import { z } from 'zod';
 
 // GoHighLevel OAuth Configuration
 export const GHL_OAUTH_CONFIG = {
-  // Standard flow
-  authUrl: 'https://marketplace.gohighlevel.com/oauth/chooselocation',
-  // Alternative marketplace flow
-  marketplaceAuthUrl: 'https://marketplace.gohighlevel.com/oauth/chooselocation',
+  // Standard flow - Updated to correct domain
+  authUrl: 'https://marketplace.leadconnectorhq.com/oauth/chooselocation',
+  // Alternative marketplace flow - Updated to correct domain
+  marketplaceAuthUrl: 'https://marketplace.leadconnectorhq.com/oauth/chooselocation',
   // White-labeled flow (if needed)
   whitelabelAuthUrl: 'https://marketplace.leadconnectorhq.com/oauth/chooselocation',
   tokenUrl: 'https://services.leadconnectorhq.com/oauth/token',
@@ -60,8 +60,8 @@ export class GoHighLevelOAuth {
   constructor() {
     this.clientId = process.env.GHL_CLIENT_ID || '';
     this.clientSecret = process.env.GHL_CLIENT_SECRET || '';
-    this.redirectUri = process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/oauth-complete.html';
-    this.scopes = (process.env.GHL_SCOPES || 'contacts.read contacts.write locations.read').split(' ').filter(Boolean);
+    this.redirectUri = process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/oauth/callback';
+    this.scopes = (process.env.GHL_SCOPES || 'products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write').split(' ').filter(Boolean);
 
     if (!this.clientId || !this.clientSecret) {
       console.warn('GHL OAuth credentials not fully configured');

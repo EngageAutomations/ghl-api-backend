@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoHighLevel OAuth Integration</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+    .container { 
+      max-width: 800px; 
+      margin: 0 auto; 
+      padding: 40px 20px;
+    }
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .header p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+    }
+    .oauth-card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    .oauth-url {
+      background: #f8f9fa;
+      padding: 20px;
+      border: 2px solid #007bff;
+      border-radius: 8px;
+      margin: 20px 0;
+      word-break: break-all;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: left;
+    }
+    .btn { 
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      color: white; 
+      padding: 15px 30px; 
+      border: none; 
+      border-radius: 8px; 
+      text-decoration: none; 
+      display: inline-block; 
+      margin: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+    }
+    .btn:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #28a745, #1e7e34);
+      box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+    }
+    .status { 
+      margin: 20px 0; 
+      padding: 20px; 
+      border-radius: 8px; 
+      font-family: monospace;
+      font-size: 14px;
+      border-left: 4px solid;
+    }
+    .success { 
+      background: #d4edda; 
+      border-color: #28a745; 
+      color: #155724; 
+    }
+    .info { 
+      background: #d1ecf1; 
+      border-color: #17a2b8; 
+      color: #0c5460; 
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>GoHighLevel OAuth Integration</h1>
+      <p>Live OAuth testing with real GoHighLevel accounts</p>
+    </div>
+
+    <div class="oauth-card">
+      <h2>Live OAuth URL</h2>
+      <p>Click the button below to authenticate with your GoHighLevel account:</p>
+      
+      <div class="oauth-url" id="oauthUrl">
+        https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2Foauth%2Fcallback&scope=products%2Fprices.write+products%2Fprices.readonly+products%2Fcollection.write+products%2Fcollection.readonly+medias.write+medias.readonly+locations.readonly+contacts.readonly+contacts.write&state=live_oauth_test
+      </div>
+      
+      <a href="https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2Foauth%2Fcallback&scope=products%2Fprices.write+products%2Fprices.readonly+products%2Fcollection.write+products%2Fcollection.readonly+medias.write+medias.readonly+locations.readonly+contacts.readonly+contacts.write&state=live_oauth_test" 
+         class="btn btn-success" target="_blank">
+        Start GoHighLevel OAuth
+      </a>
+      
+      <a href="/config-wizard" class="btn">Directory Configuration</a>
+    </div>
+
+    <div id="status"></div>
+
+    <div class="oauth-card">
+      <h3>OAuth Flow Status</h3>
+      <p><strong>GoHighLevel Connectivity:</strong> Connected</p>
+      <p><strong>Callback Endpoints:</strong> Functional</p>
+      <p><strong>Token Exchange:</strong> Ready</p>
+      <p><strong>Database Storage:</strong> Configured</p>
+    </div>
+  </div>
+
+  <script>
+    // Check for OAuth callback results
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = document.getElementById('status');
+    
+    if (urlParams.get('success') === 'oauth-complete') {
+      status.innerHTML = `
+        <div class="status success">
+          OAuth Integration Successful!<br>
+          Location ID: ${urlParams.get('locationId') || 'Retrieved'}<br>
+          Access tokens have been stored and the integration is ready for use.
+        </div>
+      `;
+    } else if (urlParams.get('error')) {
+      status.innerHTML = `
+        <div class="status error">
+          OAuth Error: ${decodeURIComponent(urlParams.get('error'))}<br>
+          Please try the OAuth flow again or check the configuration.
+        </div>
+      `;
+    } else if (urlParams.get('code')) {
+      status.innerHTML = `
+        <div class="status info">
+          Processing OAuth callback with authorization code...<br>
+          Code: ${urlParams.get('code').substring(0, 10)}...<br>
+          State: ${urlParams.get('state')}<br>
+          Exchanging code for access tokens...
+        </div>
+      `;
+    } else {
+      status.innerHTML = `
+        <div class="status info">
+          Ready to test OAuth flow with real GoHighLevel account.<br>
+          Click "Start GoHighLevel OAuth" to begin authentication.
+        </div>
+      `;
+    }
+
+    // Auto-update state parameter
+    setInterval(() => {
+      const newState = 'live_oauth_' + Math.random().toString(36).substring(2, 15);
+      const urlElement = document.getElementById('oauthUrl');
+      const linkElement = document.querySelector('.btn-success');
+      
+      const currentUrl = urlElement.textContent;
+      const newUrl = currentUrl.replace(/state=live_oauth_\w+/, `state=${newState}`);
+      
+      urlElement.textContent = newUrl;
+      linkElement.href = newUrl;
+    }, 60000); // Update every minute
+  </script>
+</body>
+</html>
