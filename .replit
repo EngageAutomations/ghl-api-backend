@@ -42,3 +42,13 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+# ✅ NEW WORKFLOW to launch Express backend directly
+[[workflows.workflow]]
+name = "Start Backend Server"
+author = "OpenAI"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server/index.js"
+waitForPort = 3000
