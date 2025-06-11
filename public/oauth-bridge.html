@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Processing - GoHighLevel Directory</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        .success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner" id="spinner"></div>
+        <h2 id="title">Completing OAuth Authentication</h2>
+        <p id="message">Please wait while we finalize your GoHighLevel integration...</p>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        // Extract OAuth parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
+
+        const titleEl = document.getElementById('title');
+        const messageEl = document.getElementById('message');
+        const statusEl = document.getElementById('status');
+        const spinnerEl = document.getElementById('spinner');
+
+        console.log('OAuth Bridge Processing:', { code: code?.substring(0, 10) + '...', state, error });
+
+        if (error) {
+            console.log('OAuth error detected:', error, errorDescription);
+            spinnerEl.style.display = 'none';
+            titleEl.textContent = 'Authentication Error';
+            messageEl.textContent = 'There was an issue with your GoHighLevel authentication.';
+            statusEl.innerHTML = `<div class="error">Error: ${error}<br>${errorDescription || ''}</div>`;
+            
+            // Redirect to error page after showing message
+            setTimeout(() => {
+                window.location.href = '/oauth-error?error=' + encodeURIComponent(error);
+            }, 3000);
+            
+        } else if (code) {
+            console.log('Processing authorization code');
+            
+            // Exchange authorization code for tokens
+            fetch('/api/oauth/exchange', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    code: code,
+                    state: state
+                })
+            })
+            .then(response => {
+                console.log('Token exchange response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Token exchange result:', data);
+                
+                if (data.success) {
+                    spinnerEl.style.display = 'none';
+                    titleEl.textContent = 'Authentication Successful!';
+                    messageEl.textContent = 'Your GoHighLevel account has been connected successfully.';
+                    statusEl.innerHTML = '<div class="success">Redirecting to your dashboard...</div>';
+                    
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = '/dashboard?auth=success';
+                    }, 2000);
+                    
+                } else {
+                    throw new Error(data.error || 'Token exchange failed');
+                }
+            })
+            .catch(error => {
+                console.error('OAuth processing error:', error);
+                spinnerEl.style.display = 'none';
+                titleEl.textContent = 'Authentication Failed';
+                messageEl.textContent = 'There was an issue processing your authentication.';
+                statusEl.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                
+                // Redirect to error page
+                setTimeout(() => {
+                    window.location.href = '/oauth-error?error=processing_failed';
+                }, 3000);
+            });
+            
+        } else {
+            console.log('No authorization code found');
+            spinnerEl.style.display = 'none';
+            titleEl.textContent = 'Invalid OAuth Request';
+            messageEl.textContent = 'No authorization code was provided.';
+            statusEl.innerHTML = '<div class="error">Missing required OAuth parameters</div>';
+            
+            // Redirect to error page
+            setTimeout(() => {
+                window.location.href = '/oauth-error?error=missing_code';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
