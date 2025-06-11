@@ -66,6 +66,104 @@ app.use((req, res, next) => {
     });
   });
 
+  // Add OAuth routes before Vite middleware to prevent catch-all interference
+  const { ghlOAuth } = await import('./ghl-oauth.js');
+  const jwt = (await import('jsonwebtoken')).default;
+  
+  // OAuth authorization endpoint
+  app.get("/api/auth/ghl/authorize", (req, res) => {
+    console.log('OAuth authorization endpoint hit');
+    
+    const state = Math.random().toString(36).substring(2, 15);
+    
+    // Set state cookie for validation
+    res.cookie('oauth_state', state, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 10 * 60 * 1000, // 10 minutes
+    });
+    
+    const authUrl = ghlOAuth.getAuthorizationUrl(state, true);
+    console.log('Redirecting to GHL auth URL:', authUrl);
+    
+    res.redirect(authUrl);
+  });
+
+  // OAuth callback endpoint  
+  app.get("/api/oauth/callback", async (req, res) => {
+    console.log('=== OAUTH CALLBACK STARTED ===');
+    console.log('Query params:', req.query);
+    
+    if (!req.query.code) {
+      console.log('No code provided - returning test response');
+      return res.send('OAuth callback hit successfully - route is working!');
+    }
+    
+    try {
+      console.log('Processing OAuth callback with code length:', req.query.code.length);
+      
+      const { code, state, error } = req.query;
+      
+      if (error) {
+        console.log("OAuth error received:", error);
+        return res.redirect(`/oauth-error?error=${error}`);
+      }
+
+      if (!code) {
+        console.log("No authorization code received");
+        return res.redirect("/oauth-error?error=no_code");
+      }
+
+      console.log("Processing OAuth callback with code:", code?.toString().substring(0, 10) + "...");
+
+      // Exchange code for tokens
+      console.log("Exchanging code for tokens...");
+      const tokens = await ghlOAuth.exchangeCodeForTokens(code as string);
+      console.log("Token exchange successful:", { 
+        access_token: tokens.access_token ? "present" : "missing",
+        token_type: tokens.token_type,
+        expires_in: tokens.expires_in,
+        scope: tokens.scope
+      });
+      
+      // Get user info from GHL
+      console.log("Getting user info from GHL...");
+      const userInfo = await ghlOAuth.getUserInfo(tokens.access_token);
+      console.log("User info received:", {
+        id: userInfo.id,
+        email: userInfo.email,
+        name: userInfo.name
+      });
+      
+      // Create session token for successful OAuth
+      const sessionToken = jwt.sign(
+        { userId: userInfo.id, authType: 'oauth', email: userInfo.email },
+        process.env.JWT_SECRET || 'fallback-secret',
+        { expiresIn: '7d' }
+      );
+
+      // Set session cookie
+      res.cookie('session_token', sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      // Clear state cookie
+      res.clearCookie('oauth_state');
+
+      // Redirect to dashboard
+      res.redirect('/');
+    } catch (error) {
+      console.error("=== OAUTH CALLBACK ERROR ===");
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+      console.error("Request query:", req.query);
+      console.error("================================");
+      res.redirect("/oauth-error?error=callback_failed");
+    }
+  });
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
