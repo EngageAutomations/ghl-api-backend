@@ -57,117 +57,13 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Critical: Register OAuth callback routes FIRST to prevent routing conflicts
-  app.get(['/api/oauth/callback', '/oauth/callback'], async (req: any, res: any) => {
-    try {
-      console.log('✅ Callback route reached with code:', req.query.code);
-      console.log('Full query params:', req.query);
-      
-      // Test response to confirm route works
-      if (!req.query.code || req.query.code === 'TEST123') {
-        return res.send('OAuth callback hit successfully - route is working!');
-      }
-      
-      const { code, state, error } = req.query;
-      
-      if (error) {
-        console.log('OAuth error:', error);
-        return res.redirect(`/oauth-error?error=${error}`);
-      }
-
-      if (!code) {
-        console.log('No authorization code');
-        return res.redirect('/oauth-error?error=no_code');
-      }
-
-      // Import OAuth service inline to avoid circular dependencies
-      const { ghlOAuth } = await import('./ghl-oauth.js');
-      const { storage } = await import('./storage.js');
-      const jwt = (await import('jsonwebtoken')).default;
-
-      console.log('Exchanging code for tokens...');
-      let tokens;
-      try {
-        tokens = await ghlOAuth.exchangeCodeForTokens(code as string);
-        console.log('Token exchange successful');
-      } catch (tokenError) {
-        console.error('Token exchange failed:', tokenError.message);
-        throw new Error(`Token exchange failed: ${tokenError.message}`);
-      }
-      
-      console.log('Getting user info...');
-      let userInfo;
-      try {
-        userInfo = await ghlOAuth.getUserInfo(tokens.access_token);
-        console.log('User info retrieved successfully');
-      } catch (userError) {
-        console.error('User info retrieval failed:', userError.message);
-        throw new Error(`User info failed: ${userError.message}`);
-      }
-      
-      // Check if user exists
-      let user = await storage.getUserByGhlId(userInfo.id);
-      
-      if (!user) {
-        // Create username from email
-        const username = userInfo.email.split('@')[0] + '_' + Math.random().toString(36).substring(2, 8);
-        const tokenExpiryDate = new Date(Date.now() + (tokens.expires_in * 1000));
-        
-        user = await storage.createOAuthUser({
-          username: username,
-          displayName: userInfo.name,
-          email: userInfo.email,
-          ghlUserId: userInfo.id,
-          ghlAccessToken: tokens.access_token,
-          ghlRefreshToken: tokens.refresh_token,
-          ghlTokenExpiry: tokenExpiryDate,
-          ghlScopes: tokens.scope,
-          ghlLocationId: '',
-          ghlLocationName: '',
-          authType: 'oauth',
-          isActive: true
-        });
-        
-        console.log('Created new OAuth user:', user.id);
-      } else {
-        // Update tokens
-        const tokenExpiryDate = new Date(Date.now() + (tokens.expires_in * 1000));
-        await storage.updateUserOAuthTokens(user.id, {
-          accessToken: tokens.access_token,
-          refreshToken: tokens.refresh_token,
-          expiresAt: tokenExpiryDate,
-        });
-        console.log('Updated existing user tokens:', user.id);
-      }
-
-      // Create session
-      const sessionToken = jwt.sign(
-        { userId: user.id, authType: 'oauth' },
-        process.env.JWT_SECRET || 'fallback-secret',
-        { expiresIn: '7d' }
-      );
-
-      res.cookie('session_token', sessionToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000
-      });
-
-      console.log('✅ OAuth authentication successful, redirecting to dashboard');
-      res.redirect('/dashboard');
-      
-    } catch (error) {
-      console.error('Production OAuth callback error:', error);
-      console.error('Error stack:', error.stack);
-      console.error('Error details:', {
-        message: error.message,
-        name: error.name,
-        code: req.query.code ? 'present' : 'missing',
-        query: req.query
-      });
-      res.redirect('/oauth-error?error=callback_failed');
-    }
+  // OAuth callback test endpoint for debugging
+  app.get('/oauth/test', (req, res) => {
+    res.json({
+      message: 'OAuth test endpoint working',
+      timestamp: new Date().toISOString(),
+      query: req.query
+    });
   });
 
   const server = await registerRoutes(app);
