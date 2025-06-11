@@ -387,51 +387,7 @@ app.use((req, res, next) => {
     next();
   });
 
-  // Remove duplicate route definitions - these are already handled by setupOAuthRoutesProduction
-
-
-
-  // Add OAuth routes before Vite middleware to prevent catch-all interference
-  const { ghlOAuth } = await import('./ghl-oauth.js');
-  const jwt = (await import('jsonwebtoken')).default;
-  
-  // OAuth authorization endpoint
-  app.get("/api/auth/ghl/authorize", (req, res) => {
-    console.log('OAuth authorization endpoint hit');
-    
-    const state = Math.random().toString(36).substring(2, 15);
-    
-    // Set state cookie for validation
-    res.cookie('oauth_state', state, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 10 * 60 * 1000, // 10 minutes
-    });
-    
-    const authUrl = ghlOAuth.getAuthorizationUrl(state, true);
-    console.log('Redirecting to GHL auth URL:', authUrl);
-    
-    res.redirect(authUrl);
-  });
-
-  // OAuth authorization endpoint - initiate OAuth flow
-  app.get("/api/oauth/authorize", async (req, res) => {
-    console.log('OAuth authorization request');
-    
-    const state = Math.random().toString(36).substring(2, 15);
-    
-    // Set state cookie for validation
-    res.cookie('oauth_state', state, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 10 * 60 * 1000, // 10 minutes
-    });
-    
-    const authUrl = ghlOAuth.getAuthorizationUrl(state, true);
-    console.log('Redirecting to GHL auth URL:', authUrl);
-    
-    res.redirect(authUrl);
-  });
+  // OAuth routes are handled by setupOAuthRoutesProduction - no duplicates needed
 
   const server = await registerRoutes(app);
 

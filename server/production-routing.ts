@@ -15,17 +15,12 @@ export function setupProductionRouting(app: express.Express) {
     express.static(distPath)(req, res, next);
   });
 
-  // Fallback route for frontend SPA
-  app.get('*', (req, res) => {
+  // Fallback route for frontend SPA - but ONLY for non-API routes
+  app.get('*', (req, res, next) => {
+    // NEVER handle API or OAuth routes here - they must be handled by Express routes
     if (req.path.startsWith('/api/') || req.path.startsWith('/oauth')) {
-      // This should not happen since API routes are handled before this point
-      console.log(`❌ API route reached SPA fallback: ${req.method} ${req.path}`);
-      return res.status(404).json({ 
-        error: 'API endpoint not found',
-        path: req.path,
-        method: req.method,
-        note: 'This route should be handled by Express, not static serving'
-      });
+      console.log(`⚠️ API/OAuth route reached fallback - passing to next handler: ${req.method} ${req.path}`);
+      return next(); // Pass to next handler, don't respond here
     }
     
     console.log(`📄 Serving index.html for frontend route: ${req.path}`);
