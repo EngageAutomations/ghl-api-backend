@@ -2240,6 +2240,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GoHighLevel OAuth Routes
+  // Standard OAuth start endpoint for marketplace apps
+  app.get("/oauth/start", async (req, res) => {
+    try {
+      console.log("OAuth start request received");
+      const { TokenEncryption } = await import('./token-encryption');
+      const state = TokenEncryption.generateState();
+      const authUrl = ghlOAuth.getAuthorizationUrl(state, true); // Use marketplace flow
+      
+      console.log("Generated OAuth URL:", authUrl);
+      console.log("OAuth state generated:", state.slice(0, 8) + '...');
+      
+      // Store state in secure session cookie for validation
+      res.cookie('oauth_state', state, { 
+        httpOnly: true, 
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 10 * 60 * 1000 // 10 minutes
+      });
+      
+      res.redirect(authUrl);
+    } catch (error) {
+      console.error("OAuth start error:", error);
+      res.status(500).json({ error: "Failed to initiate OAuth" });
+    }
+  });
+
   app.get("/auth/ghl/authorize", async (req, res) => {
     try {
       console.log("OAuth authorization request received");
