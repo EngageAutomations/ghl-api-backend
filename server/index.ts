@@ -83,23 +83,22 @@ app.use((req, res, next) => {
 
   // Register OAuth callback BEFORE any other middleware to prevent interference
   app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
-    try {
-      const code = req.query.code;
-      console.log('✅ OAuth callback hit in index.ts with code:', code);
-      console.log('Query params:', req.query);
-      console.log('URL:', req.url);
+    console.log('✅ OAuth callback hit in index.ts');
+    console.log('Query params:', req.query);
+    console.log('URL:', req.url);
+    console.log('Method:', req.method);
 
-      if (!code) {
-        console.log('No code provided - returning test response');
-        return res.send('OAuth callback hit successfully - route is working!');
-      }
-
-      // Success response for test - this proves the route is working
-      res.send(`✅ OAuth callback processed successfully. Code received: ${code}`);
-    } catch (err) {
-      console.error('❌ OAuth callback failed:', err);
-      res.redirect('/oauth-error?error=callback_failed');
+    const code = req.query.code;
+    
+    if (!code) {
+      console.log('No code provided - returning test response');
+      return res.send('OAuth callback hit successfully - route is working!');
     }
+
+    console.log('Code received:', code);
+    
+    // Success response for test - this proves the route is working
+    res.send(`✅ OAuth callback processed successfully. Code received: ${code}`);
   });
 
   // Add OAuth routes before Vite middleware to prevent catch-all interference
