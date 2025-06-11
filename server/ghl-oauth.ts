@@ -96,7 +96,7 @@ export class GoHighLevelOAuth {
   /**
    * Exchange authorization code for access token
    */
-  async exchangeCodeForTokens(code: string): Promise<GHLTokenResponse> {
+  async exchangeCodeForTokens(code: string, state?: string): Promise<GHLTokenResponse> {
     console.log('=== TOKEN EXCHANGE REQUEST ===');
     console.log('URL:', GHL_OAUTH_CONFIG.tokenUrl);
     console.log('Client ID:', this.clientId ? 'present' : 'missing');

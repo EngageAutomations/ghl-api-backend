@@ -58,8 +58,11 @@ function setupOAuthRoutesProduction(app: express.Express) {
 
   // OAuth callback - handles complete OAuth flow
   app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
-    console.log('OAuth callback endpoint accessed');
+    console.log('=== OAUTH CALLBACK HIT ===');
+    console.log('URL:', req.url);
     console.log('Query params:', req.query);
+    console.log('Headers:', req.headers);
+    console.log('Method:', req.method);
 
     const { code, state, error, action } = req.query;
     
@@ -105,14 +108,25 @@ function setupOAuthRoutesProduction(app: express.Express) {
     // Handle OAuth token exchange
     if (code) {
       try {
-        console.log('Processing OAuth code for token exchange');
+        console.log('=== STARTING TOKEN EXCHANGE ===');
+        console.log('Code (first 20 chars):', String(code).substring(0, 20));
+        console.log('State:', state);
+        
         const { ghlOAuth } = await import('./ghl-oauth.js');
         
         // Exchange code for tokens
-        const tokenData = await ghlOAuth.exchangeCodeForTokens(code, state);
+        const tokenData = await ghlOAuth.exchangeCodeForTokens(String(code), String(state));
+        
+        console.log('=== TOKEN EXCHANGE RESULT ===');
+        console.log('Token data received:', tokenData ? 'YES' : 'NO');
+        if (tokenData) {
+          console.log('Access token present:', tokenData.access_token ? 'YES' : 'NO');
+          console.log('Token type:', tokenData.token_type);
+          console.log('Expires in:', tokenData.expires_in);
+        }
         
         if (tokenData && tokenData.access_token) {
-          console.log('OAuth tokens received successfully');
+          console.log('✅ OAuth tokens received successfully');
           
           // Store token in session/cookie
           res.cookie('oauth_token', tokenData.access_token, {
@@ -127,13 +141,20 @@ function setupOAuthRoutesProduction(app: express.Express) {
           return res.redirect(successUrl);
           
         } else {
+          console.error('❌ No access token received from GoHighLevel');
           throw new Error('No access token received from GoHighLevel');
         }
         
       } catch (error) {
-        console.error('OAuth token exchange error:', error);
+        console.error('=== OAUTH TOKEN EXCHANGE FAILED ===');
+        console.error('Error type:', error.constructor.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        console.error('======================================');
+        
         const errorMsg = encodeURIComponent('Token exchange failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
-        const redirectUrl = `https://dir.engageautomations.com/?error=${errorMsg}`;
+        const redirectUrl = `https://dir.engageautomations.com/oauth-error?error=callback_failed&details=${errorMsg}`;
+        console.log('Redirecting to error page:', redirectUrl);
         return res.redirect(redirectUrl);
       }
     }
