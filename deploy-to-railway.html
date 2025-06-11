@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deploy OAuth Backend to Railway</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            background: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+        }
+        .step h3 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .file-content {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .copy-button {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .success {
+            background: #c6f6d5;
+            border-left-color: #48bb78;
+        }
+        .warning {
+            background: #fef5e7;
+            border-left-color: #ed8936;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Deploy OAuth Backend to Railway</h1>
+        
+        <div class="step success">
+            <h3>✅ Step 1: Create Railway Account</h3>
+            <p>Sign up for a free Railway account using GitHub for easier deployment.</p>
+            <a href="https://railway.app" target="_blank" class="button">Go to Railway.app</a>
+        </div>
+
+        <div class="step">
+            <h3>📁 Step 2: Create New Project</h3>
+            <p>In Railway dashboard:</p>
+            <ol>
+                <li>Click "New Project"</li>
+                <li>Select "Empty Project"</li>
+                <li>Name it "oauth-backend"</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>📄 Step 3: Upload Files</h3>
+            <p>Create these files in your Railway project. Click "Copy" to copy each file content:</p>
+            
+            <h4>File: package.json</h4>
+            <div class="file-content">
+                <button class="copy-button" onclick="copyToClipboard('package-json')">Copy</button>
+                <pre id="package-json">{
+  "name": "ghl-oauth-backend",
+  "version": "1.0.0",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.7",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}</pre>
+            </div>
+
+            <h4>File: server/index.js</h4>
+            <div class="file-content">
+                <button class="copy-button" onclick="copyToClipboard('server-index')">Copy</button>
+                <pre id="server-index">// server/index.js - Railway Backend for OAuth Handling
+const express = require('express');
+const axios = require('axios');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(express.json());
+app.use(cookieParser());
+app.use(cors({
+  origin: ['https://dir.engageautomations.com', 'http://localhost:3000'],
+  credentials: true
+}));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', service: 'GHL OAuth Backend', timestamp: new Date().toISOString() });
+});
+
+// OAuth callback endpoint - Main handler for GoHighLevel OAuth
+app.get('/api/oauth/callback', async (req, res) => {
+  console.log('=== RAILWAY OAUTH CALLBACK ===');
+  console.log('Query params:', req.query);
+
+  const { code, state, error } = req.query;
+
+  // Handle OAuth error from GoHighLevel
+  if (error) {
+    console.error('OAuth error from GoHighLevel:', error);
+    const errorMsg = encodeURIComponent(`OAuth error: ${error}`);
+    return res.redirect(`https://dir.engageautomations.com/oauth-error?error=${errorMsg}`);
+  }
+
+  // Handle test endpoint
+  if (!code && !error) {
+    console.log('Test endpoint accessed');
+    return res.status(200).send('Railway OAuth backend is working!');
+  }
+
+  // Handle OAuth token exchange
+  if (!code) {
+    return res.status(400).redirect('https://dir.engageautomations.com/oauth-error?error=missing_code');
+  }
+
+  try {
+    console.log('=== STARTING TOKEN EXCHANGE ===');
+    console.log('Code (first 20 chars):', String(code).substring(0, 20));
+
+    const tokenRequestData = new URLSearchParams({
+      grant_type: 'authorization_code',
+      client_id: process.env.GHL_CLIENT_ID,
+      client_secret: process.env.GHL_CLIENT_SECRET,
+      code: String(code),
+      redirect_uri: process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/api/oauth/callback',
+    });
+
+    const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', 
+      tokenRequestData.toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+        },
+        timeout: 10000
+      }
+    );
+
+    console.log('=== TOKEN RESPONSE SUCCESS ===');
+    console.log('Status:', response.status);
+
+    // Store tokens in secure cookies
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: 'lax',
+      domain: '.engageautomations.com'
+    };
+
+    res.cookie('oauth_token', response.data.access_token, cookieOptions);
+    if (response.data.refresh_token) {
+      res.cookie('oauth_refresh_token', response.data.refresh_token, {
+        ...cookieOptions,
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      });
+    }
+
+    // Redirect to success page
+    const successUrl = `https://dir.engageautomations.com/?success=oauth-complete&timestamp=${Date.now()}`;
+    console.log('✅ Redirecting to success page:', successUrl);
+    
+    return res.redirect(successUrl);
+
+  } catch (error) {
+    console.error('=== TOKEN EXCHANGE FAILED ===');
+    console.error('Error:', error.message);
+    
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
+
+    const errorMsg = encodeURIComponent('Token exchange failed: ' + error.message);
+    const redirectUrl = `https://dir.engageautomations.com/oauth-error?error=callback_failed&details=${errorMsg}`;
+    
+    return res.redirect(redirectUrl);
+  }
+});
+
+// OAuth URL generation endpoint
+app.get('/api/oauth/url', (req, res) => {
+  const { state } = req.query;
+  
+  const clientId = process.env.GHL_CLIENT_ID;
+  const redirectUri = process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/api/oauth/callback';
+  const scopes = 'products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write';
+  
+  if (!clientId) {
+    return res.status(500).json({ error: 'OAuth client ID not configured' });
+  }
+
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    scope: scopes,
+  });
+
+  if (state) {
+    params.append('state', String(state));
+  }
+
+  const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?${params.toString()}`;
+  
+  res.json({ 
+    success: true, 
+    authUrl,
+    clientId: clientId.substring(0, 10) + '...',
+    redirectUri,
+    scopes
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ Railway OAuth Backend listening on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`OAuth Client ID configured: ${process.env.GHL_CLIENT_ID ? 'Yes' : 'No'}`);
+});</pre>
+            </div>
+        </div>
+
+        <div class="step warning">
+            <h3>⚙️ Step 4: Set Environment Variables</h3>
+            <p>In Railway project settings → Variables, add these:</p>
+            <div class="code-block">
+GHL_CLIENT_ID=68474924a586bce22a6e64f7-mbpkmyu4
+GHL_CLIENT_SECRET=b5a7a120-7df7-4d23-8796-4863cbd08f94
+GHL_REDIRECT_URI=https://dir.engageautomations.com/api/oauth/callback
+NODE_ENV=production
+            </div>
+        </div>
+
+        <div class="step success">
+            <h3>🚀 Step 5: Deploy</h3>
+            <p>Railway will automatically deploy your project. Once deployed:</p>
+            <ol>
+                <li>Get your Railway URL (like: https://oauth-backend-production-xxxx.up.railway.app)</li>
+                <li>Test it by visiting: <strong>your-url/health</strong></li>
+                <li>Should return: <code>{"status":"OK","service":"GHL OAuth Backend"}</code></li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>✅ Step 6: Update GoHighLevel Settings</h3>
+            <p>In your GoHighLevel marketplace app, update the redirect URI to your Railway URL:</p>
+            <div class="code-block">
+https://your-railway-url.up.railway.app/api/oauth/callback
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const button = element.parentNode.querySelector('.copy-button');
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#48bb78';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#48bb78';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
