@@ -2387,9 +2387,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
+  // Test route to verify API routing works in production
+  app.get("/api/test", (req, res) => {
+    res.json({ message: "✅ API routing working correctly", timestamp: new Date().toISOString() });
+  });
+
+  // Simple test version of OAuth callback to verify routing
+  app.get("/api/oauth/callback", (req, res) => {
+    console.log('✅ OAuth callback route hit successfully');
+    console.log('Query params:', req.query);
+    
+    if (req.query.code) {
+      // Proceed with actual OAuth handling
+      return handleOAuthCallback(req, res);
+    } else {
+      // Test response to confirm route works
+      res.json({ 
+        message: "✅ OAuth callback route is working", 
+        timestamp: new Date().toISOString(),
+        note: "Add ?code=test to trigger full OAuth flow"
+      });
+    }
+  });
+
   // Register OAuth callback on both paths for compatibility
   app.get("/oauth/callback", handleOAuthCallback);
-  app.get("/api/oauth/callback", handleOAuthCallback);
 
   app.post("/auth/ghl/logout", authenticateToken, async (req, res) => {
     try {

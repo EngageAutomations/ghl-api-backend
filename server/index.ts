@@ -62,7 +62,31 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    // Custom static serving that excludes API routes
+    const express = require('express');
+    const path = require('path');
+    const fs = require('fs');
+    
+    const distPath = path.resolve(__dirname, "public");
+    
+    if (!fs.existsSync(distPath)) {
+      throw new Error(
+        `Could not find the build directory: ${distPath}, make sure to build the client first`,
+      );
+    }
+
+    app.use(express.static(distPath));
+
+    // Custom catch-all that excludes API routes
+    app.use("*", (req, res, next) => {
+      // Don't serve static files for API routes or OAuth routes
+      if (req.originalUrl.startsWith('/api/') || 
+          req.originalUrl.startsWith('/oauth/') ||
+          req.originalUrl.startsWith('/auth/')) {
+        return next();
+      }
+      res.sendFile(path.resolve(distPath, "index.html"));
+    });
   }
 
   // ALWAYS serve the app on port 5000
