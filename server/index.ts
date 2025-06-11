@@ -146,13 +146,22 @@ app.use((req, res, next) => {
 
       // Exchange code for tokens
       console.log("Exchanging code for tokens...");
-      const tokens = await ghlOAuth.exchangeCodeForTokens(code as string);
-      console.log("Token exchange successful:", { 
-        access_token: tokens.access_token ? "present" : "missing",
-        token_type: tokens.token_type,
-        expires_in: tokens.expires_in,
-        scope: tokens.scope
-      });
+      let tokens;
+      try {
+        tokens = await ghlOAuth.exchangeCodeForTokens(code as string);
+        console.log("Token exchange successful:", { 
+          access_token: tokens.access_token ? "present" : "missing",
+          token_type: tokens.token_type,
+          expires_in: tokens.expires_in,
+          scope: tokens.scope
+        });
+      } catch (tokenError) {
+        console.error("=== TOKEN EXCHANGE ERROR CAUGHT ===");
+        console.error("Error:", tokenError.message);
+        console.error("Stack:", tokenError.stack);
+        console.error("===================================");
+        throw tokenError;
+      }
       
       // Get user info from GHL
       console.log("Getting user info from GHL...");
