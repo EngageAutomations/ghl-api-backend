@@ -90,10 +90,10 @@
             debugEl.classList.remove('hidden');
         }
 
-        function processOAuthCode(authCode, authState) {
-            // Direct GoHighLevel token exchange - bypass routing conflicts
-            const clientId = 'YOUR_CLIENT_ID'; // This will be configured in GoHighLevel
-            const clientSecret = 'YOUR_CLIENT_SECRET'; // This will be configured
+        async function processOAuthCode(authCode, authState) {
+            // Real GoHighLevel token exchange
+            const clientId = '68474924a586bce22a6e64f7-mbpkmyu4';
+            const clientSecret = 'b5a7a120-7df7-4d23-8796-4863cbd08f94';
             const redirectUri = 'https://dir.engageautomations.com/oauth-complete.html';
             
             const tokenData = {
@@ -104,19 +104,35 @@
                 redirect_uri: redirectUri
             };
 
-            // Simulate successful token exchange for now
-            // In production, this would call GoHighLevel's token endpoint
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve({
-                        access_token: 'simulated_access_token_' + Date.now(),
-                        refresh_token: 'simulated_refresh_token_' + Date.now(),
-                        token_type: 'Bearer',
-                        expires_in: 3600,
-                        scope: 'contacts.readonly contacts.write'
-                    });
-                }, 1000);
-            });
+            try {
+                // Call GoHighLevel's token endpoint
+                const response = await fetch('https://services.leadconnectorhq.com/oauth/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': 'application/json'
+                    },
+                    body: new URLSearchParams(tokenData)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+                }
+
+                const tokens = await response.json();
+                
+                // Validate token response
+                if (!tokens.access_token) {
+                    throw new Error('No access token received from GoHighLevel');
+                }
+
+                return tokens;
+                
+            } catch (error) {
+                console.error('GoHighLevel token exchange error:', error);
+                throw error;
+            }
         }
 
         async function handleOAuthFlow() {

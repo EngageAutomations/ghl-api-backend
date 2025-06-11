@@ -184,6 +184,83 @@ app.use((req, res, next) => {
     }
   });
 
+  // OAuth URL generation endpoint
+  app.post('/api/oauth/url', async (req, res) => {
+    try {
+      const { state, scopes } = req.body;
+      
+      // Import OAuth functionality
+      const { ghlOAuth } = await import('./ghl-oauth.js');
+      
+      // Generate authorization URL
+      const authUrl = ghlOAuth.getAuthorizationUrl(state || `state_${Date.now()}`, true);
+      
+      console.log('Generated OAuth URL:', authUrl);
+      
+      res.json({
+        success: true,
+        authUrl,
+        clientId: process.env.GHL_CLIENT_ID,
+        redirectUri: 'https://dir.engageautomations.com/oauth-complete.html'
+      });
+      
+    } catch (error) {
+      console.error('OAuth URL generation error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to generate OAuth URL',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // GoHighLevel API test endpoint
+  app.get('/api/ghl/test', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'No access token provided' });
+      }
+
+      const accessToken = authHeader.replace('Bearer ', '');
+      
+      // Import OAuth functionality
+      const { ghlOAuth } = await import('./ghl-oauth.js');
+      
+      // Test user info endpoint
+      const userInfo = await ghlOAuth.getUserInfo(accessToken);
+      
+      console.log('GoHighLevel API test successful:', userInfo);
+      
+      res.json({
+        success: true,
+        message: 'GoHighLevel API access confirmed',
+        userInfo: {
+          id: userInfo.id,
+          name: userInfo.name,
+          email: userInfo.email
+        }
+      });
+      
+    } catch (error) {
+      console.error('GoHighLevel API test error:', error);
+      
+      if (error instanceof Error && error.message === 'INVALID_TOKEN') {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid or expired token',
+          message: 'Please re-authenticate with GoHighLevel'
+        });
+      }
+      
+      res.status(500).json({
+        success: false,
+        error: 'API test failed',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Add OAuth routes before Vite middleware to prevent catch-all interference
   const { ghlOAuth } = await import('./ghl-oauth.js');
   const jwt = (await import('jsonwebtoken')).default;
