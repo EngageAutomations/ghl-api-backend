@@ -102,6 +102,9 @@ app.use((req, res, next) => {
   app.get("/api/oauth/callback", async (req, res) => {
     console.log('=== OAUTH CALLBACK STARTED ===');
     console.log('Query params:', req.query);
+    console.log('Full URL:', req.url);
+    console.log('Method:', req.method);
+    console.log('Headers:', JSON.stringify(req.headers, null, 2));
     
     // Handle authorization initiation
     if (req.query.action === 'authorize') {
