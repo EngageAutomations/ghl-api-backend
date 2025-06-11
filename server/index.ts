@@ -5,6 +5,16 @@ import { setupVite, serveStatic, log } from "./vite";
 import { setupProductionRouting } from "./production-router";
 import { privateDeploymentGuard, ipWhitelist } from "./privacy";
 import { setupDomainRedirects, setupCORS } from "./domain-config";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// ES Module compatibility fixes for __dirname error
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Make available globally for compatibility with any legacy code
+global.__dirname = __dirname;
+global.__filename = __filename;
 
 const app = express();
 
@@ -158,13 +168,18 @@ app.use((req, res, next) => {
     setupProductionRouting(app);
   }
 
-  // Use Cloud Run's PORT environment variable (default 8080) or fallback to 5000 for local dev
-  const port = process.env.PORT || 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  // Use Cloud Run's PORT environment variable (default 8080) or fallback to 3000 for local dev
+  const port = process.env.PORT || 3000;
+  server.listen(port, "0.0.0.0", () => {
+    console.log('='.repeat(50));
+    console.log('🚀 Server Running');
+    console.log('='.repeat(50));
+    console.log(`Port: ${port}`);
+    console.log(`Host: 0.0.0.0`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`ES Module compatibility: ✓`);
+    console.log(`__dirname available: ${__dirname}`);
+    console.log('='.repeat(50));
     log(`serving on port ${port}`);
   });
 })();
