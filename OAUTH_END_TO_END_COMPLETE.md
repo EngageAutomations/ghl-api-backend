@@ -10,12 +10,14 @@
 
 ### Live OAuth Flow Test
 ```
-Generated OAuth URL: 
-https://marketplace.gohighlevel.com/oauth/chooselocation?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2Fapi%2Foauth%2Fcallback&scope=businesses.readonly+businesses.write+calendars.readonly+calendars.write+contacts.readonly+contacts.write+locations.readonly+locations.write+opportunities.readonly+opportunities.write+users.readonly&state=test_live_oauth&access_type=offline
+Live OAuth URL (Corrected): 
+https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2Foauth%2Fcallback&scope=products%2Fprices.write+products%2Fprices.readonly+products%2Fcollection.write+products%2Fcollection.readonly+medias.write+medias.readonly+locations.readonly+contacts.readonly+contacts.write&state=test_live&access_type=offline
 
 ✅ Callback endpoint accessible (200 OK)
-✅ OAuth code processing working (302 redirect)
+✅ OAuth code processing working (302 redirect)  
 ✅ Error handling functional
+✅ Correct scopes configured (products, collections, media, locations, contacts)
+✅ Proper domain (marketplace.leadconnectorhq.com)
 ```
 
 ## Production Configuration
@@ -23,8 +25,8 @@ https://marketplace.gohighlevel.com/oauth/chooselocation?response_type=code&clie
 ### GoHighLevel OAuth Settings
 - **Client ID**: `68474924a586bce22a6e64f7-mbpkmyu4`
 - **Client Secret**: `b5a7a120-7df7-4d23-8796-4863cbd08f94` (securely stored)
-- **Redirect URI**: `https://dir.engageautomations.com/api/oauth/callback`
-- **Scopes**: businesses, calendars, contacts, locations, opportunities, users (read/write)
+- **Redirect URI**: `https://dir.engageautomations.com/oauth/callback`
+- **Scopes**: products/prices, products/collection, medias, locations, contacts (read/write)
 
 ### Server Infrastructure
 - **Server Status**: Running on port 5000

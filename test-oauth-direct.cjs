@@ -8,8 +8,8 @@ const https = require('https');
 
 // GoHighLevel OAuth Configuration
 const GHL_CLIENT_ID = '68474924a586bce22a6e64f7-mbpkmyu4';
-const GHL_REDIRECT_URI = 'https://dir.engageautomations.com/api/oauth/callback';
-const GHL_SCOPES = 'businesses.readonly businesses.write calendars.readonly calendars.write contacts.readonly contacts.write locations.readonly locations.write opportunities.readonly opportunities.write users.readonly';
+const GHL_REDIRECT_URI = 'https://dir.engageautomations.com/oauth/callback';
+const GHL_SCOPES = 'products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write';
 
 function generateState() {
   return 'test_' + Math.random().toString(36).substring(2, 15);
@@ -25,7 +25,7 @@ function generateOAuthUrl(state) {
     access_type: 'offline'
   });
   
-  return `https://marketplace.gohighlevel.com/oauth/chooselocation?${params.toString()}`;
+  return `https://marketplace.leadconnectorhq.com/oauth/chooselocation?${params.toString()}`;
 }
 
 async function testOAuthEndpoint(path) {
