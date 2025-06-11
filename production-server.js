@@ -77,6 +77,102 @@ app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
   }
 });
 
+// OAuth URL generation endpoint
+app.post('/api/oauth/url', async (req, res) => {
+  try {
+    console.log('OAuth URL generation requested');
+    
+    // GoHighLevel OAuth configuration
+    const clientId = process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4';
+    const redirectUri = 'https://dir.engageautomations.com/api/oauth/callback';
+    const scopes = 'conversations/message.readonly conversations/message.write locations.readonly locations/customFields.readonly locations/customValues.readonly locations/customValues.write calendars.readonly calendars/events.readonly calendars/events.write contacts.readonly contacts.write opportunities.readonly opportunities.write';
+    
+    // Generate unique state for security
+    const state = `ghl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Build authorization URL
+    const authUrl = `https://marketplace.gohighlevel.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${clientId}&scope=${encodeURIComponent(scopes)}&state=${state}`;
+    
+    console.log('Generated OAuth URL:', authUrl);
+    
+    res.json({
+      success: true,
+      authUrl: authUrl,
+      state: state
+    });
+    
+  } catch (error) {
+    console.error('OAuth URL generation error:', error);
+    res.status(500).json({
+      error: 'Failed to generate OAuth URL',
+      details: error.message
+    });
+  }
+});
+
+// OAuth token exchange endpoint
+app.post('/api/oauth/exchange', async (req, res) => {
+  try {
+    console.log('OAuth token exchange requested');
+    const { code, state } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({
+        error: 'Authorization code is required'
+      });
+    }
+    
+    // GoHighLevel token exchange configuration
+    const clientId = process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4';
+    const clientSecret = process.env.GHL_CLIENT_SECRET || 'b5a7a120-7df7-4d23-8796-4863cbd08f94';
+    const redirectUri = 'https://dir.engageautomations.com/api/oauth/callback';
+    
+    // Exchange code for tokens
+    const tokenResponse = await fetch('https://marketplace.gohighlevel.com/oauth/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: 'authorization_code',
+        code: code,
+        redirect_uri: redirectUri
+      })
+    });
+    
+    const tokenData = await tokenResponse.json();
+    
+    if (!tokenResponse.ok) {
+      console.error('Token exchange failed:', tokenData);
+      return res.status(400).json({
+        error: 'Token exchange failed',
+        details: tokenData
+      });
+    }
+    
+    console.log('Token exchange successful');
+    
+    // Return success with tokens (in production, store these securely)
+    res.json({
+      success: true,
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      expires_in: tokenData.expires_in,
+      token_type: tokenData.token_type,
+      scope: tokenData.scope
+    });
+    
+  } catch (error) {
+    console.error('OAuth token exchange error:', error);
+    res.status(500).json({
+      error: 'Token exchange failed',
+      details: error.message
+    });
+  }
+});
+
 // Basic dashboard route
 app.get('/dashboard', (req, res) => {
   res.send(`

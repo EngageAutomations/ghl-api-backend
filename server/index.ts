@@ -242,6 +242,13 @@ app.use((req, res, next) => {
   // Add request tracing middleware to debug routing issues
   app.use((req, res, next) => {
     console.log(`🔍 Incoming request: ${req.method} ${req.url}`);
+    
+    // Special debug for OAuth routes
+    if (req.url.includes('/api/oauth/')) {
+      console.log(`🔧 OAuth route detected: ${req.method} ${req.url}`);
+      console.log(`🔧 Content-Type: ${req.headers['content-type']}`);
+    }
+    
     next();
   });
 
