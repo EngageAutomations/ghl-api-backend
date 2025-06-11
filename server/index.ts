@@ -26,31 +26,87 @@ function setupOAuthRoutesProduction(app: express.Express) {
     res.send('Production server test route is working! Backend routing confirmed.');
   });
 
-  // OAuth callback redirect to static bridge page
+  // OAuth callback - handles complete OAuth flow
   app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
-    console.log('✅ OAuth callback endpoint accessed - production routing is working');
+    console.log('OAuth callback endpoint accessed');
     console.log('Query params:', req.query);
-    console.log('URL:', req.url);
 
-    const code = req.query.code;
-    const state = req.query.state;
-    const error = req.query.error;
+    const { code, state, error, action } = req.query;
     
-    if (!code && !error) {
-      console.log('No parameters - test endpoint');
-      return res.send('OAuth callback hit successfully - production route is working!');
+    // Handle OAuth URL generation requests
+    if (action === 'generate-url') {
+      try {
+        console.log('Generating OAuth URL via callback endpoint');
+        const { ghlOAuth } = await import('./ghl-oauth.js');
+        const authUrl = ghlOAuth.getAuthorizationUrl(state || `state_${Date.now()}`, true);
+        
+        return res.json({
+          success: true,
+          authUrl,
+          state: state || `state_${Date.now()}`,
+          clientId: process.env.GHL_CLIENT_ID,
+          redirectUri: 'https://dir.engageautomations.com/api/oauth/callback'
+        });
+      } catch (error) {
+        console.error('OAuth URL generation error:', error);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to generate OAuth URL',
+          message: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
     }
-    
-    // Redirect to static OAuth complete page with parameters preserved
-    const params = new URLSearchParams();
-    if (code) params.set('code', code as string);
-    if (state) params.set('state', state as string);
-    if (error) params.set('error', error as string);
-    
-    const redirectUrl = `/oauth-complete.html?${params.toString()}`;
-    console.log('Redirecting to OAuth complete page:', redirectUrl);
-    
-    res.redirect(redirectUrl);
+
+    // Handle OAuth errors
+    if (error) {
+      console.error('OAuth error:', error);
+      const errorMsg = encodeURIComponent(error as string);
+      const redirectUrl = `https://dir.engageautomations.com/?error=${errorMsg}`;
+      console.log('Redirecting with error to:', redirectUrl);
+      return res.redirect(redirectUrl);
+    }
+
+    // Handle test endpoint (no parameters except action)
+    if (!code && !error && !action) {
+      console.log('No parameters - test endpoint');
+      return res.send('OAuth callback hit successfully - route is working!');
+    }
+
+    // Handle OAuth token exchange
+    if (code) {
+      try {
+        console.log('Processing OAuth code for token exchange');
+        const { ghlOAuth } = await import('./ghl-oauth.js');
+        
+        // Exchange code for tokens
+        const tokenData = await ghlOAuth.exchangeCodeForTokens(code, state);
+        
+        if (tokenData && tokenData.access_token) {
+          console.log('OAuth tokens received successfully');
+          
+          // Store token in session/cookie
+          res.cookie('oauth_token', tokenData.access_token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+          });
+          
+          // Redirect to success page
+          const successUrl = `https://dir.engageautomations.com/?success=oauth-complete&timestamp=${Date.now()}`;
+          console.log('Redirecting to success page:', successUrl);
+          return res.redirect(successUrl);
+          
+        } else {
+          throw new Error('No access token received from GoHighLevel');
+        }
+        
+      } catch (error) {
+        console.error('OAuth token exchange error:', error);
+        const errorMsg = encodeURIComponent('Token exchange failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+        const redirectUrl = `https://dir.engageautomations.com/?error=${errorMsg}`;
+        return res.redirect(redirectUrl);
+      }
+    }
   });
 
   // OAuth token exchange endpoint - GET version to bypass infrastructure
