@@ -1,0 +1,161 @@
+✅ Migration Report: Fixing OAuth Callback Failures in Replit
+🔧 Problem
+Replit’s autoscale production deployment serves static files before backend routes, breaking OAuth callbacks that rely on:
+
+GET /api/oauth/callback?code=...
+
+POST /api/oauth/exchange
+
+🧨 Impact
+GoHighLevel OAuth fails
+
+No access tokens can be exchanged
+
+App install process is broken
+
+✅ Migration Solution Overview
+Component	Platform	Result
+Frontend	Replit (Vite/React)	✅ Stays as-is
+Backend (OAuth + API)	Railway (Node/Express)	✅ Fully working
+Custom Domain	Proxy to Railway /api/* from Replit	✅ Keeps dir.engageautomations.com
+
+🚀 Deployment Steps
+📁 1. Create a New Railway Project
+Go to https://railway.app
+
+Click New Project > Deploy from GitHub Repo
+
+Use the code below in your GitHub repo
+
+🛠️ 2. ✅ Copy This server/index.ts Template
+ts
+Copy
+Edit
+// server/index.ts
+import express from 'express';
+import axios from 'axios';
+import cookieParser from 'cookie-parser';
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+app.use(express.json());
+app.use(cookieParser());
+
+app.get('/api/oauth/callback', async (req, res) => {
+  console.log('✅ OAuth callback hit');
+  const { code, state } = req.query;
+
+  if (!code) return res.status(400).send('Missing code');
+
+  try {
+    const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', {
+      grant_type: 'authorization_code',
+      client_id: process.env.GHL_CLIENT_ID,
+      client_secret: process.env.GHL_CLIENT_SECRET,
+      code,
+      redirect_uri: process.env.GHL_REDIRECT_URI,
+    });
+
+    console.log('✅ Tokens received:', response.data);
+
+    // You can store the tokens here in DB
+    return res.redirect(`/oauth-success?access=${response.data.access_token}`);
+  } catch (error) {
+    console.error('❌ Token exchange failed:', error.response?.data || error.message);
+    return res.redirect('/oauth-error?error=callback_failed');
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ Backend listening on port ${PORT}`);
+});
+📦 3. Create package.json
+json
+Copy
+Edit
+{
+  "name": "ghl-oauth-backend",
+  "main": "server/index.ts",
+  "scripts": {
+    "start": "ts-node server/index.ts",
+    "dev": "ts-node-dev server/index.ts"
+  },
+  "dependencies": {
+    "axios": "^1.6.7",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3"
+  }
+}
+🗂️ 4. Add tsconfig.json
+json
+Copy
+Edit
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "rootDir": "./server",
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true
+  }
+}
+🔐 5. Set Railway Environment Variables
+Go to Project → Variables and add:
+
+Key	Value
+GHL_CLIENT_ID	your GoHighLevel client ID
+GHL_CLIENT_SECRET	your GoHighLevel client secret
+GHL_REDIRECT_URI	https://dir.engageautomations.com/api/oauth/callback
+
+🌐 6. Update GoHighLevel Redirect URI
+In GoHighLevel developer portal:
+
+Set redirect URI to:
+
+ruby
+Copy
+Edit
+https://dir.engageautomations.com/api/oauth/callback
+🔁 7. Proxy /api/* Requests from Replit → Railway
+In Replit, add this to your .replit or vite.config.ts:
+
+vite.config.ts
+ts
+Copy
+Edit
+export default defineConfig({
+  server: {
+    proxy: {
+      '/api': 'https://your-railway-app-name.up.railway.app'
+    }
+  }
+});
+📝 This allows your frontend (on Replit) to use /api/oauth/callback and have it automatically forwarded to the backend.
+
+🧪 Testing Instructions
+Install the app from GoHighLevel
+
+Confirm you hit your Railway logs:
+
+css
+Copy
+Edit
+✅ OAuth callback hit
+✅ Tokens received: { access_token, ... }
+You’ll be redirected to /oauth-success
+
+🧾 Summary
+Task	Status
+Migrate backend to Railway	✅
+Add working OAuth /api/oauth/callback	✅
+Keep frontend in Replit	✅
+Retain dir.engageautomations.com domain	✅
+Enable token exchange and auth flow	✅
+
