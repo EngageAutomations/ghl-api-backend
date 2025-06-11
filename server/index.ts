@@ -189,8 +189,8 @@ app.use((req, res, next) => {
       // Clear state cookie
       res.clearCookie('oauth_state');
 
-      // Redirect to dashboard
-      res.redirect('/');
+      // Redirect to OAuth success page
+      res.redirect('/oauth-success');
     } catch (error) {
       console.error("=== OAUTH CALLBACK ERROR ===");
       console.error("Error message:", error.message);
