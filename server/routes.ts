@@ -2327,28 +2327,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
   }
 
-  // Single OAuth callback handler for both paths
+  // Single OAuth callback handler for both paths - IMMEDIATE LOGGING
   app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
+    // Force immediate output to stderr and stdout
+    process.stderr.write('\n🚨 CALLBACK HIT - IMMEDIATE STDERR\n');
+    process.stdout.write('\n🚨 CALLBACK HIT - IMMEDIATE STDOUT\n');
+    console.error('🚨 CALLBACK HIT - CONSOLE ERROR');
+    console.log('🚨 CALLBACK HIT - CONSOLE LOG');
+    
     try {
-      console.log('✅ OAuth callback received');
-      console.log('Query params:', req.query);
+      console.error('✅ OAuth callback received');
+      console.error('Query params:', req.query);
+      console.error('URL:', req.url);
+      console.error('Method:', req.method);
       
       const code = req.query.code as string;
       if (!code) {
-        console.log('No code provided - returning test response');
+        console.error('No code provided - returning test response');
         return res.send('OAuth callback hit successfully - route is working!');
       }
 
-      console.log('✅ Code received:', code.substring(0, 10) + '...');
+      console.error('✅ Code received:', code.substring(0, 10) + '...');
 
       // Use dummy token exchange for now to test route functionality
       const tokenResponse = await dummyExchangeCodeForTokens(code);
-      console.log('✅ Token response:', tokenResponse);
+      console.error('✅ Token response:', tokenResponse);
 
       res.send('OAuth successful! Token exchange completed.');
     } catch (err) {
       console.error('❌ OAuth callback failed:', err);
       console.error('Error details:', err.message);
+      console.error('Error stack:', err.stack);
       res.status(500).send(`OAuth failure: ${err.message}`);
     }
   });
