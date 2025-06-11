@@ -2464,7 +2464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
-      console.log('Processing OAuth callback with code length:', req.query.code.length);
+      console.log('Processing OAuth callback with code length:', (req.query.code as string).length);
       await handleOAuthCallback(req, res);
     } catch (error) {
       console.error('OAuth callback wrapper error:', error);
