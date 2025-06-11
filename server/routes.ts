@@ -2200,21 +2200,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Test OAuth URL generation
-  app.get("/api/oauth/test-url", (req, res) => {
+  app.get("/api/oauth/test-url", async (req, res) => {
     try {
-      const state = "test123";
-      const authUrl = ghlOAuth.getAuthorizationUrl(state, false); // Use standard flow
+      const { TokenEncryption } = await import('./token-encryption');
+      const state = TokenEncryption.generateState();
+      const authUrl = ghlOAuth.getAuthorizationUrl(state, true); // Use marketplace flow
       
       res.json({
         authUrl,
         redirectUri: 'https://dir.engageautomations.com/oauth/callback',
         clientId: process.env.GHL_CLIENT_ID,
-        state,
+        state: state.slice(0, 8) + '...',
         instructions: "Copy this URL and open it in a browser while logged into HighLevel to test the OAuth flow"
       });
     } catch (error) {
       console.error("Error generating test URL:", error);
       res.status(500).json({ error: "Failed to generate test URL" });
+    }
+  });
+
+  // OAuth validation endpoint
+  app.get("/api/oauth/validate", async (req, res) => {
+    try {
+      const { OAuthFlowValidator } = await import('./oauth-flow-validator');
+      const validation = await OAuthFlowValidator.runCompleteValidation();
+      
+      res.json({
+        success: true,
+        validation
+      });
+    } catch (error) {
+      console.error("OAuth validation error:", error);
+      res.status(500).json({ 
+        success: false,
+        error: "Failed to validate OAuth flow",
+        details: String(error)
+      });
     }
   });
 
