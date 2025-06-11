@@ -45,7 +45,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
           authUrl,
           state: state || `state_${Date.now()}`,
           clientId: process.env.GHL_CLIENT_ID,
-          redirectUri: 'https://dir.engageautomations.com/api/oauth/callback'
+          redirectUri: 'https://dir.engageautomations.com/oauth/callback'
         });
       } catch (error) {
         console.error('OAuth URL generation error:', error);
