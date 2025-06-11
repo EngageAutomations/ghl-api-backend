@@ -2315,23 +2315,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "✅ API routing working correctly", timestamp: new Date().toISOString() });
   });
 
-  // OAuth token exchange endpoint for JavaScript bridge
-  app.post('/api/oauth/exchange', async (req, res) => {
+  // OAuth token exchange using GET method to avoid routing conflicts
+  app.get("/api/oauth/process", async (req, res) => {
     try {
-      console.log('OAuth token exchange endpoint hit');
-      const { code, state } = req.body;
+      console.log('OAuth process endpoint accessed');
+      const { code, state, action } = req.query;
+      
+      if (action !== 'exchange') {
+        return res.status(400).json({ error: 'Invalid action parameter' });
+      }
       
       if (!code) {
         return res.status(400).json({ error: 'No authorization code provided' });
       }
 
-      console.log('Processing OAuth code:', code.substring(0, 10) + '...');
+      console.log('Processing OAuth code:', (code as string).substring(0, 10) + '...');
       
       // Import OAuth functionality
       const { ghlOAuth } = await import('./ghl-oauth.js');
       
       // Exchange code for tokens
-      const tokenData = await ghlOAuth.exchangeCodeForTokens(code, state);
+      const tokenData = await ghlOAuth.exchangeCodeForTokens(code as string, state as string);
       
       if (tokenData && tokenData.access_token) {
         console.log('OAuth tokens received successfully');
@@ -2361,6 +2365,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+
 
   app.post("/auth/ghl/logout", authenticateToken, async (req, res) => {
     try {

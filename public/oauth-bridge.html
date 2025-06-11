@@ -90,16 +90,12 @@
         } else if (code) {
             console.log('Processing authorization code');
             
-            // Exchange authorization code for tokens
-            fetch('/api/oauth/exchange', {
-                method: 'POST',
+            // Exchange authorization code for tokens using GET method
+            fetch(`/api/oauth/process?action=exchange&code=${encodeURIComponent(code)}&state=${encodeURIComponent(state || '')}`, {
+                method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    code: code,
-                    state: state
-                })
+                    'Accept': 'application/json',
+                }
             })
             .then(response => {
                 console.log('Token exchange response status:', response.status);

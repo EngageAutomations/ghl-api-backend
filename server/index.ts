@@ -125,14 +125,14 @@ app.use((req, res, next) => {
       return res.send('OAuth callback hit successfully - route is working!');
     }
     
-    // Redirect to static OAuth bridge page with parameters preserved
+    // Redirect to static OAuth complete page with parameters preserved
     const params = new URLSearchParams();
     if (code) params.set('code', code);
     if (state) params.set('state', state);
     if (error) params.set('error', error);
     
-    const redirectUrl = `/oauth-bridge.html?${params.toString()}`;
-    console.log('Redirecting to OAuth bridge:', redirectUrl);
+    const redirectUrl = `/oauth-complete.html?${params.toString()}`;
+    console.log('Redirecting to OAuth complete page:', redirectUrl);
     
     res.redirect(redirectUrl);
   });
