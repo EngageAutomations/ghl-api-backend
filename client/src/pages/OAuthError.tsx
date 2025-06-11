@@ -1,62 +1,75 @@
-import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle } from "lucide-react";
+import { useLocation } from 'wouter';
+import { AlertCircle, Home, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function OAuthError() {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   
-  // Get error from URL params
+  // Get error parameter from URL
   const urlParams = new URLSearchParams(window.location.search);
-  const error = urlParams.get('error');
+  const error = urlParams.get('error') || 'unknown_error';
   
-  const getErrorMessage = (errorCode: string | null) => {
+  const getErrorMessage = (errorCode: string) => {
     switch (errorCode) {
       case 'access_denied':
-        return 'You denied access to the application. Please try again and approve the authorization request.';
-      case 'invalid_state':
-        return 'Security validation failed. Please try logging in again.';
+        return 'You denied access to your GoHighLevel account. Please try again if you want to connect.';
       case 'no_code':
-        return 'Authorization code was not received. Please try again.';
+        return 'No authorization code was received from GoHighLevel. Please try the connection process again.';
+      case 'token_exchange_failed':
+        return 'Failed to exchange authorization code for access token. This may be a temporary issue.';
+      case 'user_info_failed':
+        return 'Failed to retrieve your user information from GoHighLevel. Please try again.';
       case 'callback_failed':
-        return 'Authentication callback failed. Please try again or contact support.';
-      case 'invalid_user_data':
-        return 'Required user information is missing from GoHighLevel. Please ensure your GHL account has a valid email and name.';
+        return 'The OAuth callback process encountered an error. Please try connecting again.';
       default:
-        return 'An unexpected error occurred during authentication. Please try again.';
+        return 'An unexpected error occurred during the OAuth process.';
     }
   };
 
+  const handleRetry = () => {
+    window.location.href = '/api/oauth/auth';
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="max-w-md w-full">
-        <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-            <AlertTriangle className="w-6 h-6 text-red-600" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-100">
+      <div className="max-w-md w-full mx-4">
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="mb-6">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Connection Failed
+            </h1>
+            <p className="text-gray-600">
+              {getErrorMessage(error)}
+            </p>
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">
-            Authentication Failed
-          </CardTitle>
-          <CardDescription className="text-gray-600">
-            {getErrorMessage(error)}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button 
-            onClick={() => navigate('/auth/ghl/authorize')}
-            className="w-full"
-          >
-            Try Again
-          </Button>
-          <Button 
-            variant="outline"
-            onClick={() => navigate('/')}
-            className="w-full"
-          >
-            Return to Home
-          </Button>
-        </CardContent>
-      </Card>
+          
+          <div className="space-y-3">
+            <Button 
+              onClick={handleRetry}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </Button>
+            
+            <Button 
+              variant="outline"
+              onClick={() => setLocation('/')}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <Home className="w-4 h-4" />
+              Go Home
+            </Button>
+          </div>
+          
+          <div className="mt-6 pt-4 border-t">
+            <p className="text-xs text-gray-500">
+              Error Code: {error}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

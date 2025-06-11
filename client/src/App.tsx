@@ -8,6 +8,7 @@ import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import OAuthError from "@/pages/OAuthError";
+import OAuthSuccess from "@/pages/OAuthSuccess";
 import OAuthTest from "@/pages/OAuthTest";
 import OAuthSignupTest from "@/pages/OAuthSignupTest";
 import Listings from "@/pages/listings";
@@ -284,6 +285,15 @@ function Router() {
             </div>
           </AppLayout>
         </ProtectedRoute>
+      </Route>
+      
+      {/* OAuth routes */}
+      <Route path="/oauth-success">
+        <OAuthSuccess />
+      </Route>
+      
+      <Route path="/oauth-error">
+        <OAuthError />
       </Route>
       
       {/* 404 route - catch all unmatched routes */}

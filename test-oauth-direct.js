@@ -1,5 +1,5 @@
 // Direct OAuth token exchange test
-const fetch = require('node:fetch');
+import fetch from 'node-fetch';
 
 async function testTokenExchange() {
   const clientId = process.env.GHL_CLIENT_ID;
