@@ -26,6 +26,36 @@ function setupOAuthRoutesProduction(app: express.Express) {
     res.send('Production server test route is working! Backend routing confirmed.');
   });
 
+  // OAuth start endpoint - initiates GoHighLevel OAuth flow
+  app.get('/oauth/start', async (req, res) => {
+    try {
+      console.log('OAuth start request received');
+      const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Import OAuth functionality
+      const { ghlOAuth } = await import('./ghl-oauth.js');
+      
+      // Generate authorization URL
+      const authUrl = ghlOAuth.getAuthorizationUrl(state, true);
+      
+      console.log('Generated OAuth URL:', authUrl);
+      console.log('OAuth state generated:', state.slice(0, 8) + '...');
+      
+      // Store state in secure session cookie for validation
+      res.cookie('oauth_state', state, { 
+        httpOnly: true, 
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 10 * 60 * 1000 // 10 minutes
+      });
+      
+      res.redirect(authUrl);
+    } catch (error) {
+      console.error('OAuth start error:', error);
+      res.status(500).json({ error: 'Failed to initiate OAuth' });
+    }
+  });
+
   // OAuth callback - handles complete OAuth flow
   app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
     console.log('OAuth callback endpoint accessed');
@@ -389,8 +419,6 @@ app.use((req, res, next) => {
 
   // OAuth routes are handled by setupOAuthRoutesProduction - no duplicates needed
 
-  const server = await registerRoutes(app);
-
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -410,8 +438,8 @@ app.use((req, res, next) => {
   const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
   const forceProductionMode = process.env.FORCE_PRODUCTION === 'true' || process.env.NODE_ENV === 'production';
   
-  // Register API routes BEFORE static routing
-  registerRoutes(app);
+  // Register API routes ONCE - AFTER OAuth routes
+  const server = await registerRoutes(app);
   
   if (forceProductionMode) {
     console.log("Setting up production routing for OAuth compatibility...");
