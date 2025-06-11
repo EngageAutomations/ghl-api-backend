@@ -16,8 +16,8 @@ const __dirname = dirname(__filename);
 global.__dirname = __dirname;
 global.__filename = __filename;
 
-// OAuth setup function for production mode
-async function setupOAuthRoutesProduction(app: express.Express) {
+// OAuth setup function for production mode - MUST be called before any middleware
+function setupOAuthRoutesProduction(app: express.Express) {
   console.log('Setting up OAuth routes for production mode...');
   
   // Test route to verify backend routing
@@ -185,6 +185,9 @@ async function setupOAuthRoutesProduction(app: express.Express) {
 
 const app = express();
 
+// CRITICAL: Register OAuth routes FIRST, before any middleware
+setupOAuthRoutesProduction(app);
+
 // Domain and CORS setup
 app.use(setupDomainRedirects);
 app.use(setupCORS);
@@ -264,129 +267,7 @@ app.use((req, res, next) => {
     res.redirect(redirectUrl);
   });
 
-  // OAuth token exchange endpoint (must be before other routes)
-  app.post('/api/oauth/exchange', async (req, res) => {
-    try {
-      console.log('OAuth token exchange endpoint hit');
-      const { code, state } = req.body;
-      
-      if (!code) {
-        return res.status(400).json({ error: 'No authorization code provided' });
-      }
 
-      console.log('Processing OAuth code:', code.substring(0, 10) + '...');
-      
-      // Import OAuth functionality
-      const { ghlOAuth } = await import('./ghl-oauth.js');
-      
-      // Exchange code for tokens
-      const tokenData = await ghlOAuth.exchangeCodeForTokens(code, state);
-      
-      if (tokenData && tokenData.access_token) {
-        console.log('OAuth tokens received successfully');
-        
-        // Store token in session/cookie
-        res.cookie('oauth_token', tokenData.access_token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        });
-        
-        res.json({ 
-          success: true, 
-          message: 'OAuth tokens exchanged successfully',
-          timestamp: new Date().toISOString()
-        });
-      } else {
-        throw new Error('No access token received from GoHighLevel');
-      }
-      
-    } catch (error) {
-      console.error('OAuth token exchange error:', error);
-      res.status(500).json({ 
-        success: false,
-        error: 'OAuth token exchange failed',
-        details: error.message 
-      });
-    }
-  });
-
-  // OAuth URL generation endpoint
-  app.post('/api/oauth/url', async (req, res) => {
-    try {
-      const { state, scopes } = req.body;
-      
-      // Import OAuth functionality
-      const { ghlOAuth } = await import('./ghl-oauth.js');
-      
-      // Generate authorization URL
-      const authUrl = ghlOAuth.getAuthorizationUrl(state || `state_${Date.now()}`, true);
-      
-      console.log('Generated OAuth URL:', authUrl);
-      
-      res.json({
-        success: true,
-        authUrl,
-        clientId: process.env.GHL_CLIENT_ID,
-        redirectUri: 'https://dir.engageautomations.com/oauth-complete.html'
-      });
-      
-    } catch (error) {
-      console.error('OAuth URL generation error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to generate OAuth URL',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
-  // GoHighLevel API test endpoint
-  app.get('/api/ghl/test', async (req, res) => {
-    try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'No access token provided' });
-      }
-
-      const accessToken = authHeader.replace('Bearer ', '');
-      
-      // Import OAuth functionality
-      const { ghlOAuth } = await import('./ghl-oauth.js');
-      
-      // Test user info endpoint
-      const userInfo = await ghlOAuth.getUserInfo(accessToken);
-      
-      console.log('GoHighLevel API test successful:', userInfo);
-      
-      res.json({
-        success: true,
-        message: 'GoHighLevel API access confirmed',
-        userInfo: {
-          id: userInfo.id,
-          name: userInfo.name,
-          email: userInfo.email
-        }
-      });
-      
-    } catch (error) {
-      console.error('GoHighLevel API test error:', error);
-      
-      if (error instanceof Error && error.message === 'INVALID_TOKEN') {
-        return res.status(401).json({
-          success: false,
-          error: 'Invalid or expired token',
-          message: 'Please re-authenticate with GoHighLevel'
-        });
-      }
-      
-      res.status(500).json({
-        success: false,
-        error: 'API test failed',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
 
   // Add OAuth routes before Vite middleware to prevent catch-all interference
   const { ghlOAuth } = await import('./ghl-oauth.js');
@@ -453,16 +334,12 @@ app.use((req, res, next) => {
   
   if (forceProductionMode) {
     console.log("Setting up production routing for OAuth compatibility...");
-    // Register OAuth routes BEFORE production routing
-    await setupOAuthRoutesProduction(app);
     setupProductionRouting(app);
   } else if (isDevelopment && !isReplit) {
     console.log("Setting up development mode with Vite...");
     await setupVite(app, server);
   } else {
     console.log("Setting up production routing for Replit OAuth compatibility...");
-    // Register OAuth routes BEFORE production routing
-    await setupOAuthRoutesProduction(app);
     setupProductionRouting(app);
   }
 
