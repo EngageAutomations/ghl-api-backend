@@ -100,7 +100,39 @@ function setupOAuthRoutesProduction(app: express.Express) {
     }
   });
 
-  // OAuth URL generation endpoint
+  // OAuth URL generation endpoint - using GET to bypass infrastructure
+  app.get('/api/oauth/url', async (req, res) => {
+    try {
+      console.log('OAuth URL generation endpoint hit via GET');
+      const state = req.query.state || `state_${Date.now()}`;
+      
+      // Import OAuth functionality
+      const { ghlOAuth } = await import('./ghl-oauth.js');
+      
+      // Generate authorization URL
+      const authUrl = ghlOAuth.getAuthorizationUrl(state, true);
+      
+      console.log('Generated OAuth URL:', authUrl);
+      
+      res.json({
+        success: true,
+        authUrl,
+        state,
+        clientId: process.env.GHL_CLIENT_ID,
+        redirectUri: 'https://dir.engageautomations.com/api/oauth/callback'
+      });
+      
+    } catch (error) {
+      console.error('OAuth URL generation error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to generate OAuth URL',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // OAuth URL generation endpoint (POST version for compatibility)
   app.post('/api/oauth/url', express.json(), async (req, res) => {
     try {
       console.log('OAuth URL generation endpoint hit in production');
