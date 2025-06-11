@@ -47,28 +47,93 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Add explicit OAuth callback route handler before anything else in production
-  if (app.get("env") !== "development") {
-    app.get("/api/oauth/callback", (req, res) => {
-      res.json({
-        message: "✅ OAuth callback route working",
-        timestamp: new Date().toISOString(),
-        query: req.query,
-        headers: req.headers,
-        method: req.method
+  // Critical: Register OAuth callback routes FIRST to prevent routing conflicts
+  app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
+    try {
+      console.log('🔥 PRODUCTION OAUTH CALLBACK - Direct handler');
+      console.log('Query params:', req.query);
+      console.log('Headers:', req.headers);
+      
+      const { code, state, error } = req.query;
+      
+      if (error) {
+        console.log('OAuth error:', error);
+        return res.redirect(`/oauth-error?error=${error}`);
+      }
+
+      if (!code) {
+        console.log('No authorization code');
+        return res.redirect('/oauth-error?error=no_code');
+      }
+
+      // Import OAuth service inline to avoid circular dependencies
+      const { ghlOAuth } = await import('./ghl-oauth');
+      const { storage } = await import('./storage');
+      const jwt = require('jsonwebtoken');
+
+      console.log('Exchanging code for tokens...');
+      const tokens = await ghlOAuth.exchangeCodeForTokens(code as string);
+      
+      console.log('Getting user info...');
+      const userInfo = await ghlOAuth.getUserInfo(tokens.access_token);
+      
+      // Check if user exists
+      let user = await storage.getUserByGhlId(userInfo.id);
+      
+      if (!user) {
+        // Create username from email
+        const username = userInfo.email.split('@')[0] + '_' + Math.random().toString(36).substring(2, 8);
+        const tokenExpiryDate = new Date(Date.now() + (tokens.expires_in * 1000));
+        
+        user = await storage.createOAuthUser({
+          username: username,
+          displayName: userInfo.name,
+          email: userInfo.email,
+          ghlUserId: userInfo.id,
+          ghlAccessToken: tokens.access_token,
+          ghlRefreshToken: tokens.refresh_token,
+          ghlTokenExpiry: tokenExpiryDate,
+          ghlScopes: tokens.scope,
+          ghlLocationId: '',
+          ghlLocationName: '',
+          authType: 'oauth',
+          isActive: true
+        });
+        
+        console.log('Created new OAuth user:', user.id);
+      } else {
+        // Update tokens
+        const tokenExpiryDate = new Date(Date.now() + (tokens.expires_in * 1000));
+        await storage.updateUserOAuthTokens(user.id, {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          expiresAt: tokenExpiryDate,
+        });
+        console.log('Updated existing user tokens:', user.id);
+      }
+
+      // Create session
+      const sessionToken = jwt.sign(
+        { userId: user.id, authType: 'oauth' },
+        process.env.JWT_SECRET || 'fallback-secret',
+        { expiresIn: '7d' }
+      );
+
+      res.cookie('session_token', sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000
       });
-    });
-    
-    app.get("/oauth/callback", (req, res) => {
-      res.json({
-        message: "✅ OAuth callback route working (legacy path)",
-        timestamp: new Date().toISOString(),
-        query: req.query,
-        headers: req.headers,
-        method: req.method
-      });
-    });
-  }
+
+      console.log('✅ OAuth authentication successful, redirecting to dashboard');
+      res.redirect('/dashboard');
+      
+    } catch (error) {
+      console.error('Production OAuth callback error:', error);
+      res.redirect('/oauth-error?error=callback_failed');
+    }
+  });
 
   const server = await registerRoutes(app);
 
