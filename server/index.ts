@@ -168,8 +168,8 @@ app.use((req, res, next) => {
     setupProductionRouting(app);
   }
 
-  // Use Cloud Run's PORT environment variable (default 8080) or fallback to 3000 for local dev
-  const port = process.env.PORT || 3000;
+  // Use Cloud Run's PORT environment variable (default 8080) or fallback to 5000 for local dev
+  const port = process.env.PORT || 5000;
   server.listen(port, "0.0.0.0", () => {
     console.log('='.repeat(50));
     console.log('🚀 Server Running');
