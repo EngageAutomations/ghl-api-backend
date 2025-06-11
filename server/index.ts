@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupProductionRouting } from "./production-router";
 import { privateDeploymentGuard, ipWhitelist } from "./privacy";
 import { setupDomainRedirects, setupCORS } from "./domain-config";
 
@@ -46,6 +47,17 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Add middleware to prioritize API routes before static serving
+  app.use((req, res, next) => {
+    // Force API routes to be processed, skip static serving
+    if (req.originalUrl.startsWith('/api/') || 
+        req.originalUrl.startsWith('/oauth/') ||
+        req.originalUrl.startsWith('/auth/')) {
+      req.url = req.originalUrl; // Ensure route matching works
+    }
+    next();
+  });
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -62,31 +74,7 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    // Custom static serving that excludes API routes
-    const express = require('express');
-    const path = require('path');
-    const fs = require('fs');
-    
-    const distPath = path.resolve(__dirname, "public");
-    
-    if (!fs.existsSync(distPath)) {
-      throw new Error(
-        `Could not find the build directory: ${distPath}, make sure to build the client first`,
-      );
-    }
-
-    app.use(express.static(distPath));
-
-    // Custom catch-all that excludes API routes
-    app.use("*", (req, res, next) => {
-      // Don't serve static files for API routes or OAuth routes
-      if (req.originalUrl.startsWith('/api/') || 
-          req.originalUrl.startsWith('/oauth/') ||
-          req.originalUrl.startsWith('/auth/')) {
-        return next();
-      }
-      res.sendFile(path.resolve(distPath, "index.html"));
-    });
+    setupProductionRouting(app);
   }
 
   // ALWAYS serve the app on port 5000
