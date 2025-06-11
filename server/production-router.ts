@@ -45,7 +45,7 @@ export function setupProductionRouting(app: Express) {
 
   // Serve static files only for non-API routes
   app.use((req: Request, res: Response, next: NextFunction) => {
-    // Skip all static serving for API routes - let them pass through
+    // Skip all static serving for API routes - let them pass through to registered handlers
     if (req.originalUrl.startsWith('/api/') || 
         req.originalUrl.startsWith('/oauth/') ||
         req.originalUrl.startsWith('/auth/')) {
@@ -63,20 +63,12 @@ export function setupProductionRouting(app: Express) {
   app.use("*", (req: Request, res: Response) => {
     const url = req.originalUrl;
     
-    // CRITICAL: Never serve static files for API, OAuth, or Auth routes
+    // Skip API routes entirely - they should be handled by registered handlers
     if (url.startsWith('/api/') || 
         url.startsWith('/oauth/') ||
         url.startsWith('/auth/')) {
-      console.log(`❌ API route ${url} not found - returning 404`);
-      console.log(`Available routes should have been registered by registerRoutes()`);
-      return res.status(404).json({ 
-        error: 'API endpoint not found',
-        path: url,
-        method: req.method,
-        timestamp: new Date().toISOString(),
-        note: 'This route should be handled by Express, not static serving',
-        hint: 'OAuth routes may not be properly registered'
-      });
+      // Don't intercept - let Express continue to the next handler
+      return;
     }
     
     // Serve index.html ONLY for frontend SPA routes

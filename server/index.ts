@@ -101,7 +101,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
   });
 
   // OAuth URL generation endpoint
-  app.post('/api/oauth/url', async (req, res) => {
+  app.post('/api/oauth/url', express.json(), async (req, res) => {
     try {
       console.log('OAuth URL generation endpoint hit in production');
       const { state, scopes } = req.body;
