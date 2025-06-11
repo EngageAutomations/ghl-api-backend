@@ -1137,13 +1137,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOAuthUser(userData: any): Promise<User> {
+    const { TokenEncryption } = await import('./token-encryption');
+    
     const [user] = await db.insert(users).values({
       username: userData.username,
       displayName: userData.displayName,
       email: userData.email,
       ghlUserId: userData.ghlUserId,
-      ghlAccessToken: userData.ghlAccessToken,
-      ghlRefreshToken: userData.ghlRefreshToken,
+      ghlAccessToken: TokenEncryption.encrypt(userData.ghlAccessToken),
+      ghlRefreshToken: TokenEncryption.encrypt(userData.ghlRefreshToken),
       ghlTokenExpiry: userData.ghlTokenExpiry,
       ghlScopes: userData.ghlScopes,
       ghlLocationId: userData.ghlLocationId,
@@ -1155,11 +1157,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserOAuthTokens(userId: number, tokens: any): Promise<User | undefined> {
+    const { TokenEncryption } = await import('./token-encryption');
+    
     const [user] = await db
       .update(users)
       .set({
-        ghlAccessToken: tokens.accessToken,
-        ghlRefreshToken: tokens.refreshToken,
+        ghlAccessToken: TokenEncryption.encrypt(tokens.accessToken),
+        ghlRefreshToken: TokenEncryption.encrypt(tokens.refreshToken),
         ghlTokenExpiry: tokens.expiresAt,
         updatedAt: new Date()
       })

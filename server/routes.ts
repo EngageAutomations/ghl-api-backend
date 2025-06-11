@@ -2219,19 +2219,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GoHighLevel OAuth Routes
-  app.get("/auth/ghl/authorize", (req, res) => {
+  app.get("/auth/ghl/authorize", async (req, res) => {
     try {
       console.log("OAuth authorization request received");
-      const state = Math.random().toString(36).substring(7);
-      const authUrl = ghlOAuth.getAuthorizationUrl(state, false); // Use standard flow
+      const { TokenEncryption } = await import('./token-encryption');
+      const state = TokenEncryption.generateState();
+      const authUrl = ghlOAuth.getAuthorizationUrl(state, true); // Use marketplace flow
       
       console.log("Generated OAuth URL:", authUrl);
-      console.log("OAuth state:", state);
+      console.log("OAuth state generated:", state.slice(0, 8) + '...');
       
-      // Store state in session for validation
+      // Store state in secure session cookie for validation
       res.cookie('oauth_state', state, { 
         httpOnly: true, 
         secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
         maxAge: 10 * 60 * 1000 // 10 minutes
       });
       
