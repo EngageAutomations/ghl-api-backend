@@ -1,0 +1,136 @@
+✅ Excellent breakdown — your analysis shows that the OAuth flow is architecturally correct, but runtime issues in your server are breaking token exchange, and the lack of logs is masking it.
+
+Let's break this into clear actions and give you a surgical fix plan.
+
+🧠 Summary of Findings
+Layer	Status	Notes
+Route reachability	✅ OK	Callback path is working
+OAuth config	✅ OK	GHL endpoints & client credentials confirmed
+Token exchange	❌ Fails silently	Likely due to runtime or duplicate route/var
+Logging	❌ Broken	Compilation/runtime errors prevent visibility
+Production readiness	⚠️ Almost there	Needs cleanup & recovery on failure
+
+🚨 Critical Root Cause
+Your TypeScript/Node app has:
+
+🔁 Duplicate route definitions for the same callback
+
+⚠️ Conflicting const declarations or variable redeclarations
+
+😶‍🌫️ Silent catch blocks without console.error() or res.send()
+
+🧱 Possibly broken build on startup due to #1 and #2
+
+So while /oauth/callback runs, the actual token exchange logic crashes before executing, and logs are suppressed.
+
+✅ Immediate Fix Plan (Surgical, Safe)
+🛠️ 1. Remove Duplicate Route Definitions
+You should have only one definition like this:
+
+ts
+Copy
+Edit
+app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
+  try {
+    const code = req.query.code;
+    if (!code) throw new Error('No code received');
+
+    console.log('✅ Code received:', code);
+
+    // Exchange code for token
+    const tokenResponse = await exchangeCodeForTokens(code); // Your real logic
+    console.log('✅ Token response:', tokenResponse);
+
+    // Optional: store token, create user, etc.
+
+    res.send('OAuth successful!');
+  } catch (err) {
+    console.error('❌ OAuth callback failed:', err);
+    res.redirect('/oauth-error?error=callback_failed');
+  }
+});
+🧼 2. Fix Variable Conflicts
+Make sure your function doesn’t double-declare const or import the same var multiple times.
+
+Example: Don't do this
+
+ts
+Copy
+Edit
+const { code } = req.query;
+// later
+const code = req.query.code; // ❌
+Also avoid shadowing:
+
+ts
+Copy
+Edit
+function exchangeCodeForTokens(code: string) {
+  const code = ... // ❌ don’t redeclare the param
+}
+🪵 3. Improve Logging: Make it Visible!
+Inside catch blocks, always do:
+
+ts
+Copy
+Edit
+console.error('OAuth error:', err);
+res.status(500).send(`OAuth failure: ${err.message}`);
+This avoids the 302 redirect silently hiding the real issue.
+
+🧪 4. Add Temporary Dummy Token Function
+To confirm the callback route works without touching GHL:
+
+ts
+Copy
+Edit
+async function exchangeCodeForTokens(code) {
+  console.log('🎯 Simulated token exchange for:', code);
+  return {
+    access_token: 'dummy-access-token',
+    refresh_token: 'dummy-refresh-token',
+    expires_in: 3600,
+  };
+}
+Once this logs, you'll know:
+
+The route works
+
+Your server builds
+
+Your error logging is visible
+
+Then swap in the real HTTP request logic (e.g. axios.post(...) to https://services.leadconnectorhq.com/oauth/token).
+
+✅ Bonus: Token Exchange Template
+Here's a minimal working version:
+
+ts
+Copy
+Edit
+async function exchangeCodeForTokens(code) {
+  const data = {
+    grant_type: 'authorization_code',
+    client_id: process.env.GHL_CLIENT_ID,
+    client_secret: process.env.GHL_CLIENT_SECRET,
+    code,
+    redirect_uri: 'https://yourdomain.com/api/oauth/callback',
+  };
+
+  try {
+    const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', data);
+    return response.data;
+  } catch (err) {
+    console.error('Token exchange failed:', err.response?.data || err.message);
+    throw err;
+  }
+}
+✅ Final Checklist
+Step	Status
+Remove duplicate route handlers	🔲
+Fix all duplicate const/shadowed vars	🔲
+Log errors to console visibly	🔲
+Use dummy token function to test	🔲
+Re-enable real token exchange once logs appear	🔲
+
+When you’re ready, I can review your full server/index.ts or callback logic directly to spot anything blocking you further.
