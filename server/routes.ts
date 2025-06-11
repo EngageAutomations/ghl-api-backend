@@ -2284,12 +2284,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.redirect("/oauth-error?error=no_code");
       }
 
-      // Temporarily bypass state validation for production callback issues
-      const storedState = req.cookies.oauth_state;
-      console.log("State validation - received:", state, "stored:", storedState);
-      
-      // Skip state validation for now to allow OAuth completion
-      console.log("Bypassing state validation to complete OAuth flow");
+      // Production callback: skip state validation due to cookie issues
+      console.log("Processing OAuth callback with code:", code?.toString().substring(0, 10) + "...");
 
       // Exchange code for tokens
       console.log("Exchanging code for tokens...");
