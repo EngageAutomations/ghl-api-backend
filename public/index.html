@@ -174,14 +174,25 @@
         state_param: urlParams.get('state')
       });
       
-      const isOAuthCallback = window.location.pathname === '/oauth-callback.html' || 
-                             window.location.pathname === '/oauth/callback' ||
-                             window.location.pathname === '/oauth-success' ||
-                             window.location.pathname.includes('oauth-success') ||
-                             urlParams.get('success') === 'true' ||
-                             (code && state);
+      // Primary detection: Check if we have success parameter or oauth-related URL
+      const hasSuccessParam = urlParams.get('success') === 'true';
+      const hasOAuthCode = code && state;
+      const hasOAuthPath = window.location.pathname === '/oauth-callback.html' || 
+                          window.location.pathname === '/oauth/callback' ||
+                          window.location.pathname === '/oauth-success' ||
+                          window.location.pathname.includes('oauth-success');
+      const hasOAuthUrl = window.location.href.includes('oauth-success') || 
+                         window.location.href.includes('oauth/callback');
       
-      console.log('OAuth callback detected:', isOAuthCallback);
+      const isOAuthCallback = hasSuccessParam || hasOAuthCode || hasOAuthPath || hasOAuthUrl;
+      
+      console.log('OAuth detection details:', {
+        hasSuccessParam,
+        hasOAuthCode,
+        hasOAuthPath,
+        hasOAuthUrl,
+        isOAuthCallback
+      });
       
       if (isOAuthCallback) {
         
