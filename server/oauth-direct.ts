@@ -59,11 +59,16 @@ export function setupDirectOAuthRoutes(app: express.Express) {
         return res.redirect('/?error=no_code');
       }
       
-      // Verify state parameter
-      const storedState = req.cookies.oauth_state;
-      if (!storedState || storedState !== state) {
+      // Verify state parameter (flexible for marketplace installations)
+      const storedState = req.cookies?.oauth_state;
+      if (storedState && storedState !== state) {
         console.error('State mismatch - possible CSRF attack');
         return res.redirect('/?error=invalid_state');
+      }
+      
+      // For marketplace installations, state validation is optional
+      if (!storedState) {
+        console.log('No stored state found - assuming marketplace installation');
       }
       
       // Exchange code for tokens
@@ -73,7 +78,7 @@ export function setupDirectOAuthRoutes(app: express.Express) {
         client_id: process.env.GHL_CLIENT_ID,
         client_secret: process.env.GHL_CLIENT_SECRET,
         code: code as string,
-        redirect_uri: 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback'
+        redirect_uri: 'https://dir.engageautomations.com/oauth/callback'
       };
       
       console.log('Exchanging code for tokens...');

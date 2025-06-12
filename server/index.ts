@@ -1348,12 +1348,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Setup direct OAuth routes BEFORE any middleware to ensure highest priority
-setupDirectOAuthRoutes(app);
-
+// Initialize core middleware first
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// Setup direct OAuth routes AFTER cookie parser to ensure cookies are available
+setupDirectOAuthRoutes(app);
 
 // Domain and CORS setup
 app.use(setupDomainRedirects);
