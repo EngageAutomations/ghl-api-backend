@@ -165,10 +165,14 @@
     
     // Handle direct OAuth callback processing
     function handleOAuthCallback() {
-      if (window.location.pathname === '/oauth-callback.html' || 
-          window.location.pathname === '/oauth/callback' ||
-          window.location.pathname === '/oauth-success' ||
-          (code && state)) {
+      const isOAuthCallback = window.location.pathname === '/oauth-callback.html' || 
+                             window.location.pathname === '/oauth/callback' ||
+                             window.location.pathname === '/oauth-success' ||
+                             window.location.pathname.includes('oauth-success') ||
+                             urlParams.get('success') === 'true' ||
+                             (code && state);
+      
+      if (isOAuthCallback) {
         
         console.log('OAuth callback detected:', {
           path: window.location.pathname,
@@ -347,6 +351,14 @@
         status.innerHTML = `<div class="status error">Network error during token exchange: ${error.message}</div>`;
       }
     }
+    
+    // Execute OAuth callback handling on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      handleOAuthCallback();
+    });
+    
+    // Also execute immediately in case DOMContentLoaded already fired
+    handleOAuthCallback();
   </script>
 </body>
 </html>
