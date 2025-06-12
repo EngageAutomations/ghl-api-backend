@@ -98,7 +98,15 @@ app.get('/api/oauth/callback', async (req, res) => {
       redirect_uri: tokenRequest.redirect_uri
     });
 
-    const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', tokenRequest, {
+    // Convert to URL-encoded format for GoHighLevel API
+    const formData = new URLSearchParams();
+    formData.append('grant_type', tokenRequest.grant_type);
+    formData.append('client_id', tokenRequest.client_id);
+    formData.append('client_secret', tokenRequest.client_secret);
+    formData.append('code', tokenRequest.code);
+    formData.append('redirect_uri', tokenRequest.redirect_uri);
+
+    const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', formData.toString(), {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json'
