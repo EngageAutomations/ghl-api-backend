@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoHighLevel OAuth Integration - Working Solution</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 40px; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+    }
+    .container { 
+      max-width: 600px; 
+      margin: 0 auto; 
+      text-align: center; 
+      background: rgba(255,255,255,0.1);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+    }
+    .btn { 
+      background: #0079F2; 
+      color: white; 
+      padding: 15px 30px; 
+      border: none; 
+      border-radius: 10px; 
+      text-decoration: none; 
+      display: inline-block; 
+      margin: 15px; 
+      font-size: 16px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,121,242,0.3);
+    }
+    .btn:hover { 
+      background: #0066D9; 
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,121,242,0.4);
+    }
+    .status {
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+    .success { background: rgba(76, 175, 80, 0.3); }
+    .error { background: rgba(244, 67, 54, 0.3); }
+    .info { background: rgba(33, 150, 243, 0.3); }
+    .architecture-info {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      text-align: left;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 GoHighLevel OAuth Integration</h1>
+    <p>Complete OAuth Authentication Solution</p>
+    
+    <div class="architecture-info">
+      <h3>🏗️ Architecture Overview</h3>
+      <ul>
+        <li><strong>Frontend:</strong> Hosted on Replit (dir.engageautomations.com)</li>
+        <li><strong>OAuth Backend:</strong> Railway proxy (oauth-backend-production-68c5.up.railway.app)</li>
+        <li><strong>Flow:</strong> Direct OAuth initiation → Railway callback handling → Token exchange</li>
+        <li><strong>Status:</strong> Railway backend confirmed working ✅</li>
+      </ul>
+    </div>
+    
+    <a href="javascript:void(0)" onclick="startOAuth()" class="btn">🔗 Connect with GoHighLevel</a>
+    
+    <div id="status"></div>
+    
+    <div class="architecture-info">
+      <h3>🔍 Technical Details</h3>
+      <p><strong>Client ID:</strong> 68474924a586bce22a6e64f7-mbpkmyu4</p>
+      <p><strong>Callback URL:</strong> https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback</p>
+      <p><strong>Scope:</strong> Full locations, contacts, opportunities, calendars access</p>
+    </div>
+  </div>
+
+  <script>
+    function startOAuth() {
+      console.log('🚀 Starting OAuth flow...');
+      
+      const status = document.getElementById('status');
+      status.innerHTML = '<div class="status info">🔄 Initiating OAuth flow...</div>';
+      
+      // Generate OAuth state
+      const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('oauth_state', state);
+      
+      // OAuth configuration
+      const clientId = '68474924a586bce22a6e64f7-mbpkmyu4';
+      const redirectUri = 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback';
+      const scopes = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write';
+      
+      // Build OAuth URL
+      const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${clientId}&state=${state}&scope=${encodeURIComponent(scopes)}`;
+      
+      console.log('🔗 Redirecting to:', authUrl);
+      status.innerHTML = '<div class="status info">🚀 Redirecting to GoHighLevel...</div>';
+      
+      // Store callback URL for return
+      localStorage.setItem('return_url', window.location.href);
+      
+      // Redirect to OAuth
+      window.location.href = authUrl;
+    }
+    
+    // Check for OAuth callback result
+    function checkOAuthResult() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      const state = urlParams.get('state');
+      const error = urlParams.get('error');
+      const status = document.getElementById('status');
+      
+      if (error) {
+        status.innerHTML = `<div class="status error">❌ OAuth Error: ${error}</div>`;
+        return;
+      }
+      
+      if (code && state) {
+        status.innerHTML = '<div class="status success">✅ OAuth successful! Code received, processing...</div>';
+        
+        // Verify state
+        const storedState = localStorage.getItem('oauth_state');
+        if (state !== storedState) {
+          status.innerHTML = '<div class="status error">❌ Invalid state parameter - possible CSRF attack</div>';
+          return;
+        }
+        
+        // Exchange code for tokens
+        exchangeCodeForTokens(code, state);
+      }
+    }
+    
+    async function exchangeCodeForTokens(code, state) {
+      const status = document.getElementById('status');
+      
+      try {
+        status.innerHTML = '<div class="status info">🔄 Exchanging authorization code for access tokens...</div>';
+        
+        const response = await fetch('https://oauth-backend-production-68c5.up.railway.app/api/oauth/exchange', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code, state })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.access_token) {
+          status.innerHTML = `
+            <div class="status success">
+              🎉 OAuth Integration Complete!
+              <br><br>
+              <strong>Access Token:</strong> ${result.access_token.substr(0, 20)}...
+              <br>
+              <strong>Location ID:</strong> ${result.locationId || 'N/A'}
+              <br>
+              <strong>Company ID:</strong> ${result.companyId || 'N/A'}
+              <br><br>
+              You can now use the GoHighLevel API with this access token.
+            </div>
+          `;
+          
+          // Store tokens for app use
+          localStorage.setItem('ghl_access_token', result.access_token);
+          if (result.refresh_token) {
+            localStorage.setItem('ghl_refresh_token', result.refresh_token);
+          }
+          
+        } else {
+          status.innerHTML = `<div class="status error">❌ Token exchange failed: ${result.error || 'Unknown error'}</div>`;
+        }
+        
+      } catch (error) {
+        console.error('Token exchange error:', error);
+        status.innerHTML = `<div class="status error">❌ Network error during token exchange: ${error.message}</div>`;
+      }
+    }
+    
+    // Check for OAuth result on page load
+    window.addEventListener('DOMContentLoaded', checkOAuthResult);
+  </script>
+</body>
+</html>
