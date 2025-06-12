@@ -356,13 +356,50 @@ function setupOAuthRoutesProduction(app: express.Express) {
 
 const app = express();
 
+// CRITICAL: OAuth callback handler MUST be first to bypass static file serving
+app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
+  console.log('=== PRIORITY OAUTH CALLBACK HIT ===');
+  console.log('URL:', req.url);
+  console.log('Query params:', req.query);
+  console.log('Method:', req.method);
+
+  const { code, state, error } = req.query;
+  
+  if (error) {
+    console.error('OAuth error parameter:', error);
+    const errorMsg = encodeURIComponent(error as string);
+    const redirectUrl = `https://dir.engageautomations.com/?error=${errorMsg}`;
+    console.log('Redirecting with error to:', redirectUrl);
+    return res.redirect(redirectUrl);
+  }
+
+  if (!code && !error) {
+    console.log('No parameters - test endpoint');
+    return res.send('OAuth callback hit successfully - route is working!');
+  }
+
+  if (code) {
+    console.log('=== OAUTH CALLBACK SUCCESS ===');
+    console.log('Authorization code received:', String(code).substring(0, 20) + '...');
+    console.log('State parameter:', state);
+    
+    const successUrl = `https://dir.engageautomations.com/?success=oauth-callback&code=${encodeURIComponent(String(code).substring(0, 10))}...&timestamp=${Date.now()}`;
+    console.log('OAuth callback successful, redirecting to:', successUrl);
+    return res.redirect(successUrl);
+  }
+
+  console.error('Unexpected callback state - no valid parameters');
+  const redirectUrl = `https://dir.engageautomations.com/oauth-error?error=callback_failed&reason=no_valid_parameters`;
+  return res.redirect(redirectUrl);
+});
+
 // Direct OAuth route handling - absolute highest priority
 app.get('/oauth/start', (req, res) => {
   console.log('🚀 DIRECT OAuth route hit - initiating OAuth flow');
   
   const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const clientId = process.env.GHL_CLIENT_ID;
-  const redirectUri = 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback';
+  const redirectUri = 'https://dir.engageautomations.com/oauth/callback';
   const scopes = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write';
   
   const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${clientId}&state=${state}&scope=${encodeURIComponent(scopes)}`;

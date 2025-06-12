@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Success - GoHighLevel Connected</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .success-icon {
+            color: #28a745;
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        .loading {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px 0;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .debug {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-family: monospace;
+            font-size: 12px;
+            display: none;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 10px;
+            border: none;
+            cursor: pointer;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">✓</div>
+        <h1 id="title">GoHighLevel Connected Successfully!</h1>
+        <p id="message">Your GoHighLevel account has been connected. You can now create product directories and sync with your marketplace.</p>
+        
+        <div class="loading" id="spinner"></div>
+        
+        <div id="status">
+            <div class="success">Authorization code received successfully</div>
+            <div class="info">Redirecting to your dashboard...</div>
+        </div>
+        
+        <div class="debug" id="debug">
+            <h4>Debug Information:</h4>
+            <pre id="debug-content"></pre>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <a href="https://dir.engageautomations.com/" class="button">Continue to Dashboard</a>
+            <button onclick="toggleDebug()" class="button" style="background: #6c757d;">Show Debug</button>
+        </div>
+    </div>
+
+    <script>
+        console.log('OAuth Success Page Loaded');
+        
+        function toggleDebug() {
+            const debugEl = document.getElementById('debug');
+            debugEl.style.display = debugEl.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function showDebug(data) {
+            const debugContent = document.getElementById('debug-content');
+            debugContent.textContent = JSON.stringify(data, null, 2);
+        }
+        
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const success = urlParams.get('success');
+        const timestamp = urlParams.get('timestamp');
+        
+        console.log('OAuth Success Parameters:', { code, state, success, timestamp });
+        
+        showDebug({
+            code: code ? code.substring(0, 20) + '...' : 'none',
+            state: state,
+            success: success,
+            timestamp: timestamp,
+            url: window.location.href,
+            redirect_source: 'GoHighLevel OAuth Callback'
+        });
+        
+        // Hide spinner after 2 seconds
+        setTimeout(() => {
+            document.getElementById('spinner').style.display = 'none';
+        }, 2000);
+        
+        // Auto-redirect to dashboard after 5 seconds
+        setTimeout(() => {
+            window.location.href = 'https://dir.engageautomations.com/';
+        }, 5000);
+    </script>
+</body>
+</html>
