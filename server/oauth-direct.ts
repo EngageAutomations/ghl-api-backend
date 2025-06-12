@@ -39,7 +39,27 @@ export function setupDirectOAuthRoutes(app: express.Express) {
   // Test route to verify direct routing works
   app.get('/test', (req, res) => {
     console.log('✅ Direct test route hit - routing is working');
-    res.send('Direct test route is working! OAuth routing should now be functional.');
+    res.send('OAuth routing interceptor is working! OAuth flow should now be functional.');
+  });
+
+  // Check for captured OAuth data
+  app.get('/oauth/installation-data', (req, res) => {
+    const installationData = global.lastOAuthInstallation || null;
+    
+    if (installationData) {
+      console.log('Retrieving captured OAuth installation data');
+      res.json({
+        success: true,
+        installation: installationData,
+        message: 'OAuth installation data found'
+      });
+    } else {
+      res.json({
+        success: false,
+        installation: null,
+        message: 'No OAuth installation data found'
+      });
+    }
   });
 
   // OAuth callback route with complete token exchange
@@ -174,6 +194,31 @@ export function setupDirectOAuthRoutes(app: express.Express) {
       } catch (locationError) {
         console.log('ℹ️ Location data not available or not accessible');
       }
+
+      // Store captured data globally for retrieval
+      global.lastOAuthInstallation = {
+        timestamp: new Date().toISOString(),
+        user: {
+          id: userData.id,
+          email: userData.email,
+          name: userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
+          phone: userData.phone,
+          company: userData.companyName
+        },
+        tokens: {
+          hasAccessToken: !!tokens.access_token,
+          hasRefreshToken: !!tokens.refresh_token,
+          tokenType: tokens.token_type,
+          expiresIn: tokens.expires_in,
+          scopes: tokens.scope
+        },
+        location: locationData ? {
+          id: locationData.id,
+          name: locationData.name,
+          businessType: locationData.businessType,
+          address: locationData.address
+        } : null
+      };
 
       // Log captured OAuth data for testing
       console.log('💾 OAuth Account Data Captured Successfully:');
