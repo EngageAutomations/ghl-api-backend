@@ -7,6 +7,7 @@ import { privateDeploymentGuard, ipWhitelist } from "./privacy";
 import { setupDomainRedirects, setupCORS } from "./domain-config";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import path from 'path';
 
 // ES Module compatibility fixes for __dirname error
 const __filename = fileURLToPath(import.meta.url);
@@ -460,18 +461,27 @@ app.use((req, res, next) => {
   const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
   const forceProductionMode = process.env.FORCE_PRODUCTION === 'true' || process.env.NODE_ENV === 'production' || isReplit;
   
-  // Register API routes FIRST to prevent static routing conflicts
+  // Register API routes first in all cases
   const server = await registerRoutes(app);
   
-  if (forceProductionMode) {
+  if (forceProductionMode || isReplit) {
     console.log("Setting up production routing for OAuth compatibility...");
-    setupProductionRouting(app);
+    
+    // Add static file serving AFTER API routes
+    const distPath = path.join(__dirname, '..', 'dist');
+    app.use(express.static(distPath));
+    
+    // Final fallback for SPA routing - excludes API/OAuth paths
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api/') || req.path.startsWith('/oauth')) {
+        return res.status(404).json({ error: "API endpoint not found", path: req.path });
+      }
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+    
   } else if (isDevelopment && !isReplit) {
     console.log("Setting up development mode with Vite...");
     await setupVite(app, server);
-  } else {
-    console.log("Setting up production routing for Replit OAuth compatibility...");
-    setupProductionRouting(app);
   }
 
   // Use Cloud Run's PORT environment variable (default 8080) or fallback to 5000 for local dev
