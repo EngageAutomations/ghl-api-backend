@@ -134,12 +134,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
     return res.redirect(redirectUrl);
   });
 
-  // OAuth success page route
-  app.get('/oauth-success', (req, res) => {
-    console.log('OAuth success page requested:', req.url);
-    const filePath = path.join(__dirname, '../public/oauth-success.html');
-    res.sendFile(filePath);
-  });
+
 
   // Dynamic OAuth app serving - bypasses caching
   app.get('/oauth-app', (req, res) => {
@@ -1342,6 +1337,14 @@ app.use((req, res, next) => {
   app.get('/oauth/start', (req, res) => {
     console.log('🔄 Redirecting old OAuth route to working solution');
     res.redirect('/oauth-redirect.html');
+  });
+
+  // OAuth success page route - MUST be before static file serving
+  app.get('/oauth-success', (req, res) => {
+    console.log('OAuth success page requested:', req.url);
+    console.log('Query params:', req.query);
+    const filePath = path.join(__dirname, '../public/oauth-success.html');
+    res.sendFile(filePath);
   });
   
   if (forceProductionMode || isReplit) {
