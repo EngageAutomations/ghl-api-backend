@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Installation Test - GoHighLevel Directory</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+        }
+        .subtitle {
+            color: #718096;
+            margin-bottom: 40px;
+            font-size: 16px;
+            line-height: 1.5;
+            text-align: center;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f7fafc;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #2d3748;
+            font-size: 18px;
+        }
+        .oauth-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .oauth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        .secondary-btn {
+            background: #4a5568;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 5px;
+        }
+        .secondary-btn:hover {
+            background: #2d3748;
+        }
+        .status {
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .status.loading {
+            background: #ebf8ff;
+            color: #2b6cb0;
+            border: 1px solid #90cdf4;
+        }
+        .status.error {
+            background: #fed7d7;
+            color: #c53030;
+            border: 1px solid #feb2b2;
+        }
+        .status.success {
+            background: #f0fff4;
+            color: #38a169;
+            border: 1px solid #9ae6b4;
+        }
+        .data-display {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            margin: 15px 0;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .url-box {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OAuth Installation Testing</h1>
+        <p class="subtitle">Test the GoHighLevel OAuth flow and see captured installation data</p>
+
+        <div class="section">
+            <h3>🔗 Step 1: Generate OAuth URL</h3>
+            <p>Generate a development OAuth URL that will redirect back to this server:</p>
+            <button onclick="generateOAuthURL()" class="oauth-btn">Generate OAuth URL</button>
+            <div id="oauth-url-display"></div>
+        </div>
+
+        <div class="section">
+            <h3>🚀 Step 2: Test Installation</h3>
+            <p>Use the generated URL to perform a test installation. This will capture your OAuth data.</p>
+            <div id="test-installation-area"></div>
+        </div>
+
+        <div class="section">
+            <h3>📊 Step 3: View Captured Data</h3>
+            <p>Check what installation data was captured during the OAuth flow:</p>
+            <button onclick="checkInstallationData()" class="secondary-btn">Check Installation Data</button>
+            <button onclick="viewDatabaseContents()" class="secondary-btn">View Database Contents</button>
+            <div id="installation-data-display"></div>
+        </div>
+
+        <div class="section">
+            <h3>🔄 Step 4: Test Management</h3>
+            <p>Manage test installations and cleanup:</p>
+            <button onclick="clearTestData()" class="secondary-btn">Clear Test Data</button>
+            <button onclick="viewAllInstallations()" class="secondary-btn">View All Installations</button>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <script>
+        async function generateOAuthURL() {
+            showStatus('Generating OAuth URL...', 'loading');
+            
+            try {
+                const response = await fetch('/oauth/callback?action=generate-url');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const urlDisplay = document.getElementById('oauth-url-display');
+                    urlDisplay.innerHTML = `
+                        <div class="url-box">
+                            <strong>OAuth URL:</strong><br>
+                            ${data.authUrl}
+                        </div>
+                        <div class="step">
+                            <div class="step-number">→</div>
+                            <div>
+                                <strong>Redirect URI:</strong> ${data.redirectUri}<br>
+                                <strong>Client ID:</strong> ${data.clientId}<br>
+                                <strong>State:</strong> ${data.state}
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('test-installation-area').innerHTML = `
+                        <a href="${data.authUrl}" target="_blank" class="oauth-btn">
+                            🚀 Start OAuth Installation
+                        </a>
+                        <p><small>This will open in a new tab. After authorization, you'll be redirected back to capture the data.</small></p>
+                    `;
+                    
+                    showStatus('OAuth URL generated successfully!', 'success');
+                } else {
+                    showStatus('Failed to generate OAuth URL: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showStatus('Error generating OAuth URL: ' + error.message, 'error');
+            }
+        }
+
+        async function checkInstallationData() {
+            showStatus('Checking installation data...', 'loading');
+            
+            try {
+                const response = await fetch('/oauth/installation-data');
+                const data = await response.json();
+                
+                const display = document.getElementById('installation-data-display');
+                
+                if (data.success && data.installation) {
+                    display.innerHTML = `
+                        <div class="status success">
+                            <strong>✅ Installation Data Found!</strong>
+                        </div>
+                        <div class="data-display">${JSON.stringify(data.installation, null, 2)}</div>
+                    `;
+                    showStatus('Installation data retrieved successfully!', 'success');
+                } else {
+                    display.innerHTML = `
+                        <div class="status error">
+                            <strong>❌ No Installation Data Found</strong><br>
+                            ${data.message || 'No OAuth installations have been completed yet.'}
+                        </div>
+                    `;
+                    showStatus('No installation data found. Complete an OAuth installation first.', 'error');
+                }
+            } catch (error) {
+                showStatus('Error checking installation data: ' + error.message, 'error');
+            }
+        }
+
+        async function viewDatabaseContents() {
+            showStatus('Fetching database contents...', 'loading');
+            
+            try {
+                const response = await fetch('/api/debug/oauth-installations');
+                const data = await response.json();
+                
+                const display = document.getElementById('installation-data-display');
+                
+                display.innerHTML = `
+                    <div class="data-display">${JSON.stringify(data, null, 2)}</div>
+                `;
+                
+                showStatus(`Found ${data.length || 0} installation records`, 'success');
+            } catch (error) {
+                showStatus('Error fetching database contents: ' + error.message, 'error');
+            }
+        }
+
+        async function clearTestData() {
+            if (!confirm('Are you sure you want to clear all test installation data?')) {
+                return;
+            }
+            
+            showStatus('Clearing test data...', 'loading');
+            
+            try {
+                const response = await fetch('/api/debug/clear-installations', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('Test data cleared successfully!', 'success');
+                    document.getElementById('installation-data-display').innerHTML = '';
+                } else {
+                    showStatus('Failed to clear test data: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showStatus('Error clearing test data: ' + error.message, 'error');
+            }
+        }
+
+        async function viewAllInstallations() {
+            showStatus('Fetching all installations...', 'loading');
+            
+            try {
+                const response = await fetch('/api/debug/oauth-installations');
+                const installations = await response.json();
+                
+                const display = document.getElementById('installation-data-display');
+                
+                if (installations.length > 0) {
+                    let html = `<div class="status success"><strong>Found ${installations.length} installation(s):</strong></div>`;
+                    
+                    installations.forEach((install, index) => {
+                        html += `
+                            <div class="section">
+                                <h4>Installation #${index + 1}</h4>
+                                <div class="data-display">${JSON.stringify(install, null, 2)}</div>
+                            </div>
+                        `;
+                    });
+                    
+                    display.innerHTML = html;
+                } else {
+                    display.innerHTML = `
+                        <div class="status error">
+                            <strong>No installations found</strong><br>
+                            Complete an OAuth installation to see data here.
+                        </div>
+                    `;
+                }
+                
+                showStatus(`Retrieved ${installations.length} installation records`, 'success');
+            } catch (error) {
+                showStatus('Error fetching installations: ' + error.message, 'error');
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            
+            // Auto-clear success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        // Auto-generate OAuth URL on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            generateOAuthURL();
+        });
+    </script>
+</body>
+</html>

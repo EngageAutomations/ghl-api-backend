@@ -748,6 +748,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(oauthInstallations.installationDate));
   }
 
+  async clearAllOAuthInstallations(): Promise<{ deletedCount: number }> {
+    const result = await db.delete(oauthInstallations);
+    return { deletedCount: result.rowCount || 0 };
+  }
+
   // Designer Config methods
   async getDesignerConfig(userId: number): Promise<DesignerConfig | undefined> {
     const [config] = await db.select().from(designerConfigs).where(eq(designerConfigs.userId, userId));

@@ -2584,5 +2584,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Debug API routes for OAuth installation testing
+  app.get("/api/debug/oauth-installations", async (req, res) => {
+    try {
+      const installations = await storage.getAllOAuthInstallations();
+      res.json(installations);
+    } catch (error) {
+      console.error("Error fetching OAuth installations:", error);
+      res.status(500).json({ error: "Failed to fetch OAuth installations" });
+    }
+  });
+
+  app.post("/api/debug/clear-installations", async (req, res) => {
+    try {
+      const result = await storage.clearAllOAuthInstallations();
+      res.json({ 
+        success: true, 
+        message: `Cleared ${result.deletedCount || 0} installation records` 
+      });
+    } catch (error) {
+      console.error("Error clearing OAuth installations:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to clear OAuth installations" 
+      });
+    }
+  });
+
+  app.get("/api/debug/installation-summary", async (req, res) => {
+    try {
+      const installations = await storage.getAllOAuthInstallations();
+      const summary = {
+        totalInstallations: installations.length,
+        activeInstallations: installations.filter(i => i.isActive).length,
+        latestInstallation: installations.length > 0 ? installations[0] : null,
+        locations: Array.from(new Set(installations.map(i => i.ghlLocationName))),
+        users: Array.from(new Set(installations.map(i => i.ghlUserEmail)))
+      };
+      res.json(summary);
+    } catch (error) {
+      console.error("Error generating installation summary:", error);
+      res.status(500).json({ error: "Failed to generate installation summary" });
+    }
+  });
+
   return httpServer;
 }
