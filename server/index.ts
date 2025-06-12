@@ -674,7 +674,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
     }
   });
 
-  // OAuth data retrieval endpoint
+  // OAuth data retrieval endpoint - moved before static files
   app.get('/api/oauth/user-data', async (req, res) => {
     try {
       console.log('User data retrieval endpoint hit');
