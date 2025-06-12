@@ -19,8 +19,15 @@ export function setupProductionRouting(app: express.Express) {
   app.get('*', (req, res, next) => {
     // NEVER handle API or OAuth routes here - they must be handled by Express routes
     if (req.path.startsWith('/api/') || req.path.startsWith('/oauth')) {
-      console.log(`⚠️ API/OAuth route reached fallback - passing to next handler: ${req.method} ${req.path}`);
-      return next(); // Pass to next handler, don't respond here
+      console.log(`⚠️ API/OAuth route reached fallback - this indicates a routing problem: ${req.method} ${req.path}`);
+      // Return error response to help diagnose the issue
+      return res.status(404).json({
+        error: "API endpoint not found",
+        path: req.path,
+        method: req.method,
+        timestamp: new Date().toISOString(),
+        note: "This route should be handled by Express, not static serving"
+      });
     }
     
     console.log(`📄 Serving index.html for frontend route: ${req.path}`);

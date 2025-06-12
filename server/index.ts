@@ -382,16 +382,17 @@ function setupOAuthRoutesProduction(app: express.Express) {
 
 const app = express();
 
-// CRITICAL: Register OAuth routes FIRST, before any middleware
+// Essential middleware first
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+// CRITICAL: Register OAuth routes FIRST, before any other routes or static middleware
 setupOAuthRoutesProduction(app);
 
 // Domain and CORS setup
 app.use(setupDomainRedirects);
 app.use(setupCORS);
-
-app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -459,7 +460,7 @@ app.use((req, res, next) => {
   const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
   const forceProductionMode = process.env.FORCE_PRODUCTION === 'true' || process.env.NODE_ENV === 'production' || isReplit;
   
-  // Register API routes ONCE - AFTER OAuth routes
+  // Register API routes FIRST to prevent static routing conflicts
   const server = await registerRoutes(app);
   
   if (forceProductionMode) {
