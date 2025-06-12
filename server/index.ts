@@ -140,6 +140,290 @@ function setupOAuthRoutesProduction(app: express.Express) {
     res.sendFile(filePath);
   });
 
+  // Dynamic OAuth app serving - bypasses caching
+  app.get('/oauth-app', (req, res) => {
+    console.log('Dynamic OAuth app requested');
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoHighLevel Directory App</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 0; 
+      padding: 40px;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container { 
+      max-width: 600px; 
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center; 
+    }
+    .btn { 
+      background: #0079F2; 
+      color: white; 
+      padding: 12px 24px; 
+      border: none; 
+      border-radius: 6px; 
+      text-decoration: none; 
+      display: inline-block; 
+      margin: 10px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .btn:hover { background: #0066D9; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #0079F2;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+      display: none;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .status {
+      padding: 15px;
+      border-radius: 6px;
+      margin: 15px 0;
+    }
+    .status.loading {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    .status.error {
+      background: #ffebee;
+      color: #c62828;
+    }
+    .oauth-connected {
+      background: #28a745;
+      padding: 20px;
+      border-radius: 8px;
+      color: white;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>GoHighLevel Directory App</h1>
+    <p>Connect your GoHighLevel account to get started.</p>
+    <button onclick="startOAuth()" class="btn" id="oauthBtn">Connect with GoHighLevel</button>
+    <div class="spinner" id="spinner"></div>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    console.log('OAuth app initialized');
+    
+    const oauthConfig = {
+      clientId: '67472ecce8b57dd9eda067a8',
+      redirectUri: 'https://dir.engageautomations.com/',
+      scopes: [
+        'products/prices.write',
+        'products/prices.readonly', 
+        'products/collection.write',
+        'products/collection.readonly',
+        'medias.write',
+        'medias.readonly',
+        'locations.readonly',
+        'contacts.readonly',
+        'contacts.write'
+      ]
+    };
+
+    function checkOAuthCallback() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      const state = urlParams.get('state');
+      const error = urlParams.get('error');
+      const oauthSuccess = urlParams.get('oauth') === 'success';
+      const storedSuccess = localStorage.getItem('oauth_success') === 'true';
+      
+      console.log('Checking OAuth status:', { code: !!code, state, error, oauthSuccess, storedSuccess });
+      
+      if (error) {
+        showError('OAuth error: ' + error);
+        return;
+      }
+      
+      if (code && state) {
+        handleOAuthCallback(code, state);
+        return;
+      }
+      
+      if (oauthSuccess || storedSuccess) {
+        showOAuthSuccess();
+        return;
+      }
+    }
+
+    function startOAuth() {
+      console.log('Starting OAuth flow...');
+      
+      const state = 'oauth_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      const scope = oauthConfig.scopes.join(' ');
+      
+      localStorage.setItem('oauth_state', state);
+      
+      const authUrl = new URL('https://marketplace.gohighlevel.com/oauth/chooselocation');
+      authUrl.searchParams.set('response_type', 'code');
+      authUrl.searchParams.set('client_id', oauthConfig.clientId);
+      authUrl.searchParams.set('redirect_uri', oauthConfig.redirectUri);
+      authUrl.searchParams.set('scope', scope);
+      authUrl.searchParams.set('state', state);
+      
+      console.log('Redirecting to:', authUrl.toString());
+      
+      showLoading('Redirecting to GoHighLevel...');
+      
+      window.location.href = authUrl.toString();
+    }
+
+    async function handleOAuthCallback(code, state) {
+      console.log('Handling OAuth callback');
+      
+      const storedState = localStorage.getItem('oauth_state');
+      if (state !== storedState) {
+        showError('Invalid OAuth state. Please try again.');
+        return;
+      }
+      
+      showLoading('Processing authorization...');
+      
+      try {
+        const response = await fetch('/api/oauth/exchange-local', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            code: code,
+            state: state,
+            redirect_uri: oauthConfig.redirectUri
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          localStorage.setItem('oauth_success', 'true');
+          localStorage.setItem('oauth_timestamp', Date.now().toString());
+          localStorage.removeItem('oauth_state');
+          
+          window.history.replaceState({}, document.title, window.location.pathname);
+          showOAuthSuccess();
+        } else {
+          throw new Error(result.error || 'Token exchange failed');
+        }
+        
+      } catch (error) {
+        console.error('OAuth exchange error:', error);
+        showError('Authorization failed: ' + error.message);
+      }
+    }
+
+    function showLoading(message) {
+      document.getElementById('spinner').style.display = 'block';
+      document.getElementById('oauthBtn').disabled = true;
+      document.getElementById('status').innerHTML = '<div class="status loading">' + message + '</div>';
+    }
+
+    function showOAuthSuccess() {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('oauthBtn').style.display = 'none';
+      document.getElementById('status').innerHTML = 
+        '<div class="oauth-connected">' +
+          '<h3>✓ Successfully Connected!</h3>' +
+          '<p>Your GoHighLevel account is now connected. You can start creating directory listings.</p>' +
+          '<button onclick="goToDashboard()" class="btn" style="background: white; color: #28a745; margin-top: 10px;">' +
+            'Go to Dashboard' +
+          '</button>' +
+        '</div>';
+    }
+
+    function showError(message) {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('oauthBtn').disabled = false;
+      document.getElementById('status').innerHTML = '<div class="status error"><strong>Error:</strong> ' + message + '</div>';
+    }
+
+    function goToDashboard() {
+      alert('Dashboard functionality will be implemented here. OAuth integration is complete!');
+    }
+
+    document.addEventListener('DOMContentLoaded', checkOAuthCallback);
+    checkOAuthCallback();
+  </script>
+</body>
+</html>`);
+  });
+
+  // Local OAuth token exchange endpoint
+  app.post('/api/oauth/exchange-local', async (req, res) => {
+    try {
+      console.log('Local OAuth token exchange requested');
+      
+      const { code, state, redirect_uri } = req.body;
+      
+      if (!code || !state || !redirect_uri) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required parameters: code, state, or redirect_uri'
+        });
+      }
+      
+      // Import OAuth functionality
+      const { ghlOAuth } = await import('./ghl-oauth.js');
+      
+      // Exchange code for tokens
+      const tokenData = await ghlOAuth.exchangeCodeForTokens(code, state);
+      
+      if (tokenData && tokenData.access_token) {
+        console.log('Local OAuth tokens received successfully');
+        
+        // Store token in session/cookie
+        res.cookie('oauth_token', tokenData.access_token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+        
+        res.json({ 
+          success: true, 
+          message: 'OAuth tokens exchanged successfully',
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        throw new Error('No access token received from GoHighLevel');
+      }
+      
+    } catch (error) {
+      console.error('Local OAuth token exchange error:', error);
+      res.status(500).json({ 
+        success: false,
+        error: 'OAuth token exchange failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // OAuth token exchange endpoint - GET version to bypass infrastructure
   app.get('/api/oauth/exchange', async (req, res) => {
     try {
