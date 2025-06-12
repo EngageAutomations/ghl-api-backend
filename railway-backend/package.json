@@ -1,12 +1,12 @@
 {
   "name": "ghl-oauth-backend",
   "version": "1.0.0",
-  "main": "server/index.ts",
+  "main": "index.js",
   "scripts": {
-    "start": "ts-node server/index.ts",
-    "dev": "ts-node-dev server/index.ts",
-    "build": "tsc",
-    "serve": "node dist/index.js"
+    "start": "node index.js",
+    "dev": "node index.js",
+    "build": "echo 'No build needed for JavaScript'",
+    "serve": "node index.js"
   },
   "dependencies": {
     "axios": "^1.6.7",

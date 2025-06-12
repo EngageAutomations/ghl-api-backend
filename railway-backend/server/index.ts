@@ -20,6 +20,30 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', service: 'GHL OAuth Backend', timestamp: new Date().toISOString() });
 });
 
+// OAuth URL generation endpoint
+app.get('/api/oauth/url', (req, res) => {
+  console.log('=== GENERATING OAUTH URL ===');
+  
+  const clientId = process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4';
+  const redirectUri = process.env.GHL_REDIRECT_URI || 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback';
+  const scopes = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write';
+  
+  // Generate state for security
+  const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Build OAuth URL
+  const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${clientId}&state=${state}&scope=${encodeURIComponent(scopes)}`;
+  
+  console.log('Generated OAuth URL:', authUrl);
+  
+  res.json({
+    success: true,
+    authUrl: authUrl,
+    state: state,
+    timestamp: Date.now()
+  });
+});
+
 // OAuth callback endpoint - Main handler for GoHighLevel OAuth
 app.get('/api/oauth/callback', async (req, res) => {
   console.log('=== RAILWAY OAUTH CALLBACK ===');
