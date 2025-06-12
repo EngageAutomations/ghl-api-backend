@@ -107,7 +107,11 @@ export function setupDirectOAuthRoutes(app: express.Express) {
           console.log('Generating OAuth URL via direct callback endpoint');
           const generatedState = `state_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           const clientId = process.env.GHL_CLIENT_ID;
-          const redirectUri = 'https://dir.engageautomations.com/oauth/callback';
+          // Use development domain if running on Replit, production domain otherwise
+          const isReplit = req.get('host')?.includes('replit') || req.get('host')?.includes('5000');
+          const redirectUri = isReplit 
+            ? `${req.protocol}://${req.get('host')}/oauth/callback`
+            : 'https://dir.engageautomations.com/oauth/callback';
           const scopes = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write';
           
           const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${clientId}&state=${generatedState}&scope=${encodeURIComponent(scopes)}`;
@@ -153,12 +157,15 @@ export function setupDirectOAuthRoutes(app: express.Express) {
       
       // Exchange code for tokens
       const tokenUrl = 'https://services.leadconnectorhq.com/oauth/token';
+      const isReplit = req.get('host')?.includes('replit') || req.get('host')?.includes('5000');
       const tokenData = {
         grant_type: 'authorization_code',
         client_id: process.env.GHL_CLIENT_ID,
         client_secret: process.env.GHL_CLIENT_SECRET,
         code: code as string,
-        redirect_uri: 'https://dir.engageautomations.com/oauth/callback'
+        redirect_uri: isReplit 
+          ? `${req.protocol}://${req.get('host')}/oauth/callback`
+          : 'https://dir.engageautomations.com/oauth/callback'
       };
       
       console.log('Exchanging code for tokens...');
