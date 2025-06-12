@@ -20,6 +20,18 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', service: 'GHL OAuth Backend', timestamp: new Date().toISOString() });
 });
 
+// Environment check endpoint (for debugging)
+app.get('/api/env-check', (req, res) => {
+  res.json({
+    hasClientId: !!process.env.GHL_CLIENT_ID,
+    hasClientSecret: !!process.env.GHL_CLIENT_SECRET,
+    hasRedirectUri: !!process.env.GHL_REDIRECT_URI,
+    clientIdValue: process.env.GHL_CLIENT_ID || 'DEFAULT_USED',
+    redirectUriValue: process.env.GHL_REDIRECT_URI || 'DEFAULT_USED',
+    nodeEnv: process.env.NODE_ENV || 'not_set'
+  });
+});
+
 // OAuth URL generation endpoint
 app.get('/api/oauth/url', (req, res) => {
   console.log('=== GENERATING OAUTH URL ===');
