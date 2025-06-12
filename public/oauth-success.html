@@ -1,146 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OAuth Success - Directory App</title>
-  <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      margin: 0; 
-      padding: 40px; 
-      background: #f5f5f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-    .container { 
-      max-width: 500px; 
-      background: white;
-      padding: 40px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      text-align: center; 
-    }
-    .spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #0079F2;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .success { color: #28a745; font-weight: bold; }
-    .error { color: #dc3545; font-weight: bold; }
-    .info { color: #17a2b8; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Installation Successful</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 600px; 
+            margin: 50px auto; 
+            padding: 20px; 
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .success-icon {
+            font-size: 72px;
+            color: #4ade80;
+            margin-bottom: 20px;
+        }
+        .user-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .timestamp {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+        .btn {
+            background: #4ade80;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            transition: background 0.3s ease;
+        }
+        .btn:hover {
+            background: #22c55e;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>OAuth Authorization Complete</h1>
-    <div class="spinner"></div>
-    <p id="status">Processing your authorization...</p>
-    <div id="debug" style="margin-top: 20px; font-size: 12px; color: #666;"></div>
-  </div>
+    <div class="container">
+        <div class="success-icon">✓</div>
+        <h1>OAuth Installation Successful!</h1>
+        <p>Your GoHighLevel account has been successfully connected to the Directory Engine.</p>
+        
+        <div class="user-info">
+            <h3>Account Information:</h3>
+            <p><strong>User:</strong> <span id="userName">Loading...</span></p>
+            <p><strong>Installation Time:</strong> <span id="installTime">Loading...</span></p>
+            <p><strong>Status:</strong> <span style="color: #4ade80;">Active</span></p>
+        </div>
+        
+        <p>You can now close this window and return to your GoHighLevel dashboard.</p>
+        <p>The Directory Engine is ready to use with your account.</p>
+        
+        <a href="https://app.gohighlevel.com" class="btn">Return to GoHighLevel</a>
+        <a href="https://dir.engageautomations.com" class="btn">Visit Directory Engine</a>
+        
+        <div class="timestamp">
+            Installation completed successfully
+        </div>
+    </div>
 
-  <script>
-    console.log('OAuth success page loaded');
-    console.log('Current URL:', window.location.href);
-    
-    // Check for success parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const success = urlParams.get('success');
-    const timestamp = urlParams.get('timestamp');
-    const code = urlParams.get('code');
-    const state = urlParams.get('state');
-    
-    console.log('URL Parameters:', { success, timestamp, code, state });
-    
-    // Store OAuth data for verification
-    if (success === 'true' || code) {
-      localStorage.setItem('oauth_success', 'true');
-      localStorage.setItem('oauth_timestamp', timestamp || Date.now().toString());
-      
-      if (code) {
-        localStorage.setItem('oauth_code', code.substring(0, 10) + '...');
-      }
-      
-      // Send installation data to backend
-      fetch('/api/oauth/session-data?success=true&timestamp=' + (timestamp || Date.now()), {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
-      }).then(response => response.json())
-        .then(data => {
-          console.log('Installation data captured:', data);
-          localStorage.setItem('installation_confirmed', 'true');
-        })
-        .catch(error => {
-          console.warn('Failed to capture installation data:', error);
-        });
-      
-      // Show success message
-      document.getElementById('status').innerHTML = '<span class="success">Authorization successful! Redirecting to dashboard...</span>';
-      document.getElementById('debug').innerHTML = `
-        <div class="info">
-          Installation confirmed at ${new Date().toLocaleTimeString()}<br>
-          ${code ? 'OAuth code received' : 'Success parameter detected'}<br>
-          Redirecting in 3 seconds...
-        </div>
-      `;
-      
-      // Redirect to main dashboard after 3 seconds
-      setTimeout(() => {
-        window.location.href = '/?oauth=success&timestamp=' + (timestamp || Date.now());
-      }, 3000);
-      
-    } else {
-      // Handle error case
-      document.getElementById('status').innerHTML = '<span class="error">Authorization failed. Please try again.</span>';
-      document.getElementById('debug').innerHTML = `
-        <div class="error">
-          No success parameter or OAuth code found<br>
-          URL: ${window.location.href}<br>
-          Redirecting to home page in 5 seconds...
-        </div>
-      `;
-      
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 5000);
-    }
-    
-    // Also handle direct OAuth callback parameters if present
-    if (code && !success) {
-      console.log('Direct OAuth callback detected');
-      document.getElementById('status').innerHTML = '<span class="success">OAuth code received! Processing...</span>';
-      
-      // Process the OAuth callback
-      fetch(`/api/oauth/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state || '')}`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
-      }).then(response => {
-        if (response.ok) {
-          document.getElementById('status').innerHTML = '<span class="success">OAuth processing complete! Redirecting...</span>';
-          setTimeout(() => {
-            window.location.href = '/?oauth=success&timestamp=' + Date.now();
-          }, 2000);
+    <script>
+        // Extract URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const user = urlParams.get('user') || 'Unknown User';
+        const timestamp = urlParams.get('timestamp');
+        const success = urlParams.get('success');
+
+        // Update user information
+        document.getElementById('userName').textContent = decodeURIComponent(user);
+        
+        if (timestamp) {
+            const date = new Date(parseInt(timestamp));
+            document.getElementById('installTime').textContent = date.toLocaleString();
         } else {
-          throw new Error('OAuth processing failed');
+            document.getElementById('installTime').textContent = new Date().toLocaleString();
         }
-      }).catch(error => {
-        console.error('OAuth callback error:', error);
-        document.getElementById('status').innerHTML = '<span class="error">OAuth processing failed. Please try again.</span>';
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 3000);
-      });
-    }
-  </script>
+
+        // Log successful installation
+        console.log('OAuth Installation Complete:', {
+            user: user,
+            timestamp: timestamp,
+            success: success,
+            url: window.location.href
+        });
+
+        // Send completion message to parent window if opened in popup
+        if (window.opener) {
+            window.opener.postMessage({
+                type: 'oauth_complete',
+                user: user,
+                timestamp: timestamp,
+                success: true
+            }, '*');
+        }
+    </script>
 </body>
 </html>
