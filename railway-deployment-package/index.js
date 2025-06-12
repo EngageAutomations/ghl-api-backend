@@ -8,8 +8,8 @@ const PORT = process.env.PORT || 5000;
 // Secure OAuth configuration using environment variables
 const CLIENT_ID = process.env.GHL_CLIENT_ID || process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.GHL_CLIENT_SECRET || process.env.CLIENT_SECRET;
-const REDIRECT_URI = process.env.GHL_REDIRECT_URI || process.env.REDIRECT_URI || 'https://oauth-backend-production-66f8.up.railway.app/api/oauth/callback';
-const SCOPES = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write';
+const REDIRECT_URI = process.env.GHL_REDIRECT_URI || process.env.REDIRECT_URI || 'https://dir.engageautomations.com/oauth/callback';
+const SCOPES = 'products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write';
 
 console.log('=== SECURE OAUTH BACKEND STARTING ===');
 console.log('Client ID:', CLIENT_ID ? '[SET]' : '[MISSING]');
