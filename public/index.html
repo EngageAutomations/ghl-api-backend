@@ -167,6 +167,7 @@
     function handleOAuthCallback() {
       if (window.location.pathname === '/oauth-callback.html' || 
           window.location.pathname === '/oauth/callback' ||
+          window.location.pathname === '/oauth-success' ||
           (code && state)) {
         
         console.log('OAuth callback detected:', {
@@ -209,6 +210,35 @@
           setTimeout(() => {
             window.location.href = '/?error=' + encodeURIComponent(error);
           }, 3000);
+          return;
+        }
+        
+        // Check for oauth-success path with success parameter
+        if (window.location.pathname === '/oauth-success' && urlParams.get('success') === 'true') {
+          document.getElementById('callback-status').innerHTML = '<div style="color: #28a745;">OAuth integration completed successfully!</div>';
+          
+          const timestamp = urlParams.get('timestamp');
+          const successData = {
+            timestamp: timestamp ? parseInt(timestamp) : Date.now(),
+            success: true,
+            processed_at: new Date().toISOString(),
+            path: '/oauth-success'
+          };
+          
+          // Store success state
+          localStorage.setItem('oauth_success', JSON.stringify(successData));
+          
+          // Update debug info
+          document.getElementById('debug-content').textContent = JSON.stringify({
+            success: true,
+            timestamp: new Date(successData.timestamp).toISOString(),
+            redirect_source: 'GoHighLevel OAuth Success',
+            url_params: Object.fromEntries(urlParams.entries())
+          }, null, 2);
+          
+          setTimeout(() => {
+            window.location.href = '/?oauth=success';
+          }, 2000);
           return;
         }
         
