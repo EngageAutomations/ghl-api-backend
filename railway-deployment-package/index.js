@@ -7,6 +7,17 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Log environment variables on startup for debugging
+console.log('=== RAILWAY ENVIRONMENT DEBUG ===');
+console.log('PORT:', process.env.PORT);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('GHL_CLIENT_ID:', process.env.GHL_CLIENT_ID ? '[SET]' : 'MISSING');
+console.log('GHL_CLIENT_SECRET:', process.env.GHL_CLIENT_SECRET ? '[SET]' : 'MISSING');
+console.log('GHL_REDIRECT_URI:', process.env.GHL_REDIRECT_URI ? '[SET]' : 'MISSING');
+console.log('Total env vars:', Object.keys(process.env).length);
+console.log('GHL-related env vars:', Object.keys(process.env).filter(k => k.includes('GHL')));
+console.log('================================');
+
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
@@ -22,13 +33,19 @@ app.get('/health', (req, res) => {
 
 // Environment check endpoint (for debugging)
 app.get('/api/env-check', (req, res) => {
+  // Log all environment variables that start with GHL
+  const allEnvVars = Object.keys(process.env).filter(key => key.includes('GHL') || key.includes('CLIENT'));
+  
   res.json({
     hasClientId: !!process.env.GHL_CLIENT_ID,
     hasClientSecret: !!process.env.GHL_CLIENT_SECRET,
     hasRedirectUri: !!process.env.GHL_REDIRECT_URI,
     clientIdValue: process.env.GHL_CLIENT_ID || 'DEFAULT_USED',
     redirectUriValue: process.env.GHL_REDIRECT_URI || 'DEFAULT_USED',
-    nodeEnv: process.env.NODE_ENV || 'not_set'
+    nodeEnv: process.env.NODE_ENV || 'not_set',
+    allGhlEnvVars: allEnvVars,
+    rawClientSecret: process.env.GHL_CLIENT_SECRET ? '[EXISTS]' : 'MISSING',
+    envKeys: Object.keys(process.env).length
   });
 });
 
