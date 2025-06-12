@@ -227,7 +227,37 @@ export function setupDirectOAuthRoutes(app: express.Express) {
         console.log('ℹ️ Location data not available or not accessible');
       }
 
-      // Store captured data globally for retrieval
+      // Store installation data in database for persistence
+      try {
+        const { storage } = await import('./storage');
+        
+        const installationData = {
+          ghlUserId: userData.id,
+          ghlUserEmail: userData.email,
+          ghlUserName: userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
+          ghlUserPhone: userData.phone,
+          ghlUserCompany: userData.companyName,
+          ghlLocationId: locationData?.id,
+          ghlLocationName: locationData?.name,
+          ghlLocationBusinessType: locationData?.businessType,
+          ghlLocationAddress: locationData?.address,
+          ghlAccessToken: tokens.access_token,
+          ghlRefreshToken: tokens.refresh_token,
+          ghlTokenType: tokens.token_type,
+          ghlExpiresIn: tokens.expires_in,
+          ghlScopes: tokens.scope,
+          isActive: true
+        };
+
+        const savedInstallation = await storage.createOAuthInstallation(installationData);
+        console.log('✅ OAuth installation data saved to database with ID:', savedInstallation.id);
+        
+      } catch (dbError) {
+        console.error('⚠️ Failed to save OAuth installation to database:', dbError);
+        // Continue with the flow even if database save fails
+      }
+
+      // Also store temporarily in global for backwards compatibility
       global.lastOAuthInstallation = {
         timestamp: new Date().toISOString(),
         user: {
