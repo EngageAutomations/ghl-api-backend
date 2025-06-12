@@ -2029,6 +2029,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OAuth session data extraction endpoint - captures user data during installation
+  app.get("/api/oauth/session-data", async (req, res) => {
+    try {
+      console.log('📊 OAuth session data extraction started');
+      console.log('Query params:', req.query);
+      
+      const { success, timestamp, code, state } = req.query;
+      
+      if (!success && !code) {
+        return res.json({
+          success: false,
+          error: "No OAuth success or code parameter found",
+          message: "This endpoint extracts data from successful OAuth installations"
+        });
+      }
+
+      // If we have a code, exchange it for tokens and fetch user data
+      if (code && typeof code === 'string') {
+        console.log('🔑 Exchanging OAuth code for tokens and user data');
+        
+        try {
+          const clientId = process.env.GHL_CLIENT_ID;
+          const clientSecret = process.env.GHL_CLIENT_SECRET;
+          const redirectUri = process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/';
+
+          if (!clientId || !clientSecret) {
+            return res.status(500).json({
+              success: false,
+              error: "OAuth credentials not configured"
+            });
+          }
+
+          // Exchange code for access token
+          const tokenResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+              grant_type: 'authorization_code',
+              client_id: clientId,
+              client_secret: clientSecret,
+              code: code,
+              redirect_uri: redirectUri
+            })
+          });
+
+          if (!tokenResponse.ok) {
+            throw new Error(`Token exchange failed: ${tokenResponse.status}`);
+          }
+
+          const tokens = await tokenResponse.json();
+          console.log('✅ OAuth tokens received');
+
+          // Fetch user information
+          const userResponse = await fetch('https://services.leadconnectorhq.com/users/me', {
+            headers: {
+              'Authorization': `Bearer ${tokens.access_token}`,
+              'Accept': 'application/json'
+            }
+          });
+
+          if (!userResponse.ok) {
+            throw new Error(`User info fetch failed: ${userResponse.status}`);
+          }
+
+          const userData = await userResponse.json();
+          console.log('✅ User data retrieved:', userData.email);
+
+          // Fetch location information
+          let locationData = null;
+          const locationsResponse = await fetch('https://services.leadconnectorhq.com/locations/', {
+            headers: {
+              'Authorization': `Bearer ${tokens.access_token}`,
+              'Accept': 'application/json'
+            }
+          });
+
+          if (locationsResponse.ok) {
+            const locationsResult = await locationsResponse.json();
+            if (locationsResult.locations && locationsResult.locations.length > 0) {
+              locationData = locationsResult.locations[0];
+              console.log('✅ Location data retrieved:', locationData.name);
+            }
+          }
+
+          // Store the OAuth user data in database
+          const oauthUserData = {
+            ghlUserId: userData.id,
+            email: userData.email,
+            name: userData.name || `${userData.firstName} ${userData.lastName}`,
+            ghlAccessToken: tokens.access_token,
+            ghlRefreshToken: tokens.refresh_token,
+            ghlTokenExpiry: new Date(Date.now() + (tokens.expires_in * 1000)),
+            ghlScopes: tokens.scope || '',
+            ghlLocationId: locationData?.id || '',
+            ghlLocationName: locationData?.name || '',
+            installationTimestamp: timestamp || Date.now().toString()
+          };
+
+          // Create or update OAuth user record
+          try {
+            const savedUser = await storage.createOAuthUser(oauthUserData);
+            console.log('✅ OAuth user data saved to database');
+          } catch (dbError) {
+            console.warn('⚠️ Database save failed, continuing with response:', dbError);
+          }
+
+          return res.json({
+            success: true,
+            message: "OAuth installation data captured successfully",
+            accountData: {
+              user: {
+                id: userData.id,
+                name: userData.name || `${userData.firstName} ${userData.lastName}`,
+                email: userData.email,
+                company: userData.companyName
+              },
+              location: locationData ? {
+                id: locationData.id,
+                name: locationData.name,
+                address: locationData.address,
+                city: locationData.city,
+                state: locationData.state,
+                website: locationData.website
+              } : null,
+              installation: {
+                timestamp: timestamp || Date.now().toString(),
+                installationTime: new Date(parseInt(timestamp as string || Date.now().toString())).toISOString(),
+                scopes: tokens.scope,
+                hasValidTokens: true
+              }
+            },
+            retrievalTime: new Date().toISOString()
+          });
+
+        } catch (tokenError) {
+          console.error('❌ OAuth token exchange failed:', tokenError);
+          return res.status(500).json({
+            success: false,
+            error: "Failed to exchange OAuth code for user data",
+            details: tokenError instanceof Error ? tokenError.message : "Unknown error"
+          });
+        }
+      }
+
+      // For success=true without code, return installation confirmation
+      return res.json({
+        success: true,
+        message: "OAuth installation confirmed",
+        installation: {
+          timestamp: timestamp || Date.now().toString(),
+          installationTime: timestamp ? new Date(parseInt(timestamp as string)).toISOString() : new Date().toISOString(),
+          domain: 'dir.engageautomations.com',
+          status: 'Installation successful',
+          clientId: process.env.GHL_CLIENT_ID?.substring(0, 8) + '...'
+        },
+        note: "User account data requires OAuth code parameter for full extraction"
+      });
+
+    } catch (error) {
+      console.error('❌ Session data extraction error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Session data extraction failed",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Create GoHighLevel Product via OAuth
   app.post("/api/ghl/create-product", async (req, res) => {
     try {

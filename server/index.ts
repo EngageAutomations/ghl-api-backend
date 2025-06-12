@@ -1339,11 +1339,13 @@ app.use((req, res, next) => {
     res.redirect('/oauth-redirect.html');
   });
 
-  // Register API routes first in all cases
-  const server = await registerRoutes(app);
+  let server: Server;
   
   if (forceProductionMode || isReplit) {
     console.log("Setting up production routing for OAuth compatibility...");
+    
+    // Register API routes FIRST to prevent static file interception
+    server = await registerRoutes(app);
     
     // Handle root route for OAuth app and marketplace installations - BEFORE static files
     app.get('/', (req, res) => {
@@ -1394,6 +1396,8 @@ app.use((req, res, next) => {
     
   } else if (isDevelopment && !isReplit) {
     console.log("Setting up development mode with Vite...");
+    // Register API routes FIRST in development too
+    server = await registerRoutes(app);
     await setupVite(app, server);
   }
 
