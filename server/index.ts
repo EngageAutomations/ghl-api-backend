@@ -415,9 +415,30 @@ function setupOAuthRoutesProduction(app: express.Express) {
       
       if (tokenData && tokenData.access_token) {
         console.log('Local OAuth tokens received successfully');
+        console.log('Token scope:', tokenData.scope);
         
-        // Store token in session/cookie
+        // Get user info immediately after token exchange
+        const userInfo = await ghlOAuth.getUserInfo(tokenData.access_token);
+        console.log('=== USER INFO FROM MARKETPLACE INSTALLATION ===');
+        console.log('User ID:', userInfo.id);
+        console.log('User Name:', userInfo.name);
+        console.log('User Email:', userInfo.email);
+        console.log('User Permissions:', JSON.stringify(userInfo.permissions || {}, null, 2));
+        console.log('===============================================');
+        
+        // Store token and user data in session/cookie
         res.cookie('oauth_token', tokenData.access_token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+        
+        res.cookie('user_info', JSON.stringify({
+          id: userInfo.id,
+          name: userInfo.name,
+          email: userInfo.email,
+          timestamp: Date.now()
+        }), {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
@@ -426,6 +447,11 @@ function setupOAuthRoutesProduction(app: express.Express) {
         res.json({ 
           success: true, 
           message: 'OAuth tokens exchanged successfully',
+          userInfo: {
+            id: userInfo.id,
+            name: userInfo.name,
+            email: userInfo.email
+          },
           timestamp: new Date().toISOString()
         });
       } else {
@@ -644,6 +670,71 @@ function setupOAuthRoutesProduction(app: express.Express) {
         success: false,
         error: 'API test failed',
         message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // OAuth data retrieval endpoint
+  app.get('/api/oauth/user-data', async (req, res) => {
+    try {
+      console.log('User data retrieval endpoint hit');
+      
+      const oauthToken = req.cookies?.oauth_token;
+      const userInfo = req.cookies?.user_info;
+      
+      if (!oauthToken) {
+        return res.status(401).json({
+          success: false,
+          error: 'No OAuth token found',
+          message: 'Please complete OAuth authentication first'
+        });
+      }
+      
+      if (userInfo) {
+        const parsedUserInfo = JSON.parse(userInfo);
+        console.log('=== RETRIEVED USER DATA FROM MARKETPLACE INSTALLATION ===');
+        console.log('User ID:', parsedUserInfo.id);
+        console.log('User Name:', parsedUserInfo.name);
+        console.log('User Email:', parsedUserInfo.email);
+        console.log('Installation Timestamp:', new Date(parsedUserInfo.timestamp).toISOString());
+        console.log('===========================================================');
+        
+        res.json({
+          success: true,
+          userInfo: parsedUserInfo,
+          hasToken: true,
+          installationTime: new Date(parsedUserInfo.timestamp).toISOString()
+        });
+      } else {
+        // Try to get fresh user info with the token
+        const { ghlOAuth } = await import('./ghl-oauth.js');
+        const freshUserInfo = await ghlOAuth.getUserInfo(oauthToken);
+        
+        console.log('=== FRESH USER DATA FROM TOKEN ===');
+        console.log('User ID:', freshUserInfo.id);
+        console.log('User Name:', freshUserInfo.name);
+        console.log('User Email:', freshUserInfo.email);
+        console.log('===================================');
+        
+        res.json({
+          success: true,
+          userInfo: {
+            id: freshUserInfo.id,
+            name: freshUserInfo.name,
+            email: freshUserInfo.email,
+            timestamp: Date.now()
+          },
+          hasToken: true,
+          source: 'fresh_api_call'
+        });
+      }
+      
+    } catch (error) {
+      console.error('User data retrieval error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve user data',
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
