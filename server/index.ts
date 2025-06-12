@@ -383,7 +383,7 @@ app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
     console.log('Authorization code received:', String(code).substring(0, 20) + '...');
     console.log('State parameter:', state);
     
-    const successUrl = `https://dir.engageautomations.com/?success=oauth-callback&code=${encodeURIComponent(String(code).substring(0, 10))}...&timestamp=${Date.now()}`;
+    const successUrl = `https://dir.engageautomations.com/oauth-success.html?success=oauth-callback&code=${encodeURIComponent(String(code).substring(0, 10))}...&timestamp=${Date.now()}`;
     console.log('OAuth callback successful, redirecting to:', successUrl);
     return res.redirect(successUrl);
   }
