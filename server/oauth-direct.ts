@@ -42,22 +42,54 @@ export function setupDirectOAuthRoutes(app: express.Express) {
     res.send('OAuth routing interceptor is working! OAuth flow should now be functional.');
   });
 
-  // Check for captured OAuth data
-  app.get('/oauth/installation-data', (req, res) => {
-    const installationData = global.lastOAuthInstallation || null;
-    
-    if (installationData) {
-      console.log('Retrieving captured OAuth installation data');
-      res.json({
-        success: true,
-        installation: installationData,
-        message: 'OAuth installation data found'
-      });
-    } else {
-      res.json({
+  // Check for captured OAuth data from database
+  app.get('/oauth/installation-data', async (req, res) => {
+    try {
+      const { storage } = await import('./storage');
+      const latestInstallation = await storage.getLatestOAuthInstallation();
+      
+      if (latestInstallation) {
+        console.log('Retrieved OAuth installation data from database');
+        res.json({
+          success: true,
+          installation: {
+            timestamp: latestInstallation.installationDate?.toISOString(),
+            user: {
+              id: latestInstallation.ghlUserId,
+              email: latestInstallation.ghlUserEmail,
+              name: latestInstallation.ghlUserName,
+              phone: latestInstallation.ghlUserPhone,
+              company: latestInstallation.ghlUserCompany
+            },
+            tokens: {
+              hasAccessToken: !!latestInstallation.ghlAccessToken,
+              hasRefreshToken: !!latestInstallation.ghlRefreshToken,
+              tokenType: latestInstallation.ghlTokenType,
+              expiresIn: latestInstallation.ghlExpiresIn,
+              scopes: latestInstallation.ghlScopes
+            },
+            location: latestInstallation.ghlLocationId ? {
+              id: latestInstallation.ghlLocationId,
+              name: latestInstallation.ghlLocationName,
+              businessType: latestInstallation.ghlLocationBusinessType,
+              address: latestInstallation.ghlLocationAddress
+            } : null
+          },
+          message: 'OAuth installation data found'
+        });
+      } else {
+        res.json({
+          success: false,
+          installation: null,
+          message: 'No OAuth installation data found'
+        });
+      }
+    } catch (error) {
+      console.error('Error retrieving OAuth installation data:', error);
+      res.status(500).json({
         success: false,
         installation: null,
-        message: 'No OAuth installation data found'
+        message: 'Error retrieving installation data'
       });
     }
   });
