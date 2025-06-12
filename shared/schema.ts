@@ -23,29 +23,20 @@ export const users = pgTable("users", {
 
 // Type inference
 export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
+export type InsertUser = typeof users.$inferInsert;
 
 // Validation schemas
-export const insertOAuthUserSchema = z.object({
-  username: z.string().min(1),
-  displayName: z.string().optional(),
-  email: z.string().email().optional(),
+export const insertUserSchema = createInsertSchema(users);
+export const insertOAuthUserSchema = insertUserSchema.extend({
+  authType: z.literal("oauth"),
   ghlUserId: z.string().optional(),
+  ghlAccessToken: z.string().optional(),
+  ghlRefreshToken: z.string().optional(),
+  ghlTokenExpiry: z.date().optional(),
+  ghlScopes: z.string().optional(),
   ghlLocationId: z.string().optional(),
   ghlLocationName: z.string().optional(),
-  ghlScopes: z.string().optional(),
-  authType: z.string().default("oauth"),
 });
-
-export const insertUserSchema = z.object({
-  username: z.string().min(1),
-  password: z.string().min(1),
-  displayName: z.string().optional(),
-  email: z.string().email().optional(),
-});
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type InsertOAuthUser = z.infer<typeof insertOAuthUserSchema>;
 
 // OAuth session table for secure token storage
 export const oauthSessions = pgTable("oauth_sessions", {
@@ -59,8 +50,7 @@ export const oauthSessions = pgTable("oauth_sessions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type InsertOAuthUser = z.infer<typeof insertOAuthUserSchema>;
 
 // Listings schema
 export const listings = pgTable("listings", {

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Installation Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .info { background: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .logs { background: #f8f9fa; padding: 10px; border-radius: 3px; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>OAuth Installation Test</h1>
+    
+    <div class="test-section info">
+        <h3>Test OAuth Flow</h3>
+        <p>This will test the complete OAuth installation flow including token exchange and account data capture.</p>
+        <button onclick="startOAuthTest()">Start OAuth Installation</button>
+        <button onclick="checkDatabase()">Check Database for New Users</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Results</h3>
+        <div id="results" class="logs">Ready for testing...</div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.textContent += `[${timestamp}] ${message}\n`;
+            
+            if (type === 'error') {
+                results.parentElement.className = 'test-section error';
+            } else if (type === 'success') {
+                results.parentElement.className = 'test-section success';
+            }
+        }
+
+        async function startOAuthTest() {
+            log('Starting OAuth installation test...');
+            
+            try {
+                // Generate OAuth URL
+                const response = await fetch('/oauth/callback?action=generate-url');
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`OAuth URL generated: ${data.authUrl}`, 'success');
+                    log(`Client ID: ${data.clientId}`);
+                    log(`Redirect URI: ${data.redirectUri}`);
+                    
+                    // Open OAuth URL in new window
+                    const oauthWindow = window.open(data.authUrl, 'oauth', 'width=600,height=700');
+                    
+                    // Listen for the OAuth callback
+                    window.addEventListener('message', function(event) {
+                        if (event.data.type === 'oauth_complete') {
+                            log('OAuth callback received', 'success');
+                            log(`User data: ${JSON.stringify(event.data.user, null, 2)}`);
+                            oauthWindow.close();
+                            
+                            // Check if user was saved to database
+                            setTimeout(checkDatabase, 2000);
+                        }
+                    });
+                    
+                } else {
+                    log(`Failed to generate OAuth URL: ${data.error}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`Error during OAuth test: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkDatabase() {
+            log('Checking database for new OAuth users...');
+            
+            try {
+                const response = await fetch('/api/users?auth_type=oauth');
+                const users = await response.json();
+                
+                log(`Found ${users.length} OAuth users in database`);
+                
+                if (users.length > 0) {
+                    const latestUser = users[users.length - 1];
+                    log(`Latest OAuth user:`, 'success');
+                    log(`- ID: ${latestUser.id}`);
+                    log(`- Email: ${latestUser.email}`);
+                    log(`- GHL User ID: ${latestUser.ghlUserId}`);
+                    log(`- Location: ${latestUser.ghlLocationName}`);
+                    log(`- Created: ${latestUser.createdAt}`);
+                    
+                    if (latestUser.ghlAccessToken) {
+                        log('✓ Access token stored', 'success');
+                    } else {
+                        log('✗ No access token found', 'error');
+                    }
+                    
+                } else {
+                    log('No OAuth users found in database', 'error');
+                }
+                
+            } catch (error) {
+                log(`Error checking database: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-check for recent OAuth activity on page load
+        window.onload = function() {
+            log('OAuth Installation Test Ready');
+            
+            // Check if we're returning from OAuth
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('oauth_test') === 'complete') {
+                log('Detected OAuth return - checking results...');
+                setTimeout(checkDatabase, 1000);
+            }
+        };
+    </script>
+</body>
+</html>
