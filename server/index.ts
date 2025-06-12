@@ -300,7 +300,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
       
       localStorage.setItem('oauth_state', state);
       
-      const authUrl = new URL('https://marketplace.gohighlevel.com/oauth/chooselocation');
+      const authUrl = new URL('https://marketplace.leadconnectorhq.com/oauth/chooselocation');
       authUrl.searchParams.set('response_type', 'code');
       authUrl.searchParams.set('client_id', oauthConfig.clientId);
       authUrl.searchParams.set('redirect_uri', oauthConfig.redirectUri);
