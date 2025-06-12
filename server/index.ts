@@ -1373,7 +1373,14 @@ app.use((req, res, next) => {
     console.log(`Setting up static files from: ${distPath}`);
     
     // Static file serving (OAuth routes are already registered above)
-    app.use(express.static(distPath));
+    app.use((req, res, next) => {
+      // Skip static serving for API routes to ensure they reach the handlers
+      if (req.path.startsWith('/api/')) {
+        console.log(`API route ${req.path} bypassing static serving`);
+        return next();
+      }
+      return express.static(distPath)(req, res, next);
+    });
 
     // SPA fallback - explicitly exclude OAuth routes to prevent conflicts
     app.get('*', (req, res, next) => {
