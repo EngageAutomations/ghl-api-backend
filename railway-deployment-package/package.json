@@ -1,27 +1,18 @@
 {
-  "name": "ghl-oauth-backend",
-  "version": "1.0.0",
-  "description": "GoHighLevel OAuth Backend for Railway",
+  "name": "oauth-backend",
+  "version": "2.0.0",
+  "description": "Fixed OAuth Backend for GoHighLevel Integration",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js"
   },
   "dependencies": {
+    "express": "^4.18.2",
     "axios": "^1.6.7",
-    "cookie-parser": "^1.4.6",
-    "cors": "^2.8.5",
-    "express": "^4.18.2"
+    "cors": "^2.8.5"
   },
   "engines": {
     "node": ">=18.0.0"
-  },
-  "keywords": [
-    "oauth",
-    "gohighlevel",
-    "express",
-    "backend"
-  ],
-  "author": "",
-  "license": "MIT"
+  }
 }
