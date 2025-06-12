@@ -109,10 +109,9 @@
         https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2Foauth%2Fcallback&scope=products%2Fprices.write+products%2Fprices.readonly+products%2Fcollection.write+products%2Fcollection.readonly+medias.write+medias.readonly+locations.readonly+contacts.readonly+contacts.write&state=live_oauth_test
       </div>
       
-      <a href="https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2Foauth%2Fcallback&scope=products%2Fprices.write+products%2Fprices.readonly+products%2Fcollection.write+products%2Fcollection.readonly+medias.write+medias.readonly+locations.readonly+contacts.readonly+contacts.write&state=live_oauth_test" 
-         class="btn btn-success" target="_blank">
+      <button onclick="startOAuth()" class="btn btn-success">
         Start GoHighLevel OAuth
-      </a>
+      </button>
       
       <a href="/config-wizard" class="btn">Directory Configuration</a>
     </div>
@@ -129,34 +128,54 @@
   </div>
 
   <script>
+    function startOAuth() {
+      console.log('Starting OAuth flow...');
+      
+      const status = document.getElementById('status');
+      status.innerHTML = '<div class="status info">Initiating OAuth flow...</div>';
+      
+      // Generate OAuth state
+      const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('oauth_state', state);
+      
+      // OAuth configuration
+      const clientId = '68474924a586bce22a6e64f7-mbpkmyu4';
+      const redirectUri = 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback';
+      const scopes = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write';
+      
+      // Build OAuth URL
+      const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${clientId}&state=${state}&scope=${encodeURIComponent(scopes)}`;
+      
+      console.log('Redirecting to:', authUrl);
+      status.innerHTML = '<div class="status info">Redirecting to GoHighLevel...</div>';
+      
+      // Store callback URL for return
+      localStorage.setItem('return_url', window.location.href);
+      
+      // Redirect to OAuth
+      window.location.href = authUrl;
+    }
+    
     // Check for OAuth callback results
     const urlParams = new URLSearchParams(window.location.search);
     const status = document.getElementById('status');
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    const error = urlParams.get('error');
     
-    if (urlParams.get('success') === 'oauth-complete') {
-      status.innerHTML = `
-        <div class="status success">
-          OAuth Integration Successful!<br>
-          Location ID: ${urlParams.get('locationId') || 'Retrieved'}<br>
-          Access tokens have been stored and the integration is ready for use.
-        </div>
-      `;
-    } else if (urlParams.get('error')) {
-      status.innerHTML = `
-        <div class="status error">
-          OAuth Error: ${decodeURIComponent(urlParams.get('error'))}<br>
-          Please try the OAuth flow again or check the configuration.
-        </div>
-      `;
-    } else if (urlParams.get('code')) {
-      status.innerHTML = `
-        <div class="status info">
-          Processing OAuth callback with authorization code...<br>
-          Code: ${urlParams.get('code').substring(0, 10)}...<br>
-          State: ${urlParams.get('state')}<br>
-          Exchanging code for access tokens...
-        </div>
-      `;
+    if (error) {
+      status.innerHTML = `<div class="status error">OAuth Error: ${error}</div>`;
+    } else if (code && state) {
+      status.innerHTML = '<div class="status success">OAuth successful! Code received, processing...</div>';
+      
+      // Verify state
+      const storedState = localStorage.getItem('oauth_state');
+      if (state !== storedState) {
+        status.innerHTML = '<div class="status error">Invalid state parameter - possible CSRF attack</div>';
+      } else {
+        // Exchange code for tokens
+        exchangeCodeForTokens(code, state);
+      }
     } else {
       status.innerHTML = `
         <div class="status info">
@@ -165,19 +184,47 @@
         </div>
       `;
     }
-
-    // Auto-update state parameter
-    setInterval(() => {
-      const newState = 'live_oauth_' + Math.random().toString(36).substring(2, 15);
-      const urlElement = document.getElementById('oauthUrl');
-      const linkElement = document.querySelector('.btn-success');
-      
-      const currentUrl = urlElement.textContent;
-      const newUrl = currentUrl.replace(/state=live_oauth_\w+/, `state=${newState}`);
-      
-      urlElement.textContent = newUrl;
-      linkElement.href = newUrl;
-    }, 60000); // Update every minute
+    
+    async function exchangeCodeForTokens(code, state) {
+      try {
+        status.innerHTML = '<div class="status info">Exchanging authorization code for access tokens...</div>';
+        
+        const response = await fetch('https://oauth-backend-production-68c5.up.railway.app/api/oauth/exchange', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code, state })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.access_token) {
+          status.innerHTML = `
+            <div class="status success">
+              OAuth Integration Complete!<br><br>
+              <strong>Access Token:</strong> ${result.access_token.substr(0, 20)}...<br>
+              <strong>Location ID:</strong> ${result.locationId || 'N/A'}<br>
+              <strong>Company ID:</strong> ${result.companyId || 'N/A'}<br><br>
+              You can now use the GoHighLevel API with this access token.
+            </div>
+          `;
+          
+          // Store tokens for app use
+          localStorage.setItem('ghl_access_token', result.access_token);
+          if (result.refresh_token) {
+            localStorage.setItem('ghl_refresh_token', result.refresh_token);
+          }
+          
+        } else {
+          status.innerHTML = `<div class="status error">Token exchange failed: ${result.error || 'Unknown error'}</div>`;
+        }
+        
+      } catch (error) {
+        console.error('Token exchange error:', error);
+        status.innerHTML = `<div class="status error">Network error during token exchange: ${error.message}</div>`;
+      }
+    }
   </script>
 </body>
 </html>
