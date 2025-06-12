@@ -1300,41 +1300,7 @@ app.get('/api/oauth/location-data', async (req, res) => {
   }
 });
 
-app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
-  console.log('=== PRIORITY OAUTH CALLBACK HIT ===');
-  console.log('URL:', req.url);
-  console.log('Query params:', req.query);
-  console.log('Method:', req.method);
-
-  const { code, state, error } = req.query;
-  
-  if (error) {
-    console.error('OAuth error parameter:', error);
-    const errorMsg = encodeURIComponent(error as string);
-    const redirectUrl = `https://dir.engageautomations.com/?error=${errorMsg}`;
-    console.log('Redirecting with error to:', redirectUrl);
-    return res.redirect(redirectUrl);
-  }
-
-  if (!code && !error) {
-    console.log('No parameters - test endpoint');
-    return res.send('OAuth callback hit successfully - route is working!');
-  }
-
-  if (code) {
-    console.log('=== OAUTH CALLBACK SUCCESS ===');
-    console.log('Authorization code received:', String(code).substring(0, 20) + '...');
-    console.log('State parameter:', state);
-    
-    const successUrl = `https://dir.engageautomations.com/oauth-success.html?success=oauth-callback&code=${encodeURIComponent(String(code).substring(0, 10))}...&timestamp=${Date.now()}`;
-    console.log('OAuth callback successful, redirecting to:', successUrl);
-    return res.redirect(successUrl);
-  }
-
-  console.error('Unexpected callback state - no valid parameters');
-  const redirectUrl = `https://dir.engageautomations.com/oauth-error?error=callback_failed&reason=no_valid_parameters`;
-  return res.redirect(redirectUrl);
-});
+// Duplicate simplified handler removed - using complete token exchange version above
 
 // Direct OAuth route handling - absolute highest priority
 app.get('/oauth/start', (req, res) => {
