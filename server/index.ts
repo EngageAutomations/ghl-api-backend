@@ -5,6 +5,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { setupProductionRouting } from "./production-routing";
 import { privateDeploymentGuard, ipWhitelist } from "./privacy";
 import { setupDomainRedirects, setupCORS } from "./domain-config";
+import { setupDirectOAuthRoutes } from "./oauth-direct";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
@@ -384,12 +385,12 @@ function setupOAuthRoutesProduction(app: express.Express) {
 const app = express();
 
 // Essential middleware first
+// Setup direct OAuth routes BEFORE any middleware to ensure highest priority
+setupDirectOAuthRoutes(app);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-
-// OAuth routes will be registered through registerRoutes function
-// setupOAuthRoutesProduction(app);
 
 // Domain and CORS setup
 app.use(setupDomainRedirects);
