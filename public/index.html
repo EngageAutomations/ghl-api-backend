@@ -165,12 +165,23 @@
     
     // Handle direct OAuth callback processing
     function handleOAuthCallback() {
+      console.log('Checking OAuth callback:', {
+        pathname: window.location.pathname,
+        search: window.location.search,
+        href: window.location.href,
+        success_param: urlParams.get('success'),
+        code_param: urlParams.get('code'),
+        state_param: urlParams.get('state')
+      });
+      
       const isOAuthCallback = window.location.pathname === '/oauth-callback.html' || 
                              window.location.pathname === '/oauth/callback' ||
                              window.location.pathname === '/oauth-success' ||
                              window.location.pathname.includes('oauth-success') ||
                              urlParams.get('success') === 'true' ||
                              (code && state);
+      
+      console.log('OAuth callback detected:', isOAuthCallback);
       
       if (isOAuthCallback) {
         
