@@ -1082,14 +1082,7 @@ app.use((req, res, next) => {
   if (forceProductionMode || isReplit) {
     console.log("Setting up production routing for OAuth compatibility...");
     
-    // Serve static files from dist directory
-    const distPath = path.join(__dirname, '..', 'dist');
-    console.log(`Setting up static files from: ${distPath}`);
-    
-    // Static file serving (OAuth routes are already registered above)
-    app.use(express.static(distPath));
-
-    // Handle root route for OAuth app and marketplace installations
+    // Handle root route for OAuth app and marketplace installations - BEFORE static files
     app.get('/', (req, res) => {
       console.log('🏠 Root route accessed');
       console.log('Query params:', req.query);
@@ -1111,6 +1104,13 @@ app.use((req, res, next) => {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.send(getOAuthAppHTML());
     });
+
+    // Serve static files from dist directory
+    const distPath = path.join(__dirname, '..', 'dist');
+    console.log(`Setting up static files from: ${distPath}`);
+    
+    // Static file serving (OAuth routes are already registered above)
+    app.use(express.static(distPath));
 
     // SPA fallback - explicitly exclude OAuth routes to prevent conflicts
     app.get('*', (req, res, next) => {
