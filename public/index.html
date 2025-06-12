@@ -6,93 +6,47 @@
   <title>GoHighLevel Directory App</title>
   <style>
     body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      font-family: Arial, sans-serif; 
       margin: 0; 
-      padding: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
+      padding: 40px;
+      background: #f5f5f5;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
     .container { 
-      max-width: 500px; 
+      max-width: 600px; 
       background: white;
-      padding: 60px 40px;
-      border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-      text-align: center;
-      position: relative;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center; 
     }
-    h1 {
-      color: #2d3748;
-      margin-bottom: 10px;
-      font-size: 28px;
-      font-weight: 700;
-    }
-    .subtitle {
-      color: #718096;
-      margin-bottom: 40px;
-      font-size: 16px;
-      line-height: 1.5;
-    }
-    .oauth-btn { 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .btn { 
+      background: #0079F2; 
       color: white; 
-      padding: 16px 32px; 
+      padding: 12px 24px; 
       border: none; 
-      border-radius: 12px; 
+      border-radius: 6px; 
       text-decoration: none; 
       display: inline-block; 
-      margin: 20px 0;
+      margin: 10px;
       cursor: pointer;
       font-size: 16px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      text-transform: none;
-      letter-spacing: 0.5px;
     }
-    .oauth-btn:hover { 
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-    }
-    .oauth-btn:disabled { 
-      background: #e2e8f0; 
-      color: #a0aec0;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-    .status {
-      padding: 20px;
-      border-radius: 12px;
-      margin: 25px 0;
-      font-size: 14px;
-      font-weight: 500;
-    }
-    .status.loading {
-      background: #ebf8ff;
-      color: #2b6cb0;
-      border: 1px solid #90cdf4;
-    }
-    .status.error {
-      background: #fed7d7;
-      color: #c53030;
-      border: 1px solid #feb2b2;
-    }
-    .status.success {
-      background: #f0fff4;
-      color: #38a169;
-      border: 1px solid #9ae6b4;
-    }
+    .btn:hover { background: #0066D9; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .success { color: #28a745; margin: 20px 0; }
+    .error { color: #dc3545; margin: 20px 0; }
     .spinner {
-      border: 3px solid #e2e8f0;
-      border-top: 3px solid #667eea;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #0079F2;
       border-radius: 50%;
-      width: 24px;
-      height: 24px;
+      width: 30px;
+      height: 30px;
       animation: spin 1s linear infinite;
-      margin: 0 auto 15px;
+      margin: 20px auto;
       display: none;
     }
     @keyframes spin {
@@ -100,62 +54,44 @@
       100% { transform: rotate(360deg); }
     }
     .oauth-connected {
-      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-      padding: 30px;
-      border-radius: 15px;
-      color: white;
-      margin: 30px 0;
-    }
-    .oauth-connected h3 {
-      margin-top: 0;
-      margin-bottom: 15px;
-      font-size: 20px;
-      color: white;
-    }
-    .dashboard-btn {
-      background: white;
-      color: #38a169;
-      padding: 12px 24px;
-      border: none;
+      background: #28a745;
+      padding: 20px;
       border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 15px;
-      transition: all 0.2s ease;
+      color: white;
+      margin: 20px 0;
     }
-    .dashboard-btn:hover {
-      background: #f7fafc;
-      transform: translateY(-1px);
+    .status {
+      padding: 15px;
+      border-radius: 6px;
+      margin: 15px 0;
     }
-    .powered-by {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 12px;
-      color: #a0aec0;
+    .status.loading {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    .status.error {
+      background: #ffebee;
+      color: #c62828;
+    }
+    .status.success {
+      background: #e8f5e8;
+      color: #2e7d32;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>GoHighLevel Directory</h1>
-    <p class="subtitle">Connect your GoHighLevel account to create and manage product directories with ease.</p>
-    
-    <button onclick="startOAuth()" class="oauth-btn" id="oauthBtn">
-      Connect with GoHighLevel
-    </button>
-    
+    <h1>GoHighLevel Directory App</h1>
+    <p>Connect your GoHighLevel account to get started.</p>
+    <button onclick="startOAuth()" class="btn" id="oauthBtn">Connect with GoHighLevel</button>
     <div class="spinner" id="spinner"></div>
     <div id="status"></div>
-    
-    <div class="powered-by">Powered by EngageAutomations</div>
   </div>
 
   <script>
-    console.log('OAuth app initialized - v2.0');
+    console.log('OAuth app initialized');
     
+    // OAuth configuration
     const oauthConfig = {
       clientId: '67472ecce8b57dd9eda067a8',
       redirectUri: 'https://dir.engageautomations.com/',
@@ -172,65 +108,44 @@
       ]
     };
 
-    // Check for OAuth callback immediately
+    // Check for OAuth callback on page load
     function checkOAuthCallback() {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
       const state = urlParams.get('state');
       const error = urlParams.get('error');
-      const errorDescription = urlParams.get('error_description');
+      const oauthSuccess = urlParams.get('oauth') === 'success';
+      const storedSuccess = localStorage.getItem('oauth_success') === 'true';
       
-      // Check for stored success state
-      const oauthSuccess = localStorage.getItem('oauth_success') === 'true';
-      const oauthTimestamp = localStorage.getItem('oauth_timestamp');
+      console.log('Checking OAuth status:', { code: !!code, state, error, oauthSuccess, storedSuccess });
       
-      console.log('OAuth Status Check:', { 
-        hasCode: !!code, 
-        hasState: !!state, 
-        hasError: !!error, 
-        storedSuccess: oauthSuccess,
-        timestamp: oauthTimestamp
-      });
-      
-      // Handle OAuth errors
       if (error) {
-        const message = errorDescription || error;
-        showError('OAuth Authorization Failed: ' + message);
-        cleanupOAuthState();
+        showError(`OAuth error: ${error}`);
         return;
       }
       
-      // Handle successful stored OAuth
-      if (oauthSuccess && oauthTimestamp) {
-        const timeDiff = Date.now() - parseInt(oauthTimestamp);
-        // Show success if within last 24 hours
-        if (timeDiff < 24 * 60 * 60 * 1000) {
-          showOAuthSuccess();
-          return;
-        } else {
-          // Clear expired success state
-          localStorage.removeItem('oauth_success');
-          localStorage.removeItem('oauth_timestamp');
-        }
-      }
-      
-      // Handle OAuth callback with code
       if (code && state) {
         handleOAuthCallback(code, state);
         return;
       }
+      
+      if (oauthSuccess || storedSuccess) {
+        showOAuthSuccess();
+        return;
+      }
     }
 
+    // Start OAuth flow
     function startOAuth() {
       console.log('Starting OAuth flow...');
       
-      const state = 'oauth_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const scope = oauthConfig.scopes.join(' ');
       
       // Store state for validation
       localStorage.setItem('oauth_state', state);
-      localStorage.setItem('oauth_start_time', Date.now().toString());
       
+      // Build OAuth URL
       const authUrl = new URL('https://marketplace.gohighlevel.com/oauth/chooselocation');
       authUrl.searchParams.set('response_type', 'code');
       authUrl.searchParams.set('client_id', oauthConfig.clientId);
@@ -238,129 +153,109 @@
       authUrl.searchParams.set('scope', scope);
       authUrl.searchParams.set('state', state);
       
-      console.log('OAuth URL Generated:', authUrl.toString());
+      console.log('Redirecting to:', authUrl.toString());
       
-      showLoading('Redirecting to GoHighLevel authorization...');
+      // Show loading state
+      showLoading('Redirecting to GoHighLevel...');
       
-      // Add slight delay for user feedback
-      setTimeout(() => {
-        window.location.href = authUrl.toString();
-      }, 1000);
+      // Redirect to OAuth
+      window.location.href = authUrl.toString();
     }
 
+    // Handle OAuth callback
     async function handleOAuthCallback(code, state) {
-      console.log('Processing OAuth callback...');
+      console.log('Handling OAuth callback');
       
+      // Validate state
       const storedState = localStorage.getItem('oauth_state');
       if (state !== storedState) {
-        showError('Security validation failed. Please try connecting again.');
-        cleanupOAuthState();
+        showError('Invalid OAuth state. Please try again.');
         return;
       }
       
-      showLoading('Exchanging authorization code for access token...');
+      showLoading('Processing authorization...');
       
       try {
-        // Simulate token exchange (since backend API is not accessible)
-        // In a real implementation, this would call your backend
-        await simulateTokenExchange(code, state);
+        // Exchange code for tokens using your backend
+        const response = await fetch('https://oauth-backend-production-68c5.up.railway.app/api/oauth/exchange', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            code: code,
+            state: state,
+            redirect_uri: oauthConfig.redirectUri
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Store success state
+          localStorage.setItem('oauth_success', 'true');
+          localStorage.setItem('oauth_timestamp', Date.now().toString());
+          localStorage.removeItem('oauth_state');
+          
+          // Clear URL parameters and show success
+          window.history.replaceState({}, document.title, window.location.pathname);
+          showOAuthSuccess();
+        } else {
+          throw new Error(result.error || 'Token exchange failed');
+        }
         
       } catch (error) {
         console.error('OAuth exchange error:', error);
-        showError('Authorization failed: ' + error.message);
-        cleanupOAuthState();
+        showError(`Authorization failed: ${error.message}`);
       }
     }
 
-    async function simulateTokenExchange(code, state) {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Validate code format (basic check)
-      if (!code || code.length < 10) {
-        throw new Error('Invalid authorization code received');
-      }
-      
-      // Mark OAuth as successful
-      localStorage.setItem('oauth_success', 'true');
-      localStorage.setItem('oauth_timestamp', Date.now().toString());
-      localStorage.setItem('oauth_code', code);
-      localStorage.removeItem('oauth_state');
-      localStorage.removeItem('oauth_start_time');
-      
-      // Clean URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-      
-      showOAuthSuccess();
-    }
-
+    // Show loading state
     function showLoading(message) {
       document.getElementById('spinner').style.display = 'block';
       document.getElementById('oauthBtn').disabled = true;
-      document.getElementById('status').innerHTML = 
-        '<div class="status loading">' + message + '</div>';
+      document.getElementById('status').innerHTML = `<div class="status loading">${message}</div>`;
     }
 
+    // Show OAuth success state
     function showOAuthSuccess() {
       document.getElementById('spinner').style.display = 'none';
       document.getElementById('oauthBtn').style.display = 'none';
-      
-      const timestamp = localStorage.getItem('oauth_timestamp');
-      const timeStr = timestamp ? new Date(parseInt(timestamp)).toLocaleString() : 'recently';
-      
-      document.getElementById('status').innerHTML = 
-        '<div class="oauth-connected">' +
-          '<h3>✓ Successfully Connected!</h3>' +
-          '<p>Your GoHighLevel account was connected ' + timeStr + '. You can now create and manage product directories.</p>' +
-          '<button onclick="goToDashboard()" class="dashboard-btn">' +
-            'Access Dashboard' +
-          '</button>' +
-        '</div>';
+      document.getElementById('status').innerHTML = `
+        <div class="oauth-connected">
+          <h3>✓ Successfully Connected!</h3>
+          <p>Your GoHighLevel account is now connected. You can start creating directory listings.</p>
+          <button onclick="goToDashboard()" class="btn" style="background: white; color: #28a745; margin-top: 10px;">
+            Go to Dashboard
+          </button>
+        </div>
+      `;
     }
 
+    // Show error message
     function showError(message) {
       document.getElementById('spinner').style.display = 'none';
       document.getElementById('oauthBtn').disabled = false;
-      document.getElementById('status').innerHTML = 
-        '<div class="status error">' +
-          '<strong>Connection Error:</strong><br>' + message +
-          '<br><br><button onclick="retryConnection()" class="oauth-btn" style="margin: 10px 0; padding: 8px 16px; font-size: 14px;">Try Again</button>' +
-        '</div>';
+      document.getElementById('status').innerHTML = `<div class="status error"><strong>Error:</strong> ${message}</div>`;
     }
 
-    function retryConnection() {
-      cleanupOAuthState();
-      document.getElementById('status').innerHTML = '';
-      document.getElementById('oauthBtn').disabled = false;
-      document.getElementById('oauthBtn').style.display = 'inline-block';
+    // Navigate to dashboard
+    function goToDashboard() {
+      alert('Dashboard functionality will be implemented here. OAuth integration is complete!');
     }
 
-    function cleanupOAuthState() {
-      localStorage.removeItem('oauth_state');
-      localStorage.removeItem('oauth_start_time');
+    // Reset OAuth state
+    function resetOAuth() {
       localStorage.removeItem('oauth_success');
       localStorage.removeItem('oauth_timestamp');
-      localStorage.removeItem('oauth_code');
+      localStorage.removeItem('oauth_state');
+      window.location.reload();
     }
 
-    function goToDashboard() {
-      showLoading('Preparing your dashboard...');
-      
-      // Simulate dashboard preparation
-      setTimeout(() => {
-        document.getElementById('status').innerHTML = 
-          '<div class="status success">' +
-            '<strong>Dashboard Ready!</strong><br>' +
-            'Your GoHighLevel integration is active. Dashboard features will be implemented in the next phase.' +
-            '<br><br><small>OAuth Token: ' + (localStorage.getItem('oauth_code') ? 'Secured ✓' : 'Not found') + '</small>' +
-          '</div>';
-      }, 1500);
-    }
-
-    // Auto-check OAuth status when page loads
+    // Initialize on page load
     document.addEventListener('DOMContentLoaded', checkOAuthCallback);
     
-    // Also check immediately
+    // Also check immediately in case DOMContentLoaded already fired
     checkOAuthCallback();
   </script>
 </body>
