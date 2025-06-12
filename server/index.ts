@@ -113,9 +113,8 @@ function setupOAuthRoutesProduction(app: express.Express) {
       console.log('Authorization code received:', String(code).substring(0, 20) + '...');
       console.log('State parameter:', state);
       
-      // For now, just redirect to success to verify callback flow works
-      // Token exchange can be implemented separately once basic flow is confirmed
-      const successUrl = `https://dir.engageautomations.com/?success=oauth-callback&code=${encodeURIComponent(String(code).substring(0, 10))}...&timestamp=${Date.now()}`;
+      // Redirect to dedicated OAuth success page
+      const successUrl = `https://dir.engageautomations.com/oauth-success?success=true&timestamp=${Date.now()}`;
       console.log('OAuth callback successful, redirecting to:', successUrl);
       return res.redirect(successUrl);
     }
@@ -132,6 +131,13 @@ function setupOAuthRoutesProduction(app: express.Express) {
     const redirectUrl = `https://dir.engageautomations.com/oauth-error?error=callback_failed&reason=no_valid_parameters`;
     console.log('Redirecting to error page:', redirectUrl);
     return res.redirect(redirectUrl);
+  });
+
+  // OAuth success page route
+  app.get('/oauth-success', (req, res) => {
+    console.log('OAuth success page requested:', req.url);
+    const filePath = path.join(__dirname, '../public/oauth-success.html');
+    res.sendFile(filePath);
   });
 
   // OAuth token exchange endpoint - GET version to bypass infrastructure
