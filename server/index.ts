@@ -507,6 +507,12 @@ app.use((req, res, next) => {
   const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
   const forceProductionMode = process.env.FORCE_PRODUCTION === 'true' || process.env.NODE_ENV === 'production' || isReplit;
   
+  // Add redirect for old OAuth route to fix caching issues
+  app.get('/oauth/start', (req, res) => {
+    console.log('🔄 Redirecting old OAuth route to working solution');
+    res.redirect('/oauth-redirect.html');
+  });
+
   // Register API routes first in all cases
   const server = await registerRoutes(app);
   
