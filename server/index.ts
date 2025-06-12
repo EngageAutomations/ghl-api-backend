@@ -115,7 +115,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
       console.log('State parameter:', state);
       
       // Redirect to dedicated OAuth success page
-      const successUrl = `https://dir.engageautomations.com/oauth-success?success=true&timestamp=${Date.now()}`;
+      const successUrl = `https://dir.engageautomations.com/oauth-success.html?success=true&timestamp=${Date.now()}`;
       console.log('OAuth callback successful, redirecting to:', successUrl);
       return res.redirect(successUrl);
     }

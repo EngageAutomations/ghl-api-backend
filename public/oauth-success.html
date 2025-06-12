@@ -36,8 +36,9 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    .success { color: #28a745; }
-    .error { color: #dc3545; }
+    .success { color: #28a745; font-weight: bold; }
+    .error { color: #dc3545; font-weight: bold; }
+    .info { color: #17a2b8; }
   </style>
 </head>
 <body>
@@ -45,6 +46,7 @@
     <h1>OAuth Authorization Complete</h1>
     <div class="spinner"></div>
     <p id="status">Processing your authorization...</p>
+    <div id="debug" style="margin-top: 20px; font-size: 12px; color: #666;"></div>
   </div>
 
   <script>
@@ -55,28 +57,89 @@
     const urlParams = new URLSearchParams(window.location.search);
     const success = urlParams.get('success');
     const timestamp = urlParams.get('timestamp');
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
     
-    console.log('Success param:', success);
-    console.log('Timestamp:', timestamp);
+    console.log('URL Parameters:', { success, timestamp, code, state });
     
-    if (success === 'true') {
-      // Store OAuth success in localStorage
+    // Store OAuth data for verification
+    if (success === 'true' || code) {
       localStorage.setItem('oauth_success', 'true');
       localStorage.setItem('oauth_timestamp', timestamp || Date.now().toString());
       
-      // Show success message briefly
-      document.getElementById('status').innerHTML = '<span class="success">✓ Authorization successful! Redirecting to dashboard...</span>';
+      if (code) {
+        localStorage.setItem('oauth_code', code.substring(0, 10) + '...');
+      }
       
-      // Redirect to main dashboard after 2 seconds
+      // Send installation data to backend
+      fetch('/api/oauth/session-data?success=true&timestamp=' + (timestamp || Date.now()), {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      }).then(response => response.json())
+        .then(data => {
+          console.log('Installation data captured:', data);
+          localStorage.setItem('installation_confirmed', 'true');
+        })
+        .catch(error => {
+          console.warn('Failed to capture installation data:', error);
+        });
+      
+      // Show success message
+      document.getElementById('status').innerHTML = '<span class="success">Authorization successful! Redirecting to dashboard...</span>';
+      document.getElementById('debug').innerHTML = `
+        <div class="info">
+          Installation confirmed at ${new Date().toLocaleTimeString()}<br>
+          ${code ? 'OAuth code received' : 'Success parameter detected'}<br>
+          Redirecting in 3 seconds...
+        </div>
+      `;
+      
+      // Redirect to main dashboard after 3 seconds
       setTimeout(() => {
-        window.location.href = '/?oauth=success';
-      }, 2000);
+        window.location.href = '/?oauth=success&timestamp=' + (timestamp || Date.now());
+      }, 3000);
+      
     } else {
       // Handle error case
       document.getElementById('status').innerHTML = '<span class="error">Authorization failed. Please try again.</span>';
+      document.getElementById('debug').innerHTML = `
+        <div class="error">
+          No success parameter or OAuth code found<br>
+          URL: ${window.location.href}<br>
+          Redirecting to home page in 5 seconds...
+        </div>
+      `;
+      
       setTimeout(() => {
         window.location.href = '/';
-      }, 3000);
+      }, 5000);
+    }
+    
+    // Also handle direct OAuth callback parameters if present
+    if (code && !success) {
+      console.log('Direct OAuth callback detected');
+      document.getElementById('status').innerHTML = '<span class="success">OAuth code received! Processing...</span>';
+      
+      // Process the OAuth callback
+      fetch(`/api/oauth/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state || '')}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      }).then(response => {
+        if (response.ok) {
+          document.getElementById('status').innerHTML = '<span class="success">OAuth processing complete! Redirecting...</span>';
+          setTimeout(() => {
+            window.location.href = '/?oauth=success&timestamp=' + Date.now();
+          }, 2000);
+        } else {
+          throw new Error('OAuth processing failed');
+        }
+      }).catch(error => {
+        console.error('OAuth callback error:', error);
+        document.getElementById('status').innerHTML = '<span class="error">OAuth processing failed. Please try again.</span>';
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 3000);
+      });
     }
   </script>
 </body>
