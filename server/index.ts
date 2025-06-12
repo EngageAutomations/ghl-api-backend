@@ -7,6 +7,7 @@ import { setupProductionRouting } from "./production-routing";
 import { privateDeploymentGuard, ipWhitelist } from "./privacy";
 import { setupDomainRedirects, setupCORS } from "./domain-config";
 import { setupDirectOAuthRoutes } from "./oauth-direct";
+import { DatabaseStorage } from "./storage";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
@@ -22,6 +23,9 @@ global.__filename = __filename;
 // OAuth setup function for production mode - MUST be called before any middleware
 function setupOAuthRoutesProduction(app: express.Express) {
   console.log('Setting up OAuth routes for production mode...');
+  
+  // Initialize storage for OAuth callbacks
+  const storage = new DatabaseStorage();
   
   // Test route to verify backend routing
   app.get('/test', (req, res) => {

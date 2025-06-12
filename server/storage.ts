@@ -24,7 +24,8 @@ export interface IStorage {
   getUserByGhlId(ghlUserId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   createOAuthUser(user: any): Promise<User>;
-  updateUserOAuthTokens(userId: number, tokens: { accessToken: string; refreshToken: string; expiresIn: number }): Promise<void>;
+  updateUserOAuthTokens(userId: number, tokens: any): Promise<User>;
+  getUsers(): Promise<User[]>;
   
   // Designer Config methods
   getDesignerConfig(userId: number): Promise<DesignerConfig | undefined>;
@@ -88,14 +89,6 @@ export interface IStorage {
   addListingToCollection(collectionId: number, listingId: number): Promise<CollectionItem>;
   removeListingFromCollection(collectionId: number, listingId: number): Promise<boolean>;
   updateCollectionItem(id: number, item: Partial<InsertCollectionItem>): Promise<CollectionItem | undefined>;
-
-  // OAuth methods
-  getUserById(id: number): Promise<User | undefined>;
-  getUserByGhlId(ghlUserId: string): Promise<User | undefined>;
-  createOAuthUser(user: any): Promise<User>;
-  updateUserOAuthTokens(userId: number, tokens: any): Promise<User | undefined>;
-  getOAuthUsers(): Promise<User[]>;
-  getDesignerConfigByDirectory(directoryName: string): Promise<DesignerConfig | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -677,32 +670,42 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .insert(users)
       .values({
-        username: userData.email,
+        username: userData.username,
         email: userData.email,
-        displayName: userData.name,
+        displayName: userData.displayName,
         ghlUserId: userData.ghlUserId,
+        ghlAccessToken: userData.ghlAccessToken,
+        ghlRefreshToken: userData.ghlRefreshToken,
+        ghlTokenExpiry: userData.ghlTokenExpiry,
+        ghlScopes: userData.ghlScopes,
         ghlLocationId: userData.ghlLocationId,
         ghlLocationName: userData.ghlLocationName,
-        ghlScopes: userData.ghlScopes,
-        authType: 'oauth',
-        isActive: true,
+        authType: userData.authType,
+        isActive: userData.isActive,
       })
       .returning();
     return user;
   }
 
-  async updateUserOAuthTokens(userId: number, tokens: { accessToken: string; refreshToken: string; expiresIn: number }): Promise<void> {
-    const expiryDate = new Date(Date.now() + tokens.expiresIn * 1000);
-    
-    await db
+  async updateUserOAuthTokens(userId: number, tokenData: any): Promise<User> {
+    const [user] = await db
       .update(users)
       .set({
-        ghlAccessToken: tokens.accessToken,
-        ghlRefreshToken: tokens.refreshToken,
-        ghlTokenExpiry: expiryDate,
+        ghlAccessToken: tokenData.ghlAccessToken,
+        ghlRefreshToken: tokenData.ghlRefreshToken,
+        ghlTokenExpiry: tokenData.ghlTokenExpiry,
+        ghlScopes: tokenData.ghlScopes,
+        ghlLocationId: tokenData.ghlLocationId,
+        ghlLocationName: tokenData.ghlLocationName,
         updatedAt: new Date(),
       })
-      .where(eq(users.id, userId));
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async getUsers(): Promise<User[]> {
+    return await db.select().from(users);
   }
 
   // Designer Config methods
