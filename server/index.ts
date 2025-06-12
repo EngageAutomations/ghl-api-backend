@@ -386,11 +386,11 @@ const app = express();
 
 // Critical route interceptor - MUST run before any static serving
 app.use((req, res, next) => {
-  console.log(`🔍 Request interceptor: ${req.method} ${req.path}`);
+  console.log(`🔍 Request interceptor: ${req.method} ${req.path} | URL: ${req.url} | Original URL: ${req.originalUrl}`);
   
-  // High-priority OAuth route
-  if (req.path === '/oauth/start') {
-    console.log('🚀 OAuth start intercepted');
+  // High-priority OAuth route with detailed logging
+  if (req.path === '/oauth/start' || req.url === '/oauth/start' || req.originalUrl === '/oauth/start') {
+    console.log('🚀 OAuth start intercepted - REDIRECTING TO GHL');
     
     const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const clientId = process.env.GHL_CLIENT_ID;
@@ -398,6 +398,8 @@ app.use((req, res, next) => {
     const scopes = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write';
     
     const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${clientId}&state=${state}&scope=${encodeURIComponent(scopes)}`;
+    
+    console.log(`🔗 Redirecting to: ${authUrl}`);
     
     res.cookie('oauth_state', state, { 
       httpOnly: true, 
@@ -510,7 +512,25 @@ app.use((req, res, next) => {
   
   if (forceProductionMode || isReplit) {
     console.log("Setting up production routing for OAuth compatibility...");
-    setupProductionRouting(app);
+    
+    // Serve static files with OAuth route exclusion
+    const distPath = path.join(__dirname, '..', 'dist');
+    app.use((req, res, next) => {
+      // Skip static serving for OAuth and API routes - they're handled by interceptor
+      if (req.path.startsWith('/oauth') || req.path.startsWith('/api/')) {
+        return next();
+      }
+      express.static(distPath)(req, res, next);
+    });
+
+    // Final SPA fallback
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/oauth') || req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: "Route not found", path: req.path });
+      }
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+    
   } else if (isDevelopment && !isReplit) {
     console.log("Setting up development mode with Vite...");
     await setupVite(app, server);
