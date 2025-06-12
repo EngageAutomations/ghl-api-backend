@@ -87,13 +87,26 @@ class GHLOAuth {
         body: new URLSearchParams(tokenData).toString()
       });
 
+      const responseText = await response.text();
+      console.log('Token exchange response:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        body: responseText
+      });
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Token exchange failed:', response.status, errorText);
-        throw new Error(`Token exchange failed: ${response.status} ${errorText}`);
+        console.error('Token exchange failed:', response.status, responseText);
+        throw new Error(`Token exchange failed: ${response.status} ${responseText}`);
       }
 
-      const tokens = await response.json();
+      let tokens;
+      try {
+        tokens = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse token response as JSON:', parseError);
+        throw new Error(`Invalid JSON response: ${responseText}`);
+      }
       console.log('Token exchange successful:', {
         access_token: tokens.access_token ? 'received' : 'missing',
         refresh_token: tokens.refresh_token ? 'received' : 'missing',
