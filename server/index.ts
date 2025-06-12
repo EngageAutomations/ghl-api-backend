@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { createServer, type Server } from "http";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -1299,7 +1300,24 @@ app.use((req, res, next) => {
 
 (async () => {
 
-  // Add request tracing middleware to debug routing issues
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  const nodeEnv = process.env.NODE_ENV || "development";
+  const isDevelopment = nodeEnv === "development";
+  console.log(`Environment: ${nodeEnv}, isDevelopment: ${isDevelopment}`);
+  
+  // Force production mode for OAuth routing to work properly
+  const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
+  const forceProductionMode = process.env.FORCE_PRODUCTION === 'true' || process.env.NODE_ENV === 'production' || isReplit;
+
+  let server: Server;
+  
+  // CRITICAL: Register API routes FIRST before any middleware
+  server = await registerRoutes(app);
+  console.log("✅ API routes registered successfully");
+
+  // Add request tracing middleware AFTER API routes
   app.use((req, res, next) => {
     console.log(`🔍 Incoming request: ${req.method} ${req.url}`);
     
@@ -1312,8 +1330,6 @@ app.use((req, res, next) => {
     next();
   });
 
-  // OAuth routes are handled by setupOAuthRoutesProduction - no duplicates needed
-
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -1321,31 +1337,15 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
     throw err;
   });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  const nodeEnv = process.env.NODE_ENV || "development";
-  const isDevelopment = nodeEnv === "development";
-  console.log(`Environment: ${nodeEnv}, isDevelopment: ${isDevelopment}`);
-  
-  // Force production mode for OAuth routing to work properly
-  const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
-  const forceProductionMode = process.env.FORCE_PRODUCTION === 'true' || process.env.NODE_ENV === 'production' || isReplit;
   
   // Add redirect for old OAuth route to fix caching issues
   app.get('/oauth/start', (req, res) => {
     console.log('🔄 Redirecting old OAuth route to working solution');
     res.redirect('/oauth-redirect.html');
   });
-
-  let server: Server;
   
   if (forceProductionMode || isReplit) {
     console.log("Setting up production routing for OAuth compatibility...");
-    
-    // Register API routes FIRST to prevent static file interception
-    server = await registerRoutes(app);
     
     // Handle root route for OAuth app and marketplace installations - BEFORE static files
     app.get('/', (req, res) => {
@@ -1374,15 +1374,8 @@ app.use((req, res, next) => {
     const distPath = path.join(__dirname, '..', 'dist');
     console.log(`Setting up static files from: ${distPath}`);
     
-    // Static file serving (OAuth routes are already registered above)
-    app.use((req, res, next) => {
-      // Skip static serving for API routes to ensure they reach the handlers
-      if (req.path.startsWith('/api/')) {
-        console.log(`API route ${req.path} bypassing static serving`);
-        return next();
-      }
-      return express.static(distPath)(req, res, next);
-    });
+    // Static file serving - simplified since API routes are already registered first
+    app.use(express.static(distPath));
 
     // SPA fallback - explicitly exclude OAuth routes to prevent conflicts
     app.get('*', (req, res, next) => {
@@ -1396,8 +1389,6 @@ app.use((req, res, next) => {
     
   } else if (isDevelopment && !isReplit) {
     console.log("Setting up development mode with Vite...");
-    // Register API routes FIRST in development too
-    server = await registerRoutes(app);
     await setupVite(app, server);
   }
 
