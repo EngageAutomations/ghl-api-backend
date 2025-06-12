@@ -119,6 +119,19 @@ function setupOAuthRoutesProduction(app: express.Express) {
       console.log('OAuth callback successful, redirecting to:', successUrl);
       return res.redirect(successUrl);
     }
+
+    // Fallback case - if we reach here, something unexpected happened
+    console.error('=== OAUTH CALLBACK FALLBACK ===');
+    console.error('No valid parameters found in callback');
+    console.error('Code:', code ? 'present' : 'missing');
+    console.error('Error:', error ? 'present' : 'missing');
+    console.error('Action:', action ? 'present' : 'missing');
+    console.error('Query string:', req.url);
+    console.error('==============================');
+    
+    const redirectUrl = `https://dir.engageautomations.com/oauth-error?error=callback_failed&reason=no_valid_parameters`;
+    console.log('Redirecting to error page:', redirectUrl);
+    return res.redirect(redirectUrl);
   });
 
   // OAuth token exchange endpoint - GET version to bypass infrastructure
