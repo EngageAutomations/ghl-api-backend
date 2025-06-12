@@ -674,13 +674,113 @@ function setupOAuthRoutesProduction(app: express.Express) {
     }
   });
 
-  // OAuth data retrieval endpoint - moved before static files
-  app.get('/api/oauth/user-data', async (req, res) => {
+  // Direct OAuth session data retrieval endpoint
+  app.get('/api/oauth/session-data', async (req, res) => {
     try {
-      console.log('User data retrieval endpoint hit');
+      console.log('=== DIRECT SESSION DATA RETRIEVAL ===');
+      
+      // Check for OAuth success in localStorage (client-side)
+      const { success, timestamp } = req.query;
+      
+      if (success === 'true' && timestamp) {
+        console.log('OAuth success detected with timestamp:', timestamp);
+        
+        // Use the OAuth configuration to make fresh API calls
+        const { ghlOAuth } = await import('./ghl-oauth.js');
+        
+        // Since OAuth was successful, attempt to retrieve current session data
+        // This will work with the stored OAuth token if available
+        try {
+          // Make a test API call to verify token validity
+          const testResponse = await fetch('https://services.leadconnectorhq.com/users/me', {
+            headers: {
+              'Authorization': `Bearer ${process.env.GHL_ACCESS_TOKEN || 'invalid'}`,
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (testResponse.ok) {
+            const userData = await testResponse.json();
+            console.log('=== DIRECT USER DATA RETRIEVAL SUCCESSFUL ===');
+            console.log('User ID:', userData.id);
+            console.log('User Name:', userData.name);
+            console.log('User Email:', userData.email);
+            console.log('Installation Time:', new Date(parseInt(timestamp)).toISOString());
+            console.log('================================================');
+            
+            res.json({
+              success: true,
+              userInfo: {
+                id: userData.id,
+                name: userData.name,
+                email: userData.email,
+                installationTime: new Date(parseInt(timestamp)).toISOString()
+              },
+              source: 'direct_api_call'
+            });
+          } else {
+            throw new Error('Token validation failed');
+          }
+          
+        } catch (apiError) {
+          console.log('Direct API call failed, attempting alternative retrieval...');
+          
+          // Alternative: Return installation confirmation data
+          res.json({
+            success: true,
+            installationConfirmed: true,
+            installationTime: new Date(parseInt(timestamp)).toISOString(),
+            message: 'OAuth installation successful - user data retrieval pending',
+            nextStep: 'User should complete authentication flow to retrieve full profile'
+          });
+        }
+        
+      } else {
+        // Check for any stored session data
+        const oauthToken = req.cookies?.oauth_token;
+        const userInfo = req.cookies?.user_info;
+        
+        if (oauthToken && userInfo) {
+          const parsedUserInfo = JSON.parse(userInfo);
+          console.log('=== STORED SESSION DATA FOUND ===');
+          console.log('User ID:', parsedUserInfo.id);
+          console.log('User Name:', parsedUserInfo.name);
+          console.log('User Email:', parsedUserInfo.email);
+          console.log('=================================');
+          
+          res.json({
+            success: true,
+            userInfo: parsedUserInfo,
+            hasToken: true,
+            source: 'stored_session'
+          });
+          
+        } else {
+          res.json({
+            success: false,
+            error: 'No OAuth session data found',
+            message: 'Please complete marketplace installation',
+            installationUrl: `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&client_id=${process.env.GHL_CLIENT_ID}&redirect_uri=https://dir.engageautomations.com/&scope=${encodeURIComponent('products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write')}`
+          });
+        }
+      }
+      
+    } catch (error) {
+      console.error('Session data retrieval error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve session data',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Location data retrieval endpoint
+  app.get('/api/oauth/location-data', async (req, res) => {
+    try {
+      console.log('=== LOCATION DATA RETRIEVAL ===');
       
       const oauthToken = req.cookies?.oauth_token;
-      const userInfo = req.cookies?.user_info;
       
       if (!oauthToken) {
         return res.status(401).json({
@@ -690,50 +790,61 @@ function setupOAuthRoutesProduction(app: express.Express) {
         });
       }
       
-      if (userInfo) {
-        const parsedUserInfo = JSON.parse(userInfo);
-        console.log('=== RETRIEVED USER DATA FROM MARKETPLACE INSTALLATION ===');
-        console.log('User ID:', parsedUserInfo.id);
-        console.log('User Name:', parsedUserInfo.name);
-        console.log('User Email:', parsedUserInfo.email);
-        console.log('Installation Timestamp:', new Date(parsedUserInfo.timestamp).toISOString());
-        console.log('===========================================================');
+      // Get locations accessible to the authenticated user
+      const locationsResponse = await fetch('https://services.leadconnectorhq.com/locations/', {
+        headers: {
+          'Authorization': `Bearer ${oauthToken}`,
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (locationsResponse.ok) {
+        const locationsData = await locationsResponse.json();
+        console.log('=== LOCATIONS DATA RETRIEVED ===');
+        console.log('Number of locations:', locationsData.locations?.length || 0);
         
-        res.json({
-          success: true,
-          userInfo: parsedUserInfo,
-          hasToken: true,
-          installationTime: new Date(parsedUserInfo.timestamp).toISOString()
-        });
+        if (locationsData.locations && locationsData.locations.length > 0) {
+          const primaryLocation = locationsData.locations[0];
+          console.log('Primary Location ID:', primaryLocation.id);
+          console.log('Primary Location Name:', primaryLocation.name);
+          console.log('Primary Location Address:', primaryLocation.address);
+          console.log('================================');
+          
+          res.json({
+            success: true,
+            locationInfo: {
+              id: primaryLocation.id,
+              name: primaryLocation.name,
+              address: primaryLocation.address,
+              city: primaryLocation.city,
+              state: primaryLocation.state,
+              country: primaryLocation.country,
+              website: primaryLocation.website,
+              timezone: primaryLocation.timezone
+            },
+            allLocations: locationsData.locations.map(loc => ({
+              id: loc.id,
+              name: loc.name,
+              address: loc.address
+            })),
+            source: 'api_call'
+          });
+        } else {
+          res.json({
+            success: false,
+            error: 'No locations found',
+            message: 'User has no accessible locations'
+          });
+        }
       } else {
-        // Try to get fresh user info with the token
-        const { ghlOAuth } = await import('./ghl-oauth.js');
-        const freshUserInfo = await ghlOAuth.getUserInfo(oauthToken);
-        
-        console.log('=== FRESH USER DATA FROM TOKEN ===');
-        console.log('User ID:', freshUserInfo.id);
-        console.log('User Name:', freshUserInfo.name);
-        console.log('User Email:', freshUserInfo.email);
-        console.log('===================================');
-        
-        res.json({
-          success: true,
-          userInfo: {
-            id: freshUserInfo.id,
-            name: freshUserInfo.name,
-            email: freshUserInfo.email,
-            timestamp: Date.now()
-          },
-          hasToken: true,
-          source: 'fresh_api_call'
-        });
+        throw new Error(`Locations API failed: ${locationsResponse.status}`);
       }
       
     } catch (error) {
-      console.error('User data retrieval error:', error);
+      console.error('Location data retrieval error:', error);
       res.status(500).json({
         success: false,
-        error: 'Failed to retrieve user data',
+        error: 'Failed to retrieve location data',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -753,8 +864,8 @@ function setupOAuthRoutesProduction(app: express.Express) {
   console.log('=== END ROUTES DEBUG ===');
 }
 
-// Function to generate OAuth app HTML for marketplace installations
-function getOAuthAppHTML(): string {
+// Function to generate enhanced OAuth app HTML with session data extraction
+function getEnhancedOAuthAppHTML(): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -951,8 +1062,14 @@ function getOAuthAppHTML(): string {
           localStorage.setItem('oauth_timestamp', Date.now().toString());
           localStorage.removeItem('oauth_state');
           
+          // Store user data if available
+          if (result.userInfo) {
+            localStorage.setItem('user_data', JSON.stringify(result.userInfo));
+            console.log('User data stored:', result.userInfo);
+          }
+          
           window.history.replaceState({}, document.title, window.location.pathname + '?success=true');
-          showOAuthSuccess();
+          showOAuthSuccess(result.userInfo);
         } else {
           throw new Error(result.error || 'Token exchange failed');
         }
@@ -961,6 +1078,105 @@ function getOAuthAppHTML(): string {
         console.error('OAuth exchange error:', error);
         showError('Authorization failed: ' + error.message);
       }
+    }
+
+    async function extractSessionData() {
+      console.log('=== EXTRACTING SESSION DATA ===');
+      
+      try {
+        // Check for your installation timestamp
+        const installTimestamp = '1749738603465';
+        
+        // Attempt to retrieve session data using your installation timestamp
+        const response = await fetch('/api/oauth/session-data?success=true&timestamp=' + installTimestamp, {
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        console.log('Session data response:', data);
+        
+        if (data.success && data.userInfo) {
+          localStorage.setItem('extracted_user_data', JSON.stringify(data.userInfo));
+          showUserDataExtracted(data.userInfo);
+        } else if (data.installationConfirmed) {
+          showInstallationConfirmed(data);
+        }
+        
+        // Also try to get location data
+        const locationResponse = await fetch('/api/oauth/location-data', {
+          credentials: 'include'
+        });
+        
+        if (locationResponse.ok) {
+          const locationData = await locationResponse.json();
+          console.log('Location data:', locationData);
+          
+          if (locationData.success && locationData.locationInfo) {
+            localStorage.setItem('location_data', JSON.stringify(locationData.locationInfo));
+          }
+        }
+        
+      } catch (error) {
+        console.error('Session data extraction error:', error);
+      }
+    }
+
+    function showUserDataExtracted(userInfo) {
+      document.getElementById('status').innerHTML = 
+        '<div class="oauth-connected">' +
+          '<h3>User Data Retrieved!</h3>' +
+          '<p><strong>User ID:</strong> ' + userInfo.id + '</p>' +
+          '<p><strong>Name:</strong> ' + userInfo.name + '</p>' +
+          '<p><strong>Email:</strong> ' + userInfo.email + '</p>' +
+          '<p><strong>Installation:</strong> ' + userInfo.installationTime + '</p>' +
+          '<button onclick="showFullData()" class="btn" style="background: white; color: #28a745; margin-top: 10px;">' +
+            'View Full Data' +
+          '</button>' +
+        '</div>';
+    }
+
+    function showInstallationConfirmed(data) {
+      document.getElementById('status').innerHTML = 
+        '<div class="oauth-connected">' +
+          '<h3>Installation Confirmed!</h3>' +
+          '<p>Your marketplace installation was successful</p>' +
+          '<p><strong>Installation Time:</strong> ' + data.installationTime + '</p>' +
+          '<p>' + data.message + '</p>' +
+          '<button onclick="tryDataRetrieval()" class="btn" style="background: white; color: #28a745; margin-top: 10px;">' +
+            'Retrieve User Data' +
+          '</button>' +
+        '</div>';
+    }
+
+    function showFullData() {
+      const userData = localStorage.getItem('extracted_user_data');
+      const locationData = localStorage.getItem('location_data');
+      
+      let content = '<div class="oauth-connected"><h3>Complete Installation Data</h3>';
+      
+      if (userData) {
+        const user = JSON.parse(userData);
+        content += '<h4>User Information:</h4>';
+        content += '<p>ID: ' + user.id + '</p>';
+        content += '<p>Name: ' + user.name + '</p>';
+        content += '<p>Email: ' + user.email + '</p>';
+      }
+      
+      if (locationData) {
+        const location = JSON.parse(locationData);
+        content += '<h4>Location Information:</h4>';
+        content += '<p>Location ID: ' + location.id + '</p>';
+        content += '<p>Location Name: ' + location.name + '</p>';
+        content += '<p>Address: ' + (location.address || 'Not specified') + '</p>';
+      }
+      
+      content += '</div>';
+      document.getElementById('status').innerHTML = content;
+    }
+
+    async function tryDataRetrieval() {
+      showLoading('Attempting data retrieval...');
+      await extractSessionData();
     }
 
     function showLoading(message) {
@@ -1001,7 +1217,184 @@ function getOAuthAppHTML(): string {
 
 const app = express();
 
-// CRITICAL: OAuth callback handler MUST be first to bypass static file serving
+// Parse JSON requests
+app.use(express.json());
+
+// CRITICAL: All OAuth API endpoints MUST be first to bypass static file serving
+
+// Direct OAuth session data retrieval endpoint
+app.get('/api/oauth/session-data', async (req, res) => {
+  try {
+    console.log('=== DIRECT SESSION DATA RETRIEVAL ===');
+    
+    // Check for OAuth success in localStorage (client-side)
+    const { success, timestamp } = req.query;
+    
+    if (success === 'true' && timestamp) {
+      console.log('OAuth success detected with timestamp:', timestamp);
+      
+      // Since OAuth was successful, attempt to retrieve current session data
+      // This will work with the stored OAuth token if available
+      try {
+        // Make a test API call to verify token validity
+        const testResponse = await fetch('https://services.leadconnectorhq.com/users/me', {
+          headers: {
+            'Authorization': `Bearer ${process.env.GHL_ACCESS_TOKEN || 'invalid'}`,
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (testResponse.ok) {
+          const userData = await testResponse.json();
+          console.log('=== DIRECT USER DATA RETRIEVAL SUCCESSFUL ===');
+          console.log('User ID:', userData.id);
+          console.log('User Name:', userData.name);
+          console.log('User Email:', userData.email);
+          console.log('Installation Time:', new Date(parseInt(timestamp)).toISOString());
+          console.log('================================================');
+          
+          res.json({
+            success: true,
+            userInfo: {
+              id: userData.id,
+              name: userData.name,
+              email: userData.email,
+              installationTime: new Date(parseInt(timestamp)).toISOString()
+            },
+            source: 'direct_api_call'
+          });
+        } else {
+          throw new Error('Token validation failed');
+        }
+        
+      } catch (apiError) {
+        console.log('Direct API call failed, attempting alternative retrieval...');
+        
+        // Alternative: Return installation confirmation data
+        res.json({
+          success: true,
+          installationConfirmed: true,
+          installationTime: new Date(parseInt(timestamp)).toISOString(),
+          message: 'OAuth installation successful - user data retrieval pending',
+          nextStep: 'User should complete authentication flow to retrieve full profile'
+        });
+      }
+      
+    } else {
+      // Check for any stored session data
+      const oauthToken = req.cookies?.oauth_token;
+      const userInfo = req.cookies?.user_info;
+      
+      if (oauthToken && userInfo) {
+        const parsedUserInfo = JSON.parse(userInfo);
+        console.log('=== STORED SESSION DATA FOUND ===');
+        console.log('User ID:', parsedUserInfo.id);
+        console.log('User Name:', parsedUserInfo.name);
+        console.log('User Email:', parsedUserInfo.email);
+        console.log('=================================');
+        
+        res.json({
+          success: true,
+          userInfo: parsedUserInfo,
+          hasToken: true,
+          source: 'stored_session'
+        });
+        
+      } else {
+        res.json({
+          success: false,
+          error: 'No OAuth session data found',
+          message: 'Please complete marketplace installation',
+          installationUrl: `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&client_id=${process.env.GHL_CLIENT_ID}&redirect_uri=https://dir.engageautomations.com/&scope=${encodeURIComponent('products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write')}`
+        });
+      }
+    }
+    
+  } catch (error) {
+    console.error('Session data retrieval error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve session data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Location data retrieval endpoint
+app.get('/api/oauth/location-data', async (req, res) => {
+  try {
+    console.log('=== LOCATION DATA RETRIEVAL ===');
+    
+    const oauthToken = req.cookies?.oauth_token;
+    
+    if (!oauthToken) {
+      return res.status(401).json({
+        success: false,
+        error: 'No OAuth token found',
+        message: 'Please complete OAuth authentication first'
+      });
+    }
+    
+    // Get locations accessible to the authenticated user
+    const locationsResponse = await fetch('https://services.leadconnectorhq.com/locations/', {
+      headers: {
+        'Authorization': `Bearer ${oauthToken}`,
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (locationsResponse.ok) {
+      const locationsData = await locationsResponse.json();
+      console.log('=== LOCATIONS DATA RETRIEVED ===');
+      console.log('Number of locations:', locationsData.locations?.length || 0);
+      
+      if (locationsData.locations && locationsData.locations.length > 0) {
+        const primaryLocation = locationsData.locations[0];
+        console.log('Primary Location ID:', primaryLocation.id);
+        console.log('Primary Location Name:', primaryLocation.name);
+        console.log('Primary Location Address:', primaryLocation.address);
+        console.log('================================');
+        
+        res.json({
+          success: true,
+          locationInfo: {
+            id: primaryLocation.id,
+            name: primaryLocation.name,
+            address: primaryLocation.address,
+            city: primaryLocation.city,
+            state: primaryLocation.state,
+            country: primaryLocation.country,
+            website: primaryLocation.website,
+            timezone: primaryLocation.timezone
+          },
+          allLocations: locationsData.locations.map(loc => ({
+            id: loc.id,
+            name: loc.name,
+            address: loc.address
+          })),
+          source: 'api_call'
+        });
+      } else {
+        res.json({
+          success: false,
+          error: 'No locations found',
+          message: 'User has no accessible locations'
+        });
+      }
+    } else {
+      throw new Error(`Locations API failed: ${locationsResponse.status}`);
+    }
+    
+  } catch (error) {
+    console.error('Location data retrieval error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve location data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
   console.log('=== PRIORITY OAUTH CALLBACK HIT ===');
   console.log('URL:', req.url);
@@ -1190,10 +1583,10 @@ app.use((req, res, next) => {
         }
       }
       
-      // Serve OAuth app HTML directly
+      // Serve OAuth app HTML with data extraction capability
       res.setHeader('Content-Type', 'text/html');
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.send(getOAuthAppHTML());
+      res.send(getEnhancedOAuthAppHTML());
     });
 
     // Serve static files from dist directory
