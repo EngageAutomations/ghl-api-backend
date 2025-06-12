@@ -38,6 +38,28 @@ export const insertOAuthUserSchema = insertUserSchema.extend({
   ghlLocationName: z.string().optional(),
 });
 
+// OAuth installation data table
+export const oauthInstallations = pgTable("oauth_installations", {
+  id: serial("id").primaryKey(),
+  ghlUserId: text("ghl_user_id").notNull(),
+  ghlUserEmail: text("ghl_user_email"),
+  ghlUserName: text("ghl_user_name"),
+  ghlUserPhone: text("ghl_user_phone"),
+  ghlUserCompany: text("ghl_user_company"),
+  ghlLocationId: text("ghl_location_id"),
+  ghlLocationName: text("ghl_location_name"),
+  ghlLocationBusinessType: text("ghl_location_business_type"),
+  ghlLocationAddress: text("ghl_location_address"),
+  ghlAccessToken: text("ghl_access_token").notNull(),
+  ghlRefreshToken: text("ghl_refresh_token").notNull(),
+  ghlTokenType: text("ghl_token_type"),
+  ghlExpiresIn: integer("ghl_expires_in"),
+  ghlScopes: text("ghl_scopes"),
+  installationDate: timestamp("installation_date").defaultNow(),
+  lastTokenRefresh: timestamp("last_token_refresh"),
+  isActive: boolean("is_active").default(true),
+});
+
 // OAuth session table for secure token storage
 export const oauthSessions = pgTable("oauth_sessions", {
   id: serial("id").primaryKey(),
@@ -51,6 +73,13 @@ export const oauthSessions = pgTable("oauth_sessions", {
 });
 
 export type InsertOAuthUser = z.infer<typeof insertOAuthUserSchema>;
+
+// OAuth installation types
+export type OAuthInstallation = typeof oauthInstallations.$inferSelect;
+export type InsertOAuthInstallation = typeof oauthInstallations.$inferInsert;
+
+// OAuth installation schema
+export const insertOAuthInstallationSchema = createInsertSchema(oauthInstallations);
 
 // Listings schema
 export const listings = pgTable("listings", {

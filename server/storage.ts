@@ -1,5 +1,6 @@
 import { 
   users, User, InsertUser, 
+  oauthInstallations, OAuthInstallation, InsertOAuthInstallation,
   designerConfigs, DesignerConfig, InsertDesignerConfig,
   portalDomains, PortalDomain, InsertPortalDomain,
   listings, Listing, InsertListing,
@@ -12,7 +13,7 @@ import {
   collectionItems, CollectionItem, InsertCollectionItem
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 // Storage interface with all CRUD methods
 export interface IStorage {
@@ -26,6 +27,12 @@ export interface IStorage {
   createOAuthUser(user: any): Promise<User>;
   updateUserOAuthTokens(userId: number, tokens: any): Promise<User>;
   getUsers(): Promise<User[]>;
+  
+  // OAuth Installation methods
+  createOAuthInstallation(installation: InsertOAuthInstallation): Promise<OAuthInstallation>;
+  getOAuthInstallation(ghlUserId: string): Promise<OAuthInstallation | undefined>;
+  getLatestOAuthInstallation(): Promise<OAuthInstallation | undefined>;
+  getAllOAuthInstallations(): Promise<OAuthInstallation[]>;
   
   // Designer Config methods
   getDesignerConfig(userId: number): Promise<DesignerConfig | undefined>;
@@ -706,6 +713,39 @@ export class DatabaseStorage implements IStorage {
 
   async getUsers(): Promise<User[]> {
     return await db.select().from(users);
+  }
+
+  // OAuth Installation methods
+  async createOAuthInstallation(installation: InsertOAuthInstallation): Promise<OAuthInstallation> {
+    const [newInstallation] = await db
+      .insert(oauthInstallations)
+      .values(installation)
+      .returning();
+    return newInstallation;
+  }
+
+  async getOAuthInstallation(ghlUserId: string): Promise<OAuthInstallation | undefined> {
+    const [installation] = await db
+      .select()
+      .from(oauthInstallations)
+      .where(eq(oauthInstallations.ghlUserId, ghlUserId));
+    return installation || undefined;
+  }
+
+  async getLatestOAuthInstallation(): Promise<OAuthInstallation | undefined> {
+    const [installation] = await db
+      .select()
+      .from(oauthInstallations)
+      .orderBy(desc(oauthInstallations.installationDate))
+      .limit(1);
+    return installation || undefined;
+  }
+
+  async getAllOAuthInstallations(): Promise<OAuthInstallation[]> {
+    return await db
+      .select()
+      .from(oauthInstallations)
+      .orderBy(desc(oauthInstallations.installationDate));
   }
 
   // Designer Config methods
