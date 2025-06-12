@@ -59,7 +59,7 @@ class GHLOAuth {
    * @returns {Promise<Object>} Token response
    */
   async exchangeCodeForTokens(code, state) {
-    const tokenUrl = `${this.config.baseUrl}/oauth/token`;
+    const tokenUrl = 'https://services.leadconnectorhq.com/oauth/token';
     
     const tokenData = {
       grant_type: 'authorization_code',
