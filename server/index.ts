@@ -662,6 +662,252 @@ function setupOAuthRoutesProduction(app: express.Express) {
   console.log('=== END ROUTES DEBUG ===');
 }
 
+// Function to generate OAuth app HTML for marketplace installations
+function getOAuthAppHTML(): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoHighLevel Directory App</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 0; 
+      padding: 40px;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container { 
+      max-width: 600px; 
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center; 
+    }
+    .btn { 
+      background: #0079F2; 
+      color: white; 
+      padding: 12px 24px; 
+      border: none; 
+      border-radius: 6px; 
+      text-decoration: none; 
+      display: inline-block; 
+      margin: 10px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .btn:hover { background: #0066D9; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #0079F2;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+      display: none;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .status {
+      padding: 15px;
+      border-radius: 6px;
+      margin: 15px 0;
+    }
+    .status.loading {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    .status.error {
+      background: #ffebee;
+      color: #c62828;
+    }
+    .oauth-connected {
+      background: #28a745;
+      padding: 20px;
+      border-radius: 8px;
+      color: white;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>GoHighLevel Directory App</h1>
+    <p>Connect your GoHighLevel account to get started.</p>
+    <button onclick="startOAuth()" class="btn" id="oauthBtn">Connect with GoHighLevel</button>
+    <div class="spinner" id="spinner"></div>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    console.log('OAuth app initialized - Marketplace Installation v3.1');
+    
+    const oauthConfig = {
+      clientId: '67472ecce8b57dd9eda067a8',
+      redirectUri: 'https://dir.engageautomations.com/',
+      scopes: [
+        'products/prices.write',
+        'products/prices.readonly', 
+        'products/collection.write',
+        'products/collection.readonly',
+        'medias.write',
+        'medias.readonly',
+        'locations.readonly',
+        'contacts.readonly',
+        'contacts.write'
+      ]
+    };
+
+    function checkOAuthCallback() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      const state = urlParams.get('state');
+      const error = urlParams.get('error');
+      const success = urlParams.get('success');
+      const storedSuccess = localStorage.getItem('oauth_success') === 'true';
+      
+      console.log('OAuth Status Check:', { 
+        hasCode: !!code, 
+        hasState: !!state, 
+        hasError: !!error, 
+        hasSuccess: !!success,
+        storedSuccess: storedSuccess,
+        currentURL: window.location.href 
+      });
+      
+      if (error) {
+        showError('OAuth authorization failed: ' + error);
+        return;
+      }
+      
+      if (code && state) {
+        console.log('Found authorization code from marketplace installation, processing...');
+        handleOAuthCallback(code, state);
+        return;
+      }
+      
+      if (success === 'true' || storedSuccess) {
+        showOAuthSuccess();
+        return;
+      }
+      
+      if (success && !code) {
+        console.warn('Success redirect without code detected');
+        showError('OAuth configuration issue: Authorization code not received. Please check your GoHighLevel app redirect URI settings.');
+        return;
+      }
+    }
+
+    function startOAuth() {
+      console.log('Starting OAuth flow...');
+      
+      const state = 'oauth_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      const scope = oauthConfig.scopes.join(' ');
+      
+      localStorage.setItem('oauth_state', state);
+      
+      const authUrl = new URL('https://marketplace.leadconnectorhq.com/oauth/chooselocation');
+      authUrl.searchParams.set('response_type', 'code');
+      authUrl.searchParams.set('client_id', oauthConfig.clientId);
+      authUrl.searchParams.set('redirect_uri', oauthConfig.redirectUri);
+      authUrl.searchParams.set('scope', scope);
+      authUrl.searchParams.set('state', state);
+      
+      console.log('Redirecting to:', authUrl.toString());
+      
+      showLoading('Redirecting to GoHighLevel...');
+      
+      window.location.href = authUrl.toString();
+    }
+
+    async function handleOAuthCallback(code, state) {
+      console.log('Handling OAuth callback from marketplace installation');
+      
+      const storedState = localStorage.getItem('oauth_state');
+      if (state !== storedState) {
+        showError('Invalid OAuth state. Please try again.');
+        return;
+      }
+      
+      showLoading('Processing authorization...');
+      
+      try {
+        const response = await fetch('/api/oauth/exchange-local', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            code: code,
+            state: state,
+            redirect_uri: oauthConfig.redirectUri
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          localStorage.setItem('oauth_success', 'true');
+          localStorage.setItem('oauth_timestamp', Date.now().toString());
+          localStorage.removeItem('oauth_state');
+          
+          window.history.replaceState({}, document.title, window.location.pathname + '?success=true');
+          showOAuthSuccess();
+        } else {
+          throw new Error(result.error || 'Token exchange failed');
+        }
+        
+      } catch (error) {
+        console.error('OAuth exchange error:', error);
+        showError('Authorization failed: ' + error.message);
+      }
+    }
+
+    function showLoading(message) {
+      document.getElementById('spinner').style.display = 'block';
+      document.getElementById('oauthBtn').disabled = true;
+      document.getElementById('status').innerHTML = '<div class="status loading">' + message + '</div>';
+    }
+
+    function showOAuthSuccess() {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('oauthBtn').style.display = 'none';
+      document.getElementById('status').innerHTML = 
+        '<div class="oauth-connected">' +
+          '<h3>Successfully Connected!</h3>' +
+          '<p>Your GoHighLevel account is now connected. You can start creating directory listings.</p>' +
+          '<button onclick="goToDashboard()" class="btn" style="background: white; color: #28a745; margin-top: 10px;">' +
+            'Go to Dashboard' +
+          '</button>' +
+        '</div>';
+    }
+
+    function showError(message) {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('oauthBtn').disabled = false;
+      document.getElementById('status').innerHTML = '<div class="status error"><strong>Error:</strong> ' + message + '</div>';
+    }
+
+    function goToDashboard() {
+      alert('Dashboard functionality will be implemented here. OAuth integration is complete!');
+    }
+
+    document.addEventListener('DOMContentLoaded', checkOAuthCallback);
+    checkOAuthCallback();
+  </script>
+</body>
+</html>`;
+}
+
 const app = express();
 
 // CRITICAL: OAuth callback handler MUST be first to bypass static file serving
@@ -842,6 +1088,29 @@ app.use((req, res, next) => {
     
     // Static file serving (OAuth routes are already registered above)
     app.use(express.static(distPath));
+
+    // Handle root route for OAuth app and marketplace installations
+    app.get('/', (req, res) => {
+      console.log('🏠 Root route accessed');
+      console.log('Query params:', req.query);
+      
+      // Check if this is an OAuth callback from marketplace installation
+      const { code, state, error } = req.query;
+      
+      if (code || error) {
+        console.log('📱 Marketplace OAuth callback detected at root');
+        if (error) {
+          console.log('❌ OAuth error:', error);
+        } else {
+          console.log('✅ OAuth code received:', String(code).substring(0, 10) + '...');
+        }
+      }
+      
+      // Serve OAuth app HTML directly
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.send(getOAuthAppHTML());
+    });
 
     // SPA fallback - explicitly exclude OAuth routes to prevent conflicts
     app.get('*', (req, res, next) => {
