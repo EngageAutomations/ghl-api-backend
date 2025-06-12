@@ -157,6 +157,10 @@
     }
     
     // Check for OAuth callback results
+    console.log('=== OAuth script executing ===');
+    console.log('Current URL:', window.location.href);
+    console.log('Search params:', window.location.search);
+    
     const urlParams = new URLSearchParams(window.location.search);
     const status = document.getElementById('status');
     const code = urlParams.get('code');
