@@ -108,16 +108,146 @@ function setupOAuthRoutesProduction(app: express.Express) {
       return res.send('OAuth callback hit successfully - route is working!');
     }
 
-    // Handle OAuth token exchange - simplified version
+    // Handle OAuth token exchange - complete version
     if (code) {
       console.log('=== OAUTH CALLBACK SUCCESS ===');
       console.log('Authorization code received:', String(code).substring(0, 20) + '...');
       console.log('State parameter:', state);
       
-      // Redirect to dedicated OAuth success page
-      const successUrl = `https://dir.engageautomations.com/oauth-success.html?success=true&timestamp=${Date.now()}`;
-      console.log('OAuth callback successful, redirecting to:', successUrl);
-      return res.redirect(successUrl);
+      try {
+        // Exchange authorization code for access token
+        console.log('🔄 Exchanging authorization code for access token...');
+        
+        const tokenResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            grant_type: 'authorization_code',
+            client_id: process.env.GHL_CLIENT_ID!,
+            client_secret: process.env.GHL_CLIENT_SECRET!,
+            code: String(code),
+            redirect_uri: process.env.GHL_REDIRECT_URI!,
+          }),
+        });
+
+        if (!tokenResponse.ok) {
+          const errorText = await tokenResponse.text();
+          console.error('❌ Token exchange failed:', tokenResponse.status, errorText);
+          throw new Error(`Token exchange failed: ${tokenResponse.status}`);
+        }
+
+        const tokenData = await tokenResponse.json();
+        console.log('✅ Token exchange successful');
+        console.log('Access token received:', tokenData.access_token ? 'Yes' : 'No');
+        console.log('Refresh token received:', tokenData.refresh_token ? 'Yes' : 'No');
+        console.log('Token expires in:', tokenData.expires_in, 'seconds');
+        console.log('Scopes granted:', tokenData.scope);
+
+        // Fetch user information
+        console.log('👤 Fetching user information...');
+        const userResponse = await fetch('https://services.leadconnectorhq.com/users/me', {
+          headers: {
+            'Authorization': `Bearer ${tokenData.access_token}`,
+            'Version': '2021-07-28',
+          },
+        });
+
+        if (!userResponse.ok) {
+          console.error('❌ User info fetch failed:', userResponse.status);
+          throw new Error(`User info fetch failed: ${userResponse.status}`);
+        }
+
+        const userData = await userResponse.json();
+        console.log('✅ User information retrieved');
+        console.log('User ID:', userData.id);
+        console.log('User email:', userData.email);
+        console.log('User name:', userData.name || userData.firstName + ' ' + userData.lastName);
+
+        // Try to get location information if available
+        let locationData = null;
+        try {
+          console.log('🏢 Fetching location information...');
+          const locationResponse = await fetch('https://services.leadconnectorhq.com/locations/', {
+            headers: {
+              'Authorization': `Bearer ${tokenData.access_token}`,
+              'Version': '2021-07-28',
+            },
+          });
+
+          if (locationResponse.ok) {
+            const locationResult = await locationResponse.json();
+            if (locationResult.locations && locationResult.locations.length > 0) {
+              locationData = locationResult.locations[0]; // Use first location
+              console.log('✅ Location information retrieved');
+              console.log('Location ID:', locationData.id);
+              console.log('Location name:', locationData.name);
+            }
+          }
+        } catch (locationError) {
+          console.log('ℹ️ Location data not available or not accessible');
+        }
+
+        // Store user data in database
+        console.log('💾 Storing user data in database...');
+        
+        const expiryDate = new Date(Date.now() + (tokenData.expires_in * 1000));
+        const userRecord = {
+          username: userData.email,
+          email: userData.email,
+          displayName: userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
+          ghlUserId: userData.id,
+          ghlAccessToken: tokenData.access_token,
+          ghlRefreshToken: tokenData.refresh_token,
+          ghlTokenExpiry: expiryDate,
+          ghlScopes: tokenData.scope || '',
+          ghlLocationId: locationData?.id || '',
+          ghlLocationName: locationData?.name || '',
+          authType: 'oauth',
+          isActive: true,
+        };
+
+        // Check if user already exists and update, or create new
+        let savedUser;
+        try {
+          // Try to find existing user by GHL user ID
+          const existingUsers = await storage.getUsers();
+          const existingUser = existingUsers.find(u => u.ghlUserId === userData.id);
+          
+          if (existingUser) {
+            console.log('👤 Updating existing user:', existingUser.id);
+            savedUser = await storage.updateUserOAuthTokens(existingUser.id, {
+              ghlAccessToken: tokenData.access_token,
+              ghlRefreshToken: tokenData.refresh_token,
+              ghlTokenExpiry: expiryDate,
+              ghlScopes: tokenData.scope || '',
+              ghlLocationId: locationData?.id || '',
+              ghlLocationName: locationData?.name || '',
+            });
+          } else {
+            console.log('👤 Creating new user');
+            savedUser = await storage.createOAuthUser(userRecord);
+          }
+          
+          console.log('✅ User data saved successfully');
+          console.log('Saved user ID:', savedUser.id);
+          
+        } catch (dbError) {
+          console.error('❌ Database save failed:', dbError);
+          // Continue to success page even if DB save fails
+        }
+
+        // Redirect to success page with user info
+        const successUrl = `https://dir.engageautomations.com/oauth-success.html?success=true&user=${encodeURIComponent(userData.name || userData.email)}&timestamp=${Date.now()}`;
+        console.log('🎉 OAuth flow complete, redirecting to:', successUrl);
+        return res.redirect(successUrl);
+
+      } catch (error) {
+        console.error('❌ OAuth callback error:', error);
+        const errorUrl = `https://dir.engageautomations.com/oauth-success.html?error=token_exchange_failed&message=${encodeURIComponent(String(error))}&timestamp=${Date.now()}`;
+        return res.redirect(errorUrl);
+      }
     }
 
     // Fallback case - if we reach here, something unexpected happened
