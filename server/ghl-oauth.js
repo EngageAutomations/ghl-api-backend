@@ -7,7 +7,7 @@ const GHL_OAUTH_CONFIG = {
   baseUrl: 'https://marketplace.leadconnectorhq.com',
   clientId: process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4',
   clientSecret: process.env.GHL_CLIENT_SECRET || 'b5a7a120-7df7-4d23-8796-4863cbd08f94',
-  redirectUri: process.env.GHL_REDIRECT_URI || 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback',
+  redirectUri: process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/oauth/callback',
   scopes: 'products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write'
 };
 
