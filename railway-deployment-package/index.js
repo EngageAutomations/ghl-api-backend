@@ -5,16 +5,25 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Hardcoded OAuth credentials to bypass Railway env var issues
-const CLIENT_ID = '68474924a586bce22a6e64f7-mbpkmyu4';
-const CLIENT_SECRET = 'b5a7a120-7df7-4d23-8796-4863cbd08f94';
-const REDIRECT_URI = 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback';
+// Secure OAuth configuration using environment variables
+const CLIENT_ID = process.env.GHL_CLIENT_ID || process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.GHL_CLIENT_SECRET || process.env.CLIENT_SECRET;
+const REDIRECT_URI = process.env.GHL_REDIRECT_URI || process.env.REDIRECT_URI || 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback';
 const SCOPES = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write';
 
-console.log('=== FIXED OAUTH BACKEND STARTING ===');
-console.log('Client ID:', CLIENT_ID);
-console.log('Client Secret: [HARDCODED]');
+console.log('=== SECURE OAUTH BACKEND STARTING ===');
+console.log('Client ID:', CLIENT_ID ? '[SET]' : '[MISSING]');
+console.log('Client Secret:', CLIENT_SECRET ? '[SET]' : '[MISSING]');
 console.log('Redirect URI:', REDIRECT_URI);
+console.log('Environment:', process.env.NODE_ENV || 'development');
+
+// Validate required environment variables
+if (!CLIENT_ID || !CLIENT_SECRET) {
+  console.error('❌ MISSING REQUIRED ENVIRONMENT VARIABLES');
+  console.error('Required: GHL_CLIENT_ID and GHL_CLIENT_SECRET');
+  console.error('Available env vars:', Object.keys(process.env).filter(key => key.includes('GHL') || key.includes('CLIENT')));
+  process.exit(1);
+}
 
 app.use(express.json());
 app.use(cors({
@@ -22,27 +31,32 @@ app.use(cors({
   credentials: true
 }));
 
-// Health check with clear status
+// Health check with environment status
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'OK', 
-    service: 'Fixed OAuth Backend', 
+    service: 'Secure OAuth Backend', 
     timestamp: new Date().toISOString(),
-    credentials: 'HARDCODED',
-    version: '2.0'
+    environment: process.env.NODE_ENV || 'development',
+    credentials: {
+      clientId: !!CLIENT_ID,
+      clientSecret: !!CLIENT_SECRET,
+      redirectUri: !!REDIRECT_URI
+    },
+    version: '3.0'
   });
 });
 
-// Environment check endpoint
+// Environment check endpoint (secure - no actual values)
 app.get('/api/env-check', (req, res) => {
   res.json({
-    hasClientId: true,
-    hasClientSecret: true,
-    hasRedirectUri: true,
-    clientIdValue: CLIENT_ID,
-    redirectUriValue: REDIRECT_URI,
+    hasClientId: !!CLIENT_ID,
+    hasClientSecret: !!CLIENT_SECRET,
+    hasRedirectUri: !!REDIRECT_URI,
     nodeEnv: process.env.NODE_ENV || 'production',
-    version: 'FIXED_HARDCODED'
+    envVarCount: Object.keys(process.env).length,
+    ghlVars: Object.keys(process.env).filter(key => key.includes('GHL')).length,
+    version: 'SECURE_ENV_VARS'
   });
 });
 
@@ -50,10 +64,17 @@ app.get('/api/env-check', (req, res) => {
 app.get('/api/oauth/url', (req, res) => {
   console.log('=== GENERATING OAUTH URL ===');
   
+  if (!CLIENT_ID) {
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Client ID not configured' 
+    });
+  }
+  
   const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&client_id=${CLIENT_ID}&state=${state}&scope=${encodeURIComponent(SCOPES)}`;
   
-  console.log('Generated OAuth URL with hardcoded credentials');
+  console.log('OAuth URL generated successfully');
   
   res.json({
     success: true,
@@ -63,7 +84,7 @@ app.get('/api/oauth/url', (req, res) => {
   });
 });
 
-// OAuth callback handler - THE FIX
+// OAuth callback handler
 app.get('/api/oauth/callback', async (req, res) => {
   console.log('=== OAUTH CALLBACK RECEIVED ===');
   console.log('Query params:', req.query);
@@ -80,8 +101,13 @@ app.get('/api/oauth/callback', async (req, res) => {
     return res.redirect(`https://dir.engageautomations.com/oauth-error?error=${encodeURIComponent('Missing authorization code')}`);
   }
 
+  if (!CLIENT_SECRET) {
+    console.error('Missing client secret in environment');
+    return res.redirect(`https://dir.engageautomations.com/oauth-error?error=${encodeURIComponent('Server configuration error')}`);
+  }
+
   try {
-    console.log('=== EXCHANGING CODE FOR TOKEN (HARDCODED CREDS) ===');
+    console.log('=== EXCHANGING CODE FOR TOKEN ===');
     console.log('Authorization code:', code);
 
     // Create properly formatted form data
@@ -92,9 +118,9 @@ app.get('/api/oauth/callback', async (req, res) => {
     formData.append('code', code);
     formData.append('redirect_uri', REDIRECT_URI);
 
-    console.log('Token request using hardcoded credentials');
+    console.log('Token request using environment variables');
 
-    // Exchange code for tokens with proper headers
+    // Exchange code for tokens
     const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', formData.toString(), {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -122,7 +148,7 @@ app.get('/api/oauth/callback', async (req, res) => {
       console.warn('Failed to get user info:', userError.message);
     }
 
-    // Success response with proper parameters
+    // Success response
     const params = new URLSearchParams({
       success: 'true',
       timestamp: Date.now().toString()
@@ -155,12 +181,12 @@ app.get('/api/oauth/callback', async (req, res) => {
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log('=== FIXED OAUTH BACKEND STARTED ===');
+  console.log('=== SECURE OAUTH BACKEND STARTED ===');
   console.log(`Port: ${PORT}`);
   console.log(`Health: http://0.0.0.0:${PORT}/health`);
   console.log(`OAuth URL: http://0.0.0.0:${PORT}/api/oauth/url`);
   console.log(`OAuth Callback: http://0.0.0.0:${PORT}/api/oauth/callback`);
-  console.log('Using hardcoded credentials to bypass env var issues');
+  console.log('Using secure environment variables');
   console.log('==========================================');
 });
 
