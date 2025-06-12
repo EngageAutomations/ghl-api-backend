@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start OAuth Flow - GoHighLevel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .button {
+            background-color: #007cba;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .button:hover {
+            background-color: #005a8b;
+        }
+        .url-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #007cba;
+            margin: 15px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test OAuth Flow</h1>
+        
+        <div class="info">
+            <strong>Ready to test:</strong> Your OAuth backend generated an authorization URL. Click the button below to start the real OAuth flow.
+        </div>
+
+        <a href="https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=https%3A%2F%2Foauth-backend-production-66f8.up.railway.app%2Fapi%2Foauth%2Fcallback&client_id=68474924a586bce22a6e64f7-mbpkmyu4&state=oauth_1749699720097_afxymlujk&scope=locations.readonly%20locations.write%20contacts.readonly%20contacts.write%20opportunities.readonly%20opportunities.write%20calendars.readonly%20calendars.write%20forms.readonly%20forms.write%20surveys.readonly%20surveys.write%20workflows.readonly%20workflows.write%20snapshots.readonly%20snapshots.write" 
+           class="button" target="_blank">
+            Connect to GoHighLevel
+        </a>
+
+        <div class="info">
+            <strong>What happens next:</strong>
+            <ol>
+                <li>You'll be taken to GoHighLevel to authorize</li>
+                <li>Choose your location/sub-account</li>
+                <li>GoHighLevel will redirect back to your callback URL</li>
+                <li>Your backend will exchange the code for tokens</li>
+                <li>You'll see the final result</li>
+            </ol>
+        </div>
+
+        <h3>Generated Authorization URL:</h3>
+        <div class="url-box">
+            https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=https%3A%2F%2Foauth-backend-production-66f8.up.railway.app%2Fapi%2Foauth%2Fcallback&client_id=68474924a586bce22a6e64f7-mbpkmyu4&state=oauth_1749699720097_afxymlujk&scope=locations.readonly%20locations.write%20contacts.readonly%20contacts.write%20opportunities.readonly%20opportunities.write%20calendars.readonly%20calendars.write%20forms.readonly%20forms.write%20surveys.readonly%20surveys.write%20workflows.readonly%20workflows.write%20snapshots.readonly%20snapshots.write
+        </div>
+    </div>
+</body>
+</html>
