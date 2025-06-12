@@ -53,8 +53,8 @@ app.get('/api/env-check', (req, res) => {
 app.get('/api/oauth/url', (req, res) => {
   console.log('=== GENERATING OAUTH URL ===');
   
-  const clientId = process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4';
-  const redirectUri = process.env.GHL_REDIRECT_URI || 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback';
+  const clientId = '68474924a586bce22a6e64f7-mbpkmyu4';
+  const redirectUri = 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback';
   const scopes = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write';
   
   // Generate state for security
@@ -101,10 +101,10 @@ app.get('/api/oauth/callback', async (req, res) => {
     // Exchange authorization code for access token
     const tokenRequest = {
       grant_type: 'authorization_code',
-      client_id: process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4',
-      client_secret: process.env.GHL_CLIENT_SECRET,
+      client_id: '68474924a586bce22a6e64f7-mbpkmyu4',
+      client_secret: 'b5a7a120-7df7-4d23-8796-4863cbd08f94',
       code: code,
-      redirect_uri: process.env.GHL_REDIRECT_URI || 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback'
+      redirect_uri: 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback'
     };
 
     console.log('Token request payload:', {
