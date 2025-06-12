@@ -60,7 +60,7 @@ export class GoHighLevelOAuth {
   constructor() {
     this.clientId = process.env.GHL_CLIENT_ID || '';
     this.clientSecret = process.env.GHL_CLIENT_SECRET || '';
-    this.redirectUri = 'https://dir.engageautomations.com/oauth/callback';
+    this.redirectUri = 'https://dir.engageautomations.com/';
     this.scopes = (process.env.GHL_SCOPES || 'products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write').split(' ').filter(Boolean);
 
     if (!this.clientId || !this.clientSecret) {
