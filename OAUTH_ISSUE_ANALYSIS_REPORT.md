@@ -15,13 +15,23 @@ The GoHighLevel OAuth integration experienced multiple callback failures due to 
 - Result: OAuth callback files were unreachable, causing GoHighLevel to fail the callback
 
 ### 2. Invalid Authorization Error
-**Problem**: Authorization requests were being rejected by GoHighLevel
-**Root Cause**: Scope configuration mismatch and potential redirect URI conflicts
+**Problem**: Authorization requests were being rejected by GoHighLevel with "invalid authorization" error
+**Root Cause**: Multiple configuration mismatches between GoHighLevel app settings and implementation
 
 **Contributing Factors**:
-- Initially requested overly broad scopes that may not have been approved for the application
-- Redirect URI mismatch between GoHighLevel app configuration and actual implementation
-- Potential timing issues with configuration updates
+- Redirect URI mismatch: GoHighLevel app configured for `/oauth-callback.html` but callbacks failing due to static file serving
+- Scope configuration issues: Initially requested overly broad scope combinations that triggered authorization validation failures
+- State parameter validation: Potential state mismatches during the authorization flow
+- Client configuration: Possible client ID/secret validation issues during the authorization process
+
+### 3. Authorization Failed Error
+**Problem**: Users encountered "authorization failed" during the OAuth consent process
+**Root Cause**: Invalid scope combinations and redirect URI accessibility issues
+
+**Specific Error Symptoms**:
+- Users redirected to error pages instead of successful authorization
+- GoHighLevel rejecting authorization requests before user consent
+- Inconsistent behavior between test and production environments
 
 ## Solutions Implemented
 
@@ -47,13 +57,19 @@ The GoHighLevel OAuth integration experienced multiple callback failures due to 
    - Updated to domain root: `https://dir.engageautomations.com/`
    - Synchronized application code to match new redirect URI
 
-### Phase 3: Scope Configuration Optimization
-1. **Initial Scope Reduction**
-   - Temporarily reduced scopes to essential permissions to resolve authorization errors
+### Phase 3: Authorization Error Resolution
+1. **Scope Configuration Optimization**
+   - Initially reduced scopes to essential permissions to isolate authorization failed errors
    - Tested with minimal scope set: `products/prices.write`, `products/collection.write`, `medias.write`, `locations.readonly`, `contacts.readonly`
+   - Identified that authorization failed errors were caused by redirect URI inaccessibility, not scope issues
 
-2. **Full Scope Restoration**
-   - After successful callback testing, restored all required scopes:
+2. **Authorization Failed Error Fix**
+   - Root cause: GoHighLevel couldn't validate redirect URI due to static file serving constraints
+   - Solution: Updated redirect URI to domain root which is always accessible
+   - Result: Authorization failed errors eliminated once redirect URI was properly configured
+
+3. **Full Scope Restoration**
+   - After resolving authorization failed errors, restored all required scopes:
      - `products/prices.write`
      - `products/prices.readonly`
      - `products/collection.write`
