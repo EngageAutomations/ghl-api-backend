@@ -87,26 +87,51 @@ app.get('/api/oauth/callback', async (req, res) => {
       scope: response.data.scope
     });
 
-    // Store tokens in secure cookies
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: 'lax' as const,
-      domain: '.engageautomations.com'
-    };
-
-    res.cookie('oauth_token', response.data.access_token, cookieOptions);
-    if (response.data.refresh_token) {
-      res.cookie('oauth_refresh_token', response.data.refresh_token, {
-        ...cookieOptions,
-        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    // Get user info to extract locationId and companyId
+    let userInfo = null;
+    try {
+      const userResponse = await axios.get('https://services.leadconnectorhq.com/oauth/userinfo', {
+        headers: {
+          'Authorization': `Bearer ${response.data.access_token}`
+        },
+        timeout: 5000
       });
+      userInfo = userResponse.data;
+      console.log('User info retrieved:', {
+        locationId: userInfo.locationId,
+        companyId: userInfo.companyId
+      });
+    } catch (userError) {
+      console.warn('Failed to get user info:', userError.message);
     }
 
-    // Redirect to success page with timestamp
-    const successUrl = `https://dir.engageautomations.com/?success=oauth-complete&timestamp=${Date.now()}`;
-    console.log('✅ Redirecting to success page:', successUrl);
+    // TODO: Store tokens in database here
+    // Example: await storeUserTokens({
+    //   access_token: response.data.access_token,
+    //   refresh_token: response.data.refresh_token,
+    //   locationId: userInfo?.locationId,
+    //   companyId: userInfo?.companyId,
+    //   expires_in: response.data.expires_in
+    // });
+
+    // Redirect to success page with minimal, non-sensitive data
+    const params = new URLSearchParams({
+      success: 'true',
+      timestamp: Date.now().toString()
+    });
+    
+    if (userInfo?.locationId) {
+      params.append('locationId', userInfo.locationId);
+    }
+    if (userInfo?.companyId) {
+      params.append('companyId', userInfo.companyId);
+    }
+    if (state) {
+      params.append('state', String(state));
+    }
+
+    const successUrl = `https://dir.engageautomations.com/oauth-success?${params.toString()}`;
+    console.log('✅ OAuth complete! Redirecting to success page:', successUrl);
     
     return res.redirect(successUrl);
 
