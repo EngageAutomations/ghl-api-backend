@@ -106,7 +106,7 @@
       <p>Click the button below to authenticate with your GoHighLevel account:</p>
       
       <div class="oauth-url" id="oauthUrl">
-        https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2F&scope=products%2Fprices.write+products%2Fprices.readonly+products%2Fcollection.write+products%2Fcollection.readonly+medias.write+medias.readonly+locations.readonly+contacts.readonly+contacts.write&state=live_oauth_test
+        https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2F&scope=products%2Fprices.write+products%2Fcollection.write+medias.write+locations.readonly+contacts.readonly&state=live_oauth_test
       </div>
       
       <button onclick="startOAuth()" class="btn btn-success">
@@ -141,7 +141,7 @@
       // OAuth configuration
       const clientId = '68474924a586bce22a6e64f7-mbpkmyu4';
       const redirectUri = 'https://dir.engageautomations.com/';
-      const scopes = 'products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write';
+      const scopes = 'products/prices.write products/collection.write medias.write locations.readonly contacts.readonly';
       
       // Build OAuth URL
       const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${clientId}&state=${state}&scope=${encodeURIComponent(scopes)}`;
