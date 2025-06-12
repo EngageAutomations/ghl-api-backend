@@ -253,23 +253,41 @@ function setupOAuthRoutesProduction(app: express.Express) {
       const code = urlParams.get('code');
       const state = urlParams.get('state');
       const error = urlParams.get('error');
-      const oauthSuccess = urlParams.get('oauth') === 'success';
+      const success = urlParams.get('success');
       const storedSuccess = localStorage.getItem('oauth_success') === 'true';
       
-      console.log('Checking OAuth status:', { code: !!code, state, error, oauthSuccess, storedSuccess });
+      console.log('OAuth Status Check:', { 
+        hasCode: !!code, 
+        hasState: !!state, 
+        hasError: !!error, 
+        hasSuccess: !!success,
+        storedSuccess: storedSuccess,
+        currentURL: window.location.href 
+      });
       
+      // Handle OAuth error
       if (error) {
-        showError('OAuth error: ' + error);
+        showError('OAuth authorization failed: ' + error);
         return;
       }
       
+      // Handle successful callback with authorization code
       if (code && state) {
+        console.log('Found authorization code, processing...');
         handleOAuthCallback(code, state);
         return;
       }
       
-      if (oauthSuccess || storedSuccess) {
+      // Handle redirect to success page (after successful token exchange)
+      if (success === 'true' || storedSuccess) {
         showOAuthSuccess();
+        return;
+      }
+      
+      // Check for missing code scenario (the issue you identified)
+      if (success && !code) {
+        console.warn('Success redirect without code detected - this indicates redirect URI misconfiguration');
+        showError('OAuth configuration issue: Authorization code not received. Please check your GoHighLevel app redirect URI settings.');
         return;
       }
     }
