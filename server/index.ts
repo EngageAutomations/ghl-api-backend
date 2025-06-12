@@ -388,8 +388,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// CRITICAL: Register OAuth routes FIRST, before any other routes or static middleware
-setupOAuthRoutesProduction(app);
+// OAuth routes will be registered through registerRoutes function
+// setupOAuthRoutesProduction(app);
 
 // Domain and CORS setup
 app.use(setupDomainRedirects);
@@ -466,26 +466,14 @@ app.use((req, res, next) => {
   
   if (forceProductionMode || isReplit) {
     console.log("Setting up production routing for OAuth compatibility...");
-    
-    // Add static file serving AFTER API routes
-    const distPath = path.join(__dirname, '..', 'dist');
-    app.use(express.static(distPath));
-    
-    // Final fallback for SPA routing - excludes API/OAuth paths
-    app.use((req, res, next) => {
-      if (req.path.startsWith('/api/') || req.path.startsWith('/oauth')) {
-        return res.status(404).json({ error: "API endpoint not found", path: req.path });
-      }
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
-    
+    setupProductionRouting(app);
   } else if (isDevelopment && !isReplit) {
     console.log("Setting up development mode with Vite...");
     await setupVite(app, server);
   }
 
   // Use Cloud Run's PORT environment variable (default 8080) or fallback to 5000 for local dev
-  const port = process.env.PORT || 5000;
+  const port = parseInt(process.env.PORT || '5000', 10);
   server.listen(port, "0.0.0.0", () => {
     console.log('='.repeat(50));
     console.log('🚀 Server Running');
