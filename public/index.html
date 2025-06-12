@@ -3,388 +3,260 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GoHighLevel OAuth Integration</title>
+  <title>GoHighLevel Directory App</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: Arial, sans-serif; 
+      margin: 0; 
+      padding: 40px;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       min-height: 100vh;
-      color: #333;
     }
     .container { 
-      max-width: 800px; 
-      margin: 0 auto; 
-      padding: 40px 20px;
-    }
-    .header {
-      text-align: center;
-      color: white;
-      margin-bottom: 40px;
-    }
-    .header h1 {
-      font-size: 2.5rem;
-      margin-bottom: 15px;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
-    .header p {
-      font-size: 1.2rem;
-      opacity: 0.9;
-    }
-    .oauth-card {
+      max-width: 600px; 
       background: white;
-      border-radius: 12px;
-      padding: 30px;
-      margin-bottom: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      text-align: center;
-    }
-    .oauth-url {
-      background: #f8f9fa;
-      padding: 20px;
-      border: 2px solid #007bff;
+      padding: 40px;
       border-radius: 8px;
-      margin: 20px 0;
-      word-break: break-all;
-      font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 12px;
-      line-height: 1.5;
-      text-align: left;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center; 
     }
     .btn { 
-      background: linear-gradient(135deg, #007bff, #0056b3);
+      background: #0079F2; 
       color: white; 
-      padding: 15px 30px; 
+      padding: 12px 24px; 
       border: none; 
-      border-radius: 8px; 
+      border-radius: 6px; 
       text-decoration: none; 
       display: inline-block; 
       margin: 10px;
       cursor: pointer;
       font-size: 16px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0,123,255,0.3);
     }
-    .btn:hover { 
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+    .btn:hover { background: #0066D9; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .success { color: #28a745; margin: 20px 0; }
+    .error { color: #dc3545; margin: 20px 0; }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #0079F2;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+      display: none;
     }
-    .btn-success {
-      background: linear-gradient(135deg, #28a745, #1e7e34);
-      box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
-    .status { 
-      margin: 20px 0; 
-      padding: 20px; 
-      border-radius: 8px; 
-      font-family: monospace;
-      font-size: 14px;
-      border-left: 4px solid;
+    .oauth-connected {
+      background: #28a745;
+      padding: 20px;
+      border-radius: 8px;
+      color: white;
+      margin: 20px 0;
     }
-    .success { 
-      background: #d4edda; 
-      border-color: #28a745; 
-      color: #155724; 
+    .status {
+      padding: 15px;
+      border-radius: 6px;
+      margin: 15px 0;
     }
-    .info { 
-      background: #d1ecf1; 
-      border-color: #17a2b8; 
-      color: #0c5460; 
+    .status.loading {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    .status.error {
+      background: #ffebee;
+      color: #c62828;
+    }
+    .status.success {
+      background: #e8f5e8;
+      color: #2e7d32;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>GoHighLevel OAuth Integration</h1>
-      <p>Live OAuth testing with real GoHighLevel accounts</p>
-    </div>
-
-    <div class="oauth-card">
-      <h2>Live OAuth URL</h2>
-      <p>Click the button below to authenticate with your GoHighLevel account:</p>
-      
-      <div class="oauth-url" id="oauthUrl">
-        https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2F&scope=products%2Fprices.write+products%2Fprices.readonly+products%2Fcollection.write+products%2Fcollection.readonly+medias.write+medias.readonly+locations.readonly+contacts.readonly+contacts.write&state=live_oauth_test
-      </div>
-      
-      <button onclick="startOAuth()" class="btn btn-success">
-        Start GoHighLevel OAuth
-      </button>
-      
-      <a href="/config-wizard" class="btn">Directory Configuration</a>
-    </div>
-
+    <h1>GoHighLevel Directory App</h1>
+    <p>Connect your GoHighLevel account to get started.</p>
+    <button onclick="startOAuth()" class="btn" id="oauthBtn">Connect with GoHighLevel</button>
+    <div class="spinner" id="spinner"></div>
     <div id="status"></div>
-
-    <div class="oauth-card">
-      <h3>OAuth Flow Status</h3>
-      <p><strong>GoHighLevel Connectivity:</strong> Connected</p>
-      <p><strong>Callback Endpoints:</strong> Functional</p>
-      <p><strong>Token Exchange:</strong> Ready</p>
-      <p><strong>Database Storage:</strong> Configured</p>
-    </div>
   </div>
 
   <script>
+    console.log('OAuth app initialized');
+    
+    // OAuth configuration
+    const oauthConfig = {
+      clientId: '67472ecce8b57dd9eda067a8',
+      redirectUri: 'https://dir.engageautomations.com/',
+      scopes: [
+        'products/prices.write',
+        'products/prices.readonly', 
+        'products/collection.write',
+        'products/collection.readonly',
+        'medias.write',
+        'medias.readonly',
+        'locations.readonly',
+        'contacts.readonly',
+        'contacts.write'
+      ]
+    };
+
+    // Check for OAuth callback on page load
+    function checkOAuthCallback() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      const state = urlParams.get('state');
+      const error = urlParams.get('error');
+      const oauthSuccess = urlParams.get('oauth') === 'success';
+      const storedSuccess = localStorage.getItem('oauth_success') === 'true';
+      
+      console.log('Checking OAuth status:', { code: !!code, state, error, oauthSuccess, storedSuccess });
+      
+      if (error) {
+        showError(`OAuth error: ${error}`);
+        return;
+      }
+      
+      if (code && state) {
+        handleOAuthCallback(code, state);
+        return;
+      }
+      
+      if (oauthSuccess || storedSuccess) {
+        showOAuthSuccess();
+        return;
+      }
+    }
+
+    // Start OAuth flow
     function startOAuth() {
       console.log('Starting OAuth flow...');
       
-      const status = document.getElementById('status');
-      status.innerHTML = '<div class="status info">Initiating OAuth flow...</div>';
-      
-      // Generate OAuth state
       const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const scope = oauthConfig.scopes.join(' ');
+      
+      // Store state for validation
       localStorage.setItem('oauth_state', state);
       
-      // OAuth configuration
-      const clientId = '68474924a586bce22a6e64f7-mbpkmyu4';
-      const redirectUri = 'https://dir.engageautomations.com/';
-      const scopes = 'products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write';
-      
       // Build OAuth URL
-      const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${clientId}&state=${state}&scope=${encodeURIComponent(scopes)}`;
+      const authUrl = new URL('https://marketplace.gohighlevel.com/oauth/chooselocation');
+      authUrl.searchParams.set('response_type', 'code');
+      authUrl.searchParams.set('client_id', oauthConfig.clientId);
+      authUrl.searchParams.set('redirect_uri', oauthConfig.redirectUri);
+      authUrl.searchParams.set('scope', scope);
+      authUrl.searchParams.set('state', state);
       
-      console.log('Redirecting to:', authUrl);
-      status.innerHTML = '<div class="status info">Redirecting to GoHighLevel...</div>';
+      console.log('Redirecting to:', authUrl.toString());
       
-      // Store callback URL for return
-      localStorage.setItem('return_url', window.location.href);
+      // Show loading state
+      showLoading('Redirecting to GoHighLevel...');
       
       // Redirect to OAuth
-      window.location.href = authUrl;
+      window.location.href = authUrl.toString();
     }
-    
-    // Check for OAuth callback results
-    console.log('=== OAuth script executing ===');
-    console.log('Current URL:', window.location.href);
-    console.log('Search params:', window.location.search);
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const status = document.getElementById('status');
-    const code = urlParams.get('code');
-    const state = urlParams.get('state');
-    const error = urlParams.get('error');
-    
-    // Handle direct OAuth callback processing
-    function handleOAuthCallback() {
-      console.log('Checking OAuth callback:', {
-        pathname: window.location.pathname,
-        search: window.location.search,
-        href: window.location.href,
-        success_param: urlParams.get('success'),
-        code_param: urlParams.get('code'),
-        state_param: urlParams.get('state')
-      });
+
+    // Handle OAuth callback
+    async function handleOAuthCallback(code, state) {
+      console.log('Handling OAuth callback');
       
-      // Primary detection: Check if we have success parameter or oauth-related URL
-      const hasSuccessParam = urlParams.get('success') === 'true';
-      const hasOAuthCode = code && state;
-      const hasOAuthPath = window.location.pathname === '/oauth-callback.html' || 
-                          window.location.pathname === '/oauth/callback' ||
-                          window.location.pathname === '/oauth-success' ||
-                          window.location.pathname.includes('oauth-success');
-      const hasOAuthUrl = window.location.href.includes('oauth-success') || 
-                         window.location.href.includes('oauth/callback');
-      
-      const isOAuthCallback = hasSuccessParam || hasOAuthCode || hasOAuthPath || hasOAuthUrl;
-      
-      console.log('OAuth detection details:', {
-        hasSuccessParam,
-        hasOAuthCode,
-        hasOAuthPath,
-        hasOAuthUrl,
-        isOAuthCallback
-      });
-      
-      if (isOAuthCallback) {
-        
-        console.log('OAuth callback detected:', {
-          path: window.location.pathname,
-          code: code ? 'present' : 'missing',
-          state: state,
-          error: error
-        });
-        
-        // Update page title and content for callback processing
-        document.title = 'OAuth Callback - Processing...';
-        const container = document.querySelector('.container');
-        container.innerHTML = `
-          <h1>Processing OAuth Callback...</h1>
-          <p>We're connecting your GoHighLevel account. Please wait...</p>
-          <div style="margin: 20px 0;">
-            <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-          </div>
-          <div id="callback-status">
-            <div style="color: #17a2b8;">Checking authorization code...</div>
-          </div>
-          <div style="margin-top: 30px;">
-            <button onclick="toggleDebug()" style="background: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Show Debug</button>
-          </div>
-          <div id="debug-info" style="display: none; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin: 20px 0; text-align: left; font-family: monospace; font-size: 12px;">
-            <h4>Debug Information:</h4>
-            <pre id="debug-content"></pre>
-          </div>
-          <style>
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          </style>
-        `;
-        
-        // Process OAuth callback
-        if (error) {
-          document.getElementById('callback-status').innerHTML = `<div style="color: #dc3545;">OAuth Error: ${error}</div>`;
-          setTimeout(() => {
-            window.location.href = '/?error=' + encodeURIComponent(error);
-          }, 3000);
-          return;
-        }
-        
-        // Check for oauth-success path with success parameter
-        if (window.location.pathname === '/oauth-success' && urlParams.get('success') === 'true') {
-          document.getElementById('callback-status').innerHTML = '<div style="color: #28a745;">OAuth integration completed successfully!</div>';
-          
-          const timestamp = urlParams.get('timestamp');
-          const successData = {
-            timestamp: timestamp ? parseInt(timestamp) : Date.now(),
-            success: true,
-            processed_at: new Date().toISOString(),
-            path: '/oauth-success'
-          };
-          
-          // Store success state
-          localStorage.setItem('oauth_success', JSON.stringify(successData));
-          
-          // Update debug info
-          document.getElementById('debug-content').textContent = JSON.stringify({
-            success: true,
-            timestamp: new Date(successData.timestamp).toISOString(),
-            redirect_source: 'GoHighLevel OAuth Success',
-            url_params: Object.fromEntries(urlParams.entries())
-          }, null, 2);
-          
-          setTimeout(() => {
-            window.location.href = '/?oauth=success';
-          }, 2000);
-          return;
-        }
-        
-        if (code) {
-          document.getElementById('callback-status').innerHTML = '<div style="color: #28a745;">Authorization successful! Processing tokens...</div>';
-          
-          // Store success state
-          localStorage.setItem('oauth_success', JSON.stringify({
-            timestamp: Date.now(),
-            code: code.substring(0, 10) + '...',
-            state: state,
-            processed_at: new Date().toISOString()
-          }));
-          
-          // Update debug info
-          document.getElementById('debug-content').textContent = JSON.stringify({
-            success: true,
-            code: code.substring(0, 20) + '...',
-            state: state,
-            timestamp: new Date().toISOString(),
-            redirect_source: 'GoHighLevel OAuth'
-          }, null, 2);
-          
-          setTimeout(() => {
-            window.location.href = '/?oauth=success';
-          }, 2000);
-          return;
-        }
-        
-        // No valid parameters
-        document.getElementById('callback-status').innerHTML = '<div style="color: #dc3545;">Invalid OAuth callback - missing authorization code</div>';
-        setTimeout(() => {
-          window.location.href = '/?error=invalid_callback';
-        }, 3000);
-      }
-    }
-    
-    // Global debug toggle function
-    window.toggleDebug = function() {
-      const debugEl = document.getElementById('debug-info');
-      if (debugEl) {
-        debugEl.style.display = debugEl.style.display === 'none' ? 'block' : 'none';
-      }
-    };
-    
-    // Check if this is an OAuth callback immediately
-    handleOAuthCallback();
-    
-    if (error) {
-      status.innerHTML = `<div class="status error">OAuth Error: ${error}</div>`;
-    } else if (code && state) {
-      status.innerHTML = '<div class="status success">OAuth successful! Code received, processing...</div>';
-      
-      // Verify state
+      // Validate state
       const storedState = localStorage.getItem('oauth_state');
       if (state !== storedState) {
-        status.innerHTML = '<div class="status error">Invalid state parameter - possible CSRF attack</div>';
-      } else {
-        // Exchange code for tokens
-        exchangeCodeForTokens(code, state);
+        showError('Invalid OAuth state. Please try again.');
+        return;
       }
-    } else {
-      status.innerHTML = `
-        <div class="status info">
-          Ready to test OAuth flow with real GoHighLevel account.<br>
-          Click "Start GoHighLevel OAuth" to begin authentication.
-        </div>
-      `;
-    }
-    
-    async function exchangeCodeForTokens(code, state) {
+      
+      showLoading('Processing authorization...');
+      
       try {
-        status.innerHTML = '<div class="status info">Exchanging authorization code for access tokens...</div>';
+        // Exchange code for tokens using your backend
+        const response = await fetch('https://oauth-backend-production-68c5.up.railway.app/api/oauth/exchange', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            code: code,
+            state: state,
+            redirect_uri: oauthConfig.redirectUri
+          })
+        });
         
-        // Since we're using static OAuth callback, check localStorage for OAuth success
-        const oauthSuccess = localStorage.getItem('oauth_success');
+        const result = await response.json();
         
-        if (oauthSuccess) {
-          const successData = JSON.parse(oauthSuccess);
-          status.innerHTML = `
-            <div class="status success">
-              OAuth Integration Complete!<br><br>
-              <strong>Authorization Code:</strong> ${successData.code}<br>
-              <strong>Timestamp:</strong> ${new Date(successData.timestamp).toLocaleString()}<br><br>
-              Your GoHighLevel account has been connected successfully.
-            </div>
-          `;
+        if (result.success) {
+          // Store success state
+          localStorage.setItem('oauth_success', 'true');
+          localStorage.setItem('oauth_timestamp', Date.now().toString());
+          localStorage.removeItem('oauth_state');
           
-          // Clear the success flag
-          localStorage.removeItem('oauth_success');
-          
+          // Clear URL parameters and show success
+          window.history.replaceState({}, document.title, window.location.pathname);
+          showOAuthSuccess();
         } else {
-          // Simulate token exchange process for demonstration
-          status.innerHTML = `
-            <div class="status success">
-              OAuth Integration Complete!<br><br>
-              <strong>Authorization Code:</strong> ${code.substr(0, 20)}...<br>
-              <strong>State:</strong> ${state}<br><br>
-              Your GoHighLevel account connection is being processed.
-            </div>
-          `;
+          throw new Error(result.error || 'Token exchange failed');
         }
         
       } catch (error) {
-        console.error('Token exchange error:', error);
-        status.innerHTML = `<div class="status error">Network error during token exchange: ${error.message}</div>`;
+        console.error('OAuth exchange error:', error);
+        showError(`Authorization failed: ${error.message}`);
       }
     }
+
+    // Show loading state
+    function showLoading(message) {
+      document.getElementById('spinner').style.display = 'block';
+      document.getElementById('oauthBtn').disabled = true;
+      document.getElementById('status').innerHTML = `<div class="status loading">${message}</div>`;
+    }
+
+    // Show OAuth success state
+    function showOAuthSuccess() {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('oauthBtn').style.display = 'none';
+      document.getElementById('status').innerHTML = `
+        <div class="oauth-connected">
+          <h3>✓ Successfully Connected!</h3>
+          <p>Your GoHighLevel account is now connected. You can start creating directory listings.</p>
+          <button onclick="goToDashboard()" class="btn" style="background: white; color: #28a745; margin-top: 10px;">
+            Go to Dashboard
+          </button>
+        </div>
+      `;
+    }
+
+    // Show error message
+    function showError(message) {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('oauthBtn').disabled = false;
+      document.getElementById('status').innerHTML = `<div class="status error"><strong>Error:</strong> ${message}</div>`;
+    }
+
+    // Navigate to dashboard
+    function goToDashboard() {
+      alert('Dashboard functionality will be implemented here. OAuth integration is complete!');
+    }
+
+    // Reset OAuth state
+    function resetOAuth() {
+      localStorage.removeItem('oauth_success');
+      localStorage.removeItem('oauth_timestamp');
+      localStorage.removeItem('oauth_state');
+      window.location.reload();
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', checkOAuthCallback);
     
-    // Execute OAuth callback handling on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      handleOAuthCallback();
-    });
-    
-    // Also execute immediately in case DOMContentLoaded already fired
-    handleOAuthCallback();
+    // Also check immediately in case DOMContentLoaded already fired
+    checkOAuthCallback();
   </script>
 </body>
 </html>
