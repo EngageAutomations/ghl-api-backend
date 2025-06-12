@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Final Solution Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .test-section { background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #007bff; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .warning { border-left-color: #ffc107; background: #fff3cd; }
+        .btn { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; margin: 10px 5px; text-decoration: none; display: inline-block; }
+        .btn:hover { background: #0056b3; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #1e7e34; }
+        .code-block { background: #f1f3f4; padding: 15px; border-radius: 6px; font-family: monospace; overflow-x: auto; margin: 10px 0; }
+        .oauth-url { background: white; padding: 15px; border: 1px solid #ddd; border-radius: 6px; word-break: break-all; margin: 15px 0; }
+        .debug-info { background: #e9ecef; padding: 15px; border-radius: 6px; margin: 15px 0; }
+        .spinner { display: none; width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OAuth Final Solution Test</h1>
+        <p><strong>Testing the complete OAuth implementation with domain root redirect URI</strong></p>
+        
+        <div class="test-section">
+            <h2>Configuration Summary</h2>
+            <div class="code-block">
+Client ID: 68474924a586bce22a6e64f7-mbpkmyu4
+Redirect URI: https://dir.engageautomations.com/
+Scopes: products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Live OAuth Test</h2>
+            <p>This will test the complete OAuth flow with GoHighLevel using the corrected configuration.</p>
+            
+            <div class="oauth-url" id="currentOAuthUrl">
+                https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&client_id=68474924a586bce22a6e64f7-mbpkmyu4&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2F&scope=products%2Fprices.write+products%2Fprices.readonly+products%2Fcollection.write+products%2Fcollection.readonly+medias.write+medias.readonly+locations.readonly+contacts.readonly+contacts.write&state=test_oauth_final
+            </div>
+            
+            <button onclick="testOAuthFlow()" class="btn btn-success">
+                <span class="spinner" id="oauthSpinner"></span>
+                Test OAuth Flow
+            </button>
+            
+            <div id="testResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Callback URL Test</h2>
+            <p>Testing what happens when we access different callback URLs:</p>
+            
+            <button onclick="testCallbackUrl('/oauth-callback.html')" class="btn">Test /oauth-callback.html</button>
+            <button onclick="testCallbackUrl('/oauth/callback')" class="btn">Test /oauth/callback</button>
+            <button onclick="testCallbackUrl('/')" class="btn">Test / (root)</button>
+            
+            <div id="callbackResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Environment Diagnostics</h2>
+            <button onclick="runDiagnostics()" class="btn">Run Diagnostics</button>
+            <div id="diagnosticsResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>OAuth State Check</h2>
+            <button onclick="checkOAuthState()" class="btn">Check OAuth State</button>
+            <div id="stateResults"></div>
+        </div>
+    </div>
+
+    <script>
+        function testOAuthFlow() {
+            const spinner = document.getElementById('oauthSpinner');
+            const results = document.getElementById('testResults');
+            
+            spinner.style.display = 'inline-block';
+            results.innerHTML = '<div class="warning">Initiating OAuth flow...</div>';
+            
+            // Generate OAuth parameters
+            const clientId = '68474924a586bce22a6e64f7-mbpkmyu4';
+            const redirectUri = 'https://dir.engageautomations.com/';
+            const scopes = 'products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write';
+            const state = 'test_oauth_final_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // Store state for validation
+            localStorage.setItem('oauth_test_state', state);
+            localStorage.setItem('oauth_test_start', Date.now().toString());
+            
+            // Build OAuth URL
+            const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?` +
+                `response_type=code&` +
+                `client_id=${encodeURIComponent(clientId)}&` +
+                `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+                `scope=${encodeURIComponent(scopes)}&` +
+                `state=${encodeURIComponent(state)}`;
+            
+            // Update display
+            document.getElementById('currentOAuthUrl').textContent = authUrl;
+            
+            results.innerHTML = `
+                <div class="success">
+                    <h4>OAuth Flow Initiated</h4>
+                    <p><strong>State:</strong> ${state}</p>
+                    <p><strong>Redirect URI:</strong> ${redirectUri}</p>
+                    <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
+                    <p>You will be redirected to GoHighLevel for authorization...</p>
+                </div>
+            `;
+            
+            spinner.style.display = 'none';
+            
+            // Redirect after 2 seconds
+            setTimeout(() => {
+                window.location.href = authUrl;
+            }, 2000);
+        }
+        
+        async function testCallbackUrl(path) {
+            const results = document.getElementById('callbackResults');
+            results.innerHTML = '<div class="warning">Testing callback URL: ' + path + '</div>';
+            
+            try {
+                const response = await fetch('https://dir.engageautomations.com' + path, {
+                    method: 'GET',
+                    headers: { 'Accept': 'text/html' }
+                });
+                
+                const content = await response.text();
+                const isMainIndex = content.includes('GoHighLevel Directory App');
+                
+                results.innerHTML += `
+                    <div class="${isMainIndex ? 'warning' : 'success'}">
+                        <h4>URL: ${path}</h4>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Content Type:</strong> ${response.headers.get('content-type')}</p>
+                        <p><strong>Serves Main Index:</strong> ${isMainIndex ? 'Yes' : 'No'}</p>
+                        <p><strong>Content Length:</strong> ${content.length} characters</p>
+                    </div>
+                `;
+            } catch (error) {
+                results.innerHTML += `
+                    <div class="error">
+                        <h4>URL: ${path}</h4>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function runDiagnostics() {
+            const results = document.getElementById('diagnosticsResults');
+            
+            const diagnostics = {
+                'Current URL': window.location.href,
+                'User Agent': navigator.userAgent,
+                'Referrer': document.referrer,
+                'Local Storage OAuth State': localStorage.getItem('oauth_test_state'),
+                'Local Storage OAuth Success': localStorage.getItem('oauth_success'),
+                'URL Parameters': window.location.search,
+                'Pathname': window.location.pathname,
+                'Host': window.location.host,
+                'Protocol': window.location.protocol,
+                'Time Zone': Intl.DateTimeFormat().resolvedOptions().timeZone,
+                'Language': navigator.language
+            };
+            
+            let html = '<div class="debug-info"><h4>Environment Diagnostics</h4>';
+            for (const [key, value] of Object.entries(diagnostics)) {
+                html += `<p><strong>${key}:</strong> ${value || 'Not set'}</p>`;
+            }
+            html += '</div>';
+            
+            results.innerHTML = html;
+        }
+        
+        function checkOAuthState() {
+            const results = document.getElementById('stateResults');
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+            const error = urlParams.get('error');
+            const storedState = localStorage.getItem('oauth_test_state');
+            const oauthSuccess = localStorage.getItem('oauth_success');
+            
+            let html = '<div class="debug-info"><h4>OAuth State Analysis</h4>';
+            
+            if (code) {
+                html += `<div class="success"><p>✓ Authorization code received: ${code.substring(0, 20)}...</p></div>`;
+            } else {
+                html += `<div class="warning"><p>⚠ No authorization code in URL</p></div>`;
+            }
+            
+            if (state) {
+                html += `<p><strong>State Parameter:</strong> ${state}</p>`;
+                if (storedState && state === storedState) {
+                    html += `<div class="success"><p>✓ State validation passed</p></div>`;
+                } else {
+                    html += `<div class="error"><p>✗ State validation failed or missing</p></div>`;
+                }
+            } else {
+                html += `<div class="warning"><p>⚠ No state parameter in URL</p></div>`;
+            }
+            
+            if (error) {
+                html += `<div class="error"><p>✗ OAuth Error: ${error}</p></div>`;
+            }
+            
+            if (oauthSuccess) {
+                const successData = JSON.parse(oauthSuccess);
+                html += `<div class="success"><p>✓ OAuth success data found in localStorage</p>`;
+                html += `<pre>${JSON.stringify(successData, null, 2)}</pre></div>`;
+            }
+            
+            html += '</div>';
+            results.innerHTML = html;
+        }
+        
+        // Auto-run diagnostics and state check on page load
+        window.addEventListener('load', () => {
+            runDiagnostics();
+            checkOAuthState();
+            
+            // Check if this looks like an OAuth callback
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('code') || urlParams.get('error')) {
+                document.body.style.background = '#d4edda';
+                const banner = document.createElement('div');
+                banner.innerHTML = `
+                    <div style="background: #28a745; color: white; padding: 15px; text-align: center; margin-bottom: 20px;">
+                        <h2>OAuth Callback Detected!</h2>
+                        <p>This page was reached via OAuth redirect. Check the OAuth State section below for details.</p>
+                    </div>
+                `;
+                document.body.insertBefore(banner, document.body.firstChild);
+            }
+        });
+    </script>
+</body>
+</html>
