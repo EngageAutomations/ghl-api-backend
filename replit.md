@@ -161,6 +161,13 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 13, 2025: Complete Custom Domain Configuration
+  - Updated Railway backend redirect URI to listings.engageautomations.com
+  - Configured CORS origins for custom domain access
+  - Updated all OAuth flow URLs to use professional domain
+  - Verified authentication error handling and installation-required redirects
+  - Ready for GoHighLevel marketplace deployment with custom domain
+
 - June 13, 2025: Embedded CRM Tab Session Recovery System Implementation
   - Comprehensive session recovery for GoHighLevel CRM tab access
   - Multi-method user identification: GoHighLevel User ID, Location ID, Installation ID

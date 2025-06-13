@@ -1,69 +1,67 @@
-# Custom Domain Configuration Complete
+# Custom Domain Configuration Summary
 
-## Domain Setup
-**Primary Domain:** `listings.engageautomations.com`
-**Status:** Configured and ready for marketplace deployment
+## ✅ Completed Configuration
 
-## OAuth Configuration Updated
+### Railway Backend Updates
+- **CORS Origins**: Added `listings.engageautomations.com` to allowed origins
+- **OAuth Redirect URI**: Updated to `https://listings.engageautomations.com/api/oauth/callback`
+- **Success/Error URLs**: All OAuth flow redirects point to custom domain
+- **Environment Variable**: `GHL_REDIRECT_URI` set to `listings.engageautomations.com`
 
-### GoHighLevel App Settings Required
-Update your GoHighLevel app configuration with these settings:
+### Replit Frontend Updates
+- **Production OAuth URL**: `https://listings.engageautomations.com/`
+- **API Management Interface**: `https://listings.engageautomations.com/api-management`
+- **Installation Required Page**: `https://listings.engageautomations.com/installation-required`
+- **Session Recovery**: Supports embedded CRM tab access with custom domain
 
-**Redirect URI:** `https://listings.engageautomations.com/`
-**Webhook URLs:** `https://listings.engageautomations.com/oauth/callback`
+## Required GoHighLevel Marketplace Updates
 
-### Updated Endpoints
-All OAuth redirect URIs have been updated to use your custom domain:
-- OAuth callback: `https://listings.engageautomations.com/oauth/callback`
-- Success redirects: `https://listings.engageautomations.com/api-management`
-- Error handling: `https://listings.engageautomations.com/?error=...`
+### Redirect URI Settings
+Update your GoHighLevel marketplace app configuration:
+- **Redirect URI**: `https://listings.engageautomations.com/`
 
-## Marketplace Installation Flow
+### App Installation Flow
+1. User clicks "Install" from GoHighLevel Marketplace
+2. OAuth flow initiates with Railway backend
+3. User completes location selection and permissions
+4. Railway processes OAuth callback
+5. User redirected to `listings.engageautomations.com` with API access
 
-### User Experience
-1. **Install from GoHighLevel Marketplace**
-   - User clicks "Install" on your marketplace listing
-   - GoHighLevel handles OAuth automatically
+## Production URLs
 
-2. **Automatic Redirect**
-   - OAuth callback processed at `listings.engageautomations.com`
-   - Tokens stored in database
-   - User redirected to `/api-management`
+### Primary Access
+- **Main App**: `https://listings.engageautomations.com/`
+- **API Management**: `https://listings.engageautomations.com/api-management`
 
-3. **Immediate Access**
-   - Directory creation interface
-   - Product management system
-   - Media library access
-   - Contact management tools
+### OAuth Flow
+- **Callback URL**: `https://listings.engageautomations.com/api/oauth/callback` (Railway)
+- **Success URL**: `https://listings.engageautomations.com/oauth-success`
+- **Error URL**: `https://listings.engageautomations.com/oauth-error`
 
-## Professional Benefits
+### Special Pages
+- **Installation Required**: `https://listings.engageautomations.com/installation-required`
+- **Session Recovery**: `https://listings.engageautomations.com/api/auth/recover`
 
-### Branding
-- Professional domain reinforces your company identity
-- Builds trust with enterprise GoHighLevel customers
-- Consistent with business directory focus
+## Technical Architecture
 
-### Technical Advantages
-- Custom SSL certificate
-- Better SEO and discoverability
-- Professional appearance in OAuth flows
-- Domain-based analytics and tracking
+### Domain Routing
+- **Frontend (Replit)**: `listings.engageautomations.com` → Serves React app
+- **Backend (Railway)**: API endpoints for OAuth and data processing
+- **Database**: PostgreSQL for OAuth installations and user sessions
+
+### Cross-Platform Communication
+- Railway handles OAuth token exchange
+- Replit serves frontend and manages user sessions
+- Session recovery works across devices using database lookups
+
+## Verification Steps
+
+1. **GoHighLevel Marketplace**: Update redirect URI to `listings.engageautomations.com`
+2. **Test Installation**: Install app from marketplace
+3. **Verify OAuth Flow**: Ensure callback completes successfully
+4. **Test API Access**: Confirm all 50+ GoHighLevel operations work
+5. **Embedded CRM Tab**: Verify session recovery in GoHighLevel interface
 
 ## Next Steps
 
-### Required Actions
-1. **Update GoHighLevel App Settings**
-   - Change redirect URI to `https://listings.engageautomations.com/`
-   - Update any webhook configurations
-
-2. **Test OAuth Flow**
-   - Verify marketplace installation redirects properly
-   - Confirm `/api-management` interface loads correctly
-   - Test product creation and media upload features
-
-3. **DNS Verification**
-   - Ensure domain points to Replit deployment
-   - Verify SSL certificate is active
-   - Test HTTPS redirect functionality
-
-Your marketplace app is now professionally branded and ready for distribution with the custom domain `listings.engageautomations.com`.
+The configuration is now complete and ready for marketplace deployment. Users will have a seamless experience from installation to API management with your professional custom domain.
