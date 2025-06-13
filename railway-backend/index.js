@@ -3,6 +3,7 @@ const express = require('express');
 const axios = require('axios');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const { createGHLProduct, getGHLProducts, updateGHLProduct } = require('./product-api');
 const { Pool, neonConfig } = require('@neondatabase/serverless');
 const { drizzle } = require('drizzle-orm/neon-serverless');
 const { eq, desc } = require('drizzle-orm');
@@ -478,6 +479,138 @@ app.get('/api/debug/installation/:userId', async (req, res) => {
   } catch (error) {
     console.error('Debug installation error:', error);
     res.status(500).json({ success: false, error: 'Database query failed' });
+  }
+});
+
+// GoHighLevel Product Creation API
+app.post('/api/ghl/products', async (req, res) => {
+  try {
+    console.log('=== GHL PRODUCT CREATION REQUEST ===');
+    console.log('Request body:', req.body);
+    
+    // Get the first available installation for testing
+    const installations = storage.getAllInstallations();
+    if (installations.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No OAuth installations found. Complete OAuth installation first.'
+      });
+    }
+    
+    const installation = installations[0];
+    if (!installation.ghlAccessToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'No access token available in installation'
+      });
+    }
+    
+    // Use the installation's location ID if not provided
+    const productData = {
+      ...req.body,
+      locationId: req.body.locationId || installation.ghlLocationId
+    };
+    
+    if (!productData.locationId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Location ID required but not found in installation or request'
+      });
+    }
+    
+    console.log('Creating product with access token from installation:', installation.id);
+    
+    const result = await createGHLProduct(productData, installation.ghlAccessToken);
+    
+    if (result.success) {
+      res.status(201).json(result);
+    } else {
+      res.status(result.status || 400).json(result);
+    }
+    
+  } catch (error) {
+    console.error('Product creation endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      details: error.message
+    });
+  }
+});
+
+// Test product creation endpoint
+app.post('/api/test/ghl-product', async (req, res) => {
+  try {
+    const installations = storage.getAllInstallations();
+    if (installations.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No OAuth installations found'
+      });
+    }
+    
+    const installation = installations[0];
+    
+    const testProductData = {
+      name: req.body.name || `Test Product ${Date.now()}`,
+      locationId: installation.ghlLocationId,
+      description: req.body.description || 'Test product created via OAuth API integration',
+      productType: req.body.productType || 'DIGITAL',
+      availableInStore: req.body.availableInStore !== undefined ? req.body.availableInStore : true
+    };
+    
+    const result = await createGHLProduct(testProductData, installation.ghlAccessToken);
+    
+    if (result.success) {
+      result.installation = {
+        id: installation.id,
+        ghlLocationId: installation.ghlLocationId,
+        ghlLocationName: installation.ghlLocationName
+      };
+    }
+    
+    res.json(result);
+    
+  } catch (error) {
+    console.error('Test product creation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Test failed',
+      details: error.message
+    });
+  }
+});
+
+// Get products from GoHighLevel
+app.get('/api/ghl/products', async (req, res) => {
+  try {
+    const installations = storage.getAllInstallations();
+    if (installations.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No OAuth installations found'
+      });
+    }
+    
+    const installation = installations[0];
+    const { limit = 100, offset = 0 } = req.query;
+    
+    const result = await getGHLProducts(
+      installation.ghlLocationId, 
+      installation.ghlAccessToken, 
+      parseInt(limit), 
+      parseInt(offset)
+    );
+    
+    res.json(result);
+    
+  } catch (error) {
+    console.error('Get products error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch products',
+      details: error.message
+    });
   }
 });
 
