@@ -39,9 +39,9 @@ const GHL_API_ENDPOINTS = [
   // Products API
   { path: '/products', method: 'GET', ghlEndpoint: '/products/', requiresLocationId: true, scope: 'products.readonly' },
   { path: '/products', method: 'POST', ghlEndpoint: '/products/', requiresLocationId: true, scope: 'products.write' },
-  { path: '/products/:productId', method: 'GET', ghlEndpoint: '/products/{productId}', requiresLocationId: false, scope: 'products.readonly' },
+  { path: '/products/:productId', method: 'GET', ghlEndpoint: '/products/{productId}', requiresLocationId: true, scope: 'products.readonly' },
   { path: '/products/:productId', method: 'PUT', ghlEndpoint: '/products/{productId}', requiresLocationId: false, scope: 'products.write' },
-  { path: '/products/:productId', method: 'DELETE', ghlEndpoint: '/products/{productId}', requiresLocationId: false, scope: 'products.write' },
+  { path: '/products/:productId', method: 'DELETE', ghlEndpoint: '/products/{productId}', requiresLocationId: true, scope: 'products.write' },
   
   // Product Prices API
   { path: '/products/:productId/prices', method: 'GET', ghlEndpoint: '/products/{productId}/prices', requiresLocationId: false, scope: 'products/prices.readonly' },
@@ -238,7 +238,7 @@ class UniversalAPIHandler {
       delete queryParams.locationId;
       
       // Add locationId to query for endpoints that require it in query params
-      if (config.requiresLocationId && config.ghlEndpoint.includes('products/')) {
+      if (config.requiresLocationId && (config.ghlEndpoint.includes('products/') || config.path.includes('/products/'))) {
         queryParams.locationId = locationId || installation.ghlLocationId;
       }
       
