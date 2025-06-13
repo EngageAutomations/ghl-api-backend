@@ -1,88 +1,44 @@
-# OAuth Location ID Fix Solution
-**Complete API Integration Fix for GoHighLevel Product Creation**
+# OAuth Redirect Fix Solution
 
-## Issue Identified
-The OAuth installation has valid access tokens but is missing the location ID required for GoHighLevel product creation. This prevents all product API calls from functioning.
+## Issue Analysis
+
+Your OAuth installation succeeded perfectly - GoHighLevel authenticated you and Railway stored the tokens. The problem is Railway is redirecting to the old domain `dir.engageautomations.com` instead of `listings.engageautomations.com`.
 
 ## Root Cause
-During OAuth callback, the system captures access tokens but doesn't retrieve the user's location ID from GoHighLevel's `/oauth/userinfo` endpoint.
 
-## Solution Implemented
+The live Railway deployment has either:
+1. Old code with hardcoded `dir.engageautomations.com` URLs
+2. Environment variable `GHL_REDIRECT_URI` still set to old domain
 
-### 1. Location ID Retrieval Endpoint
-Added `POST /api/fix/location-id` to Railway backend that:
-- Uses stored access token to call GoHighLevel's userinfo endpoint
-- Extracts location ID and company ID from response
-- Updates the installation record with location data
-- Retrieves location details (name, business type) for context
+## Evidence from Your Test
 
-### 2. Updated Railway Backend
-The complete backend now includes:
-- OAuth token capture and storage ✓
-- Location ID retrieval and storage ✓
-- Product creation API endpoints ✓
-- Comprehensive error handling ✓
+- OAuth flow completed successfully
+- Token exchange worked (timestamp: 1749859005712)
+- Installation stored in Railway database
+- Redirected to wrong domain causing "Cannot GET /"
 
-### 3. API Call Flow
-```
-Frontend → Railway Backend → GoHighLevel API
-          ↗ (OAuth tokens + Location ID stored here)
-```
+## Immediate Fix Required
 
-## Testing the Fix
+Deploy updated Railway backend with correct redirect URLs:
 
-### Step 1: Fix Location ID
-```bash
-curl -X POST https://dir.engageautomations.com/api/fix/location-id
-```
+### Updated Code Points
+- Success URL: `https://listings.engageautomations.com/oauth-success`
+- Error URL: `https://listings.engageautomations.com/oauth-error` 
+- CORS Origins: Include `listings.engageautomations.com`
 
-### Step 2: Verify Installation Update
-```bash
-curl https://dir.engageautomations.com/api/debug/installations
-```
+### Railway Environment Check
+Verify these environment variables in Railway:
+- `GHL_REDIRECT_URI` = `listings.engageautomations.com`
+- `GHL_CLIENT_ID` = your client ID
+- `GHL_CLIENT_SECRET` = your client secret
 
-### Step 3: Test Product Creation
-```bash
-curl -X POST https://dir.engageautomations.com/api/test/ghl-product \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Test Product", "productType": "DIGITAL"}'
-```
+## Next Steps
 
-## Expected Results
+1. Deploy the updated Railway backend code
+2. Verify environment variables are correct
+3. Test OAuth flow again - should redirect properly to your domain
+4. Your existing OAuth installation will work immediately
 
-### Before Fix:
-```json
-{
-  "ghlLocationId": null,
-  "hasAccessToken": true
-}
-```
+## Quick Test After Fix
 
-### After Fix:
-```json
-{
-  "ghlLocationId": "loc_abc123",
-  "ghlLocationName": "User Location",
-  "hasAccessToken": true
-}
-```
-
-### Product Creation Success:
-```json
-{
-  "success": true,
-  "product": {
-    "id": "prod_xyz789",
-    "name": "Test Product",
-    "locationId": "loc_abc123"
-  }
-}
-```
-
-## Implementation Status
-- Railway backend updated with location fix ✓
-- Product API endpoints deployed ✓
-- OAuth integration complete ✓
-- Ready for live testing ✓
-
-This fix resolves the core blocker preventing GoHighLevel API integration from functioning.
+Install again from marketplace - you should land on `https://listings.engageautomations.com/oauth-success` with working "Return to Dashboard" button that takes you to your API management interface.
