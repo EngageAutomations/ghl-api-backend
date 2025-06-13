@@ -27,6 +27,15 @@ function setupOAuthRoutesProduction(app: express.Express) {
   // Initialize storage for OAuth callbacks
   const storage = new DatabaseStorage();
   
+  // Add request logging middleware
+  app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    console.log('Host:', req.get('host'));
+    console.log('Query params:', req.query);
+    console.log('Cookies:', Object.keys(req.cookies || {}));
+    next();
+  });
+  
   // Test route to verify backend routing
   app.get('/test', (req, res) => {
     console.log('✅ /test route hit - production backend is running');

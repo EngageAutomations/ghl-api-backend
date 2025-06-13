@@ -10,21 +10,36 @@ interface AuthenticatedRequest extends Request {
 
 export async function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
+    console.log(`[AUTH] ${req.method} ${req.url} - Host: ${req.get('host')}`);
+    console.log(`[AUTH] Referer: ${req.get('referer')}`);
+    console.log(`[AUTH] User-Agent: ${req.get('user-agent')}`);
+    
     // Check for session token in cookies or Authorization header
     const sessionToken = req.cookies?.session_token || 
                         req.headers.authorization?.replace('Bearer ', '');
 
     if (!sessionToken) {
-      return res.status(401).json({ error: 'No session token provided' });
+      console.log('[AUTH] No session token found, redirecting to installation required');
+      return res.status(401).json({ 
+        error: 'No session token provided',
+        redirectTo: '/installation-required',
+        needsInstallation: true
+      });
     }
 
     // Verify JWT session token
     const decoded = jwt.verify(sessionToken, process.env.JWT_SECRET || 'fallback-secret') as any;
+    console.log(`[AUTH] JWT decoded for user ID: ${decoded.userId}`);
     
     // Get user and OAuth session from database
     const user = await storage.getUserById(decoded.userId);
     if (!user || !user.isActive) {
-      return res.status(401).json({ error: 'Invalid user' });
+      console.log(`[AUTH] User not found or inactive: ${decoded.userId}`);
+      return res.status(401).json({ 
+        error: 'Invalid user',
+        redirectTo: '/installation-required',
+        needsInstallation: true
+      });
     }
 
     // If OAuth user, validate GHL token
@@ -69,8 +84,23 @@ export async function authenticateToken(req: AuthenticatedRequest, res: Response
     
     next();
   } catch (error) {
-    console.error('Authentication error:', error);
-    return res.status(401).json({ error: 'Authentication failed' });
+    console.error('[AUTH] Authentication error:', error);
+    console.log('[AUTH] Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack?.split('\n')[0]
+    });
+    
+    // Clear invalid cookies
+    res.clearCookie('session_token');
+    res.clearCookie('user_info');
+    
+    return res.status(401).json({ 
+      error: 'Authentication failed',
+      details: error.message,
+      redirectTo: '/installation-required',
+      needsInstallation: true
+    });
   }
 }
 
