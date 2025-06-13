@@ -314,7 +314,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
         return recoverSession(req as any, res);
       } catch (error) {
         console.error('Session recovery failed:', error);
-        return res.redirect('/api-management?error=session_recovery_failed');
+        return res.redirect('/installation-required');
       }
     }
     
@@ -409,9 +409,27 @@ function setupOAuthRoutesProduction(app: express.Express) {
       }
     }
     
-    // For direct access without OAuth parameters, redirect to API management
-    console.log('Direct access to root, redirecting to API management interface');
-    res.redirect('/api-management');
+    // For direct access without OAuth parameters, check if user has existing session
+    console.log('Direct access to root - checking for existing session');
+    
+    // Check for existing session cookie
+    const sessionToken = req.cookies?.session_token;
+    if (sessionToken) {
+      try {
+        const jwt = await import('jsonwebtoken');
+        const decoded = jwt.default.verify(sessionToken, process.env.JWT_SECRET || 'fallback-secret') as any;
+        console.log('Valid session found, redirecting to API management');
+        return res.redirect('/api-management');
+      } catch (error) {
+        console.log('Invalid session token, clearing cookies');
+        res.clearCookie('session_token');
+        res.clearCookie('user_info');
+      }
+    }
+    
+    // No valid session - show installation required page
+    console.log('No valid session found, showing installation required page');
+    return res.redirect('/installation-required');
   });
 
   // Development OAuth app serving (for testing only)
