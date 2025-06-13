@@ -1726,18 +1726,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/ghl/locations/:locationId/products", async (req, res) => {
+  app.post("/api/ghl/products", async (req, res) => {
     try {
-      const { locationId } = req.params;
-      const { accessToken } = req.query;
+      const accessToken = req.headers.authorization?.replace('Bearer ', '');
+      
       if (!accessToken) {
-        return res.status(400).json({ error: "Access token is required" });
+        return res.status(401).json({ error: "Authorization header with Bearer token required" });
       }
-      const product = await ghlAPI.createProduct(locationId, req.body, accessToken as string);
+      
+      // Validate required fields per GHL API spec
+      const { name, locationId, productType } = req.body;
+      if (!name || !locationId || !productType) {
+        return res.status(400).json({ 
+          error: "Missing required fields: name, locationId, and productType are required" 
+        });
+      }
+      
+      const product = await ghlAPI.createProduct(req.body, accessToken as string);
       res.status(201).json(product);
     } catch (error) {
       console.error("GHL create product error:", error);
-      res.status(500).json({ error: "Failed to create product in GHL" });
+      if (error instanceof Error && error.message.includes('validation')) {
+        res.status(400).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: "Failed to create product in GHL" });
+      }
     }
   });
 
@@ -2479,6 +2492,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
+
+  // Test product creation with stored OAuth tokens
+  app.post("/api/test/ghl-product", async (req, res) => {
+    try {
+      console.log("=== TESTING GHL PRODUCT CREATION ===");
+      
+      // Get stored OAuth installation data
+      const installationsResponse = await fetch('https://dir.engageautomations.com/api/debug/installations');
+      const installationsData = await installationsResponse.json();
+      
+      if (!installationsData.success || installationsData.installations.length === 0) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "No OAuth installations found. Please complete OAuth installation first." 
+        });
+      }
+      
+      const installation = installationsData.installations[0];
+      
+      if (!installation.hasAccessToken || !installation.ghlLocationId) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "OAuth installation missing access token or location ID" 
+        });
+      }
+      
+      // Create test product data
+      const testProductData = {
+        name: req.body.name || "Test Directory Product",
+        locationId: installation.ghlLocationId,
+        description: req.body.description || "Test product created via OAuth API integration",
+        productType: req.body.productType || "DIGITAL",
+        availableInStore: req.body.availableInStore || true,
+        ...req.body
+      };
+      
+      console.log("Creating product with data:", testProductData);
+      console.log("Using access token from installation:", installation.id);
+      
+      // Use our updated API class
+      const product = await ghlAPI.createProduct(testProductData, installation.ghlAccessToken);
+      
+      console.log("Product created successfully:", product);
+      
+      res.json({ 
+        success: true, 
+        product: product,
+        installation: {
+          id: installation.id,
+          ghlLocationId: installation.ghlLocationId,
+          ghlLocationName: installation.ghlLocationName
+        },
+        message: "Product created successfully in GoHighLevel using OAuth tokens"
+      });
+      
+    } catch (error) {
+      console.error("Test product creation error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to test product creation",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 
   // Test route to verify API routing works in production
   app.get("/api/test", (req, res) => {

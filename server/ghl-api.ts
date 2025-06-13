@@ -135,26 +135,55 @@ export const GHLFileSchema = z.object({
   tags: z.array(z.string()).optional(),
 });
 
-// Product Schema
+// Product Schema - Updated to match GHL API v2021-07-28
 export const GHLProductSchema = z.object({
   id: z.string(),
   locationId: z.string(),
   name: z.string(),
   description: z.string().optional(),
   image: z.string().optional(),
-  productType: z.enum(['PHYSICAL', 'DIGITAL', 'SERVICE']),
-  status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT']),
-  availableInStore: z.boolean(),
+  productType: z.enum(['DIGITAL', 'PHYSICAL', 'SERVICE']),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT']).optional(),
+  availableInStore: z.boolean().optional(),
+  statementDescriptor: z.string().optional(),
   taxable: z.boolean().optional(),
   weight: z.number().optional(),
   weightUnit: z.enum(['LB', 'KG']).optional(),
+  medias: z.array(z.object({
+    id: z.string(),
+    url: z.string(),
+    type: z.string(),
+    name: z.string().optional(),
+  })).optional(),
   variants: z.array(z.object({
     id: z.string(),
     name: z.string(),
     values: z.array(z.string()),
   })).optional(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+});
+
+// Create Product Request Schema
+export const GHLCreateProductSchema = z.object({
+  name: z.string().min(1, "Product name is required"),
+  locationId: z.string().min(1, "Location ID is required"),
+  description: z.string().optional(),
+  productType: z.enum(['DIGITAL', 'PHYSICAL', 'SERVICE']),
+  image: z.string().url().optional(),
+  statementDescriptor: z.string().optional(),
+  availableInStore: z.boolean().optional(),
+  medias: z.array(z.object({
+    id: z.string(),
+    url: z.string(),
+    type: z.string(),
+    name: z.string().optional(),
+  })).optional(),
+  variants: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    values: z.array(z.string()),
+  })).optional(),
 });
 
 // Price Schema
@@ -199,6 +228,7 @@ export type GHLLocation = z.infer<typeof GHLLocationSchema>;
 export type GHLCustomField = z.infer<typeof GHLCustomFieldSchema>;
 export type GHLFile = z.infer<typeof GHLFileSchema>;
 export type GHLProduct = z.infer<typeof GHLProductSchema>;
+export type GHLCreateProduct = z.infer<typeof GHLCreateProductSchema>;
 export type GHLPrice = z.infer<typeof GHLPriceSchema>;
 export type GHLFileUpload = z.infer<typeof GHLFileUploadSchema>;
 
@@ -419,16 +449,28 @@ export class GoHighLevelAPI {
     return GHLProductSchema.parse(response.product);
   }
 
-  async createProduct(locationId: string, product: Omit<GHLProduct, 'id' | 'locationId' | 'createdAt' | 'updatedAt'>, accessToken: string): Promise<GHLProduct> {
-    const response = await this.makeAuthenticatedRequest(
-      `/locations/${locationId}/products`, 
-      accessToken, 
-      {
-        method: 'POST',
-        body: JSON.stringify(product),
-      }
-    );
-    return GHLProductSchema.parse(response.product);
+  async createProduct(productData: z.infer<typeof GHLCreateProductSchema>, accessToken: string): Promise<GHLProduct> {
+    // Validate input data
+    const validatedData = GHLCreateProductSchema.parse(productData);
+    
+    // Use the correct GHL API endpoint from the documentation
+    const response = await fetch('https://services.leadconnectorhq.com/products/', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        'Version': '2021-07-28',
+      },
+      body: JSON.stringify(validatedData),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`GHL Create Product API Error: ${response.status} ${errorText}`);
+    }
+
+    const responseData = await response.json();
+    return GHLProductSchema.parse(responseData);
   }
 
   async updateProduct(locationId: string, productId: string, updates: Partial<GHLProduct>, accessToken: string): Promise<GHLProduct> {
