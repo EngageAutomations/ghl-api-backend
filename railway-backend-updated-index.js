@@ -1,84 +1,39 @@
-// Complete OAuth Backend for Railway Deployment with Database Integration
+// Complete OAuth Backend for Railway Deployment with Token Storage
 const express = require('express');
 const axios = require('axios');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-const { Pool, neonConfig } = require('@neondatabase/serverless');
-const { drizzle } = require('drizzle-orm/neon-serverless');
-const { eq, desc } = require('drizzle-orm');
-const { pgTable, serial, text, boolean, timestamp, integer } = require('drizzle-orm/pg-core');
-const ws = require('ws');
-
-// Database setup
-neonConfig.webSocketConstructor = ws;
-
-// Database schema
-const oauthInstallations = pgTable('oauth_installations', {
-  id: serial('id').primaryKey(),
-  ghlUserId: text('ghl_user_id').notNull(),
-  ghlUserEmail: text('ghl_user_email'),
-  ghlUserName: text('ghl_user_name'),
-  ghlUserPhone: text('ghl_user_phone'),
-  ghlUserCompany: text('ghl_user_company'),
-  ghlLocationId: text('ghl_location_id'),
-  ghlLocationName: text('ghl_location_name'),
-  ghlLocationBusinessType: text('ghl_location_business_type'),
-  ghlLocationAddress: text('ghl_location_address'),
-  ghlAccessToken: text('ghl_access_token').notNull(),
-  ghlRefreshToken: text('ghl_refresh_token'),
-  ghlTokenType: text('ghl_token_type').default('Bearer'),
-  ghlExpiresIn: integer('ghl_expires_in').default(3600),
-  ghlScopes: text('ghl_scopes'),
-  isActive: boolean('is_active').default(true),
-  installationDate: timestamp('installation_date').defaultNow(),
-  lastTokenRefresh: timestamp('last_token_refresh'),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
-});
-
-// Database connection
-let db;
-if (process.env.DATABASE_URL) {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  db = drizzle({ client: pool, schema: { oauthInstallations } });
-  console.log('✅ Database connection established');
-} else {
-  console.warn('⚠️ DATABASE_URL not found - database operations will fail');
-}
-
-// Storage functions
-const storage = {
-  async createInstallation(installationData) {
-    if (!db) throw new Error('Database not connected');
-    const [installation] = await db
-      .insert(oauthInstallations)
-      .values(installationData)
-      .returning();
-    return installation;
-  },
-
-  async getAllInstallations() {
-    if (!db) throw new Error('Database not connected');
-    return await db
-      .select()
-      .from(oauthInstallations)
-      .orderBy(desc(oauthInstallations.installationDate));
-  },
-
-  async getInstallationByUserId(ghlUserId) {
-    if (!db) throw new Error('Database not connected');
-    const [installation] = await db
-      .select()
-      .from(oauthInstallations)
-      .where(eq(oauthInstallations.ghlUserId, ghlUserId))
-      .orderBy(desc(oauthInstallations.installationDate))
-      .limit(1);
-    return installation;
-  }
-};
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// In-memory storage for OAuth installations
+let oauthInstallations = [];
+
+// Storage functions
+const storage = {
+  createInstallation(installationData) {
+    const installation = {
+      id: oauthInstallations.length + 1,
+      ...installationData,
+      installationDate: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    oauthInstallations.push(installation);
+    return installation;
+  },
+
+  getAllInstallations() {
+    return oauthInstallations.sort((a, b) => new Date(b.installationDate) - new Date(a.installationDate));
+  },
+
+  getInstallationByUserId(ghlUserId) {
+    return oauthInstallations
+      .filter(install => install.ghlUserId === ghlUserId)
+      .sort((a, b) => new Date(b.installationDate) - new Date(a.installationDate))[0];
+  }
+};
 
 // Middleware
 app.use(express.json());
@@ -90,7 +45,12 @@ app.use(cors({
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', service: 'GHL OAuth Backend', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    service: 'GHL OAuth Backend with Token Storage', 
+    timestamp: new Date().toISOString(),
+    installationsCount: oauthInstallations.length
+  });
 });
 
 // OAuth URL generation endpoint
@@ -98,7 +58,7 @@ app.get('/api/oauth/url', (req, res) => {
   console.log('=== GENERATING OAUTH URL ===');
   
   const clientId = process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4';
-  const redirectUri = process.env.GHL_REDIRECT_URI || 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback';
+  const redirectUri = process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/api/oauth/callback';
   const scopes = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write';
   
   // Generate state for security
@@ -117,9 +77,9 @@ app.get('/api/oauth/url', (req, res) => {
   });
 });
 
-// OAuth callback endpoint - Complete token exchange handler
+// OAuth callback endpoint - Complete token exchange and storage handler
 app.get('/api/oauth/callback', async (req, res) => {
-  console.log('=== RAILWAY OAUTH CALLBACK ===');
+  console.log('=== RAILWAY OAUTH CALLBACK WITH TOKEN STORAGE ===');
   console.log('Query params:', req.query);
 
   const { code, state, error } = req.query;
@@ -140,36 +100,40 @@ app.get('/api/oauth/callback', async (req, res) => {
 
   try {
     console.log('=== EXCHANGING CODE FOR TOKEN ===');
-    console.log('Authorization code:', code);
+    console.log('Authorization code:', String(code).substring(0, 20) + '...');
 
     // Exchange authorization code for access token
-    const tokenRequest = {
+    const tokenRequestData = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4',
       client_secret: process.env.GHL_CLIENT_SECRET,
-      code: code,
-      redirect_uri: process.env.GHL_REDIRECT_URI || 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback'
-    };
+      code: String(code),
+      redirect_uri: process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/api/oauth/callback'
+    });
 
     console.log('Token request payload:', {
-      grant_type: tokenRequest.grant_type,
-      client_id: tokenRequest.client_id,
-      client_secret: tokenRequest.client_secret ? '[HIDDEN]' : 'MISSING',
-      code: tokenRequest.code,
-      redirect_uri: tokenRequest.redirect_uri
+      grant_type: 'authorization_code',
+      client_id: process.env.GHL_CLIENT_ID ? 'present' : 'missing',
+      client_secret: process.env.GHL_CLIENT_SECRET ? 'present' : 'missing',
+      redirect_uri: process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/api/oauth/callback'
     });
 
-    const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', tokenRequest, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json'
-      },
-      timeout: 10000
-    });
+    const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', 
+      tokenRequestData.toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json'
+        },
+        timeout: 10000
+      }
+    );
 
-    console.log('Token exchange successful:', {
-      access_token: response.data.access_token ? '[RECEIVED]' : 'MISSING',
-      refresh_token: response.data.refresh_token ? '[RECEIVED]' : 'MISSING',
+    console.log('=== TOKEN EXCHANGE SUCCESSFUL ===');
+    console.log('Token data received:', {
+      access_token: response.data.access_token ? 'RECEIVED' : 'MISSING',
+      refresh_token: response.data.refresh_token ? 'RECEIVED' : 'MISSING',
+      token_type: response.data.token_type,
       expires_in: response.data.expires_in,
       scope: response.data.scope
     });
@@ -192,7 +156,7 @@ app.get('/api/oauth/callback', async (req, res) => {
       console.warn('Failed to get user info:', userError.message);
     }
 
-    // Store OAuth installation data in database
+    // Store OAuth installation data
     try {
       console.log('=== STORING OAUTH INSTALLATION ===');
       
@@ -256,12 +220,14 @@ app.get('/api/oauth/callback', async (req, res) => {
         isActive: true
       };
 
-      const savedInstallation = await storage.createInstallation(installationData);
-      console.log('✅ OAuth installation saved to database with ID:', savedInstallation.id);
+      const savedInstallation = storage.createInstallation(installationData);
+      console.log('✅ OAuth installation saved with ID:', savedInstallation.id);
+      console.log('✅ ACCESS TOKEN CAPTURED:', response.data.access_token ? 'YES' : 'NO');
+      console.log('✅ REFRESH TOKEN CAPTURED:', response.data.refresh_token ? 'YES' : 'NO');
       
-    } catch (dbError) {
-      console.error('⚠️ Failed to save OAuth installation to database:', dbError);
-      // Continue with the flow even if database save fails
+    } catch (storageError) {
+      console.error('⚠️ Failed to save OAuth installation:', storageError);
+      // Continue with the flow even if storage fails
     }
 
     // Redirect to success page with minimal, non-sensitive data
@@ -425,7 +391,7 @@ app.get('/oauth-error', (req, res) => {
 // Debug endpoint - Get all OAuth installations
 app.get('/api/debug/installations', async (req, res) => {
   try {
-    const installations = await storage.getAllInstallations();
+    const installations = storage.getAllInstallations();
     res.json({
       success: true,
       count: installations.length,
@@ -446,14 +412,14 @@ app.get('/api/debug/installations', async (req, res) => {
     });
   } catch (error) {
     console.error('Debug installations error:', error);
-    res.status(500).json({ success: false, error: 'Database query failed' });
+    res.status(500).json({ success: false, error: 'Storage query failed' });
   }
 });
 
 // Debug endpoint - Get installation by user ID
 app.get('/api/debug/installation/:userId', async (req, res) => {
   try {
-    const installation = await storage.getInstallationByUserId(req.params.userId);
+    const installation = storage.getInstallationByUserId(req.params.userId);
     if (!installation) {
       return res.status(404).json({ success: false, error: 'Installation not found' });
     }
@@ -477,7 +443,7 @@ app.get('/api/debug/installation/:userId', async (req, res) => {
     });
   } catch (error) {
     console.error('Debug installation error:', error);
-    res.status(500).json({ success: false, error: 'Database query failed' });
+    res.status(500).json({ success: false, error: 'Storage query failed' });
   }
 });
 
@@ -493,12 +459,13 @@ app.use((error, req, res, next) => {
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ OAuth Backend Server Running`);
+  console.log(`✅ OAuth Backend Server Running with Token Storage`);
   console.log(`Port: ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'production'}`);
   console.log(`Health Check: http://0.0.0.0:${PORT}/health`);
   console.log(`OAuth URL: http://0.0.0.0:${PORT}/api/oauth/url`);
   console.log(`OAuth Callback: http://0.0.0.0:${PORT}/api/oauth/callback`);
+  console.log(`Debug Installations: http://0.0.0.0:${PORT}/api/debug/installations`);
 });
 
 module.exports = app;
