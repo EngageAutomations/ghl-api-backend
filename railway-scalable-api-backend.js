@@ -102,12 +102,22 @@ class GoHighLevelAPIManager {
     });
   }
 
-  async getProducts(locationId, limit = 100, offset = 0) {
+  async getProducts(locationId, limit = 20, offset = 0, search = null) {
     const targetLocationId = locationId || this.locationId;
+    const params = { 
+      locationId: targetLocationId,
+      limit, 
+      offset 
+    };
+    
+    if (search) {
+      params.search = search;
+    }
+    
     return this.makeRequest({
-      endpoint: `/locations/${targetLocationId}/products`,
+      endpoint: '/products/',
       method: 'GET',
-      params: { limit, offset }
+      params
     });
   }
 
@@ -542,9 +552,10 @@ app.post('/api/ghl/products', requireOAuth, (req, res) => {
 });
 
 app.get('/api/ghl/products', requireOAuth, (req, res) => {
-  const limit = parseInt(req.query.limit) || 100;
+  const limit = parseInt(req.query.limit) || 20;
   const offset = parseInt(req.query.offset) || 0;
-  APIRouter.handleRequest(req, res, 'getProducts', [undefined, limit, offset]);
+  const search = req.query.search || null;
+  APIRouter.handleRequest(req, res, 'getProducts', [undefined, limit, offset, search]);
 });
 
 app.get('/api/ghl/products/:productId', requireOAuth, (req, res) => {
