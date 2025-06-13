@@ -88,7 +88,7 @@ const GHL_API_ENDPOINTS = [
   // Media API
   { path: '/media', method: 'GET', ghlEndpoint: '/locations/{locationId}/medias', requiresLocationId: true, scope: 'medias.readonly' },
   { path: '/media/files', method: 'GET', ghlEndpoint: '/medias/files', requiresLocationId: false, scope: 'medias.readonly' },
-  { path: '/media/upload', method: 'POST', ghlEndpoint: '/locations/{locationId}/medias/upload-file', requiresLocationId: true, scope: 'medias.write' },
+  { path: '/media/upload', method: 'POST', ghlEndpoint: '/medias/upload-file', requiresLocationId: false, scope: 'medias.write' },
   { path: '/media/:mediaId', method: 'GET', ghlEndpoint: '/locations/{locationId}/medias/{mediaId}', requiresLocationId: true, scope: 'medias.readonly' },
   { path: '/media/:mediaId', method: 'DELETE', ghlEndpoint: '/locations/{locationId}/medias/{mediaId}', requiresLocationId: true, scope: 'medias.write' },
   
