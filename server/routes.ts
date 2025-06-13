@@ -21,9 +21,14 @@ import { ghlAPI } from "./ghl-api";
 import { ghlOAuth } from "./ghl-oauth";
 import { authenticateToken } from "./auth-middleware";
 import { ghlProductCreator } from "./ghl-product-creator";
+import { getCurrentUser, logoutUser } from "./current-user";
 import jwt from "jsonwebtoken";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // User authentication routes
+  app.get("/api/auth/me", getCurrentUser);
+  app.post("/api/auth/logout", logoutUser);
+
   // User routes
   app.post("/api/auth/register", async (req, res) => {
     try {

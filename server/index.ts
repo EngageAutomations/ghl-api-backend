@@ -336,7 +336,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
             
             // Store tokens in database
             const storage = new DatabaseStorage();
-            await storage.createOAuthInstallation({
+            const installation = await storage.createOAuthInstallation({
               ghlUserId: userData.id,
               ghlAccessToken: tokenData.access_token,
               ghlRefreshToken: tokenData.refresh_token,
@@ -346,6 +346,40 @@ function setupOAuthRoutesProduction(app: express.Express) {
               ghlLocationName: locationData?.name || '',
               userEmail: userData.email,
               userName: userData.name || userData.email
+            });
+
+            // Create session token for user identification
+            const jwt = await import('jsonwebtoken');
+            const sessionToken = jwt.default.sign(
+              { 
+                userId: installation.id,
+                ghlUserId: userData.id,
+                locationId: locationData?.id,
+                email: userData.email,
+                name: userData.name || userData.email
+              }, 
+              process.env.JWT_SECRET || 'fallback-secret',
+              { expiresIn: '7d' }
+            );
+
+            // Set session cookie
+            res.cookie('session_token', sessionToken, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+              sameSite: 'lax'
+            });
+
+            // Set user info cookie for frontend access
+            res.cookie('user_info', JSON.stringify({
+              name: userData.name || userData.email,
+              email: userData.email,
+              locationId: locationData?.id,
+              locationName: locationData?.name
+            }), {
+              httpOnly: false, // Allow frontend access
+              secure: process.env.NODE_ENV === 'production',
+              maxAge: 7 * 24 * 60 * 60 * 1000
             });
             
             // Redirect to API management with success message
