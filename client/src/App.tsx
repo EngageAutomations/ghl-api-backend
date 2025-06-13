@@ -24,6 +24,7 @@ import ListingView from "@/pages/ListingView";
 import Collections from "@/pages/Collections";
 import CollectionView from "@/pages/CollectionView";
 import GoogleDriveSetup from "@/pages/GoogleDriveSetup";
+import APIManagement from "@/pages/APIManagement";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
@@ -136,6 +137,15 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <GHLProductDemo />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      {/* API Management Interface */}
+      <Route path="/api-management">
+        <ProtectedRoute>
+          <AppLayout>
+            <APIManagement />
           </AppLayout>
         </ProtectedRoute>
       </Route>
