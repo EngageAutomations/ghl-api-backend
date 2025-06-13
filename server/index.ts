@@ -301,9 +301,22 @@ function setupOAuthRoutesProduction(app: express.Express) {
 
 
 
-  // Root route for marketplace installations
+  // Root route for marketplace installations and embedded CRM tab access
   app.get('/', async (req, res) => {
-    const { code, state, error, action } = req.query;
+    const { code, state, error, action, ghl_user_id, ghl_location_id, embedded } = req.query;
+    
+    // Handle embedded CRM tab access with session recovery
+    if ((ghl_user_id || ghl_location_id) && !code) {
+      console.log('Embedded CRM tab access detected, attempting session recovery...');
+      
+      try {
+        const { recoverSession } = await import('./session-recovery.js');
+        return recoverSession(req as any, res);
+      } catch (error) {
+        console.error('Session recovery failed:', error);
+        return res.redirect('/api-management?error=session_recovery_failed');
+      }
+    }
     
     // Handle OAuth callback from marketplace installation
     if (code || error) {
