@@ -5,9 +5,10 @@
  * Deploys the complete OAuth backend with database functionality
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import fetch from 'node-fetch';
 
 const colors = {
   green: '\x1b[32m',
@@ -98,7 +99,6 @@ async function deployProductionBackend() {
 
 async function testDeployment(url) {
   try {
-    const fetch = require('node-fetch');
     
     // Test health endpoint
     log('Testing health endpoint...', colors.blue);
