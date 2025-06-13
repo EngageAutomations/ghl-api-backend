@@ -35,13 +35,13 @@ GET /locations/{locationId}/medias/{mediaId}
 { path: '/media/:mediaId', method: 'GET', ghlEndpoint: '/locations/{locationId}/medias/{mediaId}', requiresLocationId: true, scope: 'medias.readonly' }
 ```
 
-#### 4. Delete Media File
+#### 4. Delete File or Folder
 ```
-DELETE /locations/{locationId}/medias/{mediaId}
+DELETE /medias/:id
 ```
 **Configuration:**
 ```javascript
-{ path: '/media/:mediaId', method: 'DELETE', ghlEndpoint: '/locations/{locationId}/medias/{mediaId}', requiresLocationId: true, scope: 'medias.write' }
+{ path: '/media/:mediaId', method: 'DELETE', ghlEndpoint: '/medias/{mediaId}', requiresLocationId: false, scope: 'medias.write' }
 ```
 
 #### 5. General Media List
@@ -78,6 +78,15 @@ GET /locations/{locationId}/medias
 - `name` - Custom file name
 - `parentId` - Target folder ID
 - Maximum file size: 25 MB
+
+#### Delete File/Folder Parameters
+**Required:**
+- `id` - File or folder identifier (path parameter)
+- `altType` - Context type (agency, location)
+- `altId` - Agency or location identifier
+
+**Optional:**
+- None (simple deletion operation)
 
 ## Advanced Query Parameter Handling
 
@@ -250,6 +259,7 @@ The Media Library API suite demonstrates the universal system's flexibility:
 |---------------|---------|-------------------|-----------|
 | Global Files | `/medias/files` | Not used (altType/altId) | Cross-location file listing |
 | Global Upload | `/medias/upload-file` | Not used (account context) | File upload to account |
+| Global Delete | `/medias/:id` | Not used (altType/altId) | File/folder removal |
 | Location Media | `/locations/{locationId}/medias/*` | Path parameter | Location-specific operations |
 
 ### Parameter Management Intelligence
@@ -257,6 +267,7 @@ Different endpoints require different parameter handling strategies:
 
 - **Files API**: Complex query parameters with multi-dimensional filtering
 - **Upload API**: Multipart form data with binary file support
+- **Delete API**: Path parameters with altType/altId query context
 - **Location APIs**: Standard REST parameters with locationId injection
 
 ## Production Architecture Benefits

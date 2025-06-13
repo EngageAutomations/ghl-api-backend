@@ -90,7 +90,7 @@ const GHL_API_ENDPOINTS = [
   { path: '/media/files', method: 'GET', ghlEndpoint: '/medias/files', requiresLocationId: false, scope: 'medias.readonly' },
   { path: '/media/upload', method: 'POST', ghlEndpoint: '/medias/upload-file', requiresLocationId: false, scope: 'medias.write' },
   { path: '/media/:mediaId', method: 'GET', ghlEndpoint: '/locations/{locationId}/medias/{mediaId}', requiresLocationId: true, scope: 'medias.readonly' },
-  { path: '/media/:mediaId', method: 'DELETE', ghlEndpoint: '/locations/{locationId}/medias/{mediaId}', requiresLocationId: true, scope: 'medias.write' },
+  { path: '/media/:mediaId', method: 'DELETE', ghlEndpoint: '/medias/{mediaId}', requiresLocationId: false, scope: 'medias.write' },
   
   // Calendars API
   { path: '/calendars', method: 'GET', ghlEndpoint: '/locations/{locationId}/calendars', requiresLocationId: true, scope: 'calendars.readonly' },
