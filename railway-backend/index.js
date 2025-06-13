@@ -1,8 +1,81 @@
-// Complete OAuth Backend for Railway Deployment
+// Complete OAuth Backend for Railway Deployment with Database Integration
 const express = require('express');
 const axios = require('axios');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const { Pool, neonConfig } = require('@neondatabase/serverless');
+const { drizzle } = require('drizzle-orm/neon-serverless');
+const { eq, desc } = require('drizzle-orm');
+const { pgTable, serial, text, boolean, timestamp, integer } = require('drizzle-orm/pg-core');
+const ws = require('ws');
+
+// Database setup
+neonConfig.webSocketConstructor = ws;
+
+// Database schema
+const oauthInstallations = pgTable('oauth_installations', {
+  id: serial('id').primaryKey(),
+  ghlUserId: text('ghl_user_id').notNull(),
+  ghlUserEmail: text('ghl_user_email'),
+  ghlUserName: text('ghl_user_name'),
+  ghlUserPhone: text('ghl_user_phone'),
+  ghlUserCompany: text('ghl_user_company'),
+  ghlLocationId: text('ghl_location_id'),
+  ghlLocationName: text('ghl_location_name'),
+  ghlLocationBusinessType: text('ghl_location_business_type'),
+  ghlLocationAddress: text('ghl_location_address'),
+  ghlAccessToken: text('ghl_access_token').notNull(),
+  ghlRefreshToken: text('ghl_refresh_token'),
+  ghlTokenType: text('ghl_token_type').default('Bearer'),
+  ghlExpiresIn: integer('ghl_expires_in').default(3600),
+  ghlScopes: text('ghl_scopes'),
+  isActive: boolean('is_active').default(true),
+  installationDate: timestamp('installation_date').defaultNow(),
+  lastTokenRefresh: timestamp('last_token_refresh'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
+// Database connection
+let db;
+if (process.env.DATABASE_URL) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  db = drizzle({ client: pool, schema: { oauthInstallations } });
+  console.log('✅ Database connection established');
+} else {
+  console.warn('⚠️ DATABASE_URL not found - database operations will fail');
+}
+
+// Storage functions
+const storage = {
+  async createInstallation(installationData) {
+    if (!db) throw new Error('Database not connected');
+    const [installation] = await db
+      .insert(oauthInstallations)
+      .values(installationData)
+      .returning();
+    return installation;
+  },
+
+  async getAllInstallations() {
+    if (!db) throw new Error('Database not connected');
+    return await db
+      .select()
+      .from(oauthInstallations)
+      .orderBy(desc(oauthInstallations.installationDate));
+  },
+
+  async getInstallationByUserId(ghlUserId) {
+    if (!db) throw new Error('Database not connected');
+    const [installation] = await db
+      .select()
+      .from(oauthInstallations)
+      .where(eq(oauthInstallations.ghlUserId, ghlUserId))
+      .orderBy(desc(oauthInstallations.installationDate))
+      .limit(1);
+    return installation;
+  }
+};
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -119,14 +192,77 @@ app.get('/api/oauth/callback', async (req, res) => {
       console.warn('Failed to get user info:', userError.message);
     }
 
-    // TODO: Store tokens in database here
-    console.log('=== TOKEN STORAGE NEEDED ===');
-    console.log('Store these tokens in your database:');
-    console.log('- Access Token:', response.data.access_token);
-    console.log('- Refresh Token:', response.data.refresh_token);
-    console.log('- Expires In:', response.data.expires_in);
-    console.log('- Location ID:', userInfo?.locationId);
-    console.log('- Company ID:', userInfo?.companyId);
+    // Store OAuth installation data in database
+    try {
+      console.log('=== STORING OAUTH INSTALLATION ===');
+      
+      // Fetch additional user data from GoHighLevel API
+      let userData = null;
+      try {
+        const userDataResponse = await axios.get('https://services.leadconnectorhq.com/users/me', {
+          headers: {
+            'Authorization': `Bearer ${response.data.access_token}`,
+            'Version': '2021-07-28'
+          },
+          timeout: 5000
+        });
+        userData = userDataResponse.data;
+        console.log('User data retrieved:', {
+          id: userData.id,
+          email: userData.email,
+          name: userData.name
+        });
+      } catch (userError) {
+        console.warn('Failed to get detailed user data:', userError.message);
+      }
+
+      // Fetch location data if locationId is available
+      let locationData = null;
+      if (userInfo?.locationId) {
+        try {
+          const locationResponse = await axios.get(`https://services.leadconnectorhq.com/locations/${userInfo.locationId}`, {
+            headers: {
+              'Authorization': `Bearer ${response.data.access_token}`,
+              'Version': '2021-07-28'
+            },
+            timeout: 5000
+          });
+          locationData = locationResponse.data.location;
+          console.log('Location data retrieved:', {
+            id: locationData.id,
+            name: locationData.name,
+            businessType: locationData.businessType
+          });
+        } catch (locationError) {
+          console.warn('Failed to get location data:', locationError.message);
+        }
+      }
+
+      const installationData = {
+        ghlUserId: userData?.id || userInfo?.userId || `user_${Date.now()}`,
+        ghlUserEmail: userData?.email,
+        ghlUserName: userData?.name || `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim(),
+        ghlUserPhone: userData?.phone,
+        ghlUserCompany: userData?.companyName,
+        ghlLocationId: userInfo?.locationId || locationData?.id,
+        ghlLocationName: locationData?.name,
+        ghlLocationBusinessType: locationData?.businessType,
+        ghlLocationAddress: locationData?.address,
+        ghlAccessToken: response.data.access_token,
+        ghlRefreshToken: response.data.refresh_token,
+        ghlTokenType: response.data.token_type || 'Bearer',
+        ghlExpiresIn: response.data.expires_in || 3600,
+        ghlScopes: response.data.scope,
+        isActive: true
+      };
+
+      const savedInstallation = await storage.createInstallation(installationData);
+      console.log('✅ OAuth installation saved to database with ID:', savedInstallation.id);
+      
+    } catch (dbError) {
+      console.error('⚠️ Failed to save OAuth installation to database:', dbError);
+      // Continue with the flow even if database save fails
+    }
 
     // Redirect to success page with minimal, non-sensitive data
     const params = new URLSearchParams({
@@ -164,6 +300,65 @@ app.get('/api/oauth/callback', async (req, res) => {
     const errorUrl = `https://dir.engageautomations.com/oauth-error?error=${encodeURIComponent(errorMessage)}&details=${encodeURIComponent(error.response?.status || 'Unknown')}`;
     
     return res.redirect(errorUrl);
+  }
+});
+
+// Debug endpoint - Get all OAuth installations
+app.get('/api/debug/installations', async (req, res) => {
+  try {
+    const installations = await storage.getAllInstallations();
+    res.json({
+      success: true,
+      count: installations.length,
+      installations: installations.map(install => ({
+        id: install.id,
+        ghlUserId: install.ghlUserId,
+        ghlUserEmail: install.ghlUserEmail,
+        ghlUserName: install.ghlUserName,
+        ghlLocationId: install.ghlLocationId,
+        ghlLocationName: install.ghlLocationName,
+        hasAccessToken: !!install.ghlAccessToken,
+        hasRefreshToken: !!install.ghlRefreshToken,
+        tokenType: install.ghlTokenType,
+        scopes: install.ghlScopes,
+        isActive: install.isActive,
+        installationDate: install.installationDate
+      }))
+    });
+  } catch (error) {
+    console.error('Debug installations error:', error);
+    res.status(500).json({ success: false, error: 'Database query failed' });
+  }
+});
+
+// Debug endpoint - Get installation by user ID
+app.get('/api/debug/installation/:userId', async (req, res) => {
+  try {
+    const installation = await storage.getInstallationByUserId(req.params.userId);
+    if (!installation) {
+      return res.status(404).json({ success: false, error: 'Installation not found' });
+    }
+    
+    res.json({
+      success: true,
+      installation: {
+        id: installation.id,
+        ghlUserId: installation.ghlUserId,
+        ghlUserEmail: installation.ghlUserEmail,
+        ghlUserName: installation.ghlUserName,
+        ghlLocationId: installation.ghlLocationId,
+        ghlLocationName: installation.ghlLocationName,
+        hasAccessToken: !!installation.ghlAccessToken,
+        hasRefreshToken: !!installation.ghlRefreshToken,
+        tokenType: installation.ghlTokenType,
+        scopes: installation.ghlScopes,
+        isActive: installation.isActive,
+        installationDate: installation.installationDate
+      }
+    });
+  } catch (error) {
+    console.error('Debug installation error:', error);
+    res.status(500).json({ success: false, error: 'Database query failed' });
   }
 });
 
