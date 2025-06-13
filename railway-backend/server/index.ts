@@ -3,6 +3,7 @@ import express from 'express';
 import axios from 'axios';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import { storage } from '../db.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -129,14 +130,77 @@ app.get('/api/oauth/callback', async (req, res) => {
       console.warn('Failed to get user info:', userError.message);
     }
 
-    // TODO: Store tokens in database here
-    // Example: await storeUserTokens({
-    //   access_token: response.data.access_token,
-    //   refresh_token: response.data.refresh_token,
-    //   locationId: userInfo?.locationId,
-    //   companyId: userInfo?.companyId,
-    //   expires_in: response.data.expires_in
-    // });
+    // Store OAuth installation data in database
+    try {
+      console.log('=== STORING OAUTH INSTALLATION ===');
+      
+      // Fetch additional user data from GoHighLevel API
+      let userData = null;
+      try {
+        const userDataResponse = await axios.get('https://services.leadconnectorhq.com/users/me', {
+          headers: {
+            'Authorization': `Bearer ${response.data.access_token}`,
+            'Version': '2021-07-28'
+          },
+          timeout: 5000
+        });
+        userData = userDataResponse.data;
+        console.log('User data retrieved:', {
+          id: userData.id,
+          email: userData.email,
+          name: userData.name
+        });
+      } catch (userError) {
+        console.warn('Failed to get detailed user data:', userError.message);
+      }
+
+      // Fetch location data if locationId is available
+      let locationData = null;
+      if (userInfo?.locationId) {
+        try {
+          const locationResponse = await axios.get(`https://services.leadconnectorhq.com/locations/${userInfo.locationId}`, {
+            headers: {
+              'Authorization': `Bearer ${response.data.access_token}`,
+              'Version': '2021-07-28'
+            },
+            timeout: 5000
+          });
+          locationData = locationResponse.data.location;
+          console.log('Location data retrieved:', {
+            id: locationData.id,
+            name: locationData.name,
+            businessType: locationData.businessType
+          });
+        } catch (locationError) {
+          console.warn('Failed to get location data:', locationError.message);
+        }
+      }
+
+      const installationData = {
+        ghlUserId: userData?.id || userInfo?.userId || `user_${Date.now()}`,
+        ghlUserEmail: userData?.email,
+        ghlUserName: userData?.name || `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim(),
+        ghlUserPhone: userData?.phone,
+        ghlUserCompany: userData?.companyName,
+        ghlLocationId: userInfo?.locationId || locationData?.id,
+        ghlLocationName: locationData?.name,
+        ghlLocationBusinessType: locationData?.businessType,
+        ghlLocationAddress: locationData?.address,
+        ghlAccessToken: response.data.access_token,
+        ghlRefreshToken: response.data.refresh_token,
+        ghlTokenType: response.data.token_type || 'Bearer',
+        ghlExpiresIn: response.data.expires_in || 3600,
+        ghlScopes: response.data.scope,
+        isActive: true
+      };
+
+      const savedInstallation = await storage.createInstallation(installationData);
+      console.log('✅ OAuth installation saved to database with ID:', savedInstallation.id);
+      
+    } catch (dbError) {
+      console.error('⚠️ Failed to save OAuth installation to database:', dbError);
+      // Continue with the flow even if database save fails
+    }
 
     // Redirect to success page with minimal, non-sensitive data
     const params = new URLSearchParams({
@@ -214,6 +278,65 @@ app.get('/api/oauth/url', (req, res) => {
   });
 });
 
+// Debug endpoint - Get all OAuth installations
+app.get('/api/debug/installations', async (req, res) => {
+  try {
+    const installations = await storage.getAllInstallations();
+    res.json({
+      success: true,
+      count: installations.length,
+      installations: installations.map(install => ({
+        id: install.id,
+        ghlUserId: install.ghlUserId,
+        ghlUserEmail: install.ghlUserEmail,
+        ghlUserName: install.ghlUserName,
+        ghlLocationId: install.ghlLocationId,
+        ghlLocationName: install.ghlLocationName,
+        hasAccessToken: !!install.ghlAccessToken,
+        hasRefreshToken: !!install.ghlRefreshToken,
+        tokenType: install.ghlTokenType,
+        scopes: install.ghlScopes,
+        isActive: install.isActive,
+        installationDate: install.installationDate
+      }))
+    });
+  } catch (error) {
+    console.error('Debug installations error:', error);
+    res.status(500).json({ success: false, error: 'Database query failed' });
+  }
+});
+
+// Debug endpoint - Get installation by user ID
+app.get('/api/debug/installation/:userId', async (req, res) => {
+  try {
+    const installation = await storage.getInstallationByUserId(req.params.userId);
+    if (!installation) {
+      return res.status(404).json({ success: false, error: 'Installation not found' });
+    }
+    
+    res.json({
+      success: true,
+      installation: {
+        id: installation.id,
+        ghlUserId: installation.ghlUserId,
+        ghlUserEmail: installation.ghlUserEmail,
+        ghlUserName: installation.ghlUserName,
+        ghlLocationId: installation.ghlLocationId,
+        ghlLocationName: installation.ghlLocationName,
+        hasAccessToken: !!installation.ghlAccessToken,
+        hasRefreshToken: !!installation.ghlRefreshToken,
+        tokenType: installation.ghlTokenType,
+        scopes: installation.ghlScopes,
+        isActive: installation.isActive,
+        installationDate: installation.installationDate
+      }
+    });
+  } catch (error) {
+    console.error('Debug installation error:', error);
+    res.status(500).json({ success: false, error: 'Database query failed' });
+  }
+});
+
 // Token validation endpoint
 app.get('/api/oauth/validate', (req, res) => {
   const token = req.cookies.oauth_token;
@@ -222,8 +345,6 @@ app.get('/api/oauth/validate', (req, res) => {
     return res.status(401).json({ valid: false, error: 'No token found' });
   }
 
-  // Here you would typically validate the token with GoHighLevel
-  // For now, just check if it exists
   res.json({ 
     valid: true, 
     hasToken: true,
