@@ -137,7 +137,37 @@ fetch('/api/ghl/products/6578278e879ad2646715ba9c', {
 // 3. Routes with proper authentication
 ```
 
-### 6. Create Price for a Product API
+### 6. List Prices for a Product API
+**Specification:** `GET https://services.leadconnectorhq.com/products/:productId/price`
+
+**Required Parameters:**
+- `productId` (path parameter) - Product identifier
+- `locationId` (query parameter) - Automatically injected
+
+**Optional Parameters:**
+- `limit` (query) - Maximum items per page (default: 0)
+- `offset` (query) - Starting index for pagination (default: 0)  
+- `ids` (query) - Comma-separated price IDs for filtering
+
+**Universal System Implementation:**
+```javascript
+// Client Usage - Basic listing
+fetch('/api/ghl/products/6578278e879ad2646715ba9c/price')
+
+// Client Usage - With pagination
+fetch('/api/ghl/products/6578278e879ad2646715ba9c/price?limit=20&offset=0')
+
+// Client Usage - With filtering
+fetch('/api/ghl/products/6578278e879ad2646715ba9c/price?ids=price1,price2')
+
+// System automatically:
+// 1. Extracts productId from URL path
+// 2. Injects locationId as query parameter
+// 3. Passes through pagination and filtering parameters
+// 4. Routes to: https://services.leadconnectorhq.com/products/{productId}/price
+```
+
+### 7. Create Price for a Product API
 **Specification:** `POST https://services.leadconnectorhq.com/products/:productId/price`
 
 **Required Fields:**

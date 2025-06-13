@@ -44,7 +44,7 @@ const GHL_API_ENDPOINTS = [
   { path: '/products/:productId', method: 'DELETE', ghlEndpoint: '/products/{productId}', requiresLocationId: true, scope: 'products.write' },
   
   // Product Prices API
-  { path: '/products/:productId/prices', method: 'GET', ghlEndpoint: '/products/{productId}/prices', requiresLocationId: false, scope: 'products/prices.readonly' },
+  { path: '/products/:productId/price', method: 'GET', ghlEndpoint: '/products/{productId}/price', requiresLocationId: true, scope: 'products/prices.readonly' },
   { path: '/products/:productId/price', method: 'POST', ghlEndpoint: '/products/{productId}/price', requiresLocationId: false, scope: 'products/prices.write' },
   { path: '/products/:productId/prices/:priceId', method: 'GET', ghlEndpoint: '/products/{productId}/prices/{priceId}', requiresLocationId: false, scope: 'products/prices.readonly' },
   { path: '/products/:productId/prices/:priceId', method: 'PUT', ghlEndpoint: '/products/{productId}/prices/{priceId}', requiresLocationId: false, scope: 'products/prices.write' },
