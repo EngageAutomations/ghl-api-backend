@@ -50,12 +50,15 @@ const GHL_API_ENDPOINTS = [
   { path: '/products/:productId/price/:priceId', method: 'PUT', ghlEndpoint: '/products/{productId}/price/{priceId}', requiresLocationId: false, scope: 'products/prices.write' },
   { path: '/products/:productId/price/:priceId', method: 'DELETE', ghlEndpoint: '/products/{productId}/price/{priceId}', requiresLocationId: true, scope: 'products/prices.write' },
   
-  // Contacts API
+  // Contacts API (Current)
   { path: '/contacts', method: 'GET', ghlEndpoint: '/locations/{locationId}/contacts', requiresLocationId: true, scope: 'contacts.readonly' },
   { path: '/contacts', method: 'POST', ghlEndpoint: '/locations/{locationId}/contacts', requiresLocationId: true, scope: 'contacts.write' },
   { path: '/contacts/:contactId', method: 'GET', ghlEndpoint: '/locations/{locationId}/contacts/{contactId}', requiresLocationId: true, scope: 'contacts.readonly' },
   { path: '/contacts/:contactId', method: 'PUT', ghlEndpoint: '/locations/{locationId}/contacts/{contactId}', requiresLocationId: true, scope: 'contacts.write' },
   { path: '/contacts/:contactId', method: 'DELETE', ghlEndpoint: '/locations/{locationId}/contacts/{contactId}', requiresLocationId: true, scope: 'contacts.write' },
+  
+  // Contacts API (Deprecated - for backward compatibility)
+  { path: '/contacts/deprecated', method: 'GET', ghlEndpoint: '/contacts/', requiresLocationId: true, scope: 'contacts.readonly' },
   
   // Opportunities API
   { path: '/opportunities', method: 'GET', ghlEndpoint: '/locations/{locationId}/opportunities', requiresLocationId: true, scope: 'opportunities.readonly' },
