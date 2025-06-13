@@ -486,6 +486,98 @@ app.get('/api/debug/installations', async (req, res) => {
   }
 });
 
+// Fix missing location ID in existing installation
+app.post('/api/fix/location-id', async (req, res) => {
+  try {
+    console.log('=== FIXING LOCATION ID FOR INSTALLATION ===');
+    
+    const installations = storage.getAllInstallations();
+    if (installations.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No OAuth installations found'
+      });
+    }
+    
+    const installation = installations[0];
+    if (!installation.ghlAccessToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'No access token available'
+      });
+    }
+    
+    // Get user info to retrieve location ID
+    const userInfoResponse = await axios.get('https://services.leadconnectorhq.com/oauth/userinfo', {
+      headers: {
+        'Authorization': `Bearer ${installation.ghlAccessToken}`
+      },
+      timeout: 10000
+    });
+    
+    const userInfo = userInfoResponse.data;
+    console.log('Retrieved user info:', userInfo);
+    
+    if (userInfo.locationId) {
+      // Update installation with location ID
+      installation.ghlLocationId = userInfo.locationId;
+      installation.ghlCompanyId = userInfo.companyId;
+      installation.updatedAt = new Date();
+      
+      console.log('Updated installation with location ID:', userInfo.locationId);
+      
+      // Try to get location details
+      try {
+        const locationResponse = await axios.get(`https://services.leadconnectorhq.com/locations/${userInfo.locationId}`, {
+          headers: {
+            'Authorization': `Bearer ${installation.ghlAccessToken}`,
+            'Version': '2021-07-28'
+          },
+          timeout: 10000
+        });
+        
+        const locationData = locationResponse.data.location;
+        installation.ghlLocationName = locationData.name;
+        installation.ghlLocationBusinessType = locationData.businessType;
+        
+        console.log('Retrieved location details:', {
+          name: locationData.name,
+          businessType: locationData.businessType
+        });
+        
+      } catch (locationError) {
+        console.warn('Could not get location details:', locationError.message);
+      }
+      
+      res.json({
+        success: true,
+        message: 'Location ID updated successfully',
+        installation: {
+          id: installation.id,
+          ghlLocationId: installation.ghlLocationId,
+          ghlLocationName: installation.ghlLocationName,
+          ghlCompanyId: installation.ghlCompanyId
+        }
+      });
+      
+    } else {
+      res.status(400).json({
+        success: false,
+        error: 'No location ID found in user info',
+        userInfo: userInfo
+      });
+    }
+    
+  } catch (error) {
+    console.error('Location ID fix error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve location ID',
+      details: error.response?.data || error.message
+    });
+  }
+});
+
 // GoHighLevel Product Creation API
 app.post('/api/ghl/products', async (req, res) => {
   try {
