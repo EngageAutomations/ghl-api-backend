@@ -273,7 +273,7 @@ class UniversalAPIHandler {
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: ['https://dir.engageautomations.com', 'http://localhost:3000'],
+  origin: ['https://listings.engageautomations.com', 'https://dir.engageautomations.com', 'http://localhost:3000'],
   credentials: true
 }));
 
@@ -305,7 +305,7 @@ app.get('/health', (req, res) => {
 // OAuth endpoints
 app.get('/api/oauth/url', (req, res) => {
   const clientId = process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4';
-  const redirectUri = process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/api/oauth/callback';
+  const redirectUri = process.env.GHL_REDIRECT_URI || 'https://listings.engageautomations.com/api/oauth/callback';
   const scopes = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly';
   
   const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -323,12 +323,12 @@ app.get('/api/oauth/callback', async (req, res) => {
   const { code, state, error } = req.query;
 
   if (error) {
-    const errorUrl = `https://dir.engageautomations.com/oauth-error?error=${encodeURIComponent(error)}`;
+    const errorUrl = `https://listings.engageautomations.com/oauth-error?error=${encodeURIComponent(error)}`;
     return res.redirect(errorUrl);
   }
 
   if (!code) {
-    const errorUrl = `https://dir.engageautomations.com/oauth-error?error=${encodeURIComponent('Missing authorization code')}`;
+    const errorUrl = `https://listings.engageautomations.com/oauth-error?error=${encodeURIComponent('Missing authorization code')}`;
     return res.redirect(errorUrl);
   }
 
@@ -338,7 +338,7 @@ app.get('/api/oauth/callback', async (req, res) => {
       client_id: process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4',
       client_secret: process.env.GHL_CLIENT_SECRET,
       code: String(code),
-      redirect_uri: process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/api/oauth/callback'
+      redirect_uri: process.env.GHL_REDIRECT_URI || 'https://listings.engageautomations.com/api/oauth/callback'
     });
 
     const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', 
@@ -388,12 +388,12 @@ app.get('/api/oauth/callback', async (req, res) => {
       installationId: savedInstallation.id.toString()
     });
 
-    const successUrl = `https://dir.engageautomations.com/oauth-success?${params.toString()}`;
+    const successUrl = `https://listings.engageautomations.com/oauth-success?${params.toString()}`;
     return res.redirect(successUrl);
 
   } catch (error) {
     console.error('Token exchange failed:', error.message);
-    const errorUrl = `https://dir.engageautomations.com/oauth-error?error=${encodeURIComponent(error.message)}`;
+    const errorUrl = `https://listings.engageautomations.com/oauth-error?error=${encodeURIComponent(error.message)}`;
     return res.redirect(errorUrl);
   }
 });
