@@ -145,6 +145,13 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 13, 2025: Marketplace Installation Flow Optimization
+  - Removed OAuth connection screen requirement for marketplace installations
+  - Updated root route to handle marketplace OAuth callbacks automatically
+  - Configured direct redirect to API management interface after successful OAuth
+  - Streamlined user experience: install from marketplace → immediate access to APIs
+  - Maintained development OAuth screen at /oauth-app for testing purposes
+
 - June 13, 2025: Complete Media Library API Suite Integration
   - Added Get List of Files API with advanced filtering, sorting, and multi-tenant support
   - Integrated Upload File API with multipart/form-data handling for binary and hosted uploads

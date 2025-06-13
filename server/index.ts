@@ -273,10 +273,10 @@ function setupOAuthRoutesProduction(app: express.Express) {
           console.log('✅ OAuth flow completed (database storage failed but data was captured)');
         }
 
-        // Redirect to success page with user info
-        const successUrl = `https://dir.engageautomations.com/oauth-success.html?success=true&user=${encodeURIComponent(userData.name || userData.email)}&timestamp=${Date.now()}`;
-        console.log('🎉 OAuth flow complete, redirecting to:', successUrl);
-        return res.redirect(successUrl);
+        // For marketplace installation, redirect directly to API management interface
+        const apiManagementUrl = `/api-management?success=true&user=${encodeURIComponent(userData.name || userData.email)}&timestamp=${Date.now()}`;
+        console.log('🎉 Marketplace OAuth complete, redirecting to API management:', apiManagementUrl);
+        return res.redirect(apiManagementUrl);
 
       } catch (error) {
         console.error('❌ OAuth callback error:', error);
@@ -301,9 +301,75 @@ function setupOAuthRoutesProduction(app: express.Express) {
 
 
 
-  // Dynamic OAuth app serving - bypasses caching
+  // Root route for marketplace installations
+  app.get('/', async (req, res) => {
+    const { code, state, error, action } = req.query;
+    
+    // Handle OAuth callback from marketplace installation
+    if (code || error) {
+      console.log('Marketplace OAuth callback detected, processing OAuth flow...');
+      
+      // Process OAuth callback here (same logic as the existing callback handler)
+      if (error) {
+        console.error('OAuth error:', error);
+        return res.redirect('/api-management?error=' + encodeURIComponent(String(error)));
+      }
+
+      if (code) {
+        try {
+          console.log('Processing marketplace OAuth authorization code...');
+          
+          // Import OAuth functionality
+          const { ghlOAuth } = await import('./ghl-oauth.js');
+          
+          // Exchange code for tokens
+          const tokenData = await ghlOAuth.exchangeCodeForTokens(String(code), String(state));
+          
+          if (tokenData && tokenData.access_token) {
+            // Get user and location data
+            const userData = await ghlOAuth.getUserInfo(tokenData.access_token);
+            const locationData = await ghlOAuth.getLocation(tokenData.access_token);
+            
+            console.log('✅ Marketplace installation successful');
+            console.log('User:', userData.name || userData.email);
+            console.log('Location:', locationData?.name || 'Unknown');
+            
+            // Store tokens in database
+            const storage = new DatabaseStorage();
+            await storage.createOAuthInstallation({
+              ghlUserId: userData.id,
+              ghlAccessToken: tokenData.access_token,
+              ghlRefreshToken: tokenData.refresh_token,
+              ghlTokenExpiry: new Date(Date.now() + (tokenData.expires_in * 1000)),
+              ghlScopes: tokenData.scope || '',
+              ghlLocationId: locationData?.id || '',
+              ghlLocationName: locationData?.name || '',
+              userEmail: userData.email,
+              userName: userData.name || userData.email
+            });
+            
+            // Redirect to API management with success message
+            return res.redirect(`/api-management?success=true&user=${encodeURIComponent(userData.name || userData.email)}`);
+            
+          } else {
+            throw new Error('No access token received');
+          }
+          
+        } catch (error) {
+          console.error('OAuth processing error:', error);
+          return res.redirect('/api-management?error=oauth_failed');
+        }
+      }
+    }
+    
+    // For direct access without OAuth parameters, redirect to API management
+    console.log('Direct access to root, redirecting to API management interface');
+    res.redirect('/api-management');
+  });
+
+  // Development OAuth app serving (for testing only)
   app.get('/oauth-app', (req, res) => {
-    console.log('Dynamic OAuth app requested');
+    console.log('Development OAuth app requested');
     res.setHeader('Content-Type', 'text/html');
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.send(`<!DOCTYPE html>
