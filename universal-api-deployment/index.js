@@ -46,9 +46,9 @@ const GHL_API_ENDPOINTS = [
   // Product Prices API
   { path: '/products/:productId/price', method: 'GET', ghlEndpoint: '/products/{productId}/price', requiresLocationId: true, scope: 'products/prices.readonly' },
   { path: '/products/:productId/price', method: 'POST', ghlEndpoint: '/products/{productId}/price', requiresLocationId: false, scope: 'products/prices.write' },
-  { path: '/products/:productId/prices/:priceId', method: 'GET', ghlEndpoint: '/products/{productId}/prices/{priceId}', requiresLocationId: false, scope: 'products/prices.readonly' },
-  { path: '/products/:productId/prices/:priceId', method: 'PUT', ghlEndpoint: '/products/{productId}/prices/{priceId}', requiresLocationId: false, scope: 'products/prices.write' },
-  { path: '/products/:productId/prices/:priceId', method: 'DELETE', ghlEndpoint: '/products/{productId}/prices/{priceId}', requiresLocationId: false, scope: 'products/prices.write' },
+  { path: '/products/:productId/price/:priceId', method: 'GET', ghlEndpoint: '/products/{productId}/price/{priceId}', requiresLocationId: true, scope: 'products/prices.readonly' },
+  { path: '/products/:productId/price/:priceId', method: 'PUT', ghlEndpoint: '/products/{productId}/price/{priceId}', requiresLocationId: false, scope: 'products/prices.write' },
+  { path: '/products/:productId/price/:priceId', method: 'DELETE', ghlEndpoint: '/products/{productId}/price/{priceId}', requiresLocationId: false, scope: 'products/prices.write' },
   
   // Contacts API
   { path: '/contacts', method: 'GET', ghlEndpoint: '/locations/{locationId}/contacts', requiresLocationId: true, scope: 'contacts.readonly' },
