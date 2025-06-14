@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 // import { setupProductionRouting } from "./production-routing";
-import { privateDeploymentGuard, ipWhitelist } from "./privacy";
+// import { privateDeploymentGuard, ipWhitelist } from "./privacy"; // Removed for public custom domain access
 import { setupDomainRedirects, setupCORS } from "./domain-config";
 // import { setupDirectOAuthRoutes } from "./oauth-direct";
 import { DatabaseStorage } from "./storage";

@@ -39,6 +39,12 @@ export function setupDomainRedirects(req: any, res: any, next: any) {
     return res.redirect(301, `https://${host}${req.url}`);
   }
   
+  // Special handling for custom domain - ensure it serves the app properly
+  if (host === 'listings.engageautomations.com') {
+    console.log('Custom domain access detected:', host);
+    req.isCustomDomain = true;
+  }
+  
   // Add domain info to request for use in application
   req.domainConfig = domainConfig;
   

@@ -161,12 +161,12 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
-- June 14, 2025: Marketplace Landing Page and Domain Configuration Complete
-  - Created professional marketplace landing page as default route for listings.engageautomations.com
-  - Updated OAuth success/error pages to integrate with Railway backend installation data
-  - Fixed server routing to properly serve React frontend instead of hardcoded HTML
-  - Configured consistent routing between local development and deployed custom domain
-  - All pages now ready for deployment to resolve domain inconsistency issues
+- June 14, 2025: Custom Domain Public Access Configuration Complete
+  - Removed private deployment restrictions blocking custom domain access
+  - Fixed custom domain routing to serve marketplace app publicly without login redirects
+  - Configured dual domain support: Replit URL and listings.engageautomations.com work identically
+  - Professional marketplace landing page ready for custom domain deployment
+  - OAuth flows and Railway backend integration compatible with both domains
 
 - June 14, 2025: Real OAuth Credentials Successfully Captured
   - Updated Railway backend with installation detail endpoints
