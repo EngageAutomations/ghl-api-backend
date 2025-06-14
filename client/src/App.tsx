@@ -25,6 +25,7 @@ import Collections from "@/pages/Collections";
 import CollectionView from "@/pages/CollectionView";
 import GoogleDriveSetup from "@/pages/GoogleDriveSetup";
 import APIManagement from "@/pages/APIManagement";
+import DirectAPIManagement from "@/pages/DirectAPIManagement";
 import InstallationRequired from "@/pages/InstallationRequired";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
@@ -144,9 +145,7 @@ function Router() {
       
       {/* API Management Interface - Direct Access */}
       <Route path="/api-management">
-        <AppLayout>
-          <APIManagement />
-        </AppLayout>
+        <DirectAPIManagement />
       </Route>
       
       {/* Installation Required Page */}
