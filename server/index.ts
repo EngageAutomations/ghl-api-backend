@@ -1762,7 +1762,7 @@ app.use((req, res, next) => {
   
   // Force production mode for OAuth routing to work properly
   const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
-  const forceProductionMode = process.env.FORCE_PRODUCTION === 'true' || process.env.NODE_ENV === 'production' || isReplit;
+  const forceProductionMode = process.env.FORCE_PRODUCTION === 'true' || process.env.NODE_ENV === 'production';
 
   let server: Server;
   
@@ -1805,7 +1805,7 @@ app.use((req, res, next) => {
     res.sendFile(filePath);
   });
   
-  if (forceProductionMode || isReplit) {
+  if (forceProductionMode) {
     console.log("Setting up production routing for OAuth compatibility...");
     
     // Handle OAuth callbacks at root for marketplace installations
@@ -1845,7 +1845,7 @@ app.use((req, res, next) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
     
-  } else if (isDevelopment && !isReplit) {
+  } else {
     console.log("Setting up development mode with Vite...");
     await setupVite(app, server);
   }
