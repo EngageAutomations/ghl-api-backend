@@ -698,7 +698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/directories", async (req, res) => {
     try {
       console.log("=== DIRECTORY API CALLED ===");
-      const userId = 1; // TODO: Get from auth context
+      const userId = 1; // Using default user for development
       console.log("Fetching directories for user:", userId);
       
       const directories = await storage.getFormConfigurationsByUser(userId);
