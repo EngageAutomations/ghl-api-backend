@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import RichTextEditor from '@/components/RichTextEditor';
-import { Plus, Upload } from 'lucide-react';
+import { Plus, Upload, X } from 'lucide-react';
 
 interface CreateListingFormProps {
   directoryName: string;
@@ -43,7 +44,39 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
+
+  // Upload image to GoHighLevel media API
+  const uploadImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      return apiRequest('/api/ghl/media/upload', {
+        method: 'POST',
+        data: formData
+      });
+    },
+    onSuccess: (response: any) => {
+      // Update image URL with the GoHighLevel media URL
+      const imageUrl = response.url || response.fileUrl || response.data?.url;
+      setFormData(prev => ({ ...prev, imageUrl }));
+      toast({
+        title: "Image Uploaded",
+        description: "Your listing image has been uploaded to GoHighLevel successfully!",
+      });
+    },
+    onError: (error) => {
+      console.error('Image upload error:', error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload image to GoHighLevel. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
 
   const features = directoryConfig?.features || {};
 
@@ -194,6 +227,45 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     }
   };
 
+  // Image upload handlers
+  const handleImageDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    
+    if (imageFile) {
+      setImageFile(imageFile);
+      // Upload to GoHighLevel immediately
+      uploadImageMutation.mutate(imageFile);
+    }
+  };
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setImageFile(file);
+      // Upload to GoHighLevel immediately
+      uploadImageMutation.mutate(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setFormData(prev => ({ ...prev, imageUrl: '' }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -220,7 +292,92 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
             />
           </div>
 
-          {/* 2. Listing Price - Show field or placeholder */}
+          {/* 2. Listing Image Upload */}
+          <div>
+            <Label className="text-sm font-medium text-gray-700 block text-left">Listing Image</Label>
+            <div className="mt-1 space-y-3">
+              {/* Image Upload Area */}
+              <div
+                onDrop={handleImageDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                className={`
+                  border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer
+                  ${isDragOver 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
+                  }
+                  ${uploadImageMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileChange}
+                  className="hidden"
+                  id="image-upload"
+                  disabled={uploadImageMutation.isPending}
+                />
+                <label htmlFor="image-upload" className={`cursor-pointer ${uploadImageMutation.isPending ? 'cursor-not-allowed' : ''}`}>
+                  {uploadImageMutation.isPending ? (
+                    <div className="flex flex-col items-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-3"></div>
+                      <p className="text-sm font-medium text-blue-600">
+                        Uploading to GoHighLevel...
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                      <p className="text-base font-medium text-gray-700 mb-1">
+                        {isDragOver ? 'Drop image here' : 'Upload listing image'}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Drag and drop or click to browse
+                      </p>
+                    </>
+                  )}
+                </label>
+              </div>
+              
+              {/* Upload Status and Preview */}
+              {formData.imageUrl && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-start space-x-4">
+                    <img 
+                      src={formData.imageUrl} 
+                      alt="Listing image preview" 
+                      className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-green-800">Image uploaded successfully</p>
+                          <p className="text-xs text-green-600">Stored in GoHighLevel media library</p>
+                          {imageFile && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {imageFile.name} ({(imageFile.size / 1024).toFixed(1)}KB)
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={removeImage}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 3. Listing Price - Show field or placeholder */}
           <div>
             <Label htmlFor="price" className="text-sm font-medium text-gray-700 block text-left">
               Listing Price {features.showPrice === false && <span className="text-xs text-gray-500">(Hidden from display)</span>}
