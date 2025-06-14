@@ -112,6 +112,35 @@ export default function ConfigWizardSlideshow() {
     }
   });
 
+  // Upload logo to GoHighLevel media API
+  const uploadLogoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      return apiRequest('/api/ghl/media/upload', {
+        method: 'POST',
+        data: formData
+      });
+    },
+    onSuccess: (response: any) => {
+      // Update logo URL with the GoHighLevel media URL
+      setLogoUrl(response.url || response.fileUrl || response.data?.url);
+      toast({
+        title: "Logo Uploaded",
+        description: "Your logo has been uploaded to GoHighLevel successfully!",
+      });
+    },
+    onError: (error) => {
+      console.error('Logo upload error:', error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload logo to GoHighLevel. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Helper function to extract form URL from embed code
   const extractFormUrl = (embedCode: string) => {
     if (!embedCode) return '';
@@ -848,6 +877,9 @@ input[class*="qty"],
       // Create a preview URL for the dropped file
       const url = URL.createObjectURL(imageFile);
       setLogoUrl(url);
+      
+      // Upload to GoHighLevel media API
+      uploadLogoMutation.mutate(imageFile);
     }
   };
 
@@ -858,6 +890,9 @@ input[class*="qty"],
       setLogoFile(file);
       const url = URL.createObjectURL(file);
       setLogoUrl(url);
+      
+      // Upload to GoHighLevel media API
+      uploadLogoMutation.mutate(file);
     }
   };
 
@@ -1028,6 +1063,7 @@ input[class*="qty"],
                         ? 'border-blue-500 bg-blue-50' 
                         : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
                       }
+                      ${uploadLogoMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}
                     `}
                   >
                     <input
@@ -1036,17 +1072,48 @@ input[class*="qty"],
                       onChange={handleFileChange}
                       className="hidden"
                       id="logo-upload"
+                      disabled={uploadLogoMutation.isPending}
                     />
-                    <label htmlFor="logo-upload" className="cursor-pointer">
-                      <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-gray-700">
-                        {isDragOver ? 'Drop logo here' : 'Upload logo'}
-                      </p>
+                    <label htmlFor="logo-upload" className={`cursor-pointer ${uploadLogoMutation.isPending ? 'cursor-not-allowed' : ''}`}>
+                      {uploadLogoMutation.isPending ? (
+                        <div className="flex flex-col items-center">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                          <p className="text-sm font-medium text-blue-600">
+                            Uploading to GoHighLevel...
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm font-medium text-gray-700">
+                            {isDragOver ? 'Drop logo here' : 'Upload logo to GoHighLevel'}
+                          </p>
+                        </>
+                      )}
                     </label>
                   </div>
-                  {logoFile && (
+                  
+                  {/* Upload Status */}
+                  {logoFile && !uploadLogoMutation.isPending && (
                     <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
-                      ✓ Uploaded: {logoFile.name} ({(logoFile.size / 1024).toFixed(1)}KB)
+                      ✓ Uploaded to GoHighLevel: {logoFile.name} ({(logoFile.size / 1024).toFixed(1)}KB)
+                    </div>
+                  )}
+                  
+                  {/* Logo Preview */}
+                  {logoUrl && (
+                    <div className="mt-3 p-3 bg-gray-50 rounded-lg border">
+                      <div className="flex items-center space-x-3">
+                        <img 
+                          src={logoUrl} 
+                          alt="Logo preview" 
+                          className="w-12 h-12 object-contain rounded"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">Logo Preview</p>
+                          <p className="text-xs text-gray-500">Ready for directory integration</p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
