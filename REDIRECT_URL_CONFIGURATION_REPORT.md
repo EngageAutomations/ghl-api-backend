@@ -1,41 +1,92 @@
 # OAuth Redirect URL Configuration Report
 
 ## Executive Summary
-Your OAuth installations are not being captured because the redirect URLs in GoHighLevel Marketplace and Railway are pointing to different domains than your active Replit instance.
+Railway is your production OAuth handler and should remain active. The issue is accessing your installation data that was captured on Railway to use for API testing on this Replit development instance.
 
-## Current Configuration Status
+## Current Architecture
 
-### Replit Instance (Active Development)
-- **Domain:** `https://62a303e9-3e97-4c9f-a7b4-c0026049fd6d-00-30skmv0mqe63e.janeway.replit.dev`
-- **OAuth Callback Endpoint:** `/api/oauth/callback`
-- **Database:** PostgreSQL ready to capture installation data
-- **Status:** Ready to receive OAuth callbacks
-
-### Railway Backend
+### Railway (Production OAuth Handler)
 - **Domain:** `https://dir.engageautomations.com`
-- **Current Status:** Not accessible/responding
-- **Installation Data:** May contain previous installations but not accessible
+- **Purpose:** Production OAuth callback handler
+- **Function:** Captures real installation data from marketplace
+- **Status:** Should remain active as production endpoint
 
-## Required Redirect URL Configuration
+### Replit (Development Instance)
+- **Domain:** `https://62a303e9-3e97-4c9f-a7b4-c0026049fd6d-00-30skmv0mqe63e.janeway.replit.dev`
+- **Purpose:** Development and testing environment
+- **Function:** API testing and feature development
+- **Status:** Needs access to real installation data
+
+## Correct Configuration
 
 ### 1. GoHighLevel Marketplace Settings
-**Current Configuration:** `https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback`
-
-**Required Configuration:**
+**Should remain configured as:**
 ```
-https://62a303e9-3e97-4c9f-a7b4-c0026049fd6d-00-30skmv0mqe63e.janeway.replit.dev/api/oauth/callback
+https://dir.engageautomations.com/api/oauth/callback
 ```
 
 ### 2. Railway Configuration
-**Option A (Recommended):** Disable Railway OAuth handling
-**Option B:** Configure Railway to forward to Replit:
+**Should remain active and configured to:**
+- Capture OAuth installations from marketplace
+- Store installation data in Railway database
+- Provide API endpoint to share installation data
+
+## The Real Issue
+Your installation data was captured successfully on Railway, but we need to access it from this Replit development instance.
+
+## Solution Options
+
+### Option 1: Railway API Endpoint (Recommended)
+Railway should provide an API endpoint to retrieve installation data:
 ```
-Redirect Target: https://62a303e9-3e97-4c9f-a7b4-c0026049fd6d-00-30skmv0mqe63e.janeway.replit.dev/api/oauth/callback
+GET https://dir.engageautomations.com/api/installations
 ```
+
+### Option 2: Shared Database
+Configure both Railway and Replit to use the same PostgreSQL database.
+
+### Option 3: Data Sync
+Railway periodically syncs installation data to Replit database.
+
+## Required Configuration
+
+### 1. GoHighLevel Marketplace Settings
+**Current (Correct):**
+```
+https://dir.engageautomations.com/api/oauth/callback
+```
+**Status:** Keep this configuration - Railway handles production OAuth
+
+### 2. Railway Backend
+**Should provide:**
+- OAuth callback endpoint (active)
+- Installation data API endpoint
+- Database storage for installation data
+
+### 3. Replit Development Instance
+**Should have:**
+- API endpoint to fetch data from Railway
+- Local database for development testing
+- Ability to use Railway installation data for API testing
 
 ## Implementation Steps
 
-### Step 1: Update GoHighLevel Marketplace
+### Step 1: Railway API Access
+Add endpoint to Railway backend:
+```javascript
+app.get('/api/installations', (req, res) => {
+  res.json(storage.getAllInstallations());
+});
+```
+
+### Step 2: Replit Data Retrieval
+Create function to fetch installation data from Railway:
+```javascript
+async function fetchInstallationFromRailway() {
+  const response = await fetch('https://dir.engageautomations.com/api/installations');
+  return response.json();
+}
+```
 1. Log into GoHighLevel Developer Portal
 2. Navigate to your app configuration
 3. Update "Redirect URI" field to:
