@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign } from 'lucide-react';
 
-export default function PricesManager() {
+function PricesManager() {
   return (
     <div className="space-y-6">
       <div>
@@ -42,4 +42,4 @@ export default function PricesManager() {
   );
 }
 
-export { PricesManager };
+export default PricesManager;

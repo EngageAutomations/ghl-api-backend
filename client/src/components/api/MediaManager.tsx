@@ -31,7 +31,7 @@ interface MediaFile {
   createdAt: string;
 }
 
-export default function MediaManager() {
+function MediaManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -379,4 +379,4 @@ export default function MediaManager() {
   );
 }
 
-export { MediaManager };
+export default MediaManager;
