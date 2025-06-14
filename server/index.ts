@@ -95,7 +95,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
           authUrl,
           state: generatedState,
           clientId: process.env.GHL_CLIENT_ID,
-          redirectUri: 'https://listings.engageautomations.com/oauth/callback'
+          redirectUri: 'https://dir.engageautomations.com/oauth/callback'
         });
       } catch (error) {
         console.error('OAuth URL generation error:', error);
@@ -111,7 +111,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
     if (error) {
       console.error('OAuth error:', error);
       const errorMsg = encodeURIComponent(error as string);
-      const redirectUrl = `https://listings.engageautomations.com/?error=${errorMsg}`;
+      const redirectUrl = `https://dir.engageautomations.com/?error=${errorMsg}`;
       console.log('Redirecting with error to:', redirectUrl);
       return res.redirect(redirectUrl);
     }
@@ -298,7 +298,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
 
       } catch (error) {
         console.error('❌ OAuth callback error:', error);
-        const errorUrl = `https://listings.engageautomations.com/oauth-success.html?error=token_exchange_failed&message=${encodeURIComponent(String(error))}&timestamp=${Date.now()}`;
+        const errorUrl = `https://dir.engageautomations.com/oauth-success.html?error=token_exchange_failed&message=${encodeURIComponent(String(error))}&timestamp=${Date.now()}`;
         return res.redirect(errorUrl);
       }
     }
@@ -312,7 +312,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
     console.error('Query string:', req.url);
     console.error('==============================');
     
-    const redirectUrl = `https://listings.engageautomations.com/oauth-error?error=callback_failed&reason=no_valid_parameters`;
+    const redirectUrl = `https://dir.engageautomations.com/oauth-error?error=callback_failed&reason=no_valid_parameters`;
     console.log('Redirecting to error page:', redirectUrl);
     return res.redirect(redirectUrl);
   });
@@ -462,7 +462,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
     
     const oauthConfig = {
       clientId: '67472ecce8b57dd9eda067a8',
-      redirectUri: 'https://listings.engageautomations.com/',
+      redirectUri: 'https://dir.engageautomations.com/',
       scopes: [
         'products/prices.write',
         'products/prices.readonly', 
@@ -936,7 +936,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
         authUrl,
         state,
         clientId: process.env.GHL_CLIENT_ID,
-        redirectUri: 'https://listings.engageautomations.com/api/oauth/callback'
+        redirectUri: 'https://dir.engageautomations.com/api/oauth/callback'
       });
       
     } catch (error) {
@@ -1099,7 +1099,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
         success: true,
         authUrl,
         clientId: process.env.GHL_CLIENT_ID,
-        redirectUri: 'https://listings.engageautomations.com/oauth-complete.html'
+        redirectUri: 'https://dir.engageautomations.com/oauth-complete.html'
       });
       
     } catch (error) {
@@ -1264,7 +1264,7 @@ function getEnhancedOAuthAppHTML(): string {
     
     const oauthConfig = {
       clientId: '67472ecce8b57dd9eda067a8',
-      redirectUri: 'https://listings.engageautomations.com/',
+      redirectUri: 'https://dir.engageautomations.com/',
       scopes: [
         'products/prices.write',
         'products/prices.readonly', 
@@ -1669,7 +1669,7 @@ app.get('/oauth/start', (req, res) => {
   
   const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const clientId = process.env.GHL_CLIENT_ID;
-  const redirectUri = 'https://listings.engageautomations.com/oauth/callback';
+  const redirectUri = 'https://dir.engageautomations.com/oauth/callback';
   const scopes = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write';
   
   const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${clientId}&state=${state}&scope=${encodeURIComponent(scopes)}`;
