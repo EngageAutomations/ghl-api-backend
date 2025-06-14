@@ -1074,7 +1074,11 @@ function getEnhancedOAuthAppHTML(): string {
     <h1>GoHighLevel Directory App</h1>
     <p>Connect your GoHighLevel account to get started.</p>
     <button onclick="startOAuth()" class="btn" id="oauthBtn">Connect with GoHighLevel</button>
-    <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #28a745;">\      <p style="color: #666; font-size: 14px; margin: 0 0 10px 0;"><strong>Development Access:</strong></p>\      <button onclick="window.location.href='/dev'" class="btn" style="background: #28a745;">Access API Management Interface</button>\    </div>
+    
+    <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #28a745;">
+      <p style="color: #666; font-size: 14px; margin: 0 0 10px 0;"><strong>Development Access:</strong></p>
+      <button onclick="window.location.href='/dev'" class="btn" style="background: #28a745;">Access API Management Interface</button>
+    </div>
     <div class="spinner" id="spinner"></div>
     <div id="status"></div>
   </div>
