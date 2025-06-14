@@ -161,12 +161,12 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
-- June 14, 2025: Custom Domain Public Access Configuration Complete
-  - Removed private deployment restrictions blocking custom domain access
-  - Fixed custom domain routing to serve marketplace app publicly without login redirects
-  - Configured dual domain support: Replit URL and listings.engageautomations.com work identically
-  - Professional marketplace landing page ready for custom domain deployment
-  - OAuth flows and Railway backend integration compatible with both domains
+- June 14, 2025: Custom Domain Marketplace Interface Deployment Complete
+  - Fixed custom domain public access with publicVisible configuration
+  - Created professional marketplace landing page replacing simple "ok" message
+  - Deployed comprehensive interface showing Universal API Access, OAuth Integration, and CRM Tab features
+  - Custom domain now serves full marketplace experience identical to Replit URL
+  - OAuth callback detection and Railway backend status integration functional
 
 - June 14, 2025: Real OAuth Credentials Successfully Captured
   - Updated Railway backend with installation detail endpoints
