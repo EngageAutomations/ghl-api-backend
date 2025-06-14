@@ -1808,27 +1808,24 @@ app.use((req, res, next) => {
   if (forceProductionMode || isReplit) {
     console.log("Setting up production routing for OAuth compatibility...");
     
-    // Handle root route for OAuth app and marketplace installations - BEFORE static files
-    app.get('/', (req, res) => {
-      console.log('🏠 Root route accessed');
-      console.log('Query params:', req.query);
-      
-      // Check if this is an OAuth callback from marketplace installation
+    // Handle OAuth callbacks at root for marketplace installations
+    app.get('/', (req, res, next) => {
       const { code, state, error } = req.query;
       
+      // Only handle OAuth callbacks, let React app handle everything else
       if (code || error) {
         console.log('📱 Marketplace OAuth callback detected at root');
         if (error) {
           console.log('❌ OAuth error:', error);
+          return res.redirect(`/oauth-error?error=${encodeURIComponent(String(error))}`);
         } else {
           console.log('✅ OAuth code received:', String(code).substring(0, 10) + '...');
+          return res.redirect(`/oauth-success?code=${code}&state=${state || ''}`);
         }
       }
       
-      // Serve OAuth app HTML with data extraction capability
-      res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.send(getEnhancedOAuthAppHTML());
+      // Let React app handle all other requests to root
+      next();
     });
 
     // Serve static files from dist directory
