@@ -702,37 +702,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = 1; // Using default user for development
       console.log("Fetching directories for user:", userId);
       
-      const directories = await storage.getFormConfigurationsByUser(userId);
-      console.log("Raw directories from database:", directories);
+      const directories = simpleDataStore.getDirectoriesByUser(userId);
+      console.log("Raw directories from simple storage:", directories);
       
-      // Transform database format to frontend format
-      const directoriesWithStats = await Promise.all(
-        directories.map(async (directory) => {
-          const listings = await storage.getListingsByDirectory(directory.directoryName);
-          const listingCount = listings.length;
-          const lastActivity = listings.length > 0 
-            ? Math.max(...listings.map(l => new Date(l.updatedAt || l.createdAt).getTime()))
-            : null;
-          
-          const transformedDirectory = {
-            id: directory.id,
-            name: directory.directoryName,
-            slug: directory.directoryName.toLowerCase().replace(/\s+/g, '-'),
-            description: `Directory for ${directory.directoryName}`,
-            listingCount,
-            lastActivity: lastActivity ? new Date(lastActivity).toISOString() : null,
-            logoUrl: directory.logoUrl,
-            config: directory.config,
-            actionButtonColor: directory.actionButtonColor,
-            isActive: directory.isActive,
-            createdAt: directory.createdAt,
-            updatedAt: directory.updatedAt
-          };
-          
-          console.log("Transformed directory:", transformedDirectory);
-          return transformedDirectory;
-        })
-      );
+      // Transform format to match frontend expectations
+      const directoriesWithStats = directories.map((directory) => {
+        const listings = simpleDataStore.getListingsByDirectory(directory.directoryName);
+        const listingCount = listings.length;
+        const lastActivity = listings.length > 0 
+          ? Math.max(...listings.map(l => new Date(l.updatedAt || l.createdAt).getTime()))
+          : null;
+        
+        return {
+          id: directory.id,
+          name: directory.directoryName,
+          slug: directory.directoryName.toLowerCase().replace(/\s+/g, '-'),
+          description: `Directory for ${directory.directoryName}`,
+          listingCount,
+          lastActivity: lastActivity ? new Date(lastActivity).toISOString() : null,
+          logoUrl: directory.logoUrl,
+          config: directory.config,
+          actionButtonColor: directory.actionButtonColor,
+          isActive: directory.isActive,
+          createdAt: directory.createdAt,
+          updatedAt: directory.updatedAt,
+          directoryName: directory.directoryName
+        };
+      });
       
       console.log("Final directories with stats:", directoriesWithStats);
       res.status(200).json(directoriesWithStats);
@@ -762,15 +758,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create directory
   app.post("/api/directories", async (req, res) => {
     try {
-      const configData = insertFormConfigurationSchema.parse(req.body);
-      const directory = await storage.createFormConfiguration(configData);
+      console.log("=== CREATING DIRECTORY ===");
+      console.log("Request body:", req.body);
+      
+      const directory = simpleDataStore.createDirectory({
+        directoryName: req.body.directoryName,
+        userId: req.body.userId || 1,
+        logoUrl: req.body.logoUrl,
+        config: req.body.config || {},
+        actionButtonColor: req.body.actionButtonColor || '#3b82f6',
+        isActive: req.body.isActive !== false
+      });
+      
+      console.log("Created directory:", directory);
       res.status(201).json(directory);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid directory data", errors: error.errors });
-      }
       console.error("Error creating directory:", error);
-      res.status(500).json({ message: "Failed to create directory" });
+      res.status(500).json({ message: "Failed to create directory", error: error.message });
     }
   });
 
@@ -782,17 +786,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid directory ID" });
       }
       
-      const configData = req.body;
-      const updatedDirectory = await storage.updateFormConfiguration(id, configData);
+      console.log("=== UPDATING DIRECTORY ===");
+      console.log("Directory ID:", id);
+      console.log("Update data:", req.body);
+      
+      const updatedDirectory = simpleDataStore.updateDirectory(id, req.body);
       
       if (!updatedDirectory) {
         return res.status(404).json({ message: "Directory not found" });
       }
       
+      console.log("Updated directory:", updatedDirectory);
       res.status(200).json(updatedDirectory);
     } catch (error) {
       console.error("Error updating directory:", error);
-      res.status(500).json({ message: "Failed to update directory" });
+      res.status(500).json({ message: "Failed to update directory", error: error.message });
     }
   });
 
@@ -804,20 +812,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid directory ID" });
       }
       
-      // Get directory to find its name
-      const directory = await storage.getFormConfiguration(id);
-      if (!directory) {
-        return res.status(404).json({ message: "Directory not found" });
-      }
+      console.log("=== DELETING DIRECTORY ===");
+      console.log("Directory ID:", id);
       
-      // Delete all listings in this directory first
-      const listings = await storage.getListingsByDirectory(directory.directoryName);
-      for (const listing of listings) {
-        await storage.deleteListing(listing.id);
-      }
-      
-      // Delete the directory
-      const success = await storage.deleteFormConfiguration(id);
+      const success = simpleDataStore.deleteDirectory(id);
       if (!success) {
         return res.status(404).json({ message: "Directory not found" });
       }
