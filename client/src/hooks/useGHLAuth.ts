@@ -129,12 +129,24 @@ export function useGHLAuth(): UseGHLAuthReturn {
 
   // Check for OAuth parameters on mount
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const hasOAuthParams = urlParams.get('code') || urlParams.get('ghl_user_id');
-    
-    if (hasOAuthParams && !user && !loginMutation.isPending) {
-      loginMutation.mutate(urlParams);
-    }
+    const handleOAuthParams = async () => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasOAuthParams = urlParams.get('code') || urlParams.get('ghl_user_id');
+        
+        if (hasOAuthParams && !user && !loginMutation.isPending) {
+          await loginMutation.mutateAsync(urlParams).catch(error => {
+            console.error('OAuth login failed:', error);
+            setError(error.message || 'Authentication failed');
+          });
+        }
+      } catch (error) {
+        console.error('OAuth parameter handling error:', error);
+        setError('OAuth initialization failed');
+      }
+    };
+
+    handleOAuthParams();
   }, [user, loginMutation]);
 
   // Utility functions
