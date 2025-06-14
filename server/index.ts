@@ -81,8 +81,14 @@ app.get('/api/directories', (req, res) => {
   res.json(mockDirectories);
 });
 
-// OAuth page for root path only
+// OAuth page for root path only - shows differently for dev vs production
 app.get('/', (req, res) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const host = req.get('host') || 'localhost';
+  const isDevelopment = host.includes('localhost') || host.includes('replit') || !isProduction;
+  
+  console.log(`Root route accessed - Environment: ${process.env.NODE_ENV || 'development'}, Host: ${host}, isDev: ${isDevelopment}`);
+  
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
@@ -122,18 +128,30 @@ app.get('/', (req, res) => {
           font-size: 16px;
         }
         .btn:hover { background: #0066D9; }
+        .dev-banner {
+          background: #fff3cd;
+          border: 1px solid #ffeaa7;
+          padding: 10px;
+          border-radius: 4px;
+          margin-bottom: 20px;
+          font-size: 14px;
+          color: #856404;
+        }
       </style>
     </head>
     <body>
       <div class="container">
+        ${isDevelopment ? '<div class="dev-banner">🔧 Development Mode - Direct access enabled</div>' : ''}
         <h1>GoHighLevel Directory App</h1>
         <p>Connect your GoHighLevel account to get started.</p>
         <button onclick="startOAuth()" class="btn" id="oauthBtn">Connect with GoHighLevel</button>
         
+        ${isDevelopment ? `
         <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #28a745;">
           <p style="color: #666; font-size: 14px; margin: 0 0 10px 0;"><strong>Development Access:</strong></p>
           <button onclick="window.location.href='/listings'" class="btn" style="background: #28a745;">Access Listings Directory</button>
         </div>
+        ` : ''}
       </div>
 
       <script>

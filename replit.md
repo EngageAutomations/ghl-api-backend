@@ -161,6 +161,13 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 14, 2025: Development vs Production Deployment Differentiation
+  - Fixed server file with missing imports that prevented green button from appearing
+  - Implemented environment-based UI rendering (development shows bypass button, production doesn't)
+  - Green "Access Listings Directory" button now properly visible in Replit development environment
+  - Clean OAuth interface for production deployment without development bypass features
+  - Server logs now clearly indicate environment detection and development mode activation
+
 - June 14, 2025: Development Bypass Button Implementation
   - Added green "Access API Management Interface" bypass button for direct API access
   - Created simplified server (index-simple.ts) to resolve missing import file issues
