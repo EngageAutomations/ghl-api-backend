@@ -73,13 +73,9 @@ function Router() {
         <DirectoryForm />
       </Route>
       
-      {/* Root dashboard route */}
+      {/* Root dashboard route - Direct to API Management */}
       <Route path="/">
-        <ProtectedRoute>
-          <AppLayout>
-            <Dashboard />
-          </AppLayout>
-        </ProtectedRoute>
+        <DirectAPIManagement />
       </Route>
       
       {/* Directory management routes */}
