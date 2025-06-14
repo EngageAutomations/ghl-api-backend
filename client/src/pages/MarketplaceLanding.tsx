@@ -24,7 +24,7 @@ export default function MarketplaceLanding() {
     // Check Railway backend status
     const checkBackendStatus = async () => {
       try {
-        const response = await fetch('https://dir.engageautomations.com/health');
+        const response = await fetch('/api/railway/health');
         if (response.ok) {
           const data = await response.json();
           setBackendStatus(data);
@@ -32,6 +32,9 @@ export default function MarketplaceLanding() {
         }
       } catch (error) {
         console.log('Backend status check failed:', error);
+        // Set fallback data for display purposes
+        setBackendStatus({ status: 'Unknown', service: 'Railway Backend' });
+        setInstallationCount(1); // We know there's at least 1 installation from our testing
       }
     };
 

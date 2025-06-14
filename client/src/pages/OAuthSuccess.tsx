@@ -18,13 +18,21 @@ export default function OAuthSuccess() {
     // Fetch installation data from Railway backend
     const fetchInstallationData = async () => {
       try {
-        const response = await fetch('https://dir.engageautomations.com/api/installations/latest');
+        const response = await fetch('/api/railway/installations/latest');
         if (response.ok) {
           const data = await response.json();
           setInstallationData(data.installation);
         }
       } catch (error) {
         console.log('Could not fetch installation data:', error);
+        // Use URL parameters as fallback
+        if (locationId && installationId) {
+          setInstallationData({
+            id: installationId,
+            ghlLocationId: locationId,
+            installationDate: new Date().toISOString()
+          });
+        }
       }
     };
 

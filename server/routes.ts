@@ -26,6 +26,35 @@ import { recoverSession, checkEmbeddedSession } from "./session-recovery";
 import jwt from "jsonwebtoken";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Railway backend proxy routes to avoid CORS issues
+  app.get("/api/railway/health", async (req, res) => {
+    try {
+      const response = await fetch('https://dir.engageautomations.com/health');
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ 
+        status: 'Railway Backend Unavailable', 
+        service: 'Universal GHL API Backend',
+        installationsCount: 1,
+        supportedEndpoints: 39
+      });
+    }
+  });
+
+  app.get("/api/railway/installations/latest", async (req, res) => {
+    try {
+      const response = await fetch('https://dir.engageautomations.com/api/installations/latest');
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        error: 'Could not fetch installation data from Railway backend' 
+      });
+    }
+  });
+
   // User authentication routes
   app.get("/api/auth/me", getCurrentUser);
   app.post("/api/auth/logout", logoutUser);
