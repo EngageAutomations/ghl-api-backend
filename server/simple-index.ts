@@ -41,6 +41,8 @@ app.get('/installation-required', (req, res) => {
 if (process.env.NODE_ENV !== "production") {
   setupVite(app).then(() => {
     console.log('Vite development server ready');
+  }).catch((error) => {
+    console.error('Vite setup error:', error);
   });
 } else {
   serveStatic(app);
@@ -49,6 +51,19 @@ if (process.env.NODE_ENV !== "production") {
 // Start server
 const server = createServer(app);
 const PORT = process.env.PORT || 5000;
+
+// Add error handling
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+server.on('error', (error) => {
+  console.error('Server error:', error);
+});
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
