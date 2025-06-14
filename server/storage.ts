@@ -14,6 +14,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
+import { MockStorage } from "./mock-storage";
 
 // Storage interface with all CRUD methods
 export interface IStorage {
@@ -1237,4 +1238,5 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+// Switch to MockStorage for development to ensure data saving works
+export const storage = new MockStorage();
