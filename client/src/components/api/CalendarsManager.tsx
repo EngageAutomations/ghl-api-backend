@@ -233,4 +233,3 @@ export default function CalendarsManager() {
   );
 }
 
-export default CalendarsManager;

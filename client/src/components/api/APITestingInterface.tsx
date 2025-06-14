@@ -367,4 +367,3 @@ export default function APITestingInterface() {
   );
 }
 
-export default APITestingInterface;

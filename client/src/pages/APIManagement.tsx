@@ -16,12 +16,12 @@ import {
   MapPin,
   Settings
 } from 'lucide-react';
-import { ProductsManager } from '@/components/api/ProductsManager';
-import { PricesManager } from '@/components/api/PricesManager';
-import { MediaManager } from '@/components/api/MediaManager';
-import { ContactsManager } from '@/components/api/ContactsManager';
-import { OpportunitiesManager } from '@/components/api/OpportunitiesManager';
-import { WorkflowsManager } from '@/components/api/WorkflowsManager';
+import ProductsManager from '@/components/api/ProductsManager';
+import PricesManager from '@/components/api/PricesManager';
+import MediaManager from '@/components/api/MediaManager';
+import ContactsManager from '@/components/api/ContactsManager';
+import OpportunitiesManager from '@/components/api/OpportunitiesManager';
+import WorkflowsManager from '@/components/api/WorkflowsManager';
 import CalendarsManager from '@/components/api/CalendarsManager';
 import FormsManager from '@/components/api/FormsManager';
 import LocationsManager from '@/components/api/LocationsManager';

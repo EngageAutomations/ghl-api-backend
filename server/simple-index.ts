@@ -39,7 +39,9 @@ app.get('/installation-required', (req, res) => {
 
 // Setup Vite in development
 if (process.env.NODE_ENV !== "production") {
-  await setupVite(app);
+  setupVite(app).then(() => {
+    console.log('Vite development server ready');
+  });
 } else {
   serveStatic(app);
 }
