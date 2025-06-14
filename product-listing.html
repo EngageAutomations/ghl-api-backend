@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoHighLevel Products</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; }
+        .container { display: flex; min-height: 100vh; }
+        .sidebar { width: 280px; background: #1e293b; color: white; padding: 24px; }
+        .main { flex: 1; padding: 32px; }
+        .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .btn-primary { background: #3b82f6; color: white; padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 500; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-secondary { background: #f1f5f9; color: #475569; padding: 8px 16px; border-radius: 6px; border: 1px solid #cbd5e1; cursor: pointer; font-size: 14px; }
+        .btn-secondary:hover { background: #e2e8f0; }
+        .nav-item { padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; }
+        .nav-item.active { background: #3b82f6; }
+        .nav-item:hover { background: #374151; }
+        .debug-panel { background: #fef3c7; border: 2px dashed #f59e0b; border-radius: 12px; padding: 20px; margin-bottom: 32px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #10b981; margin-right: 8px; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; }
+        .product-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; transition: transform 0.2s; }
+        .product-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-inactive { background: #f1f5f9; color: #64748b; }
+        .price { font-size: 20px; font-weight: 700; color: #1e293b; }
+        .search-bar { padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; width: 320px; font-size: 14px; }
+        .header-actions { display: flex; gap: 16px; align-items: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div style="margin-bottom: 32px;">
+                <h1 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">GoHighLevel API</h1>
+                <p style="font-size: 14px; opacity: 0.8;">Management Dashboard</p>
+            </div>
+            
+            <nav>
+                <div class="nav-item active">
+                    <span style="font-size: 18px;">📦</span>
+                    <span>Products</span>
+                </div>
+                <div class="nav-item">
+                    <span style="font-size: 18px;">💰</span>
+                    <span>Prices</span>
+                </div>
+                <div class="nav-item">
+                    <span style="font-size: 18px;">📁</span>
+                    <span>Media</span>
+                </div>
+                <div class="nav-item">
+                    <span style="font-size: 18px;">👥</span>
+                    <span>Contacts</span>
+                </div>
+                <div class="nav-item">
+                    <span style="font-size: 18px;">🎯</span>
+                    <span>Opportunities</span>
+                </div>
+                <div class="nav-item">
+                    <span style="font-size: 18px;">⚡</span>
+                    <span>Workflows</span>
+                </div>
+            </nav>
+        </div>
+        
+        <div class="main">
+            <div class="debug-panel">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center;">
+                    <span style="margin-right: 8px;">🔧</span>
+                    Debug Status
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; align-items: center;">
+                        <div class="status-dot"></div>
+                        <span style="font-size: 14px;">Mock API Connected</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div class="status-dot"></div>
+                        <span style="font-size: 14px;">Products Count: 3</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div class="status-dot"></div>
+                        <span style="font-size: 14px;">Static HTML Interface</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px;">
+                <div>
+                    <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #1e293b;">Products Management</h2>
+                    <p style="color: #64748b; font-size: 16px;">Manage your GoHighLevel products and catalog</p>
+                </div>
+                <button class="btn-primary" onclick="handleCreateProduct()">
+                    ➕ Create Product
+                </button>
+            </div>
+            
+            <div class="header-actions" style="margin-bottom: 32px;">
+                <input 
+                    type="text" 
+                    placeholder="Search products..." 
+                    class="search-bar"
+                    onchange="handleSearch(this.value)"
+                />
+                <button class="btn-secondary" onclick="handleRefresh()">🔄 Refresh</button>
+                <button class="btn-secondary" onclick="handleExport()">📥 Export</button>
+            </div>
+            
+            <div class="product-grid">
+                <div class="product-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1e293b;">Premium Consultation</h3>
+                        <span class="status-badge status-active">Active</span>
+                    </div>
+                    <p style="color: #64748b; margin-bottom: 20px; line-height: 1.5;">1-hour strategic business consultation with expert guidance and actionable insights.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div class="price">$150.00</div>
+                        <div style="font-size: 14px; color: #64748b;">Services</div>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn-secondary" onclick="handleEdit('prod_1')">✏️ Edit</button>
+                        <button class="btn-secondary" onclick="handleView('prod_1')">👁️ View</button>
+                        <button class="btn-secondary" onclick="handleDelete('prod_1')" style="color: #dc2626;">🗑️ Delete</button>
+                    </div>
+                </div>
+                
+                <div class="product-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1e293b;">Digital Marketing Package</h3>
+                        <span class="status-badge status-active">Active</span>
+                    </div>
+                    <p style="color: #64748b; margin-bottom: 20px; line-height: 1.5;">Complete digital marketing solution including SEO, social media, and content strategy.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div class="price">$999.00</div>
+                        <div style="font-size: 14px; color: #64748b;">Marketing</div>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn-secondary" onclick="handleEdit('prod_2')">✏️ Edit</button>
+                        <button class="btn-secondary" onclick="handleView('prod_2')">👁️ View</button>
+                        <button class="btn-secondary" onclick="handleDelete('prod_2')" style="color: #dc2626;">🗑️ Delete</button>
+                    </div>
+                </div>
+                
+                <div class="product-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1e293b;">Website Development</h3>
+                        <span class="status-badge status-inactive">Inactive</span>
+                    </div>
+                    <p style="color: #64748b; margin-bottom: 20px; line-height: 1.5;">Custom website development service with modern design and full functionality.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div class="price">$2,500.00</div>
+                        <div style="font-size: 14px; color: #64748b;">Development</div>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn-secondary" onclick="handleEdit('prod_3')">✏️ Edit</button>
+                        <button class="btn-secondary" onclick="handleView('prod_3')">👁️ View</button>
+                        <button class="btn-secondary" onclick="handleDelete('prod_3')" style="color: #dc2626;">🗑️ Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        console.log("🎯 GoHighLevel Product Management Interface Loaded");
+        console.log("📦 Static HTML version with 3 sample products");
+        console.log("🔧 Debug mode active - all interactions logged");
+        
+        function handleCreateProduct() {
+            console.log("🆕 CREATE PRODUCT: Button clicked");
+            alert("Create Product modal would open here\nCheck console for detailed logs");
+        }
+        
+        function handleEdit(productId) {
+            console.log("✏️ EDIT PRODUCT:", productId);
+            alert("Edit Product " + productId + " modal would open here\nCheck console for detailed logs");
+        }
+        
+        function handleView(productId) {
+            console.log("👁️ VIEW PRODUCT:", productId);
+            alert("View Product " + productId + " details would open here\nCheck console for detailed logs");
+        }
+        
+        function handleDelete(productId) {
+            console.log("🗑️ DELETE PRODUCT:", productId);
+            if (confirm("Are you sure you want to delete product " + productId + "?")) {
+                console.log("✅ DELETE CONFIRMED:", productId);
+                alert("Product " + productId + " deleted successfully\nCheck console for detailed logs");
+            } else {
+                console.log("❌ DELETE CANCELLED:", productId);
+            }
+        }
+        
+        function handleSearch(term) {
+            console.log("🔍 SEARCH:", term);
+        }
+        
+        function handleRefresh() {
+            console.log("🔄 REFRESH: Reloading products");
+            alert("Products refreshed successfully\nCheck console for detailed logs");
+        }
+        
+        function handleExport() {
+            console.log("📥 EXPORT: Exporting product data");
+            alert("Product data exported successfully\nCheck console for detailed logs");
+        }
+        
+        // Add click handlers for navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                console.log("🧭 NAVIGATION:", this.textContent.trim());
+                
+                // Remove active class from all items
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                // Add active class to clicked item
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
