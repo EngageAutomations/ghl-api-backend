@@ -18,7 +18,7 @@ import {
   Plus,
   Search
 } from 'lucide-react';
-import EnhancedProductsManager from '@/components/api/EnhancedProductsManager';
+import TypedProductsManager from '@/components/api/TypedProductsManager';
 
 // Direct API Management without authentication dependencies
 export default function DirectAPIManagement() {
@@ -107,7 +107,7 @@ export default function DirectAPIManagement() {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'products':
-        return <EnhancedProductsManager />;
+        return <TypedProductsManager />;
       case 'prices':
         return <GenericManager title="Price Management" description="Manage product pricing and tiers" icon={DollarSign} />;
       case 'media':
@@ -127,7 +127,7 @@ export default function DirectAPIManagement() {
       case 'testing':
         return <GenericManager title="API Testing Interface" description="Test and debug API endpoints" icon={Terminal} />;
       default:
-        return <EnhancedProductsManager />;
+        return <TypedProductsManager />;
     }
   };
 
