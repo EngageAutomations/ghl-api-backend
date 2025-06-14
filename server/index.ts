@@ -229,57 +229,64 @@ function setupOAuthRoutesProduction(app: express.Express) {
           console.log('No location data available');
         }
         
-        // Store in database using direct SQL for testing
+        // Store in database 
         try {
           console.log('💾 Attempting database storage...');
           
           const expiryDate = new Date(Date.now() + (tokenData.expires_in * 1000));
           
-          // Use raw SQL to avoid schema conflicts
-          const insertQuery = `
-            INSERT INTO users (
-              username, email, display_name, ghl_user_id, 
-              ghl_access_token, ghl_refresh_token, ghl_token_expiry, 
-              ghl_scopes, ghl_location_id, ghl_location_name, 
-              auth_type, is_active, created_at, updated_at
-            ) VALUES (
-              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
-            ) 
-            ON CONFLICT (ghl_user_id) 
-            DO UPDATE SET 
-              ghl_access_token = EXCLUDED.ghl_access_token,
-              ghl_refresh_token = EXCLUDED.ghl_refresh_token,
-              ghl_token_expiry = EXCLUDED.ghl_token_expiry,
-              ghl_scopes = EXCLUDED.ghl_scopes,
-              ghl_location_id = EXCLUDED.ghl_location_id,
-              ghl_location_name = EXCLUDED.ghl_location_name,
-              updated_at = EXCLUDED.updated_at
-            RETURNING id, email, ghl_user_id
-          `;
+          // Import database connection
+          const { db } = await import('./db.js');
+          const { users } = await import('../shared/schema.js');
+          const { eq } = await import('drizzle-orm');
           
-          const values = [
-            userData.email || 'oauth_user_' + userData.id,
-            userData.email,
-            userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
-            userData.id,
-            tokenData.access_token,
-            tokenData.refresh_token,
-            expiryDate,
-            tokenData.scope || '',
-            locationData?.id || '',
-            locationData?.name || '',
-            'oauth',
-            true,
-            new Date(),
-            new Date()
-          ];
+          // Prepare user data for database
+          const userData_db = {
+            username: userData.email || 'oauth_user_' + userData.id,
+            email: userData.email,
+            displayName: userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
+            ghlUserId: userData.id,
+            ghlAccessToken: tokenData.access_token,
+            ghlRefreshToken: tokenData.refresh_token,
+            ghlTokenExpiry: expiryDate,
+            ghlScopes: tokenData.scope || '',
+            ghlLocationId: locationData?.id || '',
+            ghlLocationName: locationData?.name || '',
+            authType: 'oauth',
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
           
-          console.log('📊 Database insert values prepared');
-          console.log('✅ OAuth account data capture completed successfully');
+          // Check if user already exists
+          const existingUser = await db.select().from(users).where(eq(users.ghlUserId, userData.id));
+          
+          let savedUser;
+          if (existingUser.length > 0) {
+            // Update existing user
+            savedUser = await db.update(users)
+              .set({
+                ghlAccessToken: tokenData.access_token,
+                ghlRefreshToken: tokenData.refresh_token,
+                ghlTokenExpiry: expiryDate,
+                ghlScopes: tokenData.scope || '',
+                ghlLocationId: locationData?.id || '',
+                ghlLocationName: locationData?.name || '',
+                updatedAt: new Date()
+              })
+              .where(eq(users.ghlUserId, userData.id))
+              .returning();
+          } else {
+            // Insert new user
+            savedUser = await db.insert(users).values(userData_db).returning();
+          }
+          
+          console.log('✅ OAuth account data saved to database successfully');
+          console.log('User ID in database:', savedUser[0]?.id);
           
         } catch (dbError) {
           console.error('❌ Database storage error:', dbError);
-          console.log('✅ OAuth flow completed (database storage failed but data was captured)');
+          console.log('Continuing OAuth flow despite database error...');
         }
 
         // For marketplace installation, redirect directly to API management interface
