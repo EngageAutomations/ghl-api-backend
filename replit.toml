@@ -1,15 +1,9 @@
 [deployment]
 deploymentTarget = "autoscale"
-build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
+run = ["npx", "tsx", "server/index.ts"]
 publicVisible = true
 
-# Ensure all API routes are handled by Express, not static serving
-[[deployment.config]]
-name = "api_routing"
-value = "express"
-
-# ALL routes go to Express server - no static file serving
+# Force all traffic to Express server
 [[deployment.routes]]
 source = "/(.*)"
 destination = "/$1"
