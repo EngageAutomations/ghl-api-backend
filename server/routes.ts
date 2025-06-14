@@ -450,23 +450,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new listing
   app.post("/api/listings", async (req, res) => {
     try {
-      const listingData = insertListingSchema.parse(req.body);
+      console.log("=== CREATING LISTING ===");
+      console.log("Request body:", req.body);
       
       // Check if a listing with this slug already exists
-      const existingListing = await storage.getListingBySlug(listingData.slug);
+      const existingListing = simpleDataStore.getListingBySlug(req.body.slug);
       
       if (existingListing) {
         return res.status(400).json({ message: "A listing with this slug already exists" });
       }
       
-      const listing = await storage.createListing(listingData);
+      const listing = simpleDataStore.createListing({
+        title: req.body.title,
+        slug: req.body.slug,
+        directoryName: req.body.directoryName,
+        userId: req.body.userId || 1,
+        description: req.body.description,
+        price: req.body.price,
+        category: req.body.category,
+        imageUrl: req.body.imageUrl,
+        isActive: req.body.isActive !== false
+      });
+      
+      console.log("Created listing:", listing);
       res.status(201).json(listing);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid listing data", errors: error.errors });
-      }
       console.error("Error creating listing:", error);
-      res.status(500).json({ message: "Failed to create listing" });
+      res.status(500).json({ message: "Failed to create listing", error: error.message });
     }
   });
 
@@ -483,14 +493,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If slug is being updated, check if it's unique
       if (listingData.slug) {
-        const existingListing = await storage.getListingBySlug(listingData.slug);
+        const existingListing = simpleDataStore.getListingBySlug(listingData.slug);
         
         if (existingListing && existingListing.id !== id) {
           return res.status(400).json({ message: "A listing with this slug already exists" });
         }
       }
       
-      const updatedListing = await storage.updateListing(id, listingData);
+      const updatedListing = simpleDataStore.updateListing(id, listingData);
       
       if (!updatedListing) {
         return res.status(404).json({ message: "Listing not found" });
@@ -831,11 +841,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/listings/:directoryName", async (req, res) => {
     try {
       const directoryName = req.params.directoryName;
-      const listings = await storage.getListingsByDirectory(directoryName);
+      console.log("=== FETCHING LISTINGS FOR DIRECTORY ===");
+      console.log("Directory:", directoryName);
+      
+      const listings = simpleDataStore.getListingsByDirectory(directoryName);
+      console.log("Found listings:", listings.length);
       res.status(200).json(listings);
     } catch (error) {
       console.error("Error fetching listings for directory:", error);
-      res.status(500).json({ message: "Failed to fetch listings" });
+      res.status(500).json({ message: "Failed to fetch listings", error: error.message });
     }
   });
 
@@ -847,7 +861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid listing ID" });
       }
       
-      const listing = await storage.getListing(id);
+      const listing = simpleDataStore.getListing(id);
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -1236,11 +1250,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/collections", async (req, res) => {
     try {
       const userId = 1; // In production, get from session/auth
-      const collections = await storage.getCollectionsByUser(userId);
+      console.log("=== FETCHING COLLECTIONS ===");
+      const collections = simpleDataStore.getCollectionsByUser(userId);
+      console.log("Found collections:", collections.length);
       res.json(collections);
     } catch (error) {
       console.error("Error fetching collections:", error);
-      res.status(500).json({ error: "Failed to fetch collections" });
+      res.status(500).json({ error: "Failed to fetch collections", message: error.message });
     }
   });
 
@@ -1285,23 +1301,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/collections", async (req, res) => {
     try {
       const userId = 1; // In production, get from session/auth
-      const collectionData = insertCollectionSchema.parse({
-        ...req.body,
-        userId
+      console.log("=== CREATING COLLECTION ===");
+      console.log("Request body:", req.body);
+      
+      const collection = simpleDataStore.createCollection({
+        name: req.body.name,
+        description: req.body.description,
+        directoryName: req.body.directoryName,
+        userId,
+        imageUrl: req.body.imageUrl,
+        isActive: req.body.isActive !== false
       });
       
-      const collection = await storage.createCollection(collectionData);
-      
-      // TODO: Integrate with GoHighLevel API to create collection
-      // For now, we'll just mark as pending sync
-      
+      console.log("Created collection:", collection);
       res.status(201).json(collection);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid collection data", details: error.errors });
-      }
       console.error("Error creating collection:", error);
-      res.status(500).json({ error: "Failed to create collection" });
+      res.status(500).json({ error: "Failed to create collection", message: error.message });
     }
   });
 
