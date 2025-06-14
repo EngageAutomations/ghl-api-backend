@@ -9,20 +9,8 @@ publicVisible = true
 name = "api_routing"
 value = "express"
 
-# Route configuration to ensure all server routes reach Express
-[[deployment.routes]]
-source = "/api/(.*)"
-destination = "/api/$1"
-type = "proxy"
-
-[[deployment.routes]]
-source = "/oauth/(.*)"
-destination = "/oauth/$1"
-type = "proxy"
-
-# Static file serving for everything else
+# ALL routes go to Express server - no static file serving
 [[deployment.routes]]
 source = "/(.*)"
-destination = "/index.html"
-type = "rewrite"
-condition = "file_not_found"
+destination = "/$1"
+type = "proxy"

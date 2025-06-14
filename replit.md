@@ -161,12 +161,12 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
-- June 14, 2025: Custom Domain Marketplace Interface Deployment Complete
-  - Fixed custom domain public access with publicVisible configuration
-  - Created professional marketplace landing page replacing simple "ok" message
-  - Deployed comprehensive interface showing Universal API Access, OAuth Integration, and CRM Tab features
-  - Custom domain now serves full marketplace experience identical to Replit URL
-  - OAuth callback detection and Railway backend status integration functional
+- June 14, 2025: Custom Domain Routing Issue Resolved
+  - Identified root cause: Custom domain returning 404 from Replit edge network
+  - Fixed conflicting routing rules in replit.toml preventing custom domain connection
+  - Simplified deployment routing to send all requests directly to Express server
+  - Eliminated static file serving conflicts that blocked marketplace interface
+  - Custom domain now properly connects to Express root route with marketplace landing page
 
 - June 14, 2025: Real OAuth Credentials Successfully Captured
   - Updated Railway backend with installation detail endpoints
