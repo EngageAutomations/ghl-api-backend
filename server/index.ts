@@ -3,10 +3,7 @@ import { createServer, type Server } from "http";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { setupProductionRouting } from "./production-routing";
-import { privateDeploymentGuard, ipWhitelist } from "./privacy";
 import { setupDomainRedirects, setupCORS } from "./domain-config";
-import { setupDirectOAuthRoutes } from "./oauth-direct";
 import { DatabaseStorage } from "./storage";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -1545,7 +1542,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // Setup direct OAuth routes AFTER cookie parser to ensure cookies are available
-setupDirectOAuthRoutes(app);
+// setupDirectOAuthRoutes(app); // Temporarily disabled - missing file
 
 // Domain and CORS setup
 app.use(setupDomainRedirects);
