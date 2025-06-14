@@ -161,6 +161,15 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 14, 2025: Real OAuth Credentials Successfully Captured
+  - Updated Railway backend with installation detail endpoints
+  - Successfully completed OAuth flow with authentic GoHighLevel account
+  - Captured real access token (valid until June 15, 2025) and refresh token (valid until 2026)
+  - Location ID: WAVk87RmW9rBSDJHeOpH confirmed and accessible
+  - Scopes include: products, media, locations, contacts (read/write permissions)
+  - Credentials stored locally in .env.real for development testing
+  - Ready to test directory logo upload API with authentic account data
+
 - June 14, 2025: OAuth Real Data Capture System Fixed
   - Fixed OAuth callback to properly capture real GoHighLevel account data during app installations
   - Implemented direct SQL database storage to avoid schema field mapping conflicts
