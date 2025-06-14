@@ -1760,9 +1760,9 @@ app.use((req, res, next) => {
   const isDevelopment = nodeEnv === "development";
   console.log(`Environment: ${nodeEnv}, isDevelopment: ${isDevelopment}`);
   
-  // Always use production mode for deployed apps
+  // Use development mode for both domains to serve React UI consistently
   const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
-  const forceProductionMode = true; // Force production mode to ensure proper routing
+  const forceProductionMode = false; // Use development mode for consistent React UI serving
   
   console.log(`Production mode: ${forceProductionMode}, Environment: ${process.env.NODE_ENV}`);
 
