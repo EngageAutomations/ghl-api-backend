@@ -3,8 +3,10 @@ import { createServer, type Server } from "http";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupProductionRouting } from "./production-routing";
 import { privateDeploymentGuard, ipWhitelist } from "./privacy";
 import { setupDomainRedirects, setupCORS } from "./domain-config";
+import { setupDirectOAuthRoutes } from "./oauth-direct";
 import { DatabaseStorage } from "./storage";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -360,6 +362,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
               ghlUserId: userData.id,
               ghlAccessToken: tokenData.access_token,
               ghlRefreshToken: tokenData.refresh_token,
+              ghlTokenExpiry: new Date(Date.now() + (tokenData.expires_in * 1000)),
               ghlScopes: tokenData.scope || '',
               ghlLocationId: locationData?.id || '',
               ghlLocationName: locationData?.name || '',
@@ -1525,7 +1528,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// Direct OAuth routes setup commented out temporarily
+// Setup direct OAuth routes AFTER cookie parser to ensure cookies are available
+setupDirectOAuthRoutes(app);
 
 // Domain and CORS setup
 app.use(setupDomainRedirects);

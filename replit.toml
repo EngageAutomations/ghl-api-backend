@@ -3,13 +3,6 @@ deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
 run = ["npm", "run", "start"]
 
-[workflows]
-
-[workflows."Start application"]
-name = "Start application"
-author = "replit"
-command = "NODE_ENV=development tsx server/simple-index.ts"
-
 # Ensure all API routes are handled by Express, not static serving
 [[deployment.config]]
 name = "api_routing"

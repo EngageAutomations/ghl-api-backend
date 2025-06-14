@@ -37,7 +37,7 @@ interface CreateProductData {
   category?: string;
 }
 
-function ProductsManager() {
+export default function ProductsManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -283,5 +283,3 @@ function ProductsManager() {
     </div>
   );
 }
-
-export default ProductsManager;

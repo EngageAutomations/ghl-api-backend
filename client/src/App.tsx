@@ -25,7 +25,6 @@ import Collections from "@/pages/Collections";
 import CollectionView from "@/pages/CollectionView";
 import GoogleDriveSetup from "@/pages/GoogleDriveSetup";
 import APIManagement from "@/pages/APIManagement";
-import DirectAPIManagement from "@/pages/DirectAPIManagement";
 import InstallationRequired from "@/pages/InstallationRequired";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
@@ -73,9 +72,13 @@ function Router() {
         <DirectoryForm />
       </Route>
       
-      {/* Root dashboard route - Direct to API Management */}
+      {/* Root dashboard route */}
       <Route path="/">
-        <DirectAPIManagement />
+        <ProtectedRoute>
+          <AppLayout>
+            <Dashboard />
+          </AppLayout>
+        </ProtectedRoute>
       </Route>
       
       {/* Directory management routes */}
@@ -139,9 +142,13 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-      {/* API Management Interface - Direct Access */}
+      {/* API Management Interface */}
       <Route path="/api-management">
-        <DirectAPIManagement />
+        <ProtectedRoute>
+          <AppLayout>
+            <APIManagement />
+          </AppLayout>
+        </ProtectedRoute>
       </Route>
       
       {/* Installation Required Page */}

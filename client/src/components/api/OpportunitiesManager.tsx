@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Target } from 'lucide-react';
 
-function OpportunitiesManager() {
+export default function OpportunitiesManager() {
   return (
     <div className="space-y-6">
       <div>
@@ -41,5 +41,3 @@ function OpportunitiesManager() {
     </div>
   );
 }
-
-export default OpportunitiesManager;

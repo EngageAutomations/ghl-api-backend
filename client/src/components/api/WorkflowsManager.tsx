@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Workflow } from 'lucide-react';
 
-function WorkflowsManager() {
+export default function WorkflowsManager() {
   return (
     <div className="space-y-6">
       <div>
@@ -44,5 +44,3 @@ function WorkflowsManager() {
     </div>
   );
 }
-
-export default WorkflowsManager;

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users } from 'lucide-react';
 
-function ContactsManager() {
+export default function ContactsManager() {
   return (
     <div className="space-y-6">
       <div>
@@ -44,5 +44,3 @@ function ContactsManager() {
     </div>
   );
 }
-
-export default ContactsManager;
