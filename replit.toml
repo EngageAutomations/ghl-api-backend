@@ -2,6 +2,7 @@
 deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
 run = ["npm", "run", "start"]
+publicVisible = true
 
 # Ensure all API routes are handled by Express, not static serving
 [[deployment.config]]
