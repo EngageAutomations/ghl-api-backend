@@ -142,13 +142,11 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-      {/* API Management Interface */}
+      {/* API Management Interface - Direct Access */}
       <Route path="/api-management">
-        <ProtectedRoute>
-          <AppLayout>
-            <APIManagement />
-          </AppLayout>
-        </ProtectedRoute>
+        <AppLayout>
+          <APIManagement />
+        </AppLayout>
       </Route>
       
       {/* Installation Required Page */}
