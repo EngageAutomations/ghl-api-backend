@@ -3,7 +3,8 @@
  * Helps retrieve and store actual GoHighLevel account data for testing
  */
 
-const { Pool } = require('pg');
+import pkg from 'pg';
+const { Pool } = pkg;
 
 // Colors for console output
 const colors = {
