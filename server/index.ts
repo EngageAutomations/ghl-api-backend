@@ -949,6 +949,138 @@ function setupOAuthRoutesProduction(app: express.Express) {
     }
   });
 
+  // OAuth callback endpoint - captures installation data from GoHighLevel
+  app.get('/api/oauth/callback', async (req, res) => {
+    try {
+      console.log('=== OAUTH CALLBACK RECEIVED ===');
+      const { code, state } = req.query;
+      
+      if (!code) {
+        console.error('No authorization code received');
+        return res.status(400).send('Authorization failed: No code received');
+      }
+
+      console.log('Authorization code received:', String(code).substring(0, 10) + '...');
+      console.log('State:', state);
+
+      // Import OAuth functionality
+      const { ghlOAuth } = await import('./ghl-oauth.js');
+      
+      // Exchange code for tokens
+      const tokenData = await ghlOAuth.exchangeCodeForTokens(String(code), String(state));
+      
+      if (!tokenData?.access_token) {
+        throw new Error('No access token received from GoHighLevel');
+      }
+
+      console.log('=== TOKEN EXCHANGE SUCCESSFUL ===');
+      console.log('Access token received');
+      console.log('Scope:', tokenData.scope);
+
+      // Get user info immediately after token exchange
+      const userInfo = await ghlOAuth.getUserInfo(tokenData.access_token);
+      console.log('=== USER INFO RETRIEVED ===');
+      console.log('User ID:', userInfo.id);
+      console.log('User Name:', userInfo.name);
+      console.log('User Email:', userInfo.email);
+
+      // Get additional user data from GoHighLevel API
+      let userData = null;
+      try {
+        const userDataResponse = await fetch('https://services.leadconnectorhq.com/users/me', {
+          headers: {
+            'Authorization': `Bearer ${tokenData.access_token}`,
+            'Version': '2021-07-28',
+            'Content-Type': 'application/json'
+          }
+        });
+        if (userDataResponse.ok) {
+          userData = await userDataResponse.json();
+          console.log('Additional user data retrieved:', userData.id);
+        }
+      } catch (userError) {
+        console.warn('Failed to get detailed user data:', userError.message);
+      }
+
+      // Store OAuth installation data in database
+      try {
+        console.log('=== STORING INSTALLATION DATA IN DATABASE ===');
+        
+        const { pool } = await import('./db.js');
+        
+        const installationData = {
+          ghl_user_id: userData?.id || userInfo?.id || `user_${Date.now()}`,
+          ghl_user_email: userData?.email || userInfo?.email,
+          ghl_user_name: userData?.name || userInfo?.name,
+          ghl_user_phone: userData?.phone,
+          ghl_user_company: userData?.companyName,
+          ghl_location_id: userInfo?.locationId,
+          ghl_location_name: null, // Will be fetched separately
+          ghl_access_token: tokenData.access_token,
+          ghl_refresh_token: tokenData.refresh_token,
+          ghl_token_type: tokenData.token_type || 'Bearer',
+          ghl_expires_in: tokenData.expires_in || 3600,
+          ghl_scopes: tokenData.scope,
+          installation_date: new Date(),
+          last_token_refresh: new Date(),
+          is_active: true
+        };
+
+        const insertQuery = `
+          INSERT INTO oauth_installations (
+            ghl_user_id, ghl_user_email, ghl_user_name, ghl_user_phone, ghl_user_company,
+            ghl_location_id, ghl_location_name, ghl_location_business_type, ghl_location_address,
+            ghl_access_token, ghl_refresh_token, ghl_token_type, ghl_expires_in, ghl_scopes,
+            installation_date, last_token_refresh, is_active
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+          ON CONFLICT (ghl_user_id) DO UPDATE SET
+            ghl_access_token = EXCLUDED.ghl_access_token,
+            ghl_refresh_token = EXCLUDED.ghl_refresh_token,
+            last_token_refresh = EXCLUDED.last_token_refresh,
+            is_active = EXCLUDED.is_active
+          RETURNING id, ghl_user_id, ghl_location_id;
+        `;
+
+        const result = await pool.query(insertQuery, [
+          installationData.ghl_user_id,
+          installationData.ghl_user_email,
+          installationData.ghl_user_name,
+          installationData.ghl_user_phone,
+          installationData.ghl_user_company,
+          installationData.ghl_location_id,
+          installationData.ghl_location_name,
+          null, // ghl_location_business_type
+          null, // ghl_location_address
+          installationData.ghl_access_token,
+          installationData.ghl_refresh_token,
+          installationData.ghl_token_type,
+          installationData.ghl_expires_in,
+          installationData.ghl_scopes,
+          installationData.installation_date,
+          installationData.last_token_refresh,
+          installationData.is_active
+        ]);
+
+        console.log('✅ OAUTH INSTALLATION SAVED TO DATABASE!');
+        console.log('Installation ID:', result.rows[0].id);
+        console.log('User ID:', result.rows[0].ghl_user_id);
+        console.log('Location ID:', result.rows[0].ghl_location_id);
+        console.log('✅ REAL ACCESS TOKEN AND USER DATA CAPTURED');
+
+        // Redirect to success page
+        res.redirect(`/?oauth_success=true&installation_id=${result.rows[0].id}`);
+        
+      } catch (dbError) {
+        console.error('❌ Failed to save OAuth installation to database:', dbError);
+        res.redirect('/?oauth_error=database_save_failed');
+      }
+      
+    } catch (error) {
+      console.error('OAuth callback error:', error);
+      res.redirect(`/?oauth_error=${encodeURIComponent(error.message)}`);
+    }
+  });
+
   // OAuth URL generation endpoint (POST version for compatibility)
   app.post('/api/oauth/url', express.json(), async (req, res) => {
     try {

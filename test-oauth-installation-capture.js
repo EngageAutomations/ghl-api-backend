@@ -22,7 +22,7 @@ async function testOAuthInstallationCapture() {
   // Generate OAuth authorization URL for fresh installation
   const scopes = 'products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write';
   const state = `state_${Date.now()}`;
-  const redirectUri = process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/';
+  const redirectUri = `${process.env.REPLIT_DEV_DOMAIN || 'https://dir.engageautomations.com'}/api/oauth/callback`;
   
   const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?` +
     `response_type=code&` +
