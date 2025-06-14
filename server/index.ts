@@ -1760,9 +1760,10 @@ app.use((req, res, next) => {
   const isDevelopment = nodeEnv === "development";
   console.log(`Environment: ${nodeEnv}, isDevelopment: ${isDevelopment}`);
   
-  // Always use development mode to serve React through Vite
+  // Use production mode for deployed environments
   const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
-  const forceProductionMode = false;
+  const isDeployment = process.env.NODE_ENV === 'production' || process.env.REPLIT_DEPLOYMENT === 'true';
+  const forceProductionMode = isDeployment;
   
   console.log(`Production mode: ${forceProductionMode}, Environment: ${process.env.NODE_ENV}`);
 
@@ -1803,6 +1804,15 @@ app.use((req, res, next) => {
   });
 
 
+
+  // Add health check endpoint
+  app.get('/api/health', (req, res) => {
+    res.json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
 
   // CRITICAL: Register API routes AFTER the root route
   server = await registerRoutes(app);
@@ -1846,12 +1856,12 @@ app.use((req, res, next) => {
   if (forceProductionMode) {
     console.log("Setting up production static serving...");
     
-    // Serve static files from dist directory
-    app.use(express.static(path.join(__dirname, '../dist')));
+    // Serve static files from dist/public directory
+    app.use(express.static(path.join(__dirname, '../dist/public')));
     
-    // Catch-all handler: send back React's index.html file for SPA routing
+    // Catch-all handler: send back index.html file for SPA routing
     app.get('*', (req, res) => {
-      res.sendFile(path.join(__dirname, '../dist/index.html'));
+      res.sendFile(path.join(__dirname, '../dist/public/index.html'));
     });
     
   } else {
