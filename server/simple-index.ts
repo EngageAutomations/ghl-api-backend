@@ -50,7 +50,7 @@ if (process.env.NODE_ENV !== "production") {
 
 // Start server
 const server = createServer(app);
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 
 // Add error handling
 process.on('uncaughtException', (error) => {
