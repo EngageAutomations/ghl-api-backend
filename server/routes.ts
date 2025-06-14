@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { simpleDataStore } from "./simple-storage";
+import { setupWorkingRoutes } from "./working-routes";
 import { z } from "zod";
 import { 
   insertUserSchema, 
@@ -27,6 +28,9 @@ import { recoverSession, checkEmbeddedSession } from "./session-recovery";
 import jwt from "jsonwebtoken";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Setup working routes for directories, collections, and listings
+  setupWorkingRoutes(app);
   // Railway backend proxy routes to avoid CORS issues
   app.get("/api/railway/health", async (req, res) => {
     try {
