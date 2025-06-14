@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import cookieParser from "cookie-parser";
 import { setupDomainRedirects, setupCORS } from "./domain-config";
 import { DatabaseStorage } from "./storage";
+import { setupVite, serveStatic } from "./vite";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
@@ -22,9 +23,73 @@ app.use(cookieParser());
 app.use(setupDomainRedirects);
 app.use(setupCORS);
 
-// Development bypass route for direct API access
+// Development bypass route for direct listings access
 app.get('/dev', (req, res) => {
-  res.redirect('/api-management');
+  res.redirect('/listings');
+});
+
+// Basic API routes for listings functionality
+app.get('/api/listings', (req, res) => {
+  // Mock listings data for development
+  const mockListings = [
+    {
+      id: 1,
+      title: "Premium Laptop Stand",
+      description: "Ergonomic laptop stand for better productivity",
+      category: "Electronics",
+      price: "$49.99",
+      status: "Active",
+      location: "New York, NY",
+      createdAt: new Date().toISOString(),
+      slug: "premium-laptop-stand"
+    },
+    {
+      id: 2,
+      title: "Organic Coffee Beans",
+      description: "Fresh roasted organic coffee from local farms",
+      category: "Food & Beverage",
+      price: "$24.99",
+      status: "Active",
+      location: "Portland, OR",
+      createdAt: new Date().toISOString(),
+      slug: "organic-coffee-beans"
+    },
+    {
+      id: 3,
+      title: "Yoga Mat Premium",
+      description: "Non-slip premium yoga mat for all levels",
+      category: "Fitness",
+      price: "$34.99",
+      status: "Inactive",
+      location: "Los Angeles, CA",
+      createdAt: new Date().toISOString(),
+      slug: "yoga-mat-premium"
+    }
+  ];
+  
+  res.json(mockListings);
+});
+
+app.get('/api/directories', (req, res) => {
+  // Mock directories data
+  const mockDirectories = [
+    {
+      id: 1,
+      name: "Electronics Directory",
+      slug: "electronics",
+      description: "Tech products and gadgets",
+      listingCount: 15
+    },
+    {
+      id: 2,
+      name: "Food & Beverage Directory", 
+      slug: "food-beverage",
+      description: "Local food and drink businesses",
+      listingCount: 8
+    }
+  ];
+  
+  res.json(mockDirectories);
 });
 
 function getEnhancedOAuthAppHTML(): string {
@@ -117,7 +182,7 @@ function getEnhancedOAuthAppHTML(): string {
     
     <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #28a745;">
       <p style="color: #666; font-size: 14px; margin: 0 0 10px 0;"><strong>Development Access:</strong></p>
-      <button onclick="window.location.href='/dev'" class="btn" style="background: #28a745;">Access API Management Interface</button>
+      <button onclick="window.location.href='/dev'" class="btn" style="background: #28a745;">Access Listings Directory</button>
     </div>
     
     <div class="spinner" id="spinner"></div>
@@ -242,11 +307,37 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ message });
 });
 
-// Start server
-const server = app.listen(port, "0.0.0.0", () => {
-  console.log(`Server running on port ${port}`);
-  console.log(`Frontend: http://localhost:${port}`);
-  console.log(`API Management: http://localhost:${port}/api-management`);
-});
+// Setup Vite for React frontend
+const server = createServer(app);
 
-console.log("Simple server ready with green bypass button");
+// Check if we're in development mode
+const isDevelopment = process.env.NODE_ENV !== "production";
+
+async function startServer() {
+  if (isDevelopment) {
+    // Setup Vite development server for React frontend
+    await setupVite(app, server);
+  } else {
+    // Serve static files in production
+    const distPath = path.join(__dirname, '..', 'dist');
+    app.use(express.static(distPath));
+    
+    // SPA fallback for client-side routing
+    app.get('*', (req, res) => {
+      // Don't override the OAuth root route
+      if (req.path === '/') {
+        return;
+      }
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
+
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`Server running on port ${port}`);
+    console.log(`Frontend: http://localhost:${port}`);
+    console.log(`Listings: http://localhost:${port}/listings`);
+    console.log("Server ready with green bypass button to listings");
+  });
+}
+
+startServer().catch(console.error);
