@@ -197,6 +197,18 @@ export default function Login() {
               Test OAuth Flow
             </Button>
             
+            <Button 
+              onClick={() => {
+                console.log('Bypassing to API Management');
+                window.location.href = '/api-management';
+              }}
+              variant="secondary" 
+              className="w-full mb-4"
+              type="button"
+            >
+              Skip to API Management
+            </Button>
+            
             <div className="text-center p-3 bg-amber-50 rounded-lg border border-amber-200">
               <p className="text-xs text-amber-700 mb-2">
                 <strong>Note:</strong> This button tests the OAuth flow. In production, users are redirected here when they install your app from the GoHighLevel marketplace.

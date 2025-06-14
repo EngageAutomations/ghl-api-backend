@@ -161,6 +161,13 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 14, 2025: Added Bypass Button for Development Access
+  - Added "Skip to API Management" button to login page for immediate development access
+  - Removed static OAuth HTML files causing routing conflicts
+  - Dashboard component now redirects to DirectAPIManagement interface
+  - Server running on port 3000 with React app properly loading
+  - Development environment isolated from live Railway deployment
+
 - June 14, 2025: Enhanced React UI with Enterprise Architecture
   - Implemented comprehensive architectural improvements following industry best practices
   - Created type-safe API client with Zod schema validation for Products, Prices, Contacts, Media
