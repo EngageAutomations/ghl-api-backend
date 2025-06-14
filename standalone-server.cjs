@@ -6,7 +6,9 @@ const app = express();
 
 // Basic middleware
 app.use(express.json());
-app.use(express.static('public'));
+
+// Disable serving static files that might interfere
+// app.use(express.static('public'));
 
 // Simple HTML page with our React app
 app.get('/', (req, res) => {
