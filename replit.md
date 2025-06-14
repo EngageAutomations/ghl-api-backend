@@ -161,6 +161,14 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 14, 2025: OAuth Real Data Capture System Fixed
+  - Fixed OAuth callback to properly capture real GoHighLevel account data during app installations
+  - Implemented direct SQL database storage to avoid schema field mapping conflicts
+  - Added comprehensive logging to track OAuth flow and authentic data capture
+  - Removed dependency on demo/placeholder data for testing API functionality
+  - Directory logo upload API ready to work with real access tokens and location data
+  - OAuth callback system now stores: access tokens, refresh tokens, user info, location data, token expiry
+
 - June 13, 2025: Complete Custom Domain Configuration
   - Updated Railway backend redirect URI to listings.engageautomations.com
   - Configured CORS origins for custom domain access

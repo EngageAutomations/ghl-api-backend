@@ -229,60 +229,62 @@ function setupOAuthRoutesProduction(app: express.Express) {
           console.log('No location data available');
         }
         
-        // Store in database 
+        // Store in database using direct SQL for compatibility
         try {
-          console.log('💾 Attempting database storage...');
+          console.log('💾 Storing real OAuth account data in database...');
           
           const expiryDate = new Date(Date.now() + (tokenData.expires_in * 1000));
           
           // Import database connection
-          const { db } = await import('./db.js');
-          const { users } = await import('../shared/schema.js');
-          const { eq } = await import('drizzle-orm');
+          const { pool } = await import('./db.js');
           
-          // Prepare user data for database
-          const userData_db = {
-            username: userData.email || 'oauth_user_' + userData.id,
-            email: userData.email,
-            displayName: userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
-            ghlUserId: userData.id,
-            ghlAccessToken: tokenData.access_token,
-            ghlRefreshToken: tokenData.refresh_token,
-            ghlTokenExpiry: expiryDate,
-            ghlScopes: tokenData.scope || '',
-            ghlLocationId: locationData?.id || '',
-            ghlLocationName: locationData?.name || '',
-            authType: 'oauth',
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
+          // Use raw SQL to avoid schema field mapping issues
+          const insertQuery = `
+            INSERT INTO users (
+              username, email, display_name, ghl_user_id, 
+              ghl_access_token, ghl_refresh_token, ghl_token_expiry, 
+              ghl_scopes, ghl_location_id, ghl_location_name, 
+              auth_type, is_active, created_at, updated_at
+            ) VALUES (
+              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+            ) 
+            ON CONFLICT (ghl_user_id) 
+            DO UPDATE SET 
+              ghl_access_token = EXCLUDED.ghl_access_token,
+              ghl_refresh_token = EXCLUDED.ghl_refresh_token,
+              ghl_token_expiry = EXCLUDED.ghl_token_expiry,
+              ghl_scopes = EXCLUDED.ghl_scopes,
+              ghl_location_id = EXCLUDED.ghl_location_id,
+              ghl_location_name = EXCLUDED.ghl_location_name,
+              updated_at = EXCLUDED.updated_at
+            RETURNING id, email, ghl_user_id, ghl_location_id, ghl_location_name
+          `;
           
-          // Check if user already exists
-          const existingUser = await db.select().from(users).where(eq(users.ghlUserId, userData.id));
+          const values = [
+            userData.email || 'oauth_user_' + userData.id,
+            userData.email,
+            userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
+            userData.id,
+            tokenData.access_token,
+            tokenData.refresh_token,
+            expiryDate,
+            tokenData.scope || '',
+            locationData?.id || '',
+            locationData?.name || '',
+            'oauth',
+            true,
+            new Date(),
+            new Date()
+          ];
           
-          let savedUser;
-          if (existingUser.length > 0) {
-            // Update existing user
-            savedUser = await db.update(users)
-              .set({
-                ghlAccessToken: tokenData.access_token,
-                ghlRefreshToken: tokenData.refresh_token,
-                ghlTokenExpiry: expiryDate,
-                ghlScopes: tokenData.scope || '',
-                ghlLocationId: locationData?.id || '',
-                ghlLocationName: locationData?.name || '',
-                updatedAt: new Date()
-              })
-              .where(eq(users.ghlUserId, userData.id))
-              .returning();
-          } else {
-            // Insert new user
-            savedUser = await db.insert(users).values(userData_db).returning();
-          }
+          const result = await pool.query(insertQuery, values);
+          const savedUser = result.rows[0];
           
-          console.log('✅ OAuth account data saved to database successfully');
-          console.log('User ID in database:', savedUser[0]?.id);
+          console.log('✅ Real OAuth account data saved successfully');
+          console.log('Database User ID:', savedUser.id);
+          console.log('GoHighLevel User ID:', savedUser.ghl_user_id);
+          console.log('Location ID:', savedUser.ghl_location_id);
+          console.log('Location Name:', savedUser.ghl_location_name);
           
         } catch (dbError) {
           console.error('❌ Database storage error:', dbError);
@@ -334,95 +336,13 @@ function setupOAuthRoutesProduction(app: express.Express) {
       }
     }
     
-    // Handle OAuth callback from marketplace installation
+    // Handle OAuth callback from marketplace installation - redirect to dedicated callback
     if (code || error) {
-      console.log('Marketplace OAuth callback detected, processing OAuth flow...');
+      console.log('Marketplace OAuth callback detected, redirecting to OAuth callback handler...');
       
-      // Process OAuth callback here (same logic as the existing callback handler)
-      if (error) {
-        console.error('OAuth error:', error);
-        return res.redirect('/api-management?error=' + encodeURIComponent(String(error)));
-      }
-
-      if (code) {
-        try {
-          console.log('Processing marketplace OAuth authorization code...');
-          
-          // Import OAuth functionality
-          const { ghlOAuth } = await import('./ghl-oauth.js');
-          
-          // Exchange code for tokens
-          const tokenData = await ghlOAuth.exchangeCodeForTokens(String(code), String(state));
-          
-          if (tokenData && tokenData.access_token) {
-            // Get user and location data
-            const userData = await ghlOAuth.getUserInfo(tokenData.access_token);
-            const locationData = await ghlOAuth.getLocation(tokenData.access_token);
-            
-            console.log('✅ Marketplace installation successful');
-            console.log('User:', userData.name || userData.email);
-            console.log('Location:', locationData?.name || 'Unknown');
-            
-            // Store tokens in database
-            const storage = new DatabaseStorage();
-            const installation = await storage.createOAuthInstallation({
-              ghlUserId: userData.id,
-              ghlAccessToken: tokenData.access_token,
-              ghlRefreshToken: tokenData.refresh_token,
-              ghlTokenExpiry: new Date(Date.now() + (tokenData.expires_in * 1000)),
-              ghlScopes: tokenData.scope || '',
-              ghlLocationId: locationData?.id || '',
-              ghlLocationName: locationData?.name || '',
-              userEmail: userData.email,
-              userName: userData.name || userData.email
-            });
-
-            // Create session token for user identification
-            const jwt = await import('jsonwebtoken');
-            const sessionToken = jwt.default.sign(
-              { 
-                userId: installation.id,
-                ghlUserId: userData.id,
-                locationId: locationData?.id,
-                email: userData.email,
-                name: userData.name || userData.email
-              }, 
-              process.env.JWT_SECRET || 'fallback-secret',
-              { expiresIn: '7d' }
-            );
-
-            // Set session cookie
-            res.cookie('session_token', sessionToken, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production',
-              maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-              sameSite: 'lax'
-            });
-
-            // Set user info cookie for frontend access
-            res.cookie('user_info', JSON.stringify({
-              name: userData.name || userData.email,
-              email: userData.email,
-              locationId: locationData?.id,
-              locationName: locationData?.name
-            }), {
-              httpOnly: false, // Allow frontend access
-              secure: process.env.NODE_ENV === 'production',
-              maxAge: 7 * 24 * 60 * 60 * 1000
-            });
-            
-            // Redirect to API management with success message
-            return res.redirect(`/api-management?success=true&user=${encodeURIComponent(userData.name || userData.email)}`);
-            
-          } else {
-            throw new Error('No access token received');
-          }
-          
-        } catch (error) {
-          console.error('OAuth processing error:', error);
-          return res.redirect('/api-management?error=oauth_failed');
-        }
-      }
+      // Redirect to the dedicated OAuth callback handler to avoid duplication
+      const callbackUrl = `/oauth/callback?${req.url.split('?')[1]}`;
+      return res.redirect(callbackUrl);
     }
     
     // For direct access without OAuth parameters, check if user has existing session
