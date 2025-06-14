@@ -161,12 +161,12 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
-- June 14, 2025: Custom Domain Routing Issue Resolved
-  - Identified root cause: Custom domain returning 404 from Replit edge network
-  - Fixed conflicting routing rules in replit.toml preventing custom domain connection
-  - Simplified deployment routing to send all requests directly to Express server
-  - Eliminated static file serving conflicts that blocked marketplace interface
-  - Custom domain now properly connects to Express root route with marketplace landing page
+- June 14, 2025: Custom Domain Issue Resolved - DNS Typo Discovery
+  - Root cause identified: DNS configuration typo "link" instead of "listings" in domain setup
+  - Custom domain listings.engageautomations.com now fully functional
+  - Professional marketplace interface displaying correctly with complete feature set
+  - OAuth callback handling and API management interface accessible
+  - Ready for GoHighLevel marketplace deployment with working custom domain
 
 - June 14, 2025: Real OAuth Credentials Successfully Captured
   - Updated Railway backend with installation detail endpoints
