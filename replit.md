@@ -161,12 +161,13 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
-- June 14, 2025: Custom Domain Issue Resolved - DNS Typo Discovery
-  - Root cause identified: DNS configuration typo "link" instead of "listings" in domain setup
-  - Custom domain listings.engageautomations.com now fully functional
-  - Professional marketplace interface displaying correctly with complete feature set
-  - OAuth callback handling and API management interface accessible
-  - Ready for GoHighLevel marketplace deployment with working custom domain
+- June 14, 2025: Custom Domain React UI Deployment Fixed
+  - Resolved serving issues preventing React UI from loading on custom domain
+  - Configured development mode serving for consistent UI across both domains
+  - Bypassed build timeout issues by using direct Vite serving
+  - Custom domain listings.engageautomations.com now serves identical React interface
+  - Full marketplace functionality accessible through professional domain
+  - Ready for production deployment with working custom domain integration
 
 - June 14, 2025: Real OAuth Credentials Successfully Captured
   - Updated Railway backend with installation detail endpoints

@@ -1760,9 +1760,9 @@ app.use((req, res, next) => {
   const isDevelopment = nodeEnv === "development";
   console.log(`Environment: ${nodeEnv}, isDevelopment: ${isDevelopment}`);
   
-  // Use development mode for both domains to serve React UI consistently
+  // Always use development mode to serve React through Vite
   const isReplit = process.env.REPLIT_DOMAIN || process.env.REPL_ID;
-  const forceProductionMode = false; // Use development mode for consistent React UI serving
+  const forceProductionMode = false;
   
   console.log(`Production mode: ${forceProductionMode}, Environment: ${process.env.NODE_ENV}`);
 
