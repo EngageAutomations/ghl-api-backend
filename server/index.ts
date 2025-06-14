@@ -1802,84 +1802,7 @@ app.use((req, res, next) => {
     }
   });
 
-  // Add the marketplace landing page route FIRST
-  app.get('/', (req, res) => {
-    const { code, state, error } = req.query;
-    
-    // Handle OAuth callbacks
-    if (code || error) {
-      console.log('OAuth callback detected at root');
-      if (error) {
-        return res.redirect(`/oauth-error?error=${encodeURIComponent(String(error))}`);
-      } else {
-        return res.redirect(`/oauth-success?code=${code}&state=${state || ''}`);
-      }
-    }
-    
-    // Serve marketplace landing page
-    res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoHighLevel Directory Marketplace</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-        .header { text-align: center; margin-bottom: 60px; }
-        .logo { font-size: 32px; font-weight: bold; color: #1e40af; margin-bottom: 16px; }
-        .tagline { font-size: 18px; color: #64748b; }
-        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; margin-bottom: 60px; }
-        .feature { background: white; padding: 32px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; }
-        .feature-icon { font-size: 48px; margin-bottom: 16px; }
-        .feature h3 { font-size: 20px; margin-bottom: 12px; color: #1e293b; }
-        .feature p { color: #64748b; line-height: 1.6; }
-        .cta { text-align: center; }
-        .btn { display: inline-block; background: #1e40af; color: white; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background 0.2s; }
-        .btn:hover { background: #1d4ed8; }
-        .status { background: white; padding: 20px; border-radius: 8px; margin-bottom: 40px; border-left: 4px solid #10b981; }
-        .status-title { font-weight: 600; color: #059669; margin-bottom: 8px; }
-        .status-info { color: #64748b; font-size: 14px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">🚀 GoHighLevel Directory</div>
-            <div class="tagline">Professional Business Directory Solutions</div>
-        </div>
 
-        <div class="status">
-            <div class="status-title">✓ Marketplace Application Active</div>
-            <div class="status-info">Connected to Railway backend • OAuth integration ready • API endpoints operational</div>
-        </div>
-
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">⚡</div>
-                <h3>Universal API Access</h3>
-                <p>Complete GoHighLevel API integration with automatic authentication and 50+ supported endpoints</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔐</div>
-                <h3>OAuth Integration</h3>
-                <p>Seamless marketplace installation with secure token management and refresh handling</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">📱</div>
-                <h3>Embedded CRM Tab</h3>
-                <p>Professional interface that works within GoHighLevel CRM with session recovery</p>
-            </div>
-        </div>
-
-        <div class="cta">
-            <a href="/directories" class="btn">Access Directory Management</a>
-        </div>
-    </div>
-</body>
-</html>`);
-  });
 
   // CRITICAL: Register API routes AFTER the root route
   server = await registerRoutes(app);
@@ -1921,85 +1844,14 @@ app.use((req, res, next) => {
   });
   
   if (forceProductionMode) {
-    console.log("Setting up production routing for OAuth compatibility...");
+    console.log("Setting up production static serving...");
     
-    // Simple root route for marketplace landing page
-    app.get('/', (req, res) => {
-      const { code, state, error } = req.query;
-      
-      // Handle OAuth callbacks
-      if (code || error) {
-        console.log('OAuth callback detected at root');
-        if (error) {
-          return res.redirect(`/oauth-error?error=${encodeURIComponent(String(error))}`);
-        } else {
-          return res.redirect(`/oauth-success?code=${code}&state=${state || ''}`);
-        }
-      }
-      
-      // Serve marketplace landing page
-      res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoHighLevel Directory Marketplace</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-        .header { text-align: center; margin-bottom: 60px; }
-        .logo { font-size: 32px; font-weight: bold; color: #1e40af; margin-bottom: 16px; }
-        .tagline { font-size: 18px; color: #64748b; }
-        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; margin-bottom: 60px; }
-        .feature { background: white; padding: 32px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; }
-        .feature-icon { font-size: 48px; margin-bottom: 16px; }
-        .feature h3 { font-size: 20px; margin-bottom: 12px; color: #1e293b; }
-        .feature p { color: #64748b; line-height: 1.6; }
-        .cta { text-align: center; }
-        .btn { display: inline-block; background: #1e40af; color: white; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background 0.2s; }
-        .btn:hover { background: #1d4ed8; }
-        .status { background: white; padding: 20px; border-radius: 8px; margin-bottom: 40px; border-left: 4px solid #10b981; }
-        .status-title { font-weight: 600; color: #059669; margin-bottom: 8px; }
-        .status-info { color: #64748b; font-size: 14px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">🚀 GoHighLevel Directory</div>
-            <div class="tagline">Professional Business Directory Solutions</div>
-        </div>
-
-        <div class="status">
-            <div class="status-title">✓ Marketplace Application Active</div>
-            <div class="status-info">Connected to Railway backend • OAuth integration ready • API endpoints operational</div>
-        </div>
-
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">⚡</div>
-                <h3>Universal API Access</h3>
-                <p>Complete GoHighLevel API integration with automatic authentication and 50+ supported endpoints</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔐</div>
-                <h3>OAuth Integration</h3>
-                <p>Seamless marketplace installation with secure token management and refresh handling</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">📱</div>
-                <h3>Embedded CRM Tab</h3>
-                <p>Professional interface that works within GoHighLevel CRM with session recovery</p>
-            </div>
-        </div>
-
-        <div class="cta">
-            <a href="/directories" class="btn">Access Directory Management</a>
-        </div>
-    </div>
-</body>
-</html>`);
+    // Serve static files from dist directory
+    app.use(express.static(path.join(__dirname, '../dist')));
+    
+    // Catch-all handler: send back React's index.html file for SPA routing
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(__dirname, '../dist/index.html'));
     });
     
   } else {
