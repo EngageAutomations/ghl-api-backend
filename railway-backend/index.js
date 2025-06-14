@@ -415,6 +415,53 @@ app.get('/api/debug/installations', (req, res) => {
   });
 });
 
+// Installation details endpoint - provides complete installation data for development
+app.get('/api/installations/:id/details', (req, res) => {
+  const installation = storage.getAllInstallations().find(inst => inst.id == req.params.id);
+  if (installation) {
+    res.json({
+      success: true,
+      installation: {
+        id: installation.id,
+        ghlUserId: installation.ghlUserId,
+        ghlLocationId: installation.ghlLocationId,
+        ghlAccessToken: installation.ghlAccessToken,
+        ghlRefreshToken: installation.ghlRefreshToken,
+        ghlTokenType: installation.ghlTokenType,
+        ghlScopes: installation.ghlScopes,
+        installationDate: installation.installationDate,
+        isActive: installation.isActive
+      }
+    });
+  } else {
+    res.status(404).json({ success: false, error: 'Installation not found' });
+  }
+});
+
+// Latest installation endpoint - provides most recent installation details
+app.get('/api/installations/latest', (req, res) => {
+  const installations = storage.getAllInstallations();
+  if (installations.length > 0) {
+    const latest = installations.sort((a, b) => new Date(b.installationDate) - new Date(a.installationDate))[0];
+    res.json({
+      success: true,
+      installation: {
+        id: latest.id,
+        ghlUserId: latest.ghlUserId,
+        ghlLocationId: latest.ghlLocationId,
+        ghlAccessToken: latest.ghlAccessToken,
+        ghlRefreshToken: latest.ghlRefreshToken,
+        ghlTokenType: latest.ghlTokenType,
+        ghlScopes: latest.ghlScopes,
+        installationDate: latest.installationDate,
+        isActive: latest.isActive
+      }
+    });
+  } else {
+    res.status(404).json({ success: false, error: 'No installations found' });
+  }
+});
+
 // API Documentation
 app.get('/api/ghl/docs', (req, res) => {
   res.json({
