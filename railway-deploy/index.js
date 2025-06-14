@@ -301,8 +301,8 @@ app.get('/health', (req, res) => {
 
 // OAuth endpoints
 app.get('/api/oauth/url', (req, res) => {
-  const clientId = process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4';
-  const redirectUri = process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/api/oauth/callback';
+  const clientId = process.env.GHL_CLIENT_ID;
+  const redirectUri = process.env.GHL_REDIRECT_URI;
   const scopes = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly';
   
   const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -332,10 +332,10 @@ app.get('/api/oauth/callback', async (req, res) => {
   try {
     const tokenRequestData = new URLSearchParams({
       grant_type: 'authorization_code',
-      client_id: process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4',
+      client_id: process.env.GHL_CLIENT_ID,
       client_secret: process.env.GHL_CLIENT_SECRET,
       code: String(code),
-      redirect_uri: process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/api/oauth/callback'
+      redirect_uri: process.env.GHL_REDIRECT_URI
     });
 
     const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', 
