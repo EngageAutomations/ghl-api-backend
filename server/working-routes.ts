@@ -7,6 +7,44 @@ import type { Express } from "express";
 import { simpleDataStore } from "./simple-storage";
 
 export function setupWorkingRoutes(app: Express) {
+  // GET single directory by name
+  app.get("/api/directories/:directoryName", (req, res) => {
+    try {
+      const directoryName = req.params.directoryName;
+      console.log("=== FETCHING SINGLE DIRECTORY ===");
+      console.log("Directory name:", directoryName);
+      
+      const userId = 1;
+      const directories = simpleDataStore.getDirectoriesByUser(userId);
+      const directory = directories.find(d => d.directoryName === directoryName);
+      
+      if (!directory) {
+        console.log("Directory not found:", directoryName);
+        return res.status(404).json({ message: "Directory not found" });
+      }
+      
+      const listings = simpleDataStore.getListingsByDirectory(directoryName);
+      const directoryWithStats = {
+        id: directory.id,
+        name: directory.directoryName,
+        directoryName: directory.directoryName,
+        listingCount: listings.length,
+        logoUrl: directory.logoUrl,
+        config: directory.config,
+        actionButtonColor: directory.actionButtonColor,
+        isActive: directory.isActive,
+        createdAt: directory.createdAt,
+        updatedAt: directory.updatedAt
+      };
+      
+      console.log("Found directory:", directoryWithStats);
+      res.status(200).json(directoryWithStats);
+    } catch (error) {
+      console.error("Error fetching directory:", error);
+      res.status(500).json({ message: "Failed to fetch directory", error: error.message });
+    }
+  });
+
   // GET directories
   app.get("/api/directories", (req, res) => {
     try {
@@ -39,6 +77,7 @@ export function setupWorkingRoutes(app: Express) {
       });
       
       console.log("Found directories:", directoriesWithStats.length);
+      console.log("Directories with stats:", JSON.stringify(directoriesWithStats, null, 2));
       res.status(200).json(directoriesWithStats);
     } catch (error) {
       console.error("Error fetching directories:", error);

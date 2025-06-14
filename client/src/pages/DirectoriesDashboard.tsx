@@ -164,7 +164,7 @@ export default function DirectoriesDashboard() {
 
                 {/* Actions */}
                 <div className="flex items-center justify-center pt-4 border-t border-gray-100">
-                  <Link href={`/directories/${directory.directoryName}`}>
+                  <Link href={`/directories/${directory.directoryName || directory.name}`}>
                     <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
                       <Settings className="w-4 h-4 mr-1" />
                       Manage
