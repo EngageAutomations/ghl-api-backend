@@ -653,6 +653,132 @@ function setupOAuthRoutesProduction(app: express.Express) {
         console.log('User Email:', userInfo.email);
         console.log('User Permissions:', JSON.stringify(userInfo.permissions || {}, null, 2));
         console.log('===============================================');
+
+        // Get additional user data from GoHighLevel API
+        let userData = null;
+        let locationData = null;
+        try {
+          const userDataResponse = await fetch('https://services.leadconnectorhq.com/users/me', {
+            headers: {
+              'Authorization': `Bearer ${tokenData.access_token}`,
+              'Version': '2021-07-28',
+              'Content-Type': 'application/json'
+            },
+            timeout: 5000
+          });
+          if (userDataResponse.ok) {
+            userData = await userDataResponse.json();
+            console.log('User data retrieved:', {
+              id: userData.id,
+              email: userData.email,
+              name: userData.name
+            });
+          }
+        } catch (userError) {
+          console.warn('Failed to get detailed user data:', userError.message);
+        }
+
+        // Get location data if available
+        if (userInfo.locationId) {
+          try {
+            const locationResponse = await fetch(`https://services.leadconnectorhq.com/locations/${userInfo.locationId}`, {
+              headers: {
+                'Authorization': `Bearer ${tokenData.access_token}`,
+                'Version': '2021-07-28',
+                'Content-Type': 'application/json'
+              },
+              timeout: 5000
+            });
+            if (locationResponse.ok) {
+              const locationResult = await locationResponse.json();
+              locationData = locationResult.location;
+              console.log('Location data retrieved:', {
+                id: locationData.id,
+                name: locationData.name,
+                city: locationData.city
+              });
+            }
+          } catch (locationError) {
+            console.warn('Failed to get location data:', locationError.message);
+          }
+        }
+
+        // Store OAuth installation data in database
+        try {
+          console.log('=== STORING OAUTH INSTALLATION IN DATABASE ===');
+          
+          const { storage } = await import('./storage.js');
+          
+          const installationData = {
+            ghl_user_id: userData?.id || userInfo?.id || `user_${Date.now()}`,
+            ghl_user_email: userData?.email || userInfo?.email,
+            ghl_user_name: userData?.name || userInfo?.name || `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim(),
+            ghl_user_phone: userData?.phone,
+            ghl_user_company: userData?.companyName,
+            ghl_location_id: userInfo?.locationId || locationData?.id,
+            ghl_location_name: locationData?.name,
+            ghl_location_business_type: locationData?.businessType,
+            ghl_location_address: locationData?.address,
+            ghl_access_token: tokenData.access_token,
+            ghl_refresh_token: tokenData.refresh_token,
+            ghl_token_type: tokenData.token_type || 'Bearer',
+            ghl_expires_in: tokenData.expires_in || 3600,
+            ghl_scopes: tokenData.scope,
+            installation_date: new Date(),
+            last_token_refresh: new Date(),
+            is_active: true
+          };
+
+          // Use direct SQL insert since storage interface might not match
+          const { db } = await import('./db.js');
+          const insertQuery = `
+            INSERT INTO oauth_installations (
+              ghl_user_id, ghl_user_email, ghl_user_name, ghl_user_phone, ghl_user_company,
+              ghl_location_id, ghl_location_name, ghl_location_business_type, ghl_location_address,
+              ghl_access_token, ghl_refresh_token, ghl_token_type, ghl_expires_in, ghl_scopes,
+              installation_date, last_token_refresh, is_active
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+            ON CONFLICT (ghl_user_id) DO UPDATE SET
+              ghl_access_token = EXCLUDED.ghl_access_token,
+              ghl_refresh_token = EXCLUDED.ghl_refresh_token,
+              ghl_location_id = EXCLUDED.ghl_location_id,
+              ghl_location_name = EXCLUDED.ghl_location_name,
+              last_token_refresh = EXCLUDED.last_token_refresh,
+              is_active = EXCLUDED.is_active
+            RETURNING id, ghl_user_id, ghl_location_id, ghl_location_name;
+          `;
+
+          const result = await db.query(insertQuery, [
+            installationData.ghl_user_id,
+            installationData.ghl_user_email,
+            installationData.ghl_user_name,
+            installationData.ghl_user_phone,
+            installationData.ghl_user_company,
+            installationData.ghl_location_id,
+            installationData.ghl_location_name,
+            installationData.ghl_location_business_type,
+            installationData.ghl_location_address,
+            installationData.ghl_access_token,
+            installationData.ghl_refresh_token,
+            installationData.ghl_token_type,
+            installationData.ghl_expires_in,
+            installationData.ghl_scopes,
+            installationData.installation_date,
+            installationData.last_token_refresh,
+            installationData.is_active
+          ]);
+
+          console.log('✅ OAuth installation saved to database!');
+          console.log('Installation ID:', result.rows[0].id);
+          console.log('User ID:', result.rows[0].ghl_user_id);
+          console.log('Location ID:', result.rows[0].ghl_location_id);
+          console.log('Location Name:', result.rows[0].ghl_location_name);
+          console.log('✅ REAL ACCESS TOKEN CAPTURED AND STORED');
+          
+        } catch (dbError) {
+          console.error('⚠️ Failed to save OAuth installation to database:', dbError);
+          // Continue with the flow even if database save fails
+        }
         
         // Store token and user data in session/cookie
         res.cookie('oauth_token', tokenData.access_token, {
@@ -665,6 +791,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
           id: userInfo.id,
           name: userInfo.name,
           email: userInfo.email,
+          locationId: userInfo.locationId,
           timestamp: Date.now()
         }), {
           httpOnly: true,
