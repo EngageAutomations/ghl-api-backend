@@ -20,6 +20,27 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Force React app load - bypass any cached content
+app.get('/force-react', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>GoHighLevel API Management</title>
+      <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+      <meta http-equiv="Pragma" content="no-cache">
+      <meta http-equiv="Expires" content="0">
+    </head>
+    <body>
+      <div id="root"></div>
+      <script type="module" src="/src/main.tsx?t=${Date.now()}"></script>
+    </body>
+    </html>
+  `);
+});
+
 // Basic OAuth success page
 app.get('/oauth-success', (req, res) => {
   res.redirect('/api-management');
