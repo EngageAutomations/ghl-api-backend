@@ -93,7 +93,7 @@ PORT=5000
    ```
 
 ### Success/Error Redirects
-**Success Redirect:**
+**Success Redirect (Replit App):**
 ```
 https://listings.engageautomations.com/oauth-success?
   success=true&
@@ -102,10 +102,28 @@ https://listings.engageautomations.com/oauth-success?
   installationId=[installation_id]
 ```
 
-**Error Redirect:**
+**Error Redirect (Replit App):**
 ```
 https://listings.engageautomations.com/oauth-error?
   error=[error_description]
+```
+
+## Replit App Configuration (To Restore)
+
+### Domain Setup
+**Replit Domain:** `listings.engageautomations.com`
+**Frontend Endpoints:**
+- OAuth Success Page: `https://listings.engageautomations.com/oauth-success`
+- OAuth Error Page: `https://listings.engageautomations.com/oauth-error`
+- Main Application: `https://listings.engageautomations.com/`
+
+### Environment Variables for Replit
+```bash
+GHL_ACCESS_TOKEN=[From Railway installation data]
+GHL_LOCATION_ID=WAVk87RmW9rBSDJHeOpH
+GHL_REFRESH_TOKEN=[From Railway installation data]
+GHL_INSTALLATION_ID=1
+VITE_RAILWAY_API_URL=https://dir.engageautomations.com
 ```
 
 ## Installation Data Structure
