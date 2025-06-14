@@ -668,10 +668,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all directories for a user
   app.get("/api/directories", async (req, res) => {
     try {
+      console.log("=== DIRECTORY API CALLED ===");
       const userId = 1; // TODO: Get from auth context
-      const directories = await storage.getFormConfigurationsByUser(userId);
+      console.log("Fetching directories for user:", userId);
       
-      // Add listing count and last activity for each directory
+      const directories = await storage.getFormConfigurationsByUser(userId);
+      console.log("Raw directories from database:", directories);
+      
+      // Transform database format to frontend format
       const directoriesWithStats = await Promise.all(
         directories.map(async (directory) => {
           const listings = await storage.getListingsByDirectory(directory.directoryName);
@@ -680,18 +684,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ? Math.max(...listings.map(l => new Date(l.updatedAt || l.createdAt).getTime()))
             : null;
           
-          return {
-            ...directory,
+          const transformedDirectory = {
+            id: directory.id,
+            name: directory.directoryName,
+            slug: directory.directoryName.toLowerCase().replace(/\s+/g, '-'),
+            description: `Directory for ${directory.directoryName}`,
             listingCount,
-            lastActivity: lastActivity ? new Date(lastActivity).toISOString() : null
+            lastActivity: lastActivity ? new Date(lastActivity).toISOString() : null,
+            logoUrl: directory.logoUrl,
+            config: directory.config,
+            actionButtonColor: directory.actionButtonColor,
+            isActive: directory.isActive,
+            createdAt: directory.createdAt,
+            updatedAt: directory.updatedAt
           };
+          
+          console.log("Transformed directory:", transformedDirectory);
+          return transformedDirectory;
         })
       );
       
+      console.log("Final directories with stats:", directoriesWithStats);
       res.status(200).json(directoriesWithStats);
     } catch (error) {
       console.error("Error fetching directories:", error);
-      res.status(500).json({ message: "Failed to fetch directories" });
+      res.status(500).json({ message: "Failed to fetch directories", error: error.message });
     }
   });
 
