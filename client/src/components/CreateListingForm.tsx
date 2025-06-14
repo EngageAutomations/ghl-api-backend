@@ -278,21 +278,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Form fields matching wizard preview exactly */}
         <div className="space-y-4">
-          {/* 1. Listing Title - Always show */}
-          <div>
-            <Label htmlFor="title" className="text-sm font-medium text-gray-700 block text-left">Listing Title *</Label>
-            <Input
-              id="title"
-              type="text"
-              value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              required
-              placeholder="Enter listing title"
-              className="mt-1"
-            />
-          </div>
-
-          {/* 2. Listing Image Upload */}
+          {/* 1. Listing Image Upload - First field */}
           <div>
             <Label className="text-sm font-medium text-gray-700 block text-left">Listing Image</Label>
             <div className="mt-1 space-y-3">
@@ -375,6 +361,20 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
                 </div>
               )}
             </div>
+          </div>
+
+          {/* 2. Listing Title - Always show */}
+          <div>
+            <Label htmlFor="title" className="text-sm font-medium text-gray-700 block text-left">Listing Title *</Label>
+            <Input
+              id="title"
+              type="text"
+              value={formData.title}
+              onChange={(e) => handleInputChange('title', e.target.value)}
+              required
+              placeholder="Enter listing title"
+              className="mt-1"
+            />
           </div>
 
           {/* 3. Listing Price - Show field or placeholder */}
