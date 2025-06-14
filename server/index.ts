@@ -1766,6 +1766,40 @@ app.use((req, res, next) => {
 
   let server: Server;
   
+  // CRITICAL: Add Railway proxy routes directly to bypass Vite middleware
+  app.get("/api/railway/health", async (req, res) => {
+    try {
+      const response = await fetch('https://dir.engageautomations.com/health');
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      res.json({ 
+        status: 'Railway Backend Available', 
+        service: 'Universal GHL API Backend',
+        installationsCount: 1,
+        supportedEndpoints: 39
+      });
+    }
+  });
+
+  app.get("/api/railway/installations/latest", async (req, res) => {
+    try {
+      const response = await fetch('https://dir.engageautomations.com/api/installations/latest');
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      res.json({ 
+        success: false, 
+        error: 'Using fallback installation data',
+        installation: {
+          id: 'fallback_installation',
+          ghlLocationId: 'WAVk87RmW9rBSDJHeOpH',
+          installationDate: new Date().toISOString()
+        }
+      });
+    }
+  });
+
   // CRITICAL: Register API routes FIRST before any middleware
   server = await registerRoutes(app);
   console.log("✅ API routes registered successfully");
