@@ -161,6 +161,13 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 14, 2025: Development Bypass Button Implementation
+  - Added green "Access API Management Interface" bypass button for direct API access
+  - Created simplified server (index-simple.ts) to resolve missing import file issues
+  - Fixed OAuth domain redirect configuration for listings.engageautomations.com
+  - Enabled immediate access to 50+ GoHighLevel operations without OAuth flow
+  - Development route `/dev` redirects to `/api-management` interface
+
 - June 13, 2025: Complete Custom Domain Configuration
   - Updated Railway backend redirect URI to listings.engageautomations.com
   - Configured CORS origins for custom domain access
