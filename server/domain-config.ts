@@ -8,7 +8,7 @@ export interface DomainConfig {
 
 export const DOMAIN_CONFIGS: DomainConfig[] = [
   {
-    domain: 'listings.engageautomations.com',
+    domain: process.env.CUSTOM_DOMAIN || '',
     isPrimary: true,
     redirectToHttps: true,
     corsOrigins: ['*']

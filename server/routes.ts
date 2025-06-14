@@ -12,28 +12,18 @@ import {
   insertCollectionSchema,
   insertCollectionItemSchema
 } from "@shared/schema";
-// import { generateBulletPoints } from "./ai-summarizer"; // Temporarily disabled - missing file
+import { generateBulletPoints } from "./ai-summarizer";
 import { googleDriveService } from "./google-drive";
 import { runTestSuite, runFormTests, generateCode, getFeatureDocumentation, updateConfigurationCode } from "./dev-tools";
 import { handleFormSubmission, getFormSubmissions, downloadJSONFile } from "./form-submission-handler";
-// import { aiAgent, AIRequest } from "./ai-agent-simple"; // Temporarily disabled - missing file
+import { aiAgent, AIRequest } from "./ai-agent-simple";
 import { ghlAPI } from "./ghl-api";
 import { ghlOAuth } from "./ghl-oauth";
 import { authenticateToken } from "./auth-middleware";
 import { ghlProductCreator } from "./ghl-product-creator";
-import { getCurrentUser, logoutUser } from "./current-user";
-import { recoverSession, checkEmbeddedSession } from "./session-recovery";
 import jwt from "jsonwebtoken";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // User authentication routes
-  app.get("/api/auth/me", getCurrentUser);
-  app.post("/api/auth/logout", logoutUser);
-  
-  // Session recovery for embedded CRM tab access
-  app.get("/api/auth/recover", recoverSession);
-  app.get("/api/auth/check-embedded", checkEmbeddedSession);
-
   // User routes
   app.post("/api/auth/register", async (req, res) => {
     try {

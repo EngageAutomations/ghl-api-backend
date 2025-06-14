@@ -34,14 +34,6 @@ The application follows a modern full-stack architecture with clear separation b
 - User session management with JWT
 - Installation tracking for marketplace apps
 
-**Session Recovery System**
-- Embedded CRM tab session restoration across devices
-- Cookie-independent authentication for iframe embedding
-- Multi-method user identification (User ID, Location ID, Installation ID)
-- Database-driven session recovery using existing OAuth installations
-- Automatic detection and recovery for cleared cookies or browser restrictions
-- Cross-device compatibility without re-authentication requirements
-
 **Universal API System**
 - Dynamic routing for all GoHighLevel API endpoints
 - Configuration-driven endpoint management
@@ -92,14 +84,7 @@ The application follows a modern full-stack architecture with clear separation b
    - Token exchange and user data capture
    - Installation record creation with access tokens
 
-2. **Session Recovery for Embedded CRM Tab Access**
-   - User clicks app tab within GoHighLevel CRM
-   - System detects embedded access with user/location parameters
-   - Database lookup finds existing OAuth installation
-   - Automatic session restoration without re-authentication
-   - Cross-device compatibility with cookie-independent authentication
-
-3. **API Request Processing**
+2. **API Request Processing**
    - Frontend makes requests to `/api/ghl/*` endpoints
    - Middleware validates OAuth tokens
    - Universal router matches endpoint configuration
@@ -107,10 +92,9 @@ The application follows a modern full-stack architecture with clear separation b
    - Request forwarded to GoHighLevel with authentication
    - Response processed and returned to frontend
 
-4. **Database Operations**
+3. **Database Operations**
    - User data stored in PostgreSQL
    - OAuth installations tracked with tokens
-   - Session recovery data maintained for cross-device access
    - Drizzle ORM provides type-safe database operations
 
 ## External Dependencies
@@ -161,44 +145,6 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
-- June 14, 2025: Development vs Production Deployment Differentiation
-  - Fixed server file with missing imports that prevented green button from appearing
-  - Implemented environment-based UI rendering (development shows bypass button, production doesn't)
-  - Green "Access Listings Directory" button now properly visible in Replit development environment
-  - Clean OAuth interface for production deployment without development bypass features
-  - Server logs now clearly indicate environment detection and development mode activation
-
-- June 14, 2025: Development Bypass Button Implementation
-  - Added green "Access API Management Interface" bypass button for direct API access
-  - Created simplified server (index-simple.ts) to resolve missing import file issues
-  - Fixed OAuth domain redirect configuration for listings.engageautomations.com
-  - Enabled immediate access to 50+ GoHighLevel operations without OAuth flow
-  - Development route `/dev` redirects to `/api-management` interface
-
-- June 13, 2025: Complete Custom Domain Configuration
-  - Updated Railway backend redirect URI to listings.engageautomations.com
-  - Configured CORS origins for custom domain access
-  - Updated all OAuth flow URLs to use professional domain
-  - Verified authentication error handling and installation-required redirects
-  - Ready for GoHighLevel marketplace deployment with custom domain
-
-- June 13, 2025: Embedded CRM Tab Session Recovery System Implementation
-  - Comprehensive session recovery for GoHighLevel CRM tab access
-  - Multi-method user identification: GoHighLevel User ID, Location ID, Installation ID
-  - Cross-device session restoration without re-authentication
-  - Cookie-independent authentication supporting iframe embedding
-  - Automatic detection and recovery for cleared cookies or different devices
-  - Database-driven session recovery using existing OAuth installations
-  - Iframe-compatible cookie settings with sameSite: 'none' for embedded access
-  - Session recovery endpoints: /api/auth/recover and /api/auth/check-embedded
-
-- June 13, 2025: Marketplace Installation Flow Optimization
-  - Removed OAuth connection screen requirement for marketplace installations
-  - Updated root route to handle marketplace OAuth callbacks automatically
-  - Configured direct redirect to API management interface after successful OAuth
-  - Streamlined user experience: install from marketplace → immediate access to APIs
-  - Maintained development OAuth screen at /oauth-app for testing purposes
-
 - June 13, 2025: Complete Media Library API Suite Integration
   - Added Get List of Files API with advanced filtering, sorting, and multi-tenant support
   - Integrated Upload File API with multipart/form-data handling for binary and hosted uploads
@@ -216,26 +162,6 @@ The application follows a modern full-stack architecture with clear separation b
 ## Changelog
 
 - June 13, 2025. Initial setup and universal API system development
-
-## Session Recovery Benefits
-
-**Business Value**
-- Eliminates user frustration from lost sessions in embedded CRM tabs
-- Reduces support tickets related to authentication issues
-- Provides seamless experience across multiple devices and browsers
-- Maintains professional appearance with automatic session restoration
-
-**Technical Benefits**
-- Cookie-independent authentication works in restrictive iframe environments
-- Database-driven recovery using existing OAuth installations
-- Multi-method identification ensures maximum compatibility
-- Automatic detection requires no user intervention
-
-**User Experience**
-- One-click access from any GoHighLevel CRM tab
-- No re-authentication required when switching devices
-- Seamless operation despite cleared cookies or browser restrictions
-- Professional embedded app experience matching enterprise expectations
 
 ## User Preferences
 

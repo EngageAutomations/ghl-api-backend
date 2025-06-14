@@ -22,10 +22,6 @@ import MediaManager from '@/components/api/MediaManager';
 import ContactsManager from '@/components/api/ContactsManager';
 import OpportunitiesManager from '@/components/api/OpportunitiesManager';
 import WorkflowsManager from '@/components/api/WorkflowsManager';
-import CalendarsManager from '@/components/api/CalendarsManager';
-import FormsManager from '@/components/api/FormsManager';
-import LocationsManager from '@/components/api/LocationsManager';
-import APITestingInterface from '@/components/api/APITestingInterface';
 
 interface APIStats {
   endpoints: number;
@@ -233,7 +229,7 @@ export default function APIManagement() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="prices">Pricing</TabsTrigger>
@@ -241,9 +237,6 @@ export default function APIManagement() {
           <TabsTrigger value="contacts">Contacts</TabsTrigger>
           <TabsTrigger value="opportunities">Opportunities</TabsTrigger>
           <TabsTrigger value="workflows">Workflows</TabsTrigger>
-          <TabsTrigger value="calendars">Calendar</TabsTrigger>
-          <TabsTrigger value="forms">Forms</TabsTrigger>
-          <TabsTrigger value="locations">Locations</TabsTrigger>
           <TabsTrigger value="testing">API Testing</TabsTrigger>
         </TabsList>
 
@@ -313,20 +306,25 @@ export default function APIManagement() {
           <WorkflowsManager />
         </TabsContent>
 
-        <TabsContent value="calendars">
-          <CalendarsManager />
-        </TabsContent>
-
-        <TabsContent value="forms">
-          <FormsManager />
-        </TabsContent>
-
-        <TabsContent value="locations">
-          <LocationsManager />
-        </TabsContent>
-
         <TabsContent value="testing">
-          <APITestingInterface />
+          <Card>
+            <CardHeader>
+              <CardTitle>API Testing Interface</CardTitle>
+              <CardDescription>
+                Test any GoHighLevel API endpoint with real data
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">
+                  API testing interface coming soon. Use the specific category tabs above to manage operations.
+                </p>
+                <Button variant="outline">
+                  View API Documentation
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
