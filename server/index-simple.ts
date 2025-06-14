@@ -232,7 +232,7 @@ function getEnhancedOAuthAppHTML(): string {
 </html>`;
 }
 
-// Root route for marketplace installations and embedded CRM tab access
+// OAuth route specifically for root path only
 app.get('/', async (req, res) => {
   const { code, state, error, action, ghl_user_id, ghl_location_id, embedded } = req.query;
   
@@ -324,8 +324,8 @@ async function startServer() {
     
     // SPA fallback for client-side routing
     app.get('*', (req, res) => {
-      // Don't override the OAuth root route
-      if (req.path === '/') {
+      // Don't override the OAuth root route or API routes
+      if (req.path === '/' || req.path.startsWith('/api/')) {
         return;
       }
       res.sendFile(path.join(distPath, 'index.html'));
