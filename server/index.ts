@@ -1529,7 +1529,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // Setup direct OAuth routes AFTER cookie parser to ensure cookies are available
-setupDirectOAuthRoutes(app);
+// setupDirectOAuthRoutes(app);
 
 // Domain and CORS setup
 app.use(setupDomainRedirects);

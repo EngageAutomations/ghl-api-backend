@@ -12,11 +12,11 @@ import {
   insertCollectionSchema,
   insertCollectionItemSchema
 } from "@shared/schema";
-import { generateBulletPoints } from "./ai-summarizer";
+// import { generateBulletPoints } from "./ai-summarizer";
 import { googleDriveService } from "./google-drive";
 import { runTestSuite, runFormTests, generateCode, getFeatureDocumentation, updateConfigurationCode } from "./dev-tools";
 import { handleFormSubmission, getFormSubmissions, downloadJSONFile } from "./form-submission-handler";
-import { aiAgent, AIRequest } from "./ai-agent-simple";
+// import { aiAgent, AIRequest } from "./ai-agent-simple";
 import { ghlAPI } from "./ghl-api";
 import { ghlOAuth } from "./ghl-oauth";
 import { authenticateToken } from "./auth-middleware";
