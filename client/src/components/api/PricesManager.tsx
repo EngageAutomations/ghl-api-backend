@@ -41,3 +41,5 @@ export default function PricesManager() {
     </div>
   );
 }
+
+export { PricesManager };

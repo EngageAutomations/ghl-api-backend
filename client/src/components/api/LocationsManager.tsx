@@ -337,3 +337,5 @@ export default function LocationsManager() {
     </div>
   );
 }
+
+export default LocationsManager;

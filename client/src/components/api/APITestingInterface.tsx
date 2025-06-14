@@ -366,3 +366,5 @@ export default function APITestingInterface() {
     </div>
   );
 }
+
+export default APITestingInterface;

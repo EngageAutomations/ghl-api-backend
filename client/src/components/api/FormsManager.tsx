@@ -236,3 +236,5 @@ export default function FormsManager() {
     </div>
   );
 }
+
+export default FormsManager;

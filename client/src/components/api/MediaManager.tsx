@@ -378,3 +378,5 @@ export default function MediaManager() {
     </div>
   );
 }
+
+export { MediaManager };

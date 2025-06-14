@@ -232,3 +232,5 @@ export default function CalendarsManager() {
     </div>
   );
 }
+
+export default CalendarsManager;

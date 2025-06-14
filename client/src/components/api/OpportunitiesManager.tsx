@@ -41,3 +41,5 @@ export default function OpportunitiesManager() {
     </div>
   );
 }
+
+export { OpportunitiesManager };
