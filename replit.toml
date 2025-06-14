@@ -8,7 +8,7 @@ run = ["npm", "run", "start"]
 [workflows."Start application"]
 name = "Start application"
 author = "replit"
-command = "npm run dev"
+command = "NODE_ENV=development tsx server/simple-index.ts"
 
 # Ensure all API routes are handled by Express, not static serving
 [[deployment.config]]
