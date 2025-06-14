@@ -26,6 +26,7 @@ import CollectionView from "@/pages/CollectionView";
 import GoogleDriveSetup from "@/pages/GoogleDriveSetup";
 import APIManagement from "@/pages/APIManagement";
 import InstallationRequired from "@/pages/InstallationRequired";
+import MarketplaceLanding from "@/pages/MarketplaceLanding";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
@@ -72,8 +73,13 @@ function Router() {
         <DirectoryForm />
       </Route>
       
-      {/* Root dashboard route */}
+      {/* Root marketplace landing page */}
       <Route path="/">
+        <MarketplaceLanding />
+      </Route>
+      
+      {/* Dashboard route */}
+      <Route path="/dashboard">
         <ProtectedRoute>
           <AppLayout>
             <Dashboard />

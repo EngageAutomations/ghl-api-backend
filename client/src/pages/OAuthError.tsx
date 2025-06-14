@@ -27,7 +27,8 @@ export default function OAuthError() {
   };
 
   const handleRetry = () => {
-    window.location.href = '/api/oauth/auth';
+    // Redirect to Railway backend OAuth initiation
+    window.location.href = 'https://dir.engageautomations.com/api/oauth/auth';
   };
 
   return (
