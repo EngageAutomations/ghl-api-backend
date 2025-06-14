@@ -408,171 +408,36 @@ app.get('/api/debug/installations', (req, res) => {
       id: install.id,
       ghlUserId: install.ghlUserId,
       ghlLocationId: install.ghlLocationId,
-      hasAccessToken: !!install.ghlAccessToken,
-      scopes: install.ghlScopes,
-      installationDate: install.installationDate
+      installationDate: install.installationDate,
+      isActive: install.isActive,
+      hasToken: !!install.ghlAccessToken
     }))
   });
 });
 
-// API Documentation
-app.get('/api/ghl/docs', (req, res) => {
+app.get('/api/debug/endpoints', (req, res) => {
   res.json({
     success: true,
-    documentation: {
-      baseUrl: '/api/ghl',
-      authentication: 'OAuth2 Bearer Token (stored from installation)',
-      totalEndpoints: GHL_API_ENDPOINTS.length,
-      endpoints: GHL_API_ENDPOINTS.map(endpoint => ({
-        method: endpoint.method,
-        path: `/api/ghl${endpoint.path}`,
-        scope: endpoint.scope,
-        requiresLocationId: endpoint.requiresLocationId
-      })),
-      parameters: {
-        headers: {
-          'x-installation-id': 'Optional: Specific installation ID',
-          'x-location-id': 'Optional: Override location ID'
-        },
-        query: {
-          limit: 'Pagination limit',
-          offset: 'Pagination offset',
-          search: 'Search term (for products)',
-          installationId: 'Alternative to header',
-          locationId: 'Alternative to header'
-        }
-      }
-    }
+    count: GHL_API_ENDPOINTS.length,
+    endpoints: GHL_API_ENDPOINTS.map(endpoint => ({
+      path: endpoint.path,
+      method: endpoint.method,
+      ghlEndpoint: endpoint.ghlEndpoint,
+      requiresLocationId: endpoint.requiresLocationId,
+      scope: endpoint.scope
+    }))
   });
 });
 
-// Test all endpoints
-app.get('/api/ghl/test/all', requireOAuth, async (req, res) => {
-  try {
-    const installationId = req.query.installationId;
-    const installation = await UniversalAPIHandler.getInstallation(installationId);
-    
-    const testResults = {};
-    const testEndpoints = [
-      { method: 'GET', path: '/products', name: 'products' },
-      { method: 'GET', path: '/contacts', name: 'contacts' },
-      { method: 'GET', path: '/locations', name: 'locations' },
-      { method: 'GET', path: '/workflows', name: 'workflows' },
-      { method: 'GET', path: '/forms', name: 'forms' },
-      { method: 'GET', path: '/media', name: 'media' },
-      { method: 'GET', path: '/user/info', name: 'userInfo' }
-    ];
-    
-    for (const testEndpoint of testEndpoints) {
-      try {
-        const config = UniversalAPIHandler.findEndpointConfig(testEndpoint.method, testEndpoint.path);
-        if (config) {
-          const result = await UniversalAPIHandler.makeGHLRequest(
-            config, 
-            {}, 
-            { limit: 5 }, 
-            null, 
-            {}, 
-            installation, 
-            installation.ghlLocationId
-          );
-          testResults[testEndpoint.name] = {
-            success: result.success,
-            status: result.status,
-            hasData: !!result.data
-          };
-        }
-      } catch (error) {
-        testResults[testEndpoint.name] = { 
-          success: false, 
-          error: error.message 
-        };
-      }
-    }
-    
-    res.json({
-      success: true,
-      installation: {
-        id: installation.id,
-        locationId: installation.ghlLocationId
-      },
-      testResults
-    });
-    
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Test failed',
-      details: error.message
-    });
-  }
-});
-
-// Universal API router - handles ALL GoHighLevel endpoints dynamically
-app.all('/api/ghl/*', requireOAuth, UniversalAPIHandler.handleUniversalRequest);
-
-// Legacy test endpoint for compatibility
-app.post('/api/test/ghl-product', requireOAuth, async (req, res) => {
-  const testProductData = {
-    name: req.body.name || `Test Product ${Date.now()}`,
-    description: req.body.description || 'Test product created via universal API',
-    productType: req.body.productType || 'DIGITAL',
-    availableInStore: req.body.availableInStore !== undefined ? req.body.availableInStore : true
-  };
-  
-  try {
-    const installation = await UniversalAPIHandler.getInstallation();
-    const config = UniversalAPIHandler.findEndpointConfig('POST', '/products');
-    
-    const result = await UniversalAPIHandler.makeGHLRequest(
-      config,
-      {},
-      { locationId: installation.ghlLocationId },
-      testProductData,
-      {},
-      installation,
-      installation.ghlLocationId
-    );
-    
-    if (result.success) {
-      result.installation = {
-        id: installation.id,
-        ghlLocationId: installation.ghlLocationId
-      };
-    }
-    
-    res.json(result);
-    
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Test failed',
-      details: error.message
-    });
-  }
-});
-
-// Error handling
-app.use((error, req, res, next) => {
-  console.error('Unhandled error:', error);
-  res.status(500).json({
-    error: 'Internal server error',
-    message: error.message,
-    timestamp: new Date().toISOString()
-  });
-});
+// Universal GHL API router
+app.all('/api/ghl/*', UniversalAPIHandler.handleUniversalRequest);
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Universal GHL API Backend Running`);
-  console.log(`Port: ${PORT}`);
-  console.log(`Supported endpoints: ${GHL_API_ENDPOINTS.length}`);
-  console.log(`API Documentation: http://0.0.0.0:${PORT}/api/ghl/docs`);
-  console.log(`Universal router: /api/ghl/* handles all endpoints automatically`);
-  console.log('');
-  console.log('🚀 API Categories:');
-  const categories = [...new Set(GHL_API_ENDPOINTS.map(e => e.scope.split('.')[0]))];
-  categories.forEach(cat => console.log(`   • ${cat.charAt(0).toUpperCase() + cat.slice(1)}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Universal GHL API Backend running on port ${PORT}`);
+  console.log(`📊 Supporting ${GHL_API_ENDPOINTS.length} API endpoints`);
+  console.log(`🔗 OAuth callback: /api/oauth/callback`);
+  console.log(`📋 Health check: /health`);
 });
 
 module.exports = app;

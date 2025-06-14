@@ -25,6 +25,7 @@ import Collections from "@/pages/Collections";
 import CollectionView from "@/pages/CollectionView";
 import GoogleDriveSetup from "@/pages/GoogleDriveSetup";
 import APIManagement from "@/pages/APIManagement";
+import InstallationRequired from "@/pages/InstallationRequired";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
@@ -148,6 +149,11 @@ function Router() {
             <APIManagement />
           </AppLayout>
         </ProtectedRoute>
+      </Route>
+      
+      {/* Installation Required Page */}
+      <Route path="/installation-required">
+        <InstallationRequired />
       </Route>
       
       <Route path="/create-listing">
