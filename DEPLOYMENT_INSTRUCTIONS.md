@@ -10,11 +10,10 @@ You encountered two critical issues:
 
 ### Files to Upload to Railway
 
-Replace all files in your Railway project with these three files from the `railway-final-deployment/` folder:
+Replace all files in your Railway project with these two files:
 
-1. **index.js** - Enhanced OAuth backend with Universal API Router
-2. **package.json** - Production dependencies  
-3. **railway.toml** - Deployment configuration with health checks
+1. **railway-working-backend.js** (rename to `index.js`) - Working OAuth backend with proper error handling
+2. **railway-working-package.json** (rename to `package.json`) - Simplified dependencies
 
 ### Railway Environment Variables Required
 

@@ -161,6 +161,14 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 15, 2025: Railway Backend 404 Errors Fixed and User Data Isolation Implemented
+  - Fixed Railway backend deployment issues causing 404 errors on health and OAuth endpoints
+  - Created simplified, reliable Railway backend with proper Express server configuration
+  - Resolved user data isolation where new OAuth users saw development test data instead of empty workspace
+  - Updated working routes to require authenticated user IDs for all directory and listing operations
+  - Railway backend now properly handles OAuth callbacks and API proxying to GoHighLevel
+  - New OAuth installations will start with clean, user-specific workspaces
+
 - June 15, 2025: Enhanced OAuth Dual-Domain Architecture Deployed to Railway
   - Deployed complete enhanced OAuth system to Railway production backend
   - Authorization Code with PKCE flow now handling real marketplace installations
