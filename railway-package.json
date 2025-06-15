@@ -1,0 +1,21 @@
+{
+  "name": "railway-oauth-backend-fixed",
+  "version": "2.0.0",
+  "description": "Fixed GoHighLevel OAuth Backend with corrected user API endpoint",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["gohighlevel", "oauth", "marketplace", "api"],
+  "author": "Railway OAuth Backend",
+  "license": "MIT"
+}
