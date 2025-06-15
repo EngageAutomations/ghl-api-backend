@@ -1942,7 +1942,133 @@ app.use((req, res, next) => {
     });
   });
 
-  // CRITICAL: Register API routes AFTER the root route
+  // CRITICAL: Add OAuth status endpoint BEFORE registerRoutes to prevent HTML responses
+  app.get('/api/oauth/status', async (req, res) => {
+    console.log('OAuth Status endpoint hit with query:', req.query);
+    
+    try {
+      const installationId = req.query.installation_id as string;
+      
+      if (!installationId) {
+        return res.status(400).json({
+          success: false,
+          error: 'missing_installation_id',
+          message: 'Installation ID is required'
+        });
+      }
+
+      // Query database for OAuth installation
+      const { db } = await import("./db");
+      const installationQuery = await db.query(
+        'SELECT * FROM oauth_installations WHERE id = $1 AND is_active = true',
+        [installationId]
+      );
+
+      if (installationQuery.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'installation_not_found',
+          message: 'OAuth installation not found or inactive'
+        });
+      }
+
+      const installation = installationQuery.rows[0];
+      
+      // Check if access token is expired
+      const now = new Date();
+      const tokenExpiry = new Date(installation.ghl_token_expiry);
+      
+      if (now >= tokenExpiry) {
+        console.log('Access token expired, attempting refresh...');
+        
+        // Attempt token refresh
+        const refreshResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            client_id: process.env.GHL_CLIENT_ID!,
+            client_secret: process.env.GHL_CLIENT_SECRET!,
+            refresh_token: installation.ghl_refresh_token
+          })
+        });
+
+        if (refreshResponse.ok) {
+          const tokenData = await refreshResponse.json();
+          const newExpiry = new Date(Date.now() + (tokenData.expires_in * 1000));
+          
+          // Update database with new tokens
+          await db.query(
+            'UPDATE oauth_installations SET ghl_access_token = $1, ghl_token_expiry = $2 WHERE id = $3',
+            [tokenData.access_token, newExpiry, installationId]
+          );
+          
+          installation.ghl_access_token = tokenData.access_token;
+          installation.ghl_token_expiry = newExpiry;
+          console.log('Token refreshed successfully');
+        } else {
+          return res.status(401).json({
+            success: false,
+            error: 'token_refresh_failed',
+            message: 'Unable to refresh expired access token'
+          });
+        }
+      }
+
+      // Get user info from GoHighLevel
+      const userInfoResponse = await fetch('https://services.leadconnectorhq.com/v1/users/me', {
+        headers: {
+          'Authorization': `Bearer ${installation.ghl_access_token}`,
+          'Version': '2021-07-28',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (userInfoResponse.ok) {
+        const userInfo = await userInfoResponse.json();
+        
+        return res.json({
+          success: true,
+          user: {
+            id: userInfo.id,
+            name: userInfo.name,
+            email: userInfo.email,
+            phone: userInfo.phone
+          },
+          installation: {
+            id: installation.id,
+            locationId: installation.ghl_location_id,
+            locationName: installation.ghl_location_name,
+            scopes: installation.ghl_scopes
+          },
+          tokenStatus: 'valid'
+        });
+      } else {
+        const errorText = await userInfoResponse.text();
+        console.error('GoHighLevel user info API error:', errorText);
+        
+        return res.status(userInfoResponse.status).json({
+          success: false,
+          error: 'user_info_failed',
+          message: 'Failed to retrieve user information from GoHighLevel',
+          details: errorText
+        });
+      }
+
+    } catch (error) {
+      console.error('OAuth status error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'internal_error',
+        message: 'Internal server error during OAuth status check',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // CRITICAL: Register API routes AFTER the OAuth status endpoint
   server = await registerRoutes(app);
   console.log("✅ API routes registered successfully");
 
