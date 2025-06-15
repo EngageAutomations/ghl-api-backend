@@ -161,6 +161,14 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 15, 2025: OAuth Backend Critical Fixes Successfully Deployed to Production
+  - Fixed Railway backend deployment with corrected GoHighLevel user API endpoint (/users/me instead of /v1/users/me)
+  - Added missing /api/oauth/auth endpoint that was causing 404 errors on frontend retry mechanism
+  - Enhanced error handling and token management with proper JSON responses
+  - Updated backend version to 2.0.0 for clear identification of fixes
+  - Domain dir.engageautomations.com now correctly points to fixed backend
+  - OAuth flow ready for production marketplace installations without "user_info_failed" errors
+
 - June 15, 2025: Final OAuth Production Deployment Solution Completed - Ready for Railway
   - Completed comprehensive smoke testing revealing development environment routing conflicts
   - Created production-optimized Express backend bypassing Vite development middleware issues
