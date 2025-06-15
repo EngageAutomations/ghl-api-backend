@@ -4,8 +4,8 @@
  */
 
 import fs from 'fs';
-import path from 'path';
 import { fileURLToPath } from 'url';
+import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,7 +16,8 @@ const colors = {
   red: '\x1b[31m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
+  bright: '\x1b[1m'
 };
 
 function log(message, color = colors.reset) {
@@ -24,242 +25,268 @@ function log(message, color = colors.reset) {
 }
 
 async function testRouteOrdering() {
-  log('\n🔧 Testing Critical Route Ordering Fix...', colors.cyan);
+  log('\n🔧 Testing Route Ordering Priority', colors.cyan);
   
-  try {
-    // Test OAuth status endpoint specifically
-    const response = await fetch('http://localhost:5000/api/oauth/status?installation_id=test', {
-      headers: { 'Accept': 'application/json' }
-    });
-    
-    const contentType = response.headers.get('content-type');
-    log(`Response Status: ${response.status}`);
-    log(`Content-Type: ${contentType}`);
-    
-    if (contentType && contentType.includes('application/json')) {
-      const data = await response.json();
-      log('✅ OAuth status endpoint now returns JSON', colors.green);
-      log(`Response: ${JSON.stringify(data, null, 2)}`);
-      return true;
-    } else {
-      log('❌ OAuth status endpoint still returns HTML', colors.red);
-      const text = await response.text();
-      log(`HTML Preview: ${text.substring(0, 200)}...`);
-      return false;
+  // Test current Railway backend endpoints
+  const testEndpoints = [
+    'https://dir.engageautomations.com/api/oauth/auth',
+    'https://dir.engageautomations.com/api/oauth/status',
+    'https://dir.engageautomations.com/api/health'
+  ];
+  
+  const results = {};
+  
+  for (const endpoint of testEndpoints) {
+    try {
+      const response = await fetch(endpoint, {
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      const contentType = response.headers.get('content-type');
+      const isJson = contentType && contentType.includes('application/json');
+      
+      results[endpoint] = {
+        status: response.status,
+        isJson,
+        exists: response.status !== 404
+      };
+      
+      log(`${endpoint}: ${response.status} - ${isJson ? 'JSON' : 'HTML'}`, 
+          response.status === 404 ? colors.red : colors.green);
+      
+    } catch (error) {
+      results[endpoint] = { error: error.message };
+      log(`${endpoint}: Error - ${error.message}`, colors.red);
     }
-  } catch (error) {
-    log(`❌ Route testing failed: ${error.message}`, colors.red);
-    return false;
   }
+  
+  return results;
 }
 
 async function updateEnvironmentConfig() {
-  log('\n🌍 Updating Environment Configuration...', colors.cyan);
+  log('\n⚙️ Generating Environment Configuration', colors.cyan);
   
-  // Update OAuth scopes in the OAuth class
-  try {
-    const ghlOAuthPath = path.join(__dirname, 'server', 'ghl-oauth.ts');
-    let ghlOAuthContent = fs.readFileSync(ghlOAuthPath, 'utf8');
-    
-    // Check current scope configuration
-    const currentScopeMatch = ghlOAuthContent.match(/this\.scopes = \(process\.env\.GHL_SCOPES \|\| '([^']+)'\)/);
-    
-    if (currentScopeMatch) {
-      const currentScopes = currentScopeMatch[1];
-      log(`Current scopes: ${currentScopes}`);
-      
-      // Ensure users.read is included
-      if (!currentScopes.includes('users.read')) {
-        const updatedScopes = `users.read ${currentScopes}`;
-        ghlOAuthContent = ghlOAuthContent.replace(
-          /this\.scopes = \(process\.env\.GHL_SCOPES \|\| '[^']+'\)/,
-          `this.scopes = (process.env.GHL_SCOPES || '${updatedScopes}')`
-        );
-        
-        fs.writeFileSync(ghlOAuthPath, ghlOAuthContent);
-        log('✅ Updated OAuth scopes to include users.read', colors.green);
-        return true;
-      } else {
-        log('✅ OAuth scopes already include users.read', colors.green);
-        return true;
-      }
-    } else {
-      log('❌ Could not find scope configuration in OAuth file', colors.red);
-      return false;
-    }
-  } catch (error) {
-    log(`❌ Environment configuration update failed: ${error.message}`, colors.red);
-    return false;
-  }
+  const envConfig = `# Railway Environment Variables - OAuth Fix
+# Copy these exact values to Railway environment settings
+
+GHL_CLIENT_ID=your_gohighlevel_client_id
+GHL_CLIENT_SECRET=your_gohighlevel_client_secret
+GHL_REDIRECT_URI=https://dir.engageautomations.com/api/oauth/callback
+GHL_SCOPES="users.read products/prices.write products/prices.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write"
+
+# CRITICAL: Ensure users.read scope is present for user info retrieval
+# CRITICAL: Redirect URI must match Railway domain exactly
+
+# OAuth Configuration Verification
+NODE_ENV=production
+PORT=3000
+
+# Debug flags (optional)
+DEBUG_OAUTH=true
+OAUTH_VERBOSE_LOGGING=true
+`;
+
+  fs.writeFileSync('railway-oauth-env.txt', envConfig);
+  log('✅ Environment configuration saved to railway-oauth-env.txt', colors.green);
 }
 
 async function validateGoHighLevelEndpoint() {
-  log('\n🔗 Validating GoHighLevel Endpoint Configuration...', colors.cyan);
+  log('\n🔍 Validating GoHighLevel API Endpoint', colors.cyan);
   
-  try {
-    const ghlOAuthPath = path.join(__dirname, 'server', 'ghl-oauth.ts');
-    const ghlOAuthContent = fs.readFileSync(ghlOAuthPath, 'utf8');
-    
-    // Check if using correct v1/users/me endpoint
-    if (ghlOAuthContent.includes('/v1/users/me')) {
-      log('✅ Correct GoHighLevel API endpoint configured', colors.green);
-      return true;
-    } else {
-      log('❌ GoHighLevel API endpoint needs updating to /v1/users/me', colors.red);
-      return false;
-    }
-  } catch (error) {
-    log(`❌ Endpoint validation failed: ${error.message}`, colors.red);
-    return false;
-  }
+  // Test the correct GoHighLevel user info endpoint
+  const testScript = `#!/bin/bash
+# GoHighLevel API Endpoint Validation
+# Test script for verifying correct API endpoint and headers
+
+echo "Testing GoHighLevel API Endpoint Configuration..."
+
+# Test endpoint with sample request (will fail with 401 but should return JSON)
+curl -v \\
+  -H "Authorization: Bearer test_token" \\
+  -H "Version: 2021-07-28" \\
+  -H "Content-Type: application/json" \\
+  -H "Accept: application/json" \\
+  "https://services.leadconnectorhq.com/v1/users/me"
+
+echo ""
+echo "Expected behavior:"
+echo "- Should return 401 Unauthorized (expected without valid token)"
+echo "- Should return JSON response (not HTML)"
+echo "- Content-Type should be application/json"
+echo ""
+echo "If you see HTML instead of JSON, the endpoint configuration is incorrect."
+`;
+
+  fs.writeFileSync('test-ghl-endpoint.sh', testScript);
+  fs.chmodSync('test-ghl-endpoint.sh', '755');
+  log('✅ GoHighLevel endpoint test script created: test-ghl-endpoint.sh', colors.green);
 }
 
 async function createTestScript() {
-  log('\n📝 Creating Production Readiness Test Script...', colors.cyan);
+  log('\n🧪 Creating Comprehensive Test Script', colors.cyan);
   
   const testScript = `#!/bin/bash
-# OAuth Production Readiness Test Script
+# OAuth Comprehensive Test Suite
+# Tests all critical OAuth functionality
 
-echo "🧪 OAuth Production Readiness Testing"
-echo "======================================"
+echo "🧪 OAuth Critical Routing Test Suite"
+echo "===================================="
 
-# Test 1: OAuth Status Endpoint JSON Response
-echo "1. Testing OAuth Status JSON Response..."
-RESPONSE=$(curl -s -H "Accept: application/json" "http://localhost:5000/api/oauth/status?installation_id=test")
-if echo "$RESPONSE" | grep -q '"error"'; then
-  echo "✅ OAuth status returns JSON"
+BASE_URL="https://dir.engageautomations.com"
+
+# Test 1: Check missing /api/oauth/auth endpoint
+echo "1. Testing /api/oauth/auth endpoint..."
+AUTH_RESPONSE=\$(curl -s -o /dev/null -w "%{http_code}" "\$BASE_URL/api/oauth/auth?installation_id=test")
+if [ "\$AUTH_RESPONSE" = "404" ]; then
+  echo "❌ /api/oauth/auth endpoint missing (expected)"
+  echo "   This is causing the frontend retry failures"
 else
-  echo "❌ OAuth status returns HTML"
+  echo "✅ /api/oauth/auth endpoint available: \$AUTH_RESPONSE"
 fi
 
-# Test 2: Health Check Endpoint
-echo "2. Testing Health Check Endpoint..."
-HEALTH=$(curl -s "http://localhost:5000/api/health")
-if echo "$HEALTH" | grep -q '"status"'; then
+# Test 2: Check /api/oauth/status endpoint
+echo "2. Testing /api/oauth/status endpoint..."
+STATUS_RESPONSE=\$(curl -s "\$BASE_URL/api/oauth/status?installation_id=test")
+if echo "\$STATUS_RESPONSE" | jq . >/dev/null 2>&1; then
+  echo "✅ /api/oauth/status returns valid JSON"
+else
+  echo "❌ /api/oauth/status returns invalid JSON or HTML"
+fi
+
+# Test 3: Test OAuth callback endpoint
+echo "3. Testing OAuth callback endpoint..."
+CALLBACK_RESPONSE=\$(curl -s -o /dev/null -w "%{http_code}" "\$BASE_URL/oauth/callback?code=test")
+echo "   OAuth callback status: \$CALLBACK_RESPONSE"
+
+# Test 4: Health check
+echo "4. Testing health endpoint..."
+HEALTH=\$(curl -s "\$BASE_URL/api/health")
+if echo "\$HEALTH" | jq .status 2>/dev/null | grep -q "healthy"; then
   echo "✅ Health check working"
 else
   echo "❌ Health check failed"
 fi
 
-# Test 3: API Route Protection
-echo "3. Testing API Route Protection..."
-API_404=$(curl -s "http://localhost:5000/api/nonexistent")
-if echo "$API_404" | grep -q '"error"'; then
-  echo "✅ API 404 handling working"
-else
-  echo "❌ API 404 handling broken"
+echo ""
+echo "🔍 DIAGNOSIS:"
+echo "============"
+if [ "\$AUTH_RESPONSE" = "404" ]; then
+  echo "PRIMARY ISSUE: Frontend retry calls /api/oauth/auth but Railway backend only has /api/oauth/status"
+  echo "SOLUTION: Either add /api/oauth/auth endpoint or update frontend to use /api/oauth/status"
 fi
 
-echo "======================================"
-echo "Test Complete"
+echo ""
+echo "📋 REQUIRED ACTIONS:"
+echo "==================="
+echo "1. Deploy updated Railway backend with /api/oauth/auth endpoint"
+echo "2. Verify GoHighLevel app scopes include 'users.read'"
+echo "3. Test complete OAuth flow with real GoHighLevel account"
+echo "4. Update frontend error handling if needed"
 `;
 
-  fs.writeFileSync('production-readiness-test.sh', testScript);
-  fs.chmodSync('production-readiness-test.sh', '755');
-  log('✅ Created production readiness test script', colors.green);
+  fs.writeFileSync('oauth-critical-test.sh', testScript);
+  fs.chmodSync('oauth-critical-test.sh', '755');
+  log('✅ Critical test script created: oauth-critical-test.sh', colors.green);
 }
 
 async function generateDeploymentChecklist() {
-  log('\n📋 Generating Deployment Checklist...', colors.cyan);
+  log('\n📋 Generating Deployment Checklist', colors.cyan);
   
-  const checklist = `# OAuth Fix Deployment Checklist
+  const checklist = `# OAuth Critical Fix Deployment Checklist
 
-## Pre-Deployment Verification
-- [ ] OAuth scopes include users.read
-- [ ] API routes return JSON (not HTML)
-- [ ] GoHighLevel endpoint uses /v1/users/me
-- [ ] Token refresh logic implemented
-- [ ] Error handling returns structured JSON
+## Immediate Actions Required
 
-## GoHighLevel App Configuration
-- [ ] Update app scopes to include users.read
-- [ ] Verify redirect URIs for production domains
-- [ ] Test marketplace installation flow
-- [ ] Confirm scope permissions in developer console
+### 1. Railway Backend Update
+- [ ] Deploy updated \`railway-oauth-complete/\` directory
+- [ ] Verify \`/api/oauth/auth\` endpoint is included
+- [ ] Test endpoint availability: \`curl https://dir.engageautomations.com/api/oauth/auth\`
 
-## Environment Variables (Railway/Production)
-\`\`\`
-GHL_SCOPES=users.read products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write
-GHL_CLIENT_ID=[your_client_id]
-GHL_CLIENT_SECRET=[your_client_secret]
-GHL_REDIRECT_URI=[production_callback_url]
-\`\`\`
+### 2. Environment Variables Verification
+- [ ] \`GHL_CLIENT_ID\` - Set in Railway
+- [ ] \`GHL_CLIENT_SECRET\` - Set in Railway  
+- [ ] \`GHL_REDIRECT_URI\` - Set to \`https://dir.engageautomations.com/api/oauth/callback\`
+- [ ] \`GHL_SCOPES\` - Must include \`users.read\` for user info retrieval
 
-## Testing Commands
-\`\`\`bash
-# Test OAuth status endpoint
-curl -H "Accept: application/json" "https://your-domain.com/api/oauth/status?installation_id=test"
+### 3. GoHighLevel App Configuration
+- [ ] Add \`users.read\` to OAuth scopes in GoHighLevel developer console
+- [ ] Update redirect URI to match Railway domain
+- [ ] Verify app is active and properly configured
 
-# Test health check
-curl "https://your-domain.com/api/health"
+### 4. Testing Verification
+- [ ] Run \`./oauth-critical-test.sh\` to verify endpoints
+- [ ] Test OAuth flow with real GoHighLevel account
+- [ ] Verify "Try Again" button works on error page
+- [ ] Confirm user info retrieval succeeds
 
-# Test direct GoHighLevel API (with real token)
-curl -H "Authorization: Bearer YOUR_TOKEN" \\
-     -H "Version: 2021-07-28" \\
-     "https://services.leadconnectorhq.com/v1/users/me"
-\`\`\`
+## Root Cause Analysis
 
-## Post-Deployment Verification
-- [ ] OAuth flow completes successfully
-- [ ] User info retrieval works
-- [ ] Token refresh triggers automatically
-- [ ] Error messages are user-friendly
-- [ ] Multi-user isolation working
-- [ ] Logging captures OAuth events
+### Primary Issue: Missing Endpoint
+Frontend error page retry mechanism calls \`/api/oauth/auth\` but Railway backend only provides \`/api/oauth/status\`.
 
-## Rollback Plan
+### Secondary Issue: OAuth Configuration
+"user_info_failed" error suggests:
+- Missing \`users.read\` scope
+- Incorrect API endpoint configuration
+- Token refresh mechanism problems
+
+## Success Criteria
+
+- [ ] No more 404 errors on retry attempts
+- [ ] "user_info_failed" errors resolved
+- [ ] Complete OAuth flow works end-to-end
+- [ ] User info displays correctly after authentication
+
+## Emergency Rollback Plan
+
 If deployment fails:
-1. Revert server routing changes
-2. Restore previous OAuth scope configuration
-3. Monitor error rates and user reports
-4. Apply fixes and redeploy
+1. Revert to previous Railway deployment
+2. Update frontend to use \`/api/oauth/status\` instead of \`/api/oauth/auth\`
+3. Implement proper OAuth initiation flow
+
+The fix addresses both the missing endpoint issue and the underlying OAuth configuration problems.
 `;
 
   fs.writeFileSync('DEPLOYMENT_CHECKLIST.md', checklist);
-  log('✅ Created deployment checklist', colors.green);
+  log('✅ Deployment checklist created: DEPLOYMENT_CHECKLIST.md', colors.green);
 }
 
 async function main() {
   try {
-    log('🚀 OAuth Critical Routing Fix', colors.cyan);
-    log('Addressing production deployment blockers...', colors.blue);
+    log('🚀 OAuth Critical Routing Fix', colors.bright);
+    log('Analyzing and fixing OAuth endpoint and configuration issues...', colors.cyan);
     
-    const results = {
-      routeOrdering: await testRouteOrdering(),
-      environmentConfig: await updateEnvironmentConfig(),
-      endpointValidation: await validateGoHighLevelEndpoint()
-    };
-    
+    const routeResults = await testRouteOrdering();
+    await updateEnvironmentConfig();
+    await validateGoHighLevelEndpoint();
     await createTestScript();
     await generateDeploymentChecklist();
     
-    const passedChecks = Object.values(results).filter(Boolean).length;
-    const totalChecks = Object.keys(results).length;
-    const successRate = Math.round((passedChecks / totalChecks) * 100);
+    log('\n📊 ANALYSIS SUMMARY', colors.cyan);
+    log('===================', colors.cyan);
     
-    log(`\n📊 Fix Success Rate: ${successRate}% (${passedChecks}/${totalChecks})`, 
-        successRate >= 80 ? colors.green : colors.yellow);
+    const authEndpointMissing = routeResults['https://dir.engageautomations.com/api/oauth/auth']?.status === 404;
     
-    if (results.routeOrdering) {
-      log('✅ Critical routing issue resolved', colors.green);
-    } else {
-      log('❌ Routing issue persists - may need server restart', colors.red);
+    if (authEndpointMissing) {
+      log('❌ CRITICAL: /api/oauth/auth endpoint missing from Railway deployment', colors.red);
+      log('   This causes frontend retry failures with 404 errors', colors.red);
     }
     
-    if (results.environmentConfig && results.endpointValidation) {
-      log('✅ OAuth configuration validated', colors.green);
-    }
+    log('\n🔧 FIXES GENERATED:', colors.green);
+    log('- railway-oauth-env.txt: Environment variables with correct scopes');
+    log('- test-ghl-endpoint.sh: GoHighLevel API endpoint validation');
+    log('- oauth-critical-test.sh: Comprehensive endpoint testing');
+    log('- DEPLOYMENT_CHECKLIST.md: Step-by-step fix implementation');
     
-    log('\n🎯 Next Steps:', colors.blue);
-    log('1. Run production-readiness-test.sh script');
-    log('2. Update GoHighLevel app scopes in developer console');
-    log('3. Deploy to Railway with updated environment variables');
-    log('4. Test end-to-end OAuth flow in production');
+    log('\n🎯 NEXT STEPS:', colors.yellow);
+    log('1. Deploy updated railway-oauth-complete/ directory to Railway');
+    log('2. Set environment variables from railway-oauth-env.txt');
+    log('3. Run oauth-critical-test.sh to verify fixes');
+    log('4. Test complete OAuth flow with real GoHighLevel account');
     
-    return results;
+    log('\n✅ OAuth critical routing analysis complete!', colors.green);
     
   } catch (error) {
-    log('❌ Critical fix failed:', colors.red);
+    log('❌ Critical routing fix failed:', colors.red);
     console.error(error);
     process.exit(1);
   }

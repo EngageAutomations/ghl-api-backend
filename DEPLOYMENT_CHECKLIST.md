@@ -1,51 +1,52 @@
-# OAuth Fix Deployment Checklist
+# OAuth Critical Fix Deployment Checklist
 
-## Pre-Deployment Verification
-- [ ] OAuth scopes include users.read
-- [ ] API routes return JSON (not HTML)
-- [ ] GoHighLevel endpoint uses /v1/users/me
-- [ ] Token refresh logic implemented
-- [ ] Error handling returns structured JSON
+## Immediate Actions Required
 
-## GoHighLevel App Configuration
-- [ ] Update app scopes to include users.read
-- [ ] Verify redirect URIs for production domains
-- [ ] Test marketplace installation flow
-- [ ] Confirm scope permissions in developer console
+### 1. Railway Backend Update
+- [ ] Deploy updated `railway-oauth-complete/` directory
+- [ ] Verify `/api/oauth/auth` endpoint is included
+- [ ] Test endpoint availability: `curl https://dir.engageautomations.com/api/oauth/auth`
 
-## Environment Variables (Railway/Production)
-```
-GHL_SCOPES=users.read products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write
-GHL_CLIENT_ID=[your_client_id]
-GHL_CLIENT_SECRET=[your_client_secret]
-GHL_REDIRECT_URI=[production_callback_url]
-```
+### 2. Environment Variables Verification
+- [ ] `GHL_CLIENT_ID` - Set in Railway
+- [ ] `GHL_CLIENT_SECRET` - Set in Railway  
+- [ ] `GHL_REDIRECT_URI` - Set to `https://dir.engageautomations.com/api/oauth/callback`
+- [ ] `GHL_SCOPES` - Must include `users.read` for user info retrieval
 
-## Testing Commands
-```bash
-# Test OAuth status endpoint
-curl -H "Accept: application/json" "https://your-domain.com/api/oauth/status?installation_id=test"
+### 3. GoHighLevel App Configuration
+- [ ] Add `users.read` to OAuth scopes in GoHighLevel developer console
+- [ ] Update redirect URI to match Railway domain
+- [ ] Verify app is active and properly configured
 
-# Test health check
-curl "https://your-domain.com/api/health"
+### 4. Testing Verification
+- [ ] Run `./oauth-critical-test.sh` to verify endpoints
+- [ ] Test OAuth flow with real GoHighLevel account
+- [ ] Verify "Try Again" button works on error page
+- [ ] Confirm user info retrieval succeeds
 
-# Test direct GoHighLevel API (with real token)
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-     -H "Version: 2021-07-28" \
-     "https://services.leadconnectorhq.com/v1/users/me"
-```
+## Root Cause Analysis
 
-## Post-Deployment Verification
-- [ ] OAuth flow completes successfully
-- [ ] User info retrieval works
-- [ ] Token refresh triggers automatically
-- [ ] Error messages are user-friendly
-- [ ] Multi-user isolation working
-- [ ] Logging captures OAuth events
+### Primary Issue: Missing Endpoint
+Frontend error page retry mechanism calls `/api/oauth/auth` but Railway backend only provides `/api/oauth/status`.
 
-## Rollback Plan
+### Secondary Issue: OAuth Configuration
+"user_info_failed" error suggests:
+- Missing `users.read` scope
+- Incorrect API endpoint configuration
+- Token refresh mechanism problems
+
+## Success Criteria
+
+- [ ] No more 404 errors on retry attempts
+- [ ] "user_info_failed" errors resolved
+- [ ] Complete OAuth flow works end-to-end
+- [ ] User info displays correctly after authentication
+
+## Emergency Rollback Plan
+
 If deployment fails:
-1. Revert server routing changes
-2. Restore previous OAuth scope configuration
-3. Monitor error rates and user reports
-4. Apply fixes and redeploy
+1. Revert to previous Railway deployment
+2. Update frontend to use `/api/oauth/status` instead of `/api/oauth/auth`
+3. Implement proper OAuth initiation flow
+
+The fix addresses both the missing endpoint issue and the underlying OAuth configuration problems.
