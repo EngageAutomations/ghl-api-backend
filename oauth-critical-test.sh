@@ -1,57 +1,44 @@
 #!/bin/bash
-# OAuth Comprehensive Test Suite
-# Tests all critical OAuth functionality
 
-echo "🧪 OAuth Critical Routing Test Suite"
-echo "===================================="
+# OAuth Critical Test - Verify Current Railway State
+echo "🔍 Testing Current Railway OAuth Configuration"
+echo "============================================="
 
-BASE_URL="https://dir.engageautomations.com"
-
-# Test 1: Check missing /api/oauth/auth endpoint
-echo "1. Testing /api/oauth/auth endpoint..."
-AUTH_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/api/oauth/auth?installation_id=test")
-if [ "$AUTH_RESPONSE" = "404" ]; then
-  echo "❌ /api/oauth/auth endpoint missing (expected)"
-  echo "   This is causing the frontend retry failures"
-else
-  echo "✅ /api/oauth/auth endpoint available: $AUTH_RESPONSE"
-fi
-
-# Test 2: Check /api/oauth/status endpoint
-echo "2. Testing /api/oauth/status endpoint..."
-STATUS_RESPONSE=$(curl -s "$BASE_URL/api/oauth/status?installation_id=test")
-if echo "$STATUS_RESPONSE" | jq . >/dev/null 2>&1; then
-  echo "✅ /api/oauth/status returns valid JSON"
-else
-  echo "❌ /api/oauth/status returns invalid JSON or HTML"
-fi
-
-# Test 3: Test OAuth callback endpoint
-echo "3. Testing OAuth callback endpoint..."
-CALLBACK_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/oauth/callback?code=test")
-echo "   OAuth callback status: $CALLBACK_RESPONSE"
-
-# Test 4: Health check
-echo "4. Testing health endpoint..."
-HEALTH=$(curl -s "$BASE_URL/api/health")
-if echo "$HEALTH" | jq .status 2>/dev/null | grep -q "healthy"; then
-  echo "✅ Health check working"
-else
-  echo "❌ Health check failed"
-fi
+echo "1. Testing Railway Backend Health..."
+HEALTH_RESPONSE=$(curl -s "https://dir.engageautomations.com/health")
+echo "Health Check: $HEALTH_RESPONSE"
 
 echo ""
-echo "🔍 DIAGNOSIS:"
+echo "2. Testing OAuth Callback with Your Authorization Code..."
+CALLBACK_RESPONSE=$(curl -s -w "%{http_code}" "https://dir.engageautomations.com/oauth/callback?code=1731fbd15b08681b9cc1b7a5fd321539d9b2c392")
+echo "OAuth Callback Response: $CALLBACK_RESPONSE"
+
+echo ""
+echo "3. Testing OAuth Auth Endpoint..."
+AUTH_RESPONSE=$(curl -s "https://dir.engageautomations.com/api/oauth/auth?installation_id=test")
+echo "OAuth Auth Response: $AUTH_RESPONSE"
+
+echo ""
+echo "🎯 Analysis:"
 echo "============"
-if [ "$AUTH_RESPONSE" = "404" ]; then
-  echo "PRIMARY ISSUE: Frontend retry calls /api/oauth/auth but Railway backend only has /api/oauth/status"
-  echo "SOLUTION: Either add /api/oauth/auth endpoint or update frontend to use /api/oauth/status"
+
+if [[ $CALLBACK_RESPONSE == *"token_exchange_failed"* ]]; then
+    echo "❌ OAuth callback is failing at token exchange step"
+    echo "   This indicates environment variables are missing or incorrect"
+    echo ""
+    echo "📋 Next Steps:"
+    echo "1. Deploy the updated Railway package (railway-oauth-fix.tar.gz)"
+    echo "2. Check Railway logs for environment variable validation output"
+    echo "3. If variables show 'NOT SET', add them in Railway Variables section"
+elif [[ $CALLBACK_RESPONSE == *"user_info_failed"* ]]; then
+    echo "✅ Token exchange working, but user info retrieval failing"
+    echo "   Environment variables are present but API endpoint may need adjustment"
+else
+    echo "✅ OAuth callback appears to be working correctly"
 fi
 
 echo ""
-echo "📋 REQUIRED ACTIONS:"
-echo "==================="
-echo "1. Deploy updated Railway backend with /api/oauth/auth endpoint"
-echo "2. Verify GoHighLevel app scopes include 'users.read'"
-echo "3. Test complete OAuth flow with real GoHighLevel account"
-echo "4. Update frontend error handling if needed"
+echo "🚀 Ready to Deploy Updated Backend"
+echo "=================================="
+echo "File ready: railway-oauth-fix.tar.gz"
+echo "This package includes environment variable validation and debugging"

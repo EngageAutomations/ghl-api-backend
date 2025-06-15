@@ -6,6 +6,20 @@
 const express = require('express');
 const cors = require('cors');
 
+// Environment variable validation
+console.log('=== Environment Variables Check ===');
+console.log('GHL_CLIENT_ID:', process.env.GHL_CLIENT_ID ? 'SET' : 'NOT SET');
+console.log('GHL_CLIENT_SECRET:', process.env.GHL_CLIENT_SECRET ? 'SET' : 'NOT SET');
+console.log('GHL_REDIRECT_URI:', process.env.GHL_REDIRECT_URI || 'NOT SET');
+
+if (!process.env.GHL_CLIENT_ID || !process.env.GHL_CLIENT_SECRET || !process.env.GHL_REDIRECT_URI) {
+  console.error('❌ Missing required environment variables:');
+  if (!process.env.GHL_CLIENT_ID) console.error('  - GHL_CLIENT_ID');
+  if (!process.env.GHL_CLIENT_SECRET) console.error('  - GHL_CLIENT_SECRET');
+  if (!process.env.GHL_REDIRECT_URI) console.error('  - GHL_REDIRECT_URI');
+  console.error('⚠️  OAuth functionality will fail without these variables');
+}
+
 const app = express();
 
 // Enhanced CORS for OAuth and embedded access
