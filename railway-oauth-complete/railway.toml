@@ -2,13 +2,7 @@
 builder = "NIXPACKS"
 
 [deploy]
-healthcheckPath = "/health"
+healthcheckPath = "/api/health"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
-
-[environment]
-GHL_CLIENT_ID = "68474924a586bce22a6e64f7-mbpkmyu4"
-GHL_CLIENT_SECRET = "b5a7a120-7df7-4d23-8796-4863cbd08f94"
-GHL_REDIRECT_URI = "https://dir.engageautomations.com/api/oauth/callback"
-NODE_ENV = "production"
