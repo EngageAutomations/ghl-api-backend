@@ -33,6 +33,9 @@ app.use(express.urlencoded({ extended: true }));
 // OAuth Installation Storage
 class OAuthStorage {
   async createInstallation(data) {
+    // First ensure the table exists
+    await this.ensureTableExists();
+    
     const query = `
       INSERT INTO oauth_installations (
         ghl_user_id, ghl_user_name, ghl_user_email, ghl_user_phone,
@@ -50,6 +53,33 @@ class OAuthStorage {
     
     const result = await pool.query(query, values);
     return result.rows[0];
+  }
+
+  async ensureTableExists() {
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS oauth_installations (
+        id SERIAL PRIMARY KEY,
+        ghl_user_id VARCHAR(255) UNIQUE NOT NULL,
+        ghl_user_name VARCHAR(255),
+        ghl_user_email VARCHAR(255),
+        ghl_user_phone VARCHAR(255),
+        ghl_location_id VARCHAR(255),
+        ghl_location_name VARCHAR(255),
+        ghl_access_token TEXT,
+        ghl_refresh_token TEXT,
+        ghl_scopes TEXT,
+        installation_date TIMESTAMP DEFAULT NOW(),
+        token_updated_at TIMESTAMP DEFAULT NOW(),
+        is_active BOOLEAN DEFAULT true
+      )
+    `;
+    
+    try {
+      await pool.query(createTableQuery);
+      console.log('✅ OAuth installations table ready');
+    } catch (error) {
+      console.error('❌ Error creating table:', error);
+    }
   }
 
   async getAllInstallations() {
