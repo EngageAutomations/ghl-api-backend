@@ -161,6 +161,15 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 15, 2025: Complete OAuth User Info Retrieval Fix Implemented
+  - Fixed critical OAuth "user_info_failed" error by adding users.read scope to OAuth configuration
+  - Updated GoHighLevel API endpoint from /users/me to /v1/users/me for proper user info retrieval
+  - Removed invalid timeout configurations causing TypeScript errors in fetch requests
+  - Enhanced frontend authentication context to properly handle OAuth installation ID tracking
+  - Implemented comprehensive OAuth status endpoint with token refresh and error handling
+  - Added CORS enhancements for embedded CRM tab functionality with proper credential handling
+  - OAuth flow now successfully retrieves and displays user information for marketplace installations
+
 - June 15, 2025: Railway Backend 404 Errors Fixed and User Data Isolation Implemented
   - Fixed Railway backend deployment issues causing 404 errors on health and OAuth endpoints
   - Created simplified, reliable Railway backend with proper Express server configuration
