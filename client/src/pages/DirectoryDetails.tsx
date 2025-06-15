@@ -686,28 +686,30 @@ export default function DirectoryDetails() {
 
       {/* Create Collection Dialog */}
       <Dialog open={showCollectionForm} onOpenChange={setShowCollectionForm}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>
               {editingCollection ? 'Edit Collection' : 'Create New Collection'}
             </DialogTitle>
           </DialogHeader>
-          <CreateCollectionForm
-            collection={editingCollection}
-            defaultDirectoryName={directoryName!}
-            onSubmit={(data: any) => {
-              if (editingCollection) {
-                // Handle edit
-                console.log('Edit collection:', data);
-              } else {
-                createCollectionMutation.mutate(data);
-              }
-            }}
-            onCancel={() => {
-              setShowCollectionForm(false);
-              setEditingCollection(null);
-            }}
-          />
+          <div className="flex-1 overflow-y-auto pr-2">
+            <CreateCollectionForm
+              collection={editingCollection}
+              defaultDirectoryName={directoryName!}
+              onSubmit={(data: any) => {
+                if (editingCollection) {
+                  // Handle edit
+                  console.log('Edit collection:', data);
+                } else {
+                  createCollectionMutation.mutate(data);
+                }
+              }}
+              onCancel={() => {
+                setShowCollectionForm(false);
+                setEditingCollection(null);
+              }}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 

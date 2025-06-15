@@ -278,30 +278,34 @@ export default function Collections() {
 
       {/* Create Collection Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Create New Collection</DialogTitle>
           </DialogHeader>
-          <CreateCollectionForm
-            onSubmit={handleCreateCollection}
-            onCancel={() => setShowCreateDialog(false)}
-          />
+          <div className="flex-1 overflow-y-auto pr-2">
+            <CreateCollectionForm
+              onSubmit={handleCreateCollection}
+              onCancel={() => setShowCreateDialog(false)}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Edit Collection Dialog */}
       <Dialog open={!!editingCollection} onOpenChange={() => setEditingCollection(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Edit Collection</DialogTitle>
           </DialogHeader>
-          {editingCollection && (
-            <CreateCollectionForm
-              collection={editingCollection}
-              onSubmit={handleUpdateCollection}
-              onCancel={() => setEditingCollection(null)}
-            />
-          )}
+          <div className="flex-1 overflow-y-auto pr-2">
+            {editingCollection && (
+              <CreateCollectionForm
+                collection={editingCollection}
+                onSubmit={handleUpdateCollection}
+                onCancel={() => setEditingCollection(null)}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
