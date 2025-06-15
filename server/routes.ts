@@ -710,11 +710,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Directory (Form Configuration) Routes
   // Get all directories for a user
-  app.get("/api/directories", async (req, res) => {
+  app.get("/api/directories", authenticateToken, async (req, res) => {
     try {
       console.log("=== DIRECTORY API CALLED ===");
-      const userId = 1; // Using default user for development
-      console.log("Fetching directories for user:", userId);
+      const user = (req as any).user;
+      const userId = user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User authentication required" });
+      }
+      
+      console.log("Fetching directories for authenticated user:", userId);
       
       const directories = simpleDataStore.getDirectoriesByUser(userId);
       console.log("Raw directories from simple storage:", directories);
