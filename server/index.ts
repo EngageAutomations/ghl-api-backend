@@ -8,6 +8,8 @@ import { setupVite, serveStatic, log } from "./vite";
 import { setupDomainRedirects, setupCORS } from "./domain-config";
 // import { setupDirectOAuthRoutes } from "./oauth-direct";
 import { DatabaseStorage } from "./storage";
+import { UniversalAPIRouter, requireOAuth, handleSessionRecovery } from "./universal-api-router";
+import { handleOAuthCallback } from "./oauth-enhanced";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
