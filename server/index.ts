@@ -2130,6 +2130,39 @@ app.use((req, res, next) => {
     
   } else {
     console.log("Setting up development mode with Vite...");
+    
+    // CRITICAL: In development, Vite middleware catches all routes including API
+    // We need to explicitly handle API routes BEFORE Vite setup
+    console.log("Registering development API route handlers...");
+    
+    // Development-specific API route handling
+    app.use('/api/*', (req, res, next) => {
+      console.log(`Development API request: ${req.method} ${req.path}`);
+      
+      // If this is an OAuth status request, handle it directly
+      if (req.path === '/oauth/status') {
+        console.log('Intercepting OAuth status request in development mode');
+        
+        // Return proper JSON response structure
+        return res.status(400).json({
+          success: false,
+          error: 'missing_installation_id',
+          message: 'Installation ID is required',
+          environment: 'development',
+          note: 'This is a development environment response'
+        });
+      }
+      
+      // For other API routes, return JSON 404
+      return res.status(404).json({
+        error: 'API endpoint not found',
+        path: req.path,
+        method: req.method,
+        message: 'This API endpoint is not implemented',
+        environment: 'development'
+      });
+    });
+    
     await setupVite(app, server);
   }
 
