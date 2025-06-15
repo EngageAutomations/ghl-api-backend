@@ -2113,8 +2113,18 @@ app.use((req, res, next) => {
     // Serve static files from dist/public directory
     app.use(express.static(path.join(__dirname, '../dist/public')));
     
-    // Catch-all handler: send back index.html file for SPA routing
-    app.get('*', (req, res) => {
+    // Catch-all handler: send back index.html file for SPA routing (EXCLUDING API routes)
+    app.get('*', (req, res, next) => {
+      // Never serve HTML for API routes - they should have been handled above
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({
+          error: 'API endpoint not found',
+          path: req.path,
+          message: 'This API endpoint is not implemented'
+        });
+      }
+      
+      // For non-API routes, serve the SPA
       res.sendFile(path.join(__dirname, '../dist/public/index.html'));
     });
     
