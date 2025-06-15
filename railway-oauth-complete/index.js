@@ -13,6 +13,7 @@ const app = express();
 const corsOptions = {
   origin: [
     'https://app.gohighlevel.com',
+    'https://dir.engageautomations.com',
     'https://listings.engageautomations.com',
     /\.replit\.app$/,
     /\.railway\.app$/,
@@ -118,7 +119,7 @@ app.get('/oauth/callback', async (req, res) => {
     console.log(`Installation created: ${installationId}`);
     
     // Redirect to success page with installation ID
-    const redirectUrl = `https://listings.engageautomations.com/?installation_id=${installationId}&oauth_success=true`;
+    const redirectUrl = `https://dir.engageautomations.com/?installation_id=${installationId}&oauth_success=true`;
     res.redirect(redirectUrl);
     
   } catch (error) {
