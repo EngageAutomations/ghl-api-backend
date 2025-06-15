@@ -660,13 +660,12 @@ function setupOAuthRoutesProduction(app: express.Express) {
         let userData = null;
         let locationData = null;
         try {
-          const userDataResponse = await fetch('https://services.leadconnectorhq.com/users/me', {
+          const userDataResponse = await fetch('https://services.leadconnectorhq.com/v1/users/me', {
             headers: {
               'Authorization': `Bearer ${tokenData.access_token}`,
               'Version': '2021-07-28',
               'Content-Type': 'application/json'
-            },
-            timeout: 5000
+            }
           });
           if (userDataResponse.ok) {
             userData = await userDataResponse.json();
@@ -688,8 +687,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
                 'Authorization': `Bearer ${tokenData.access_token}`,
                 'Version': '2021-07-28',
                 'Content-Type': 'application/json'
-              },
-              timeout: 5000
+              }
             });
             if (locationResponse.ok) {
               const locationResult = await locationResponse.json();

@@ -9,7 +9,7 @@ export const GHL_OAUTH_CONFIG = {
   // White-labeled flow (if needed)
   whitelabelAuthUrl: 'https://marketplace.leadconnectorhq.com/oauth/chooselocation',
   tokenUrl: 'https://services.leadconnectorhq.com/oauth/token',
-  userInfoUrl: 'https://services.leadconnectorhq.com/users/me',
+  userInfoUrl: 'https://services.leadconnectorhq.com/v1/users/me',
   apiBaseUrl: 'https://services.leadconnectorhq.com',
 };
 
