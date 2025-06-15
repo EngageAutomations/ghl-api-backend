@@ -42,6 +42,50 @@ console.log('🔧 Configuring OAuth routes...');
 const installations = new Map();
 let installationCounter = 1;
 
+// OAuth Auth Endpoint - Frontend compatibility
+app.get('/api/oauth/auth', async (req, res) => {
+  console.log('OAuth Auth endpoint hit:', req.query);
+  
+  const installationId = req.query.installation_id;
+  
+  if (!installationId) {
+    return res.status(400).json({
+      success: false,
+      error: 'missing_installation_id',
+      message: 'Installation ID is required'
+    });
+  }
+  
+  // Check if installation exists
+  const installation = installations.get(installationId);
+  
+  if (!installation) {
+    return res.status(404).json({
+      success: false,
+      error: 'installation_not_found',
+      message: 'Installation not found',
+      installation_id: installationId
+    });
+  }
+  
+  // Return installation data
+  res.json({
+    success: true,
+    user: {
+      id: installation.userId,
+      name: installation.userInfo.name,
+      email: installation.userInfo.email,
+      locationId: installation.locationId,
+      locationName: installation.locationName
+    },
+    installation: {
+      id: installationId,
+      scopes: installation.scopes,
+      created_at: installation.createdAt
+    }
+  });
+});
+
 // OAuth Status Endpoint - CRITICAL for production
 app.get('/api/oauth/status', async (req, res) => {
   console.log('OAuth Status endpoint hit:', req.query);
