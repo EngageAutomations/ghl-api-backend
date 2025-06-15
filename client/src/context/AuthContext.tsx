@@ -140,6 +140,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
+      // First, check for OAuth installation ID in URL params or localStorage
+      const urlParams = new URLSearchParams(window.location.search);
+      const installationId = urlParams.get('installation_id') || localStorage.getItem('oauth_installation_id');
+      
+      console.log('Checking auth status, installation ID:', installationId);
+      
+      if (installationId) {
+        // Use OAuth status endpoint with proper GoHighLevel API call
+        const response = await fetch(`/api/oauth/status?installation_id=${installationId}`, {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('OAuth status response:', data);
+          
+          if (data.success && data.user) {
+            const userData = {
+              id: data.installation.id,
+              username: data.user.email || data.user.name,
+              email: data.user.email,
+              displayName: data.user.name,
+              ghlUserId: data.user.id,
+              ghlLocationId: data.installation.locationId,
+              ghlLocationName: data.installation.locationName,
+              authType: 'oauth',
+              isActive: true
+            };
+            
+            setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+            localStorage.setItem('oauth_installation_id', installationId);
+            console.log('OAuth user authenticated successfully');
+            return;
+          }
+        } else {
+          const errorData = await response.json();
+          console.error('OAuth status check failed:', errorData);
+          if (errorData.error === 'user_info_failed') {
+            console.log('User info retrieval failed, clearing OAuth state');
+            localStorage.removeItem('oauth_installation_id');
+          }
+        }
+      }
+      
+      // Fallback to regular auth check
       const response = await fetch('/api/auth/me', {
         credentials: 'include'
       });
@@ -151,10 +200,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setUser(null);
         localStorage.removeItem('user');
+        localStorage.removeItem('oauth_installation_id');
       }
     } catch (error) {
+      console.error('Auth status check error:', error);
       setUser(null);
       localStorage.removeItem('user');
+      localStorage.removeItem('oauth_installation_id');
     }
   };
 

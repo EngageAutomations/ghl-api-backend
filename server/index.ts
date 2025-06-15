@@ -1069,8 +1069,8 @@ function setupOAuthRoutesProduction(app: express.Express) {
         console.log('Location ID:', result.rows[0].ghl_location_id);
         console.log('✅ REAL ACCESS TOKEN AND USER DATA CAPTURED');
 
-        // Redirect to success page
-        res.redirect(`/?oauth_success=true&installation_id=${result.rows[0].id}`);
+        // Redirect to success page with installation ID for frontend tracking
+        res.redirect(`/?oauth_success=true&installation_id=${result.rows[0].id}&user_id=${result.rows[0].ghl_user_id}&location_id=${result.rows[0].ghl_location_id}`);
         
       } catch (dbError) {
         console.error('❌ Failed to save OAuth installation to database:', dbError);
@@ -1109,6 +1109,134 @@ function setupOAuthRoutesProduction(app: express.Express) {
       res.status(500).json({
         success: false,
         error: 'Failed to generate OAuth URL',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // OAuth status endpoint - retrieves current user info
+  app.get('/api/oauth/status', async (req, res) => {
+    try {
+      console.log('OAuth status endpoint hit - retrieving user info');
+      
+      // Get installation ID from query params or headers
+      const installationId = req.query.installation_id || req.headers['x-installation-id'];
+      
+      if (!installationId) {
+        return res.status(400).json({ 
+          error: 'user_info_failed', 
+          message: 'Installation ID required for user info retrieval' 
+        });
+      }
+
+      // Import database functionality
+      const { db } = await import('./db.js');
+      
+      // Get installation from database
+      const installationQuery = `
+        SELECT ghl_access_token, ghl_refresh_token, ghl_user_id, ghl_location_id, ghl_location_name
+        FROM oauth_installations 
+        WHERE id = $1 AND is_active = true
+      `;
+      
+      const result = await db.query(installationQuery, [parseInt(installationId as string)]);
+      
+      if (!result.rows || result.rows.length === 0) {
+        return res.status(404).json({ 
+          error: 'user_info_failed', 
+          message: 'OAuth installation not found' 
+        });
+      }
+
+      const installation = result.rows[0];
+      const accessToken = installation.ghl_access_token;
+      
+      if (!accessToken) {
+        return res.status(401).json({ 
+          error: 'user_info_failed', 
+          message: 'No valid access token found' 
+        });
+      }
+
+      // Call correct GoHighLevel user info endpoint
+      console.log('Calling GoHighLevel /v1/users/me endpoint');
+      const ghlResponse = await fetch('https://services.leadconnectorhq.com/v1/users/me', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Version': '2021-07-28',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!ghlResponse.ok) {
+        const errorText = await ghlResponse.text();
+        console.error('GHL userinfo failed:', ghlResponse.status, errorText);
+        
+        // Handle token refresh if 401
+        if (ghlResponse.status === 401) {
+          console.log('Access token expired, attempting refresh');
+          
+          try {
+            // Import OAuth functionality for token refresh
+            const { ghlOAuth } = await import('./ghl-oauth.js');
+            const refreshedTokens = await ghlOAuth.refreshToken(installation.ghl_refresh_token);
+            
+            // Update tokens in database
+            await db.query(
+              'UPDATE oauth_installations SET ghl_access_token = $1, last_token_refresh = NOW() WHERE id = $2',
+              [refreshedTokens.access_token, installationId]
+            );
+            
+            // Retry user info request with new token
+            const retryResponse = await fetch('https://services.leadconnectorhq.com/v1/users/me', {
+              headers: {
+                'Authorization': `Bearer ${refreshedTokens.access_token}`,
+                'Version': '2021-07-28',
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (retryResponse.ok) {
+              const userData = await retryResponse.json();
+              return res.json({ 
+                success: true,
+                user: userData,
+                installation: {
+                  id: installationId,
+                  locationId: installation.ghl_location_id,
+                  locationName: installation.ghl_location_name
+                }
+              });
+            }
+          } catch (refreshError) {
+            console.error('Token refresh failed:', refreshError);
+          }
+        }
+        
+        return res.status(500).json({ 
+          error: 'user_info_failed', 
+          message: `GHL API error: ${ghlResponse.status}`,
+          details: errorText
+        });
+      }
+
+      const userData = await ghlResponse.json();
+      console.log('User info retrieved successfully:', userData.id);
+      
+      res.json({ 
+        success: true,
+        user: userData,
+        installation: {
+          id: installationId,
+          locationId: installation.ghl_location_id,
+          locationName: installation.ghl_location_name
+        }
+      });
+      
+    } catch (error) {
+      console.error('OAuth status error:', error);
+      return res.status(500).json({ 
+        error: 'user_info_failed', 
         message: error instanceof Error ? error.message : 'Unknown error'
       });
     }

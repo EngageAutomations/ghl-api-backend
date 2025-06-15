@@ -1,0 +1,89 @@
+It looks like your front‐end is hitting your “get user info” endpoint (often called /api/oauth/status or /api/userinfo) and getting back an error rather than the GHL profile payload. Here are some concrete things to check and improve:
+
+1. Verify you’re calling the correct GHL user‐info endpoint
+GoHighLevel doesn’t expose an OpenID-style /oauth/userinfo by default—you need to call their “get current user” API, e.g.:
+
+js
+Copy
+Edit
+GET https://services.leadconnectorhq.com/v1/users/me
+Headers:
+  Authorization: Bearer <access_token>
+  Version: 2021-07-28
+Make sure your backend is using exactly that URL and headers.
+
+2. Ensure you requested the right scope
+If you never asked for users.read (or whatever GHL calls the “read your profile” scope), your token won’t let you hit /v1/users/me. Double-check your initial authorization URL includes the profile scope:
+
+arduino
+Copy
+Edit
+https://services.leadconnectorhq.com/oauth/authorize?
+  client_id=…&
+  redirect_uri=…&
+  response_type=code&
+  scope=users.read+products.write+…
+  state=…&
+  code_challenge=…&
+  code_challenge_method=S256
+3. Add robust error logging on your user-info fetch
+Wrap your fetch in a try/catch and log both the HTTP status and the response body. For example:
+
+js
+Copy
+Edit
+app.get('/api/oauth/status', async (req, res) => {
+  try {
+    const inst = await getInstallationFromSession(req);
+    const ghRes = await fetch('https://services.leadconnectorhq.com/v1/users/me', {
+      headers: {
+        'Authorization': `Bearer ${inst.access_token}`,
+        'Version': '2021-07-28'
+      }
+    });
+    if (!ghRes.ok) {
+      const text = await ghRes.text();
+      console.error('GHL userinfo failed:', ghRes.status, text);
+      throw new Error(`GHL userinfo ${ghRes.status}`);
+    }
+    const user = await ghRes.json();
+    return res.json({ user });
+  } catch (err) {
+    console.error('user_info_failed:', err);
+    return res.status(500).json({ error: 'user_info_failed', message: err.message });
+  }
+});
+That will tell you if GHL is returning 401, 403, 404, 500, etc., and what the body says.
+
+4. Test the token manually
+Once you’ve got the raw access token in your database:
+
+bash
+Copy
+Edit
+curl \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Version: 2021-07-28" \
+  https://services.leadconnectorhq.com/v1/users/me
+If that returns your profile JSON, you know the token is valid and the endpoint is correct. If it returns 401/403, the token is wrong/expired or scope is missing.
+
+5. Handle expired tokens
+If your /users/me call gets a 401, try refreshing:
+
+js
+Copy
+Edit
+if (ghRes.status === 401) {
+  await refreshTokens(inst);
+  // retry once
+}
+Make sure your refresh logic runs before you give up on user‐info.
+
+6. Check CORS / cookie settings
+If your front-end fetch to /api/oauth/status is blocked by CORS or your session cookie never arrives, your backend won’t know which installation to look up. Confirm:
+
+You’re sending withCredentials: true (or fetch with credentials: 'include').
+
+Your cookie is set with SameSite=None; Secure; and the correct domain.
+
+Once you’ve instrumented logging and manually verified the token+endpoint, you’ll know exactly why your user-info call is failing. Let me know what the logs show and we can take the next step!

@@ -61,7 +61,7 @@ export class GoHighLevelOAuth {
     this.clientId = process.env.GHL_CLIENT_ID || '';
     this.clientSecret = process.env.GHL_CLIENT_SECRET || '';
     this.redirectUri = process.env.GHL_REDIRECT_URI || `${process.env.REPLIT_DEV_DOMAIN || 'https://dir.engageautomations.com'}/api/oauth/callback`;
-    this.scopes = (process.env.GHL_SCOPES || 'products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write').split(' ').filter(Boolean);
+    this.scopes = (process.env.GHL_SCOPES || 'users.read products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write').split(' ').filter(Boolean);
 
     if (!this.clientId || !this.clientSecret) {
       console.warn('GHL OAuth credentials not fully configured');
