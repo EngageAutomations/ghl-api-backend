@@ -3,7 +3,7 @@
  * Uses the current valid installation from Railway backend
  */
 
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 const colors = {
   reset: '\x1b[0m',
@@ -178,8 +178,4 @@ async function main() {
   }
 }
 
-if (require.main === module) {
-  main();
-}
-
-module.exports = { main, createTestProduct, getRailwayInstallation };
+main();
