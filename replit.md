@@ -171,6 +171,13 @@ The project includes a comprehensive diagnostic test suite with 39 automated tes
 
 ## Recent Changes
 
+- June 16, 2025: OAuth User Endpoint Fix Successfully Deployed to Railway Production
+  - Fixed critical "User id me not found" error by updating GoHighLevel user API endpoints
+  - Deployed Railway backend v2.2.1 with correct endpoints: /users/search (primary) and /oauth/userinfo (fallback)
+  - Maintained hybrid OAuth credential support for Railway environment variable compatibility
+  - Confirmed production deployment successful with health check validation
+  - OAuth flow now ready for live GoHighLevel marketplace installations without user endpoint errors
+
 - June 15, 2025: Complete Diagnostic Test Suite Documentation Added
   - Created comprehensive testing framework with 39 automated tests
   - Added infrastructure, OAuth, API integration, security, and performance test categories
