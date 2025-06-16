@@ -1,0 +1,125 @@
+You reached the start of the range → Jun 16, 2025 7:34 PM
+
+[stage-0 3/8] COPY .nixpacks/nixpkgs-ffeebf0acf3ae8b29f8c7049cd911b9636efd7e7.nix .nixpacks/nixpkgs-ffeebf0acf3ae8b29f8c7049cd911b9636efd7e7.nix
+
+[internal] load build context
+
+[stage-0 2/8] WORKDIR /app/
+
+[stage-0 1/8] FROM ghcr.io/railwayapp/nixpacks:ubuntu-1745885067@sha256:d45c89d80e13d7ad0fd555b5130f22a866d9dd10e861f589932303ef2314c7de
+
+[stage-0 8/8] COPY . /app
+
+[stage-0 7/8] RUN printf '\nPATH=/app/node_modules/.bin:$PATH' >> /root/.profile
+
+[internal] load build context  ✔ 0ms
+
+[stage-0 1/8] FROM ghcr.io/railwayapp/nixpacks:ubuntu-1745885067@sha256:d45c89d80e13d7ad0fd555b5130f22a866d9dd10e861f589932303ef2314c7de
+
+[internal] load build context
+
+[internal] load build context  ✔ 16ms
+
+[stage-0 2/8] WORKDIR /app/  ✔ 0ms – CACHED
+
+[stage-0 3/8] COPY .nixpacks/nixpkgs-ffeebf0acf3ae8b29f8c7049cd911b9636efd7e7.nix .nixpacks/nixpkgs-ffeebf0acf3ae8b29f8c7049cd911b9636efd7e7.nix  ✔ 0ms – CACHED
+
+[stage-0 4/8] RUN nix-env -if .nixpacks/nixpkgs-ffeebf0acf3ae8b29f8c7049cd911b9636efd7e7.nix && nix-collect-garbage -d  ✔ 0ms – CACHED
+
+[stage-0 5/8] COPY . /app/.
+
+[stage-0 5/8] COPY . /app/.  ✔ 245ms
+
+[stage-0 6/8] RUN --mount=type=cache,id=s/476168e2-260c-4e53-ba7d-94e4cfd9bdb3-/root/npm,target=/root/.npm npm i
+
+npm warn config production Use `--omit=dev` instead.
+
+
+added 71 packages, and audited 72 packages in 5s
+
+
+14 packages are looking for funding
+
+  run `npm fund` for details
+
+
+found 0 vulnerabilities
+
+[stage-0 6/8] RUN --mount=type=cache,id=s/476168e2-260c-4e53-ba7d-94e4cfd9bdb3-/root/npm,target=/root/.npm npm i  ✔ 5s
+
+[stage-0 7/8] RUN printf '\nPATH=/app/node_modules/.bin:$PATH' >> /root/.profile
+
+[stage-0 7/8] RUN printf '\nPATH=/app/node_modules/.bin:$PATH' >> /root/.profile  ✔ 250ms
+
+[stage-0 8/8] COPY . /app
+
+[stage-0 8/8] COPY . /app  ✔ 34ms
+
+exporting to docker image format
+
+exporting to image
+
+[auth] sharing credentials for production-us-east4-eqdc4a.railway-registry.com
+
+[auth] sharing credentials for production-us-east4-eqdc4a.railway-registry.com  ✔ 0ms
+
+importing to docker
+
+importing to docker  ✔ 9s
+
+=== Successfully Built! ===
+
+Run:
+
+docker run -it production-us-east4-eqdc4a.railway-registry.com/476168e2-260c-4e53-ba7d-94e4cfd9bdb3:319407f5-f382-4172-9384-0565f9c95669
+
+Build time: 18.95 seconds
+
+ 
+
+====================
+
+Starting Healthcheck
+
+====================
+
+
+Path: /health
+
+Retry window: 5m0s
+
+ 
+
+Attempt #1 failed with service unavailable. Continuing to retry for 4m55s
+
+Attempt #2 failed with service unavailable. Continuing to retry for 4m44s
+
+Attempt #3 failed with service unavailable. Continuing to retry for 4m42s
+
+Attempt #4 failed with service unavailable. Continuing to retry for 4m38s
+
+Attempt #5 failed with service unavailable. Continuing to retry for 4m29s
+
+Attempt #6 failed with service unavailable. Continuing to retry for 4m13s
+
+Attempt #7 failed with service unavailable. Continuing to retry for 3m43s
+
+Attempt #8 failed with service unavailable. Continuing to retry for 3m13s
+
+Attempt #9 failed with service unavailable. Continuing to retry for 2m43s
+
+Attempt #10 failed with service unavailable. Continuing to retry for 2m13s
+
+Attempt #11 failed with service unavailable. Continuing to retry for 1m42s
+
+Attempt #12 failed with service unavailable. Continuing to retry for 1m12s
+
+Attempt #13 failed with service unavailable. Continuing to retry for 42s
+
+Attempt #14 failed with service unavailable. Continuing to retry for 12s
+
+ 
+
+1/1 replicas never became healthy!
+
+Healthcheck failed!
