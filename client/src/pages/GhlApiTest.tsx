@@ -40,7 +40,8 @@ export default function GhlApiTest() {
     setConnectionResult(null);
 
     try {
-      const response = await apiRequest(`/api/ghl/test-connection?installationId=${installationId}`);
+      // Use Railway backend directly for real API calls
+      const response = await fetch(`https://dir.engageautomations.com/api/ghl/test-connection?installationId=${installationId}`);
       const result = await response.json();
       
       if (result.success) {
@@ -84,14 +85,18 @@ export default function GhlApiTest() {
     setProductResult(null);
 
     try {
-      const response = await apiRequest('/api/ghl/products/create', {
+      // Use Railway backend directly for real product creation
+      const response = await fetch('https://dir.engageautomations.com/api/ghl/products/create', {
         method: 'POST',
-        data: {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
           name: productData.name,
           description: productData.description,
           price: parseFloat(productData.price) || 0,
           installationId
-        }
+        })
       });
 
       const result = await response.json();

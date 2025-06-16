@@ -126,15 +126,19 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           const installationId = urlParams.get('installation_id') || localStorage.getItem('ghl_installation_id');
           
           if (installationId) {
-            const ghlProductResponse = await apiRequest('/api/ghl/products/create', {
+            // Create product directly in Railway backend with real GoHighLevel API
+            const ghlProductResponse = await fetch('https://dir.engageautomations.com/api/ghl/products/create', {
               method: 'POST',
-              data: {
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
                 name: formData.title,
                 description: formData.description,
                 price: formData.price ? parseFloat(formData.price) : undefined,
                 imageUrl: formData.imageUrl,
                 installationId: installationId
-              }
+              })
             });
 
             if (ghlProductResponse.ok) {
