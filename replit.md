@@ -159,7 +159,24 @@ The application follows a modern full-stack architecture with clear separation b
 - Connection pooling configured
 - Migration support ready
 
+## Testing & Diagnostics
+
+The project includes a comprehensive diagnostic test suite with 39 automated tests covering all aspects of OAuth functionality, API integration, and production readiness. See `docs/DIAGNOSTIC_TEST_SUITE.md` for complete testing documentation.
+
+### Quick Diagnostic Commands
+- **Full System Test**: `node comprehensive-oauth-diagnostic.js`
+- **Critical OAuth Test**: Test OAuth callback with real authorization codes
+- **Environment Check**: Verify OAuth credentials in Railway logs
+- **Performance Test**: Measure API response times and concurrent handling
+
 ## Recent Changes
+
+- June 15, 2025: Complete Diagnostic Test Suite Documentation Added
+  - Created comprehensive testing framework with 39 automated tests
+  - Added infrastructure, OAuth, API integration, security, and performance test categories
+  - Included automated diagnostic scripts with detailed error analysis and recommendations
+  - Documented test priority levels and common issue resolution patterns
+  - Ready for production monitoring and troubleshooting with complete test coverage
 
 - June 15, 2025: OAuth Backend Critical Fixes Successfully Deployed to Production
   - Fixed Railway backend deployment with corrected GoHighLevel user API endpoint (/users/me instead of /v1/users/me)
