@@ -28,6 +28,7 @@ import GoogleDriveSetup from "@/pages/GoogleDriveSetup";
 import APIManagement from "@/pages/APIManagement";
 import InstallationRequired from "@/pages/InstallationRequired";
 import MarketplaceLanding from "@/pages/MarketplaceLanding";
+import GhlApiTest from "@/pages/GhlApiTest";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
@@ -154,6 +155,15 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <APIManagement />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      {/* GoHighLevel API Test Interface */}
+      <Route path="/ghl-api-test">
+        <ProtectedRoute>
+          <AppLayout>
+            <GhlApiTest />
           </AppLayout>
         </ProtectedRoute>
       </Route>
