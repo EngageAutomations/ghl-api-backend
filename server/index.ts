@@ -22,9 +22,41 @@ const __dirname = dirname(__filename);
 global.__dirname = __dirname;
 global.__filename = __filename;
 
+// OAuth credential validation and extraction
+function getOAuthCredentials(req: Request) {
+  // Try per-request credentials first (Railway compatibility)
+  if (req.body && req.body.oauth_credentials) {
+    const { client_id, client_secret, redirect_uri } = req.body.oauth_credentials;
+    if (client_id && client_secret && redirect_uri) {
+      console.log('✅ Using per-request OAuth credentials');
+      return { client_id, client_secret, redirect_uri };
+    }
+  }
+  
+  // Fallback to environment variables (standard approach)
+  const envCredentials = {
+    client_id: process.env.GHL_CLIENT_ID,
+    client_secret: process.env.GHL_CLIENT_SECRET,
+    redirect_uri: process.env.GHL_REDIRECT_URI
+  };
+  
+  if (envCredentials.client_id && envCredentials.client_secret && envCredentials.redirect_uri) {
+    console.log('✅ Using environment variable OAuth credentials');
+    return envCredentials;
+  }
+  
+  console.log('❌ No OAuth credentials available');
+  return null;
+}
+
 // OAuth setup function for production mode - MUST be called before any middleware
 function setupOAuthRoutesProduction(app: express.Express) {
   console.log('Setting up OAuth routes for production mode...');
+  console.log('OAuth Credential Check:');
+  console.log(`GHL_CLIENT_ID: ${process.env.GHL_CLIENT_ID ? 'SET' : 'NOT SET'}`);
+  console.log(`GHL_CLIENT_SECRET: ${process.env.GHL_CLIENT_SECRET ? 'SET' : 'NOT SET'}`);
+  console.log(`GHL_REDIRECT_URI: ${process.env.GHL_REDIRECT_URI ? 'SET' : 'NOT SET'}`);
+  console.log('Per-request credentials: SUPPORTED');
   
   // Initialize storage for OAuth callbacks
   const storage = new DatabaseStorage();
@@ -74,9 +106,110 @@ function setupOAuthRoutesProduction(app: express.Express) {
     }
   });
 
+  // POST OAuth callback with per-request credentials (Railway compatibility)
+  app.post(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
+    console.log('=== POST OAUTH CALLBACK HIT ===');
+    console.log('Body:', req.body);
+    console.log('Method:', req.method);
+
+    const { code, state, oauth_credentials } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({
+        error: 'authorization_code_missing',
+        message: 'Authorization code is required'
+      });
+    }
+
+    try {
+      const credentials = getOAuthCredentials(req);
+      
+      if (!credentials) {
+        return res.status(400).json({
+          error: 'oauth_credentials_missing',
+          message: 'OAuth credentials required in request body or environment variables',
+          required_format: {
+            oauth_credentials: {
+              client_id: 'your_client_id',
+              client_secret: 'your_client_secret',
+              redirect_uri: 'your_redirect_uri'
+            }
+          }
+        });
+      }
+
+      // Exchange authorization code for access token
+      const tokenResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          client_id: credentials.client_id,
+          client_secret: credentials.client_secret,
+          code: code,
+          redirect_uri: credentials.redirect_uri
+        })
+      });
+
+      const tokenData = await tokenResponse.json();
+
+      if (!tokenResponse.ok) {
+        console.log('❌ Token exchange failed:', tokenData);
+        return res.status(400).json({
+          error: 'token_exchange_failed',
+          details: tokenData,
+          solution: 'Verify OAuth credentials and authorization code'
+        });
+      }
+
+      // Get user information
+      const userResponse = await fetch('https://services.leadconnectorhq.com/users/me', {
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`,
+          'Version': '2021-07-28'
+        }
+      });
+
+      const userData = await userResponse.json();
+
+      if (!userResponse.ok) {
+        console.log('❌ User info retrieval failed:', userData);
+        return res.status(400).json({
+          error: 'user_info_failed',
+          details: userData
+        });
+      }
+
+      // Store installation data in memory for now
+      const installationId = `install_${Date.now()}`;
+      console.log('✅ OAuth installation successful (POST):', {
+        installationId,
+        userId: userData.id,
+        locationId: userData.locationId
+      });
+
+      // Return JSON response for API calls
+      res.json({
+        success: true,
+        installation_id: installationId,
+        user_info: userData,
+        redirect_url: `https://listings.engageautomations.com/oauth-success?installation_id=${installationId}`
+      });
+
+    } catch (error) {
+      console.error('❌ OAuth callback error:', error);
+      res.status(500).json({
+        error: 'oauth_callback_failed',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // OAuth callback - handles complete OAuth flow
   app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
-    console.log('=== OAUTH CALLBACK HIT ===');
+    console.log('=== GET OAUTH CALLBACK HIT ===');
     console.log('URL:', req.url);
     console.log('Query params:', req.query);
     console.log('Headers:', req.headers);
