@@ -116,6 +116,75 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
         if (!listingId) {
           throw new Error('Failed to get listing ID from response');
         }
+
+        // Create product in GoHighLevel
+        try {
+          console.log('Creating product in GoHighLevel...');
+          
+          // Get installation ID from URL parameters or localStorage
+          const urlParams = new URLSearchParams(window.location.search);
+          const installationId = urlParams.get('installation_id') || localStorage.getItem('ghl_installation_id');
+          
+          if (installationId) {
+            const ghlProductResponse = await apiRequest('/api/ghl/products/create', {
+              method: 'POST',
+              data: {
+                name: formData.title,
+                description: formData.description,
+                price: formData.price ? parseFloat(formData.price) : undefined,
+                imageUrl: formData.imageUrl,
+                installationId: installationId
+              }
+            });
+
+            if (ghlProductResponse.ok) {
+              const ghlProductData = await ghlProductResponse.json();
+              console.log('GoHighLevel product created:', ghlProductData);
+              
+              // Update the local listing with the GHL product ID
+              await apiRequest(`/api/listings/id/${listingId}`, {
+                method: 'PATCH',
+                data: {
+                  ghlProductId: ghlProductData.product?.id,
+                  syncStatus: 'synced',
+                  syncError: null
+                }
+              });
+
+              toast({
+                title: "Product Synced",
+                description: "Product created in both local directory and GoHighLevel!",
+              });
+            } else {
+              console.warn('GoHighLevel product creation failed, but listing created locally');
+              
+              // Update sync status to show failed sync
+              await apiRequest(`/api/listings/id/${listingId}`, {
+                method: 'PATCH',
+                data: {
+                  syncStatus: 'failed',
+                  syncError: 'Failed to sync with GoHighLevel'
+                }
+              });
+            }
+          } else {
+            console.log('No GoHighLevel installation found, skipping product sync');
+          }
+        } catch (ghlError) {
+          console.error('Error creating GoHighLevel product:', ghlError);
+          // Don't fail the entire operation, just mark as not synced
+          try {
+            await apiRequest(`/api/listings/id/${listingId}`, {
+              method: 'PATCH',
+              data: {
+                syncStatus: 'failed',
+                syncError: 'GoHighLevel sync error: ' + (ghlError as Error).message
+              }
+            });
+          } catch (updateError) {
+            console.error('Failed to update sync status:', updateError);
+          }
+        }
       }
       
       if (features.showDescription && expandedDescription) {
