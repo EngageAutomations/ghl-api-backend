@@ -27,7 +27,7 @@ import { authenticateToken } from "./auth-middleware";
 import { ghlProductCreator } from "./ghl-product-creator";
 import { getCurrentUser, logoutUser } from "./current-user";
 import { recoverSession, checkEmbeddedSession } from "./session-recovery";
-// Removed ghlAPIService import to fix ES module conflicts
+import { handleMediaUpload } from "./media-upload-fix";
 import jwt from "jsonwebtoken";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -688,31 +688,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dev/docs/:feature", getFeatureDocumentation);
   app.post("/api/dev/update-code", updateConfigurationCode);
 
-  // Media Upload endpoint - working implementation
-  app.post("/api/ghl/media/upload", (req, res) => {
-    console.log('Media upload request received');
-    console.log('Files object:', !!req.files);
-    console.log('File field:', req.files ? Object.keys(req.files) : 'none');
+  // Media Upload endpoint - direct implementation
+  app.post("/api/ghl/media/upload", async (req, res) => {
+    console.log('=== MEDIA UPLOAD HANDLER ===');
     
     try {
-      if (!req.files || !req.files.file) {
+      const files = (req as any).files;
+      if (!files || !files.file) {
+        console.log('No file provided in request');
         return res.status(400).json({ 
           error: 'No file provided',
-          received: req.files ? Object.keys(req.files) : 'no files object'
+          received: files ? Object.keys(files) : 'no files object'
         });
       }
 
-      const file = req.files.file as any;
+      const file = files.file;
       console.log('Processing file:', { 
         name: file.name, 
         size: file.size, 
         mimetype: file.mimetype 
       });
       
-      // Use absolute path for uploads directory
-      const uploadsDir = path.resolve('./public/uploads');
+      // Create uploads directory
+      const uploadsDir = path.resolve(process.cwd(), 'public', 'uploads');
       
-      // Create directory if it doesn't exist
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
         console.log('Created uploads directory:', uploadsDir);
@@ -739,15 +738,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originalName: file.name,
         size: file.size,
         mimetype: file.mimetype,
-        timestamp: timestamp,
-        savedPath: filePath
+        timestamp: timestamp
       };
 
-      console.log('Upload successful, returning response:', response);
+      console.log('Upload successful, returning response');
       res.json(response);
       
     } catch (error) {
-      console.error('Upload error details:', error);
+      console.error('Upload error:', error);
       res.status(500).json({ 
         error: 'Upload failed', 
         message: error instanceof Error ? error.message : 'Unknown error',

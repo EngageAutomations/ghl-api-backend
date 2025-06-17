@@ -1790,9 +1790,9 @@ app.use(express.json());
 // Add file upload middleware for handling image uploads
 app.use(fileUpload({
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
-  useTempFiles: true,
-  tempFileDir: '/tmp/',
-  createParentPath: true
+  useTempFiles: false,
+  createParentPath: true,
+  parseNested: true
 }));
 
 // HIGHEST PRIORITY: Session data extraction for your marketplace installation
