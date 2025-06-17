@@ -14,7 +14,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
-import { MockStorage } from "./mock-storage";
+import { MockStorage } from "./legacy/mock-storage";
 
 // Storage interface with all CRUD methods
 export interface IStorage {

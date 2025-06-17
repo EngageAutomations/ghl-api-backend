@@ -3,7 +3,7 @@
  * Handles product and collection creation via GoHighLevel APIs
  */
 
-import { DatabaseStorage } from './storage';
+import { DatabaseStorage } from '../storage';
 
 interface GHLProduct {
   name: string;

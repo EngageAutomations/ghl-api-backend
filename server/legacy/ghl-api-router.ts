@@ -5,7 +5,7 @@
 
 import { Request, Response } from 'express';
 import GoHighLevelAPIManager, { GHLAPICategory } from './ghl-api-manager';
-import { storage } from './storage';
+import { storage } from '../storage';
 
 // API endpoint mapping structure
 interface APIEndpointConfig {

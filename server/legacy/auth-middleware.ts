@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { storage } from './storage';
+import { storage } from '../storage';
 import { ghlOAuth } from './ghl-oauth';
 import jwt from 'jsonwebtoken';
 

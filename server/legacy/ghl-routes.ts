@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import GHLAPIRouter from './ghl-api-router';
 import GoHighLevelAPIManager from './ghl-api-manager';
-import { storage } from './storage';
+import { storage } from '../storage';
 
 const router = Router();
 

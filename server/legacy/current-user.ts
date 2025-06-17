@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { storage } from './storage';
+import { storage } from '../storage';
 
 interface AuthenticatedRequest extends Request {
   user?: any;
