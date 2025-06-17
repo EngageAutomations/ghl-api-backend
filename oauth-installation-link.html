@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GoHighLevel OAuth Installation</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .card { border: 1px solid #ddd; border-radius: 8px; padding: 30px; background: #f9f9f9; }
+        .button { background: #0066cc; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
+        .instructions { background: #fff; padding: 20px; border-radius: 5px; margin: 20px 0; }
+        .code { background: #f0f0f0; padding: 10px; border-radius: 3px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔐 GoHighLevel OAuth Installation</h1>
+        
+        <p>Click the button below to install the OAuth app and restore product creation capabilities:</p>
+        
+        <a href="https://marketplace.gohighlevel.com/oauth/chooselocation?response_type=code&redirect_uri=https://dir.engageautomations.com/api/oauth/callback&client_id=64f88b6c18b5cda3b0363d27-7clp1dvp&scope=products.write products.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write users.readonly" class="button">
+            Install OAuth App
+        </a>
+        
+        <div class="instructions">
+            <h3>Installation Steps:</h3>
+            <ol>
+                <li>Click the "Install OAuth App" button above</li>
+                <li>Choose your GoHighLevel location (MakerExpress 3D recommended)</li>
+                <li>Approve the permissions for product and media management</li>
+                <li>You'll be redirected to your marketplace with a new installation ID</li>
+                <li>The new installation will have full product creation capabilities</li>
+            </ol>
+            
+            <h3>Included Scopes:</h3>
+            <ul>
+                <li><strong>products.write</strong> - Create and modify products</li>
+                <li><strong>products.readonly</strong> - Read product information</li>
+                <li><strong>medias.write</strong> - Upload images to media library</li>
+                <li><strong>medias.readonly</strong> - Access media files</li>
+                <li><strong>locations.readonly</strong> - Access location data</li>
+                <li><strong>contacts.readonly/write</strong> - Contact management</li>
+                <li><strong>users.readonly</strong> - User information access</li>
+            </ul>
+            
+            <h3>After Installation:</h3>
+            <p>Your form will automatically create real products in GoHighLevel using the data you enter. The system will capture:</p>
+            <ul>
+                <li>Product name and description</li>
+                <li>Pricing information</li>
+                <li>Image uploads to media library</li>
+                <li>Location association</li>
+            </ul>
+        </div>
+        
+        <div class="code">
+            <strong>Installation will be saved as:</strong> install_[timestamp]<br>
+            <strong>Backend URL:</strong> https://dir.engageautomations.com<br>
+            <strong>Frontend URL:</strong> https://listings.engageautomations.com
+        </div>
+    </div>
+</body>
+</html>
