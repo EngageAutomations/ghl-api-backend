@@ -1,218 +1,249 @@
-/**
- * Working Railway OAuth Backend - Simplified and Reliable
- * Fixes 404 errors and proper OAuth handling
- */
-
 const express = require('express');
 const cors = require('cors');
-const fetch = require('node-fetch');
+const axios = require('axios');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Simple CORS configuration
-app.use(cors({
-  origin: '*',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-}));
-
+// Basic middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// In-memory storage for OAuth installations (temporary until DB is properly configured)
-const oauthInstallations = new Map();
-let installationIdCounter = 1;
+// In-memory storage for OAuth installations
+const installations = new Map();
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
-    timestamp: new Date().toISOString(),
-    version: '1.0.0',
-    message: 'Railway OAuth Backend is running'
-  });
+// Initialize with your current installation
+installations.set('install_1750106970265', {
+  id: 'install_1750106970265',
+  accessToken: process.env.GHL_ACCESS_TOKEN || null,
+  locationId: 'WAvk87RmW9rBSDJHeOpH',
+  scopes: 'products/prices.write products/prices.readonly products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write products/collection.write users.readonly',
+  tokenStatus: process.env.GHL_ACCESS_TOKEN ? 'valid' : 'missing',
+  createdAt: new Date().toISOString()
 });
 
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
-    name: 'GoHighLevel OAuth Backend',
+    service: 'GoHighLevel API Backend',
     version: '1.0.0',
-    status: 'active',
-    endpoints: {
-      oauth_callback: '/api/oauth/callback',
-      oauth_status: '/api/oauth/status',
-      health: '/health'
-    }
+    status: 'running',
+    timestamp: new Date().toISOString()
   });
 });
 
-// OAuth callback endpoint
-app.get('/api/oauth/callback', async (req, res) => {
-  try {
-    const { code, state } = req.query;
-    
-    if (!code) {
-      return res.status(400).json({ error: 'Authorization code missing' });
-    }
-
-    console.log('OAuth callback received, processing...');
-
-    // Exchange code for tokens
-    const tokenResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: process.env.GHL_CLIENT_ID,
-        client_secret: process.env.GHL_CLIENT_SECRET,
-        grant_type: 'authorization_code',
-        code: code,
-        redirect_uri: process.env.GHL_REDIRECT_URI
-      })
-    });
-
-    if (!tokenResponse.ok) {
-      console.error('Token exchange failed:', await tokenResponse.text());
-      return res.redirect(`https://listings.engageautomations.com/oauth-error?error=token_exchange_failed`);
-    }
-
-    const tokenData = await tokenResponse.json();
-
-    // Get user info
-    const userResponse = await fetch('https://services.leadconnectorhq.com/oauth/userInfo', {
-      headers: {
-        'Authorization': `Bearer ${tokenData.access_token}`,
-        'Version': '2021-07-28'
-      }
-    });
-
-    if (!userResponse.ok) {
-      console.error('User info fetch failed:', await userResponse.text());
-      return res.redirect(`https://listings.engageautomations.com/oauth-error?error=user_info_failed`);
-    }
-
-    const userData = await userResponse.json();
-
-    // Store installation data
-    const installationId = installationIdCounter++;
-    const installation = {
-      id: installationId,
-      ghl_user_id: userData.id,
-      ghl_user_name: userData.name || 'Unknown User',
-      ghl_user_email: userData.email || '',
-      ghl_location_id: userData.locationId || '',
-      ghl_access_token: tokenData.access_token,
-      ghl_refresh_token: tokenData.refresh_token,
-      ghl_scopes: tokenData.scope || '',
-      installation_date: new Date().toISOString(),
-      is_active: true
-    };
-
-    oauthInstallations.set(installationId, installation);
-    console.log(`Installation stored: ${installationId} for user ${userData.name}`);
-
-    // Redirect to success page
-    const successUrl = `https://listings.engageautomations.com/oauth-success?installation_id=${installationId}&location_id=${userData.locationId || ''}`;
-    res.redirect(successUrl);
-
-  } catch (error) {
-    console.error('OAuth callback error:', error);
-    res.redirect(`https://listings.engageautomations.com/oauth-error?error=${encodeURIComponent(error.message)}`);
-  }
-});
-
-// OAuth status endpoint
-app.get('/api/oauth/status', (req, res) => {
-  const installations = Array.from(oauthInstallations.values());
+// Health check endpoint
+app.get('/health', (req, res) => {
   res.json({
-    status: 'active',
-    total_installations: installations.length,
-    recent_installations: installations.slice(-5).map(i => ({
-      id: i.id,
-      user_name: i.ghl_user_name,
-      location_id: i.ghl_location_id,
-      installation_date: i.installation_date
-    }))
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    hasToken: !!process.env.GHL_ACCESS_TOKEN,
+    installations: installations.size
   });
 });
 
-// Get installation details
-app.get('/api/oauth/installations/:id', (req, res) => {
-  const installationId = parseInt(req.params.id);
-  const installation = oauthInstallations.get(installationId);
+// OAuth status
+app.get('/api/oauth/status', (req, res) => {
+  const installationId = req.query.installation_id;
+  const installation = installations.get(installationId);
   
   if (!installation) {
-    return res.status(404).json({ error: 'Installation not found' });
+    return res.json({ authenticated: false, message: 'Installation not found' });
   }
 
-  // Return safe installation data (no tokens exposed)
-  const safeInstallation = {
-    id: installation.id,
-    ghl_user_name: installation.ghl_user_name,
-    ghl_user_email: installation.ghl_user_email,
-    ghl_location_id: installation.ghl_location_id,
-    ghl_scopes: installation.ghl_scopes,
-    installation_date: installation.installation_date,
-    is_active: installation.is_active
-  };
-
-  res.json(safeInstallation);
+  res.json({
+    authenticated: true,
+    installationId: installation.id,
+    locationId: installation.locationId,
+    scopes: installation.scopes,
+    tokenStatus: installation.tokenStatus
+  });
 });
 
-// Universal API proxy for GoHighLevel
-app.all('/api/ghl/*', async (req, res) => {
+// Test connection
+app.get('/api/ghl/test-connection', async (req, res) => {
   try {
-    // Extract installation ID from headers or query
-    const installationId = req.headers['x-installation-id'] || req.query.installation_id;
+    const { installationId } = req.query;
+    const installation = installations.get(installationId);
     
-    if (!installationId) {
-      return res.status(401).json({ error: 'Installation ID required' });
+    if (!installation || !installation.accessToken) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Access token not available. Set GHL_ACCESS_TOKEN environment variable.' 
+      });
     }
 
-    const installation = oauthInstallations.get(parseInt(installationId));
-    if (!installation) {
-      return res.status(401).json({ error: 'Invalid installation' });
-    }
+    const response = await axios.get(
+      `https://services.leadconnectorhq.com/locations/${installation.locationId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${installation.accessToken}`,
+          'Version': '2021-07-28',
+          'Accept': 'application/json'
+        },
+        timeout: 15000
+      }
+    );
 
-    // Extract GoHighLevel API path
-    const ghlPath = req.path.replace('/api/ghl/', '');
-    const ghlUrl = `https://services.leadconnectorhq.com/${ghlPath}`;
-
-    // Forward request to GoHighLevel
-    const response = await fetch(ghlUrl, {
-      method: req.method,
-      headers: {
-        'Authorization': `Bearer ${installation.ghl_access_token}`,
-        'Version': '2021-07-28',
-        'Content-Type': 'application/json'
-      },
-      body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined
+    res.json({
+      success: true,
+      message: 'GoHighLevel connection successful',
+      locationId: installation.locationId,
+      locationData: response.data
     });
 
-    const data = await response.json();
-    res.status(response.status).json(data);
-
   } catch (error) {
-    console.error('API proxy error:', error);
-    res.status(500).json({ error: 'API request failed' });
+    res.status(400).json({
+      success: false,
+      error: 'Connection failed',
+      details: error.response?.data || error.message,
+      status: error.response?.status
+    });
   }
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ 
-    error: 'Not found',
-    message: `Endpoint ${req.method} ${req.path} not found`,
-    available_endpoints: ['/health', '/api/oauth/callback', '/api/oauth/status', '/api/ghl/*']
-  });
+// Create product
+app.post('/api/ghl/products/create', async (req, res) => {
+  try {
+    const { name, description, price, installationId, productType = 'DIGITAL' } = req.body;
+    const installation = installations.get(installationId);
+    
+    if (!installation || !installation.accessToken) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Access token not available. Set GHL_ACCESS_TOKEN environment variable.' 
+      });
+    }
+
+    const productData = {
+      name,
+      description,
+      locationId: installation.locationId,
+      productType,
+      availableInStore: true
+    };
+
+    if (price && !isNaN(parseFloat(price))) {
+      productData.price = parseFloat(price);
+    }
+
+    const response = await axios.post(
+      'https://services.leadconnectorhq.com/products/',
+      productData,
+      {
+        headers: {
+          'Authorization': `Bearer ${installation.accessToken}`,
+          'Content-Type': 'application/json',
+          'Version': '2021-07-28',
+          'Accept': 'application/json'
+        },
+        timeout: 15000
+      }
+    );
+
+    res.json({
+      success: true,
+      message: 'Product created successfully',
+      product: response.data.product,
+      productId: response.data.product?.id
+    });
+
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: 'Product creation failed',
+      details: error.response?.data || error.message,
+      status: error.response?.status
+    });
+  }
+});
+
+// Get products
+app.get('/api/ghl/products', async (req, res) => {
+  try {
+    const { installationId, limit = 20, offset = 0 } = req.query;
+    const installation = installations.get(installationId);
+    
+    if (!installation || !installation.accessToken) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Access token not available' 
+      });
+    }
+
+    const response = await axios.get(
+      `https://services.leadconnectorhq.com/products/?locationId=${installation.locationId}&limit=${limit}&offset=${offset}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${installation.accessToken}`,
+          'Version': '2021-07-28',
+          'Accept': 'application/json'
+        },
+        timeout: 15000
+      }
+    );
+
+    res.json({
+      success: true,
+      products: response.data.products || [],
+      total: response.data.total || 0
+    });
+
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: 'Failed to fetch products',
+      details: error.response?.data || error.message
+    });
+  }
+});
+
+// OAuth callback
+app.get('/oauth/callback', async (req, res) => {
+  const { code } = req.query;
+  
+  if (!code) {
+    return res.status(400).json({ error: 'Authorization code required' });
+  }
+
+  try {
+    const tokenResponse = await axios.post('https://services.leadconnectorhq.com/oauth/token', {
+      client_id: process.env.GHL_CLIENT_ID,
+      client_secret: process.env.GHL_CLIENT_SECRET,
+      grant_type: 'authorization_code',
+      code: code,
+      redirect_uri: process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/oauth/callback'
+    }, { timeout: 15000 });
+
+    const tokenData = tokenResponse.data;
+    const installationId = `install_${Date.now()}`;
+    
+    installations.set(installationId, {
+      id: installationId,
+      accessToken: tokenData.access_token,
+      refreshToken: tokenData.refresh_token,
+      locationId: tokenData.locationId || 'extracted_from_token',
+      scopes: tokenData.scope || '',
+      tokenStatus: 'valid',
+      createdAt: new Date().toISOString()
+    });
+
+    res.json({
+      success: true,
+      installationId: installationId,
+      redirectUrl: `https://listings.engageautomations.com/?installation_id=${installationId}`
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: 'OAuth failed', message: error.message });
+  }
 });
 
 // Start server
 app.listen(port, '0.0.0.0', () => {
-  console.log(`🚀 Railway OAuth Backend running on port ${port}`);
-  console.log('✅ Features: OAuth callback, API proxy, status monitoring');
-  console.log('🔍 Health check: /health');
+  console.log(`GoHighLevel API Backend running on port ${port}`);
+  console.log(`Health check: /health`);
+  console.log(`Access token: ${process.env.GHL_ACCESS_TOKEN ? 'Present' : 'Missing - Set GHL_ACCESS_TOKEN'}`);
 });
 
 module.exports = app;
