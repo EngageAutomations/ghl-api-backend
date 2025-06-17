@@ -686,6 +686,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dev/docs/:feature", getFeatureDocumentation);
   app.post("/api/dev/update-code", updateConfigurationCode);
 
+  // GoHighLevel Media Upload endpoint
+  app.post("/api/ghl/media/upload", async (req, res) => {
+    try {
+      console.log('Media upload request received');
+      console.log('Content-Type:', req.headers['content-type']);
+      
+      // Forward to Railway backend for actual GoHighLevel upload
+      const installationId = 'install_1750131573635'; // Use working installation
+      
+      // Create FormData to forward to Railway
+      const formData = new FormData();
+      
+      // Handle different content types
+      if (req.headers['content-type']?.includes('multipart/form-data')) {
+        // Forward the entire request body to Railway
+        const response = await fetch(`https://dir.engageautomations.com/api/ghl/media/upload?installationId=${installationId}`, {
+          method: 'POST',
+          body: req.body,
+          headers: {
+            'Content-Type': req.headers['content-type']
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          return res.json(data);
+        } else {
+          throw new Error(`Railway upload failed: ${response.status}`);
+        }
+      } else {
+        // Handle JSON request (fallback)
+        return res.status(400).json({ 
+          error: 'Invalid content type for file upload',
+          expected: 'multipart/form-data',
+          received: req.headers['content-type']
+        });
+      }
+    } catch (error) {
+      console.error('Media upload error:', error);
+      res.status(500).json({ 
+        error: 'Media upload failed', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Tracking endpoint for opt-in interactions
   app.post("/api/tracking/opt-in", async (req, res) => {
     try {
