@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { db } from './db';
+import { db } from '../db';
 import { formSubmissions, formConfigurations } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 
