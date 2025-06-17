@@ -48,14 +48,14 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
 
-  // Upload image to Railway backend with real file processing
+  // Upload image to local server with proper file handling
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
       
-      // Upload to Railway backend which has working GoHighLevel integration
-      const response = await fetch('https://dir.engageautomations.com/api/ghl/media/upload?installationId=install_1750131573635', {
+      // Upload to local server endpoint that bypasses Vite middleware
+      const response = await fetch('/api/ghl/media/upload', {
         method: 'POST',
         body: formData
       });
@@ -236,10 +236,38 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
         });
       }
 
+      // Cleanup: Delete temporary uploaded image after successful submission
+      if (formData.imageUrl && formData.imageUrl.includes('/uploads/')) {
+        try {
+          await fetch('/api/cleanup-temp-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: formData.imageUrl })
+          });
+        } catch (cleanupError) {
+          console.log('Temp file cleanup note:', cleanupError);
+          // Don't fail the operation for cleanup issues
+        }
+      }
+
       toast({
         title: "Success",
         description: "Listing created successfully!",
       });
+      
+      // Clear form including image preview
+      setFormData({
+        title: '',
+        description: '',
+        category: '',
+        price: '',
+        imageUrl: '',
+        tags: [],
+        metadata: {},
+        contactInfo: ''
+      });
+      setMetadataFields([{ icon: '', text: '' }]);
+      setImageFile(null);
       
       onSuccess();
     } catch (error) {
