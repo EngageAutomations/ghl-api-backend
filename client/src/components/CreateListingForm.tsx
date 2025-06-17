@@ -121,9 +121,11 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
         try {
           console.log('Creating product in GoHighLevel...');
           
-          // Get installation ID from URL parameters or localStorage
+          // Get installation ID from URL parameters, localStorage, or use latest working installation
           const urlParams = new URLSearchParams(window.location.search);
-          const installationId = urlParams.get('installation_id') || localStorage.getItem('ghl_installation_id');
+          const installationId = urlParams.get('installation_id') || 
+                                localStorage.getItem('ghl_installation_id') || 
+                                'install_1750131573635'; // Latest working installation with product.write scope
           
           if (installationId) {
             // Create product directly in Railway backend with real GoHighLevel API
