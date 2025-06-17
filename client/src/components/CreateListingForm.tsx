@@ -48,11 +48,13 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
 
-  // Upload image to Railway backend with GoHighLevel integration
+  // Upload images to Railway backend with GoHighLevel integration (supports multiple files)
   const uploadImageMutation = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async (files: File[]) => {
       const formData = new FormData();
-      formData.append('file', file);
+      files.forEach(file => {
+        formData.append('files', file);
+      });
       
       // Upload to Railway backend which has GoHighLevel integration
       const response = await fetch('https://dir.engageautomations.com/api/ghl/media/upload?installationId=install_1750131573635', {
@@ -67,13 +69,26 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       return response.json();
     },
     onSuccess: (response: any) => {
-      // Update image URL with the GoHighLevel media URL
-      const imageUrl = response.url || response.fileUrl || response.data?.url;
-      setFormData(prev => ({ ...prev, imageUrl }));
-      toast({
-        title: "Image Uploaded",
-        description: "Your listing image has been uploaded to GoHighLevel successfully!",
-      });
+      // Handle multiple image URLs from GoHighLevel
+      if (response.imageUrls && response.imageUrls.length > 0) {
+        // Store all URLs as comma-separated string for multiple images
+        const allImageUrls = response.imageUrls.join(',');
+        setFormData(prev => ({ ...prev, imageUrl: allImageUrls }));
+        
+        toast({
+          title: `${response.successCount} image${response.successCount > 1 ? 's' : ''} uploaded`,
+          description: "Your images have been uploaded to GoHighLevel successfully!",
+        });
+      } else {
+        // Fallback for single image response
+        const imageUrl = response.url || response.fileUrl || response.data?.url;
+        setFormData(prev => ({ ...prev, imageUrl }));
+        
+        toast({
+          title: "Image Uploaded",
+          description: "Your listing image has been uploaded to GoHighLevel successfully!",
+        });
+      }
     },
     onError: (error) => {
       console.error('Image upload error:', error);
@@ -343,21 +358,23 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     setIsDragOver(false);
     
     const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
     
-    if (imageFile) {
-      setImageFile(imageFile);
-      // Upload to GoHighLevel immediately
-      uploadImageMutation.mutate(imageFile);
+    if (imageFiles.length > 0) {
+      setImageFile(imageFiles[0]); // Set first file for preview
+      // Upload all images to GoHighLevel immediately
+      uploadImageMutation.mutate(imageFiles);
     }
   };
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setImageFile(file);
-      // Upload to GoHighLevel immediately
-      uploadImageMutation.mutate(file);
+    const files = Array.from(e.target.files || []);
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    
+    if (imageFiles.length > 0) {
+      setImageFile(imageFiles[0]); // Set first file for preview
+      // Upload all selected images to GoHighLevel immediately
+      uploadImageMutation.mutate(imageFiles);
     }
   };
 
