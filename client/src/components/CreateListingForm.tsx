@@ -48,23 +48,16 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
 
-  // Upload image to Railway backend with real file processing
+  // Upload image to GoHighLevel media API
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
       
-      // Upload to Railway backend which has working GoHighLevel integration
-      const response = await fetch('https://dir.engageautomations.com/api/ghl/media/upload?installationId=install_1750131573635', {
+      return apiRequest('/api/ghl/media/upload', {
         method: 'POST',
-        body: formData
+        data: formData
       });
-      
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
-      }
-      
-      return response.json();
     },
     onSuccess: (response: any) => {
       // Update image URL with the GoHighLevel media URL

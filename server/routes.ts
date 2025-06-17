@@ -3,8 +3,6 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { simpleDataStore } from "./simple-storage";
 import { setupWorkingRoutes } from "./working-routes";
-import fs from 'fs';
-import path from 'path';
 import { z } from "zod";
 import { 
   insertUserSchema, 
@@ -27,7 +25,7 @@ import { authenticateToken } from "./auth-middleware";
 import { ghlProductCreator } from "./ghl-product-creator";
 import { getCurrentUser, logoutUser } from "./current-user";
 import { recoverSession, checkEmbeddedSession } from "./session-recovery";
-// Removed problematic media upload import to fix ES module conflicts
+import { ghlAPIService } from "./ghl-api-service";
 import jwt from "jsonwebtoken";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -688,8 +686,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dev/docs/:feature", getFeatureDocumentation);
   app.post("/api/dev/update-code", updateConfigurationCode);
 
-  // Media upload endpoint removed - now handled in index.ts before route registration
-
   // Tracking endpoint for opt-in interactions
   app.post("/api/tracking/opt-in", async (req, res) => {
     try {
@@ -958,6 +954,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/ghl-embed-code.js", (req, res) => {
     try {
       // Read the embed code file
+      const fs = require('fs');
+      const path = require('path');
       const filePath = path.join(process.cwd(), "client", "src", "lib", "ghl-embed-code.js");
       let embedCode = fs.readFileSync(filePath, "utf8");
       
@@ -983,6 +981,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve documentation for GHL integration
   app.get("/docs/ghl-integration", (req, res) => {
     try {
+      const fs = require('fs');
+      const path = require('path');
       const filePath = path.join(process.cwd(), "docs", "ghl-integration-guide.md");
       const markdown = fs.readFileSync(filePath, "utf8");
       
@@ -2726,12 +2726,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Product name is required' });
       }
 
-      // Temporarily disabled to fix ES module conflicts - using Railway backend
-      const result = { 
-        success: false, 
-        error: 'Use Railway backend for product creation',
-        productId: null 
-      };
+      const result = await ghlAPIService.createProduct({
+        name,
+        description,
+        price: parseFloat(price) || undefined,
+        imageUrl,
+        installationId,
+        locationId,
+        userId
+      });
 
       res.json({ 
         success: true, 
@@ -2752,12 +2755,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { installationId, locationId, userId, limit, offset } = req.query;
       
-      // Temporarily disabled to fix ES module conflicts
-      const result = { 
-        success: false, 
-        products: [],
-        error: 'Use Railway backend for product listing'
-      };
+      const result = await ghlAPIService.getProducts({
+        installationId: installationId as string,
+        locationId: locationId as string,
+        userId: userId as string,
+        limit: limit ? parseInt(limit as string) : undefined,
+        offset: offset ? parseInt(offset as string) : undefined
+      });
 
       res.json({ 
         success: true, 
@@ -2778,12 +2782,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { productId } = req.params;
       const { name, description, price, imageUrl, installationId, locationId, userId } = req.body;
       
-      // Temporarily disabled to fix ES module conflicts
-      const result = { 
-        success: false, 
-        error: 'Use Railway backend for product updates',
-        productId: null 
-      };
+      const result = await ghlAPIService.updateProduct(productId, {
+        name,
+        description,
+        price: price ? parseFloat(price) : undefined,
+        imageUrl,
+        installationId,
+        locationId,
+        userId
+      });
 
       res.json({ 
         success: true, 
@@ -2805,11 +2812,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { productId } = req.params;
       const { installationId, locationId, userId } = req.query;
       
-      // Temporarily disabled to fix ES module conflicts
-      const result = { 
-        success: false, 
-        error: 'Use Railway backend for product deletion'
-      };
+      const result = await ghlAPIService.deleteProduct(productId, {
+        installationId: installationId as string,
+        locationId: locationId as string,
+        userId: userId as string
+      });
 
       res.json({ 
         success: true,
@@ -2824,18 +2831,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Removed duplicate media upload endpoint that was causing ES module conflicts
+  // Upload media to GoHighLevel
+  app.post("/api/ghl/media/upload", async (req, res) => {
+    try {
+      const { installationId, locationId, userId } = req.body;
+      
+      if (!req.files || !req.files.file) {
+        return res.status(400).json({ error: 'No file provided' });
+      }
+
+      const file = req.files.file as any;
+      
+      const result = await ghlAPIService.uploadMedia(file.data, {
+        fileName: file.name,
+        contentType: file.mimetype,
+        installationId,
+        locationId,
+        userId
+      });
+
+      res.json({ 
+        success: true, 
+        url: result.url,
+        fileId: result.fileId,
+        message: 'Media uploaded successfully to GoHighLevel'
+      });
+    } catch (error) {
+      console.error('Error uploading media to GHL:', error);
+      res.status(500).json({ 
+        error: 'Media upload failed', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 
   // Test GoHighLevel connection
   app.get("/api/ghl/test-connection", async (req, res) => {
     try {
       const { installationId, locationId, userId } = req.query;
       
-      // Temporarily disabled to fix ES module conflicts
-      const result = { 
-        success: false, 
-        error: 'Use Railway backend for connection testing'
-      };
+      const result = await ghlAPIService.testConnection({
+        installationId: installationId as string,
+        locationId: locationId as string,
+        userId: userId as string
+      });
 
       res.json(result);
     } catch (error) {

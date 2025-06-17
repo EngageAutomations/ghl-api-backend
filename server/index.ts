@@ -13,11 +13,14 @@ import { handleOAuthCallback } from "./oauth-enhanced";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
-import fs from 'fs';
 
-// ES Module compatibility - removed global assignments causing conflicts
+// ES Module compatibility fixes for __dirname error
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Make available globally for compatibility with any legacy code
+global.__dirname = __dirname;
+global.__filename = __filename;
 
 // OAuth credential validation and extraction
 function getOAuthCredentials(req: Request) {
@@ -1784,137 +1787,8 @@ function getEnhancedOAuthAppHTML(): string {
 
 const app = express();
 
-// ABSOLUTE FIRST: Media upload endpoint - bypasses all middleware completely
-app.post('/api/ghl/media/upload', (req, res) => {
-  console.log('=== MEDIA UPLOAD ENDPOINT REACHED ===');
-  
-  const timestamp = Date.now();
-  let fileName = `${timestamp}_uploaded_file`;
-  let fileData = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
-  let mimetype = 'image/png';
-  let originalName = 'uploaded_file.png';
-  
-  // Handle different content types
-  const contentType = req.get('content-type') || '';
-  
-  if (contentType.includes('image/jpeg') || contentType.includes('image/jpg')) {
-    fileName += '.jpg';
-    originalName = 'uploaded_file.jpg';
-    mimetype = 'image/jpeg';
-    fileData = Buffer.from('/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA==', 'base64');
-  } else if (contentType.includes('image/gif')) {
-    fileName += '.gif';
-    originalName = 'uploaded_file.gif';
-    mimetype = 'image/gif';
-    fileData = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
-  } else if (contentType.includes('image/webp')) {
-    fileName += '.webp';
-    originalName = 'uploaded_file.webp';
-    mimetype = 'image/webp';
-  } else {
-    fileName += '.png';
-    originalName = 'uploaded_file.png';
-    mimetype = 'image/png';
-  }
-  
-  try {
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-    
-    const filePath = path.join(uploadsDir, fileName);
-    fs.writeFileSync(filePath, fileData);
-    
-    const fileUrl = `http://localhost:5000/uploads/${fileName}`;
-    
-    console.log('Upload successful:', fileName);
-    
-    return res.json({
-      success: true,
-      fileUrl: fileUrl,
-      fileName: fileName,
-      originalName: originalName,
-      size: fileData.length,
-      mimetype: mimetype,
-      timestamp: timestamp
-    });
-    
-  } catch (error) {
-    console.error('Upload error:', error);
-    return res.status(500).json({ 
-      error: 'Upload failed', 
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-// Alternative upload endpoint for testing
-app.post('/upload-media', (req, res) => {
-  console.log('=== ALTERNATIVE MEDIA UPLOAD REACHED ===');
-  
-  const timestamp = Date.now();
-  let fileName = `${timestamp}_alt_upload`;
-  let fileData = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
-  let mimetype = 'image/png';
-  let originalName = 'alt_upload.png';
-  
-  const contentType = req.get('content-type') || '';
-  
-  if (contentType.includes('image/jpeg')) {
-    fileName += '.jpg';
-    originalName = 'alt_upload.jpg';
-    mimetype = 'image/jpeg';
-  } else if (contentType.includes('image/gif')) {
-    fileName += '.gif';
-    originalName = 'alt_upload.gif';
-    mimetype = 'image/gif';
-  } else if (contentType.includes('image/webp')) {
-    fileName += '.webp';
-    originalName = 'alt_upload.webp';
-    mimetype = 'image/webp';
-  } else {
-    fileName += '.png';
-    originalName = 'alt_upload.png';
-    mimetype = 'image/png';
-  }
-  
-  try {
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-    
-    const filePath = path.join(uploadsDir, fileName);
-    fs.writeFileSync(filePath, fileData);
-    
-    const fileUrl = `http://localhost:5000/uploads/${fileName}`;
-    
-    return res.json({
-      success: true,
-      fileUrl: fileUrl,
-      fileName: fileName,
-      originalName: originalName,
-      size: fileData.length,
-      mimetype: mimetype,
-      timestamp: timestamp
-    });
-    
-  } catch (error) {
-    console.error('Upload error:', error);
-    return res.status(500).json({ 
-      error: 'Upload failed', 
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-// Parse JSON requests after upload endpoints
+// Parse JSON requests first
 app.use(express.json());
-
-// File upload configuration removed to eliminate ES module conflicts
 
 // HIGHEST PRIORITY: Session data extraction for your marketplace installation
 app.get('/api/oauth/session-data', async (req, res) => {
@@ -2201,49 +2075,6 @@ app.use((req, res, next) => {
     });
   });
 
-  // PRIORITY: Media upload endpoint - bypasses all middleware conflicts
-  app.post('/api/media/upload', (req, res) => {
-    console.log('=== DIRECT MEDIA UPLOAD ===');
-    
-    const timestamp = Date.now();
-    const fileName = `${timestamp}_image.png`;
-    
-    try {
-      // Create uploads directory
-      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-      
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-      
-      // Create valid 1x1 PNG image
-      const pngData = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
-      const filePath = path.join(uploadsDir, fileName);
-      fs.writeFileSync(filePath, pngData);
-      
-      const fileUrl = `http://localhost:5000/uploads/${fileName}`;
-      
-      res.json({
-        success: true,
-        fileUrl: fileUrl,
-        fileName: fileName,
-        originalName: 'image.png',
-        size: pngData.length,
-        mimetype: 'image/png',
-        timestamp: timestamp
-      });
-      
-    } catch (error) {
-      console.error('Direct upload error:', error);
-      res.status(500).json({ 
-        error: 'Upload failed', 
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
-  // REMOVED: Conflicting media upload endpoint - now handled at highest priority
-
   // CRITICAL: Add OAuth status endpoint BEFORE registerRoutes to prevent HTML responses
   app.get('/api/oauth/status', async (req, res) => {
     console.log('OAuth Status endpoint hit with query:', req.query);
@@ -2415,9 +2246,6 @@ app.use((req, res, next) => {
     // Serve static files from dist/public directory
     app.use(express.static(path.join(__dirname, '../dist/public')));
     
-    // Serve uploaded files
-    app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
-    
     // Catch-all handler: send back index.html file for SPA routing (EXCLUDING API routes)
     app.get('*', (req, res, next) => {
       // Never serve HTML for API routes - they should have been handled above
@@ -2436,72 +2264,6 @@ app.use((req, res, next) => {
   } else {
     console.log("Setting up development mode with Vite...");
     
-    // MEDIA UPLOAD: Alternative endpoint that bypasses middleware conflicts
-    app.post('/upload-media', (req, res) => {
-      console.log('=== MEDIA UPLOAD SUCCESS ===');
-      
-      const timestamp = Date.now();
-      let fileName = `${timestamp}_uploaded_file`;
-      let fileData = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
-      let mimetype = 'image/png';
-      let originalName = 'uploaded_file.png';
-      
-      // Handle different content types
-      const contentType = req.get('content-type') || '';
-      
-      if (contentType.includes('image/jpeg') || contentType.includes('image/jpg')) {
-        fileName += '.jpg';
-        originalName = 'uploaded_file.jpg';
-        mimetype = 'image/jpeg';
-        fileData = Buffer.from('/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA==', 'base64');
-      } else if (contentType.includes('image/gif')) {
-        fileName += '.gif';
-        originalName = 'uploaded_file.gif';
-        mimetype = 'image/gif';
-        fileData = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
-      } else if (contentType.includes('image/webp')) {
-        fileName += '.webp';
-        originalName = 'uploaded_file.webp';
-        mimetype = 'image/webp';
-      } else {
-        fileName += '.png';
-        originalName = 'uploaded_file.png';
-        mimetype = 'image/png';
-      }
-      
-      try {
-        const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-        
-        if (!fs.existsSync(uploadsDir)) {
-          fs.mkdirSync(uploadsDir, { recursive: true });
-        }
-        
-        const filePath = path.join(uploadsDir, fileName);
-        fs.writeFileSync(filePath, fileData);
-        
-        const fileUrl = `http://localhost:5000/uploads/${fileName}`;
-        
-        console.log('Upload successful:', fileName);
-        
-        return res.json({
-          success: true,
-          fileUrl: fileUrl,
-          fileName: fileName,
-          originalName: originalName,
-          size: fileData.length,
-          mimetype: mimetype,
-          timestamp: timestamp
-        });
-        
-      } catch (error) {
-        console.error('Upload error:', error);
-        return res.status(500).json({ 
-          error: 'Upload failed', 
-          message: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-    });
-
     // CRITICAL: In development, Vite middleware catches all routes including API
     // We need to explicitly handle API routes BEFORE Vite setup
     console.log("Registering development API route handlers...");
@@ -2533,9 +2295,6 @@ app.use((req, res, next) => {
         environment: 'development'
       });
     });
-    
-    // Serve uploaded files in development mode
-    app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
     
     await setupVite(app, server);
   }
