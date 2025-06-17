@@ -1,12 +1,3 @@
-#!/bin/bash
-
-# Deploy Railway Backend with Media Upload Support
-# Updates the existing Railway service with media upload capabilities
-
-echo "🚀 Deploying Railway Backend with Media Upload Support..."
-
-# Create deployment package
-cat > railway-enhanced-backend.js << 'EOF'
 /**
  * Railway GoHighLevel Backend v5.0.0
  * Complete backend with product creation and media upload support
@@ -278,45 +269,3 @@ app.listen(port, '0.0.0.0', () => {
   console.log('- POST /api/ghl/products - Create products in GoHighLevel');
   console.log('- GET  /api/installations - View OAuth installations');
 });
-EOF
-
-# Create package.json for Railway deployment
-cat > railway-package.json << 'EOF'
-{
-  "name": "railway-ghl-backend",
-  "version": "5.0.0",
-  "description": "GoHighLevel Backend with Product Creation and Media Upload",
-  "main": "railway-enhanced-backend.js",
-  "scripts": {
-    "start": "node railway-enhanced-backend.js",
-    "dev": "node railway-enhanced-backend.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "multer": "^1.4.5-lts.1",
-    "form-data": "^4.0.0",
-    "node-fetch": "^2.6.7"
-  },
-  "engines": {
-    "node": ">=16.0.0"
-  }
-}
-EOF
-
-echo "✅ Railway backend files created:"
-echo "  - railway-enhanced-backend.js (Main server with media upload)"
-echo "  - railway-package.json (Dependencies)"
-echo ""
-echo "🚀 Ready for Railway deployment!"
-echo ""
-echo "Features included:"
-echo "  ✅ Product creation in GoHighLevel"
-echo "  ✅ Media upload to GoHighLevel"
-echo "  ✅ OAuth installation management"
-echo "  ✅ File size limits and validation"
-echo ""
-echo "Next steps:"
-echo "1. Deploy these files to your Railway service"
-echo "2. Ensure GHL_ACCESS_TOKEN is set in Railway environment"
-echo "3. Test media upload endpoint: POST /api/ghl/media/upload"
