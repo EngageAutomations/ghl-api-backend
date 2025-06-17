@@ -45,16 +45,64 @@ const userResponse = await fetch('https://services.leadconnectorhq.com/oauth/use
 **Root Cause:** All attempted user info endpoints (oauth/userinfo, users/me, oauth/me) returning authentication failures  
 **Latest Occurrence:** June 17, 2025: `https://dir.engageautomations.com/api/oauth/callback?code=4bd0213068fcd21ec138244888939b06d9a826ea`
 
+**Critical Update - June 17, 2025:** Comprehensive endpoint testing completed with all endpoints failing
+- **Test Results:** oauth/userinfo: 404, users/me: 400, oauth/me: 404, users/search: 401, locations/search: 401, locations/: 404, companies: 404
+- **Pattern Analysis:** Mix of 400 (Bad Request), 401 (Unauthorized), and 404 (Not Found) errors
+- **Root Cause:** Fundamental OAuth app configuration or scope issue in GoHighLevel
+
 **Investigation Results:**
 - Token exchange succeeds (access token obtained)
-- Multiple user info endpoints fail with authentication errors
-- Suggests OAuth scope or token type incompatibility
+- ALL user info endpoints fail across 10 different approaches
+- Error pattern suggests incorrect OAuth app configuration in GoHighLevel marketplace settings
+- 404 errors indicate endpoints don't exist for this token type
+- 401 errors suggest missing required scopes
+- 400 errors indicate malformed requests or unsupported parameters
 
-**Solutions:**
-1. **Add missing OAuth scopes:** Ensure GoHighLevel app includes `users.readonly` scope
-2. **Try alternative endpoints:** Test `/locations/search` or company-specific endpoints
-3. **Use different authentication headers:** Try different header combinations
-4. **Verify token permissions:** Check what scopes are actually granted to the token
+**Required Actions:**
+1. **GoHighLevel App Configuration Review:** Check marketplace app settings for correct scopes and permissions
+2. **Scope Verification:** Ensure app includes: `users.readonly`, `locations.readonly`, `oauth.readonly`
+3. **API Version Compatibility:** Verify app is configured for correct GoHighLevel API version
+4. **Token Type Analysis:** Confirm whether app generates user tokens vs. location tokens vs. agency tokens
+5. **Marketplace App Status:** Verify app is approved and properly configured in GoHighLevel marketplace
+
+### Diagnostic Checklist for GoHighLevel App Configuration
+
+**Error Pattern Analysis:**
+- **404 errors (oauth/userinfo, oauth/me, locations/, companies):** Endpoints don't exist for this token type
+- **401 errors (users/search, locations/search):** Missing required OAuth scopes
+- **400 errors (users/me):** Malformed request or unsupported API version
+
+**Immediate Verification Steps:**
+1. **Check GoHighLevel App Dashboard:**
+   - Navigate to GoHighLevel Developer Portal
+   - Verify app status: Published/Approved vs Draft/Pending
+   - Review configured OAuth scopes and API permissions
+   - Confirm redirect URI matches: `https://dir.engageautomations.com/api/oauth/callback`
+
+2. **Verify Required OAuth Scopes:**
+   ```
+   Required Scopes for User Info Access:
+   - users.readonly (for /users/me and /users/search)
+   - locations.readonly (for /locations/* endpoints)
+   - oauth.readonly (for /oauth/userinfo)
+   - contacts.readonly (minimum scope for basic API access)
+   ```
+
+3. **API Version Configuration:**
+   - Current API version: 2021-07-28
+   - Verify app is configured for correct version in GoHighLevel settings
+   - Some endpoints require specific API version headers
+
+4. **Token Analysis:**
+   - Check if token is agency-level vs location-level vs user-level
+   - Agency tokens may not have access to user-specific endpoints
+   - Location tokens may require different endpoint patterns
+
+**Next Steps if All Verification Fails:**
+1. Create new test app in GoHighLevel marketplace with minimal scopes
+2. Test OAuth flow with fresh app configuration
+3. Contact GoHighLevel marketplace support for API access verification
+4. Review GoHighLevel API documentation for recent endpoint changes
 
 ### Error: "Cannot GET /api/oauth/callback"
 **Root Cause:** Missing OAuth callback endpoint in Railway backend  
