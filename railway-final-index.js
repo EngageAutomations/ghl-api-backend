@@ -324,6 +324,67 @@ app.get('/api/oauth/callback', async (req, res) => {
   }
 });
 
+// Create contact (test with available scope)
+app.post('/api/ghl/contacts/create', async (req, res) => {
+  try {
+    const { firstName, lastName, email, installationId, phone } = req.body;
+    const installation = installations.get(installationId);
+    
+    if (!installation || !installation.accessToken) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Access token not available for installation: ' + installationId,
+        availableInstallations: Array.from(installations.keys())
+      });
+    }
+
+    const contactData = {
+      firstName: firstName || 'Test',
+      lastName: lastName || 'Contact',
+      email: email || `test${Date.now()}@example.com`,
+      locationId: installation.locationId,
+      source: 'OAuth Integration Test'
+    };
+
+    if (phone) {
+      contactData.phone = phone;
+    }
+
+    console.log('Creating contact with data:', contactData);
+
+    const response = await axios.post(
+      'https://services.leadconnectorhq.com/contacts/',
+      contactData,
+      {
+        headers: {
+          'Authorization': `Bearer ${installation.accessToken}`,
+          'Content-Type': 'application/json',
+          'Version': '2021-07-28',
+          'Accept': 'application/json'
+        },
+        timeout: 15000
+      }
+    );
+
+    res.json({
+      success: true,
+      message: 'Contact created successfully in GoHighLevel',
+      contact: response.data.contact,
+      contactId: response.data.contact?.id,
+      locationId: installation.locationId
+    });
+
+  } catch (error) {
+    console.error('Contact creation error:', error.response?.data || error.message);
+    res.status(400).json({
+      success: false,
+      error: 'Contact creation failed',
+      details: error.response?.data || error.message,
+      status: error.response?.status
+    });
+  }
+});
+
 // Test product creation with a new installation
 app.post('/api/ghl/test-product', async (req, res) => {
   try {
