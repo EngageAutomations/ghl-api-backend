@@ -553,18 +553,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
             </div>
           )}
 
-          {/* 5. Image URL */}
-          <div>
-            <Label htmlFor="imageUrl" className="text-sm font-medium text-gray-700 block text-left">Image URL</Label>
-            <Input
-              id="imageUrl"
-              type="url"
-              value={formData.imageUrl}
-              onChange={(e) => handleInputChange('imageUrl', e.target.value)}
-              placeholder="https://example.com/image.jpg"
-              className="mt-1"
-            />
-          </div>
+
 
           {/* 6. Download URL - If action button download is selected */}
           {directoryConfig?.integrationMethod === 'download' && (
