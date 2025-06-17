@@ -36,8 +36,20 @@ const userResponse = await fetch('https://services.leadconnectorhq.com/oauth/use
 **Status Update - June 17, 2025:**
 - Railway backend v5.2.1 deployed with `/oauth/userinfo` endpoint fix
 - E-102 error persists despite correct endpoint usage
+- **NEW ISSUE:** Railway deployment failed with "service unavailable" error
 - **Investigation needed:** GoHighLevel may have changed OAuth user info requirements
 - **Alternative approaches:** Try different user info endpoints or authentication headers
+
+### Error: Railway Service Unavailable
+**Status Code:** 503  
+**Root Cause:** Complex backend deployment causing Railway service failures  
+**Solution:** Deploy simplified backend with minimal dependencies and basic OAuth flow
+
+**Deployment Constraints:**
+- Railway has limited resource allocation for complex backends
+- Multiple dependencies (multer, form-data, node-fetch) may cause deployment failures
+- Simplified backends with core Express functionality deploy more reliably
+- Focus on essential OAuth callback and basic API proxy functionality first
 
 ### Error: "Cannot GET /api/oauth/callback"
 **Root Cause:** Missing OAuth callback endpoint in Railway backend  
