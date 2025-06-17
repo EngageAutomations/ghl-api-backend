@@ -10,6 +10,7 @@
 **Occurrence:** 
 - June 17, 2025: `https://dir.engageautomations.com/api/oauth/callback?code=43c1fa6baecc9fc2db48179bcc76f51d812e05bb`
 - June 17, 2025: `https://dir.engageautomations.com/api/oauth/callback?code=bb96da6aa333dcd5d94ef4b8bbcb3b69157bcecd`
+- June 17, 2025: `https://dir.engageautomations.com/api/oauth/callback?code=4bd0213068fcd21ec138244888939b06d9a826ea`
 
 **Solutions:**
 1. **Endpoint Fix:** Use `/oauth/userinfo` instead of `/users/search` for OAuth tokens
@@ -38,6 +39,22 @@ const userResponse = await fetch('https://services.leadconnectorhq.com/oauth/use
 - E-102 error persists despite correct endpoint usage
 - **Investigation needed:** GoHighLevel may have changed OAuth user info requirements
 - **Alternative approaches:** Try different user info endpoints or authentication headers
+
+### Error: "All OAuth user info endpoints failed"
+**Status Code:** 500  
+**Root Cause:** All attempted user info endpoints (oauth/userinfo, users/me, oauth/me) returning authentication failures  
+**Latest Occurrence:** June 17, 2025: `https://dir.engageautomations.com/api/oauth/callback?code=4bd0213068fcd21ec138244888939b06d9a826ea`
+
+**Investigation Results:**
+- Token exchange succeeds (access token obtained)
+- Multiple user info endpoints fail with authentication errors
+- Suggests OAuth scope or token type incompatibility
+
+**Solutions:**
+1. **Add missing OAuth scopes:** Ensure GoHighLevel app includes `users.readonly` scope
+2. **Try alternative endpoints:** Test `/locations/search` or company-specific endpoints
+3. **Use different authentication headers:** Try different header combinations
+4. **Verify token permissions:** Check what scopes are actually granted to the token
 
 ### Error: "Cannot GET /api/oauth/callback"
 **Root Cause:** Missing OAuth callback endpoint in Railway backend  
