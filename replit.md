@@ -171,6 +171,13 @@ The project includes a comprehensive diagnostic test suite with 39 automated tes
 
 ## Recent Changes
 
+- June 17, 2025: Production OAuth Testing - Scope Requirements Identified
+  - Successfully captured new OAuth installation: install_1750127947397 with real access tokens
+  - Verified OAuth connection to GoHighLevel location "MakerExpress 3D" (WAvk87RmW9rBSDJHeOpH)
+  - Identified scope limitation: current app has products/prices.write but needs products.write for product creation
+  - OAuth infrastructure fully functional - authentication and token exchange working perfectly
+  - Next step: Add products.write scope to GoHighLevel app configuration for product creation testing
+
 - June 17, 2025: OAuth Installation Successfully Working with Real Token Capture
   - Fixed OAuth callback routing issue by adding /api/oauth/callback endpoint
   - Resolved OAuth content-type error by using application/x-www-form-urlencoded format
