@@ -56,17 +56,24 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
         formData.append('files', file);
       });
       
+      console.log('Uploading files to Railway:', files.map(f => f.name));
+      
       // Upload to Railway backend which has GoHighLevel integration
       const response = await fetch('https://dir.engageautomations.com/api/ghl/media/upload?installationId=install_1750131573635', {
         method: 'POST',
-        body: formData
+        body: formData,
+        // Don't set Content-Type header - let browser set it with boundary for multipart
       });
       
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Upload failed:', response.status, errorText);
         throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
       }
       
-      return response.json();
+      const result = await response.json();
+      console.log('Upload response:', result);
+      return result;
     },
     onSuccess: (response: any) => {
       // Handle multiple image URLs from GoHighLevel
