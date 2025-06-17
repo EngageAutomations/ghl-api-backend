@@ -688,48 +688,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dev/docs/:feature", getFeatureDocumentation);
   app.post("/api/dev/update-code", updateConfigurationCode);
 
-  // Media Upload endpoint - direct implementation without imports
+  // Media Upload endpoint - working implementation
   app.post("/api/ghl/media/upload", (req, res) => {
     console.log('Media upload request received');
+    console.log('Files object:', !!req.files);
+    console.log('File field:', req.files ? Object.keys(req.files) : 'none');
     
     try {
       if (!req.files || !req.files.file) {
-        return res.status(400).json({ error: 'No file provided' });
+        return res.status(400).json({ 
+          error: 'No file provided',
+          received: req.files ? Object.keys(req.files) : 'no files object'
+        });
       }
 
       const file = req.files.file as any;
-      console.log('File details:', { name: file.name, size: file.size, mimetype: file.mimetype });
+      console.log('Processing file:', { 
+        name: file.name, 
+        size: file.size, 
+        mimetype: file.mimetype 
+      });
       
-      // Direct filesystem operations without imports
-      const uploadsDir = './public/uploads';
+      // Use absolute path for uploads directory
+      const uploadsDir = path.resolve('./public/uploads');
       
-      // Ensure directory exists using Node.js built-ins
-      if (!require('fs').existsSync(uploadsDir)) {
-        require('fs').mkdirSync(uploadsDir, { recursive: true });
+      // Create directory if it doesn't exist
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+        console.log('Created uploads directory:', uploadsDir);
       }
       
-      // Save file with timestamp
-      const fileName = `${Date.now()}_${file.name}`;
-      const localPath = require('path').join(uploadsDir, fileName);
-      require('fs').writeFileSync(localPath, file.data);
+      // Generate unique filename
+      const timestamp = Date.now();
+      const fileExtension = path.extname(file.name);
+      const baseName = path.basename(file.name, fileExtension);
+      const fileName = `${timestamp}_${baseName}${fileExtension}`;
+      const filePath = path.join(uploadsDir, fileName);
       
+      // Write file to disk
+      fs.writeFileSync(filePath, file.data);
+      console.log('File saved successfully to:', filePath);
+      
+      // Generate accessible URL
       const fileUrl = `http://localhost:5000/uploads/${fileName}`;
       
-      console.log('Upload successful:', fileUrl);
-      res.json({
+      const response = {
         success: true,
         fileUrl: fileUrl,
         fileName: file.name,
         originalName: file.name,
         size: file.size,
-        mimetype: file.mimetype
-      });
+        mimetype: file.mimetype,
+        timestamp: timestamp,
+        savedPath: filePath
+      };
+
+      console.log('Upload successful, returning response:', response);
+      res.json(response);
       
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Upload error details:', error);
       res.status(500).json({ 
         error: 'Upload failed', 
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
       });
     }
   });
