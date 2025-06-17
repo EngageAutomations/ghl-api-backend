@@ -3,7 +3,7 @@
  * Handles product and collection creation via GoHighLevel APIs
  */
 
-import { DatabaseStorage } from '../storage';
+import { storage } from '../storage';
 
 interface GHLProduct {
   name: string;
@@ -41,10 +41,10 @@ interface OAuthInstallation {
 
 export class GoHighLevelAPIService {
   private baseURL = 'https://services.leadconnectorhq.com';
-  private storage: DatabaseStorage;
+  private storage: typeof storage;
   
   constructor() {
-    this.storage = new DatabaseStorage();
+    this.storage = storage;
   }
 
   /**

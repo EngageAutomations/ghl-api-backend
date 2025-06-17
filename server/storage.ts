@@ -34,10 +34,12 @@ export interface IStorage {
   getOAuthInstallation(ghlUserId: string): Promise<OAuthInstallation | undefined>;
   getLatestOAuthInstallation(): Promise<OAuthInstallation | undefined>;
   getAllOAuthInstallations(): Promise<OAuthInstallation[]>;
+  clearAllOAuthInstallations(): Promise<void>;
   
   // Designer Config methods
   getDesignerConfig(userId: number): Promise<DesignerConfig | undefined>;
   getDesignerConfigByDirectory(directoryName: string, userId?: number): Promise<DesignerConfig | undefined>;
+  getFormConfigurationByDirectoryName(directoryName: string): Promise<FormConfiguration | undefined>;
   createDesignerConfig(config: InsertDesignerConfig): Promise<DesignerConfig>;
   updateDesignerConfig(id: number, config: Partial<InsertDesignerConfig>): Promise<DesignerConfig | undefined>;
   
@@ -49,1194 +51,458 @@ export interface IStorage {
   verifyPortalDomain(userId: number, subdomain: string, domain: string): Promise<boolean>;
   
   // Listing methods
+  getListings(): Promise<Listing[]>;
+  getListingsByUser(userId: number): Promise<Listing[]>;
   getListing(id: number): Promise<Listing | undefined>;
   getListingBySlug(slug: string): Promise<Listing | undefined>;
-  getListingsByUser(userId: number): Promise<Listing[]>;
   createListing(listing: InsertListing): Promise<Listing>;
   updateListing(id: number, listing: Partial<InsertListing>): Promise<Listing | undefined>;
   deleteListing(id: number): Promise<boolean>;
   
   // Listing Addon methods
-  getListingAddon(id: number): Promise<ListingAddon | undefined>;
+  getListingAddons(): Promise<ListingAddon[]>;
   getListingAddonsByListing(listingId: number): Promise<ListingAddon[]>;
-  getListingAddonsByType(listingId: number, type: string): Promise<ListingAddon[]>;
+  getListingAddonsByType(type: string): Promise<ListingAddon[]>;
+  getListingAddon(id: number): Promise<ListingAddon | undefined>;
   createListingAddon(addon: InsertListingAddon): Promise<ListingAddon>;
   updateListingAddon(id: number, addon: Partial<InsertListingAddon>): Promise<ListingAddon | undefined>;
   deleteListingAddon(id: number): Promise<boolean>;
   
-  // Form Configuration (Directory) methods
-  getFormConfiguration(id: number): Promise<FormConfiguration | undefined>;
+  // Form Configuration methods
+  getFormConfigurations(): Promise<FormConfiguration[]>;
   getFormConfigurationsByUser(userId: number): Promise<FormConfiguration[]>;
-  getFormConfigurationByDirectoryName(directoryName: string): Promise<FormConfiguration | undefined>;
+  getFormConfiguration(id: number): Promise<FormConfiguration | undefined>;
+  getFormConfigurationByDirectory(directoryName: string, userId?: number): Promise<FormConfiguration | undefined>;
   createFormConfiguration(config: InsertFormConfiguration): Promise<FormConfiguration>;
   updateFormConfiguration(id: number, config: Partial<InsertFormConfiguration>): Promise<FormConfiguration | undefined>;
   deleteFormConfiguration(id: number): Promise<boolean>;
   
-  // Listings by directory methods
-  getListingsByDirectory(directoryName: string): Promise<Listing[]>;
+  // Form Submission methods
+  getFormSubmissions(): Promise<FormSubmission[]>;
+  getFormSubmissionsByConfig(formConfigId: number): Promise<FormSubmission[]>;
+  getFormSubmission(id: number): Promise<FormSubmission | undefined>;
+  createFormSubmission(submission: InsertFormSubmission): Promise<FormSubmission>;
+  updateFormSubmission(id: number, submission: Partial<InsertFormSubmission>): Promise<FormSubmission | undefined>;
+  deleteFormSubmission(id: number): Promise<boolean>;
+  
+  // Form Field methods
+  getFormFields(): Promise<FormField[]>;
+  getFormFieldsByConfig(formConfigId: number): Promise<FormField[]>;
+  getFormFieldById(id: number): Promise<FormField | undefined>;
+  createFormField(field: InsertFormField): Promise<FormField>;
+  updateFormField(id: number, field: Partial<InsertFormField>): Promise<FormField | undefined>;
+  deleteFormField(id: number): Promise<boolean>;
+  reorderFormFields(formConfigId: number, fieldIds: number[]): Promise<void>;
+  duplicateFormField(id: number): Promise<FormField | undefined>;
   
   // Google Drive Credentials methods
-  getGoogleDriveCredentials(userId: number): Promise<GoogleDriveCredentials | undefined>;
+  getGoogleDriveCredentials(): Promise<GoogleDriveCredentials[]>;
+  getGoogleDriveCredentialsByUser(userId: number): Promise<GoogleDriveCredentials[]>;
+  getGoogleDriveCredential(id: number): Promise<GoogleDriveCredentials | undefined>;
   createGoogleDriveCredentials(credentials: InsertGoogleDriveCredentials): Promise<GoogleDriveCredentials>;
-  updateGoogleDriveCredentials(userId: number, credentials: Partial<InsertGoogleDriveCredentials>): Promise<GoogleDriveCredentials | undefined>;
-  deactivateGoogleDriveCredentials(userId: number): Promise<boolean>;
+  updateGoogleDriveCredentials(id: number, credentials: Partial<InsertGoogleDriveCredentials>): Promise<GoogleDriveCredentials | undefined>;
+  deleteGoogleDriveCredentials(id: number): Promise<boolean>;
   
   // Collection methods
-  getCollection(id: number): Promise<Collection | undefined>;
+  getCollections(): Promise<Collection[]>;
   getCollectionsByUser(userId: number): Promise<Collection[]>;
-  getCollectionsByDirectory(directoryName: string): Promise<Collection[]>;
+  getCollection(id: number): Promise<Collection | undefined>;
+  getCollectionBySlug(slug: string): Promise<Collection | undefined>;
   createCollection(collection: InsertCollection): Promise<Collection>;
   updateCollection(id: number, collection: Partial<InsertCollection>): Promise<Collection | undefined>;
   deleteCollection(id: number): Promise<boolean>;
   
   // Collection Item methods
-  getCollectionItem(id: number): Promise<CollectionItem | undefined>;
+  getCollectionItems(): Promise<CollectionItem[]>;
   getCollectionItemsByCollection(collectionId: number): Promise<CollectionItem[]>;
-  getCollectionItemsWithListings(collectionId: number): Promise<(CollectionItem & { listing?: Listing })[]>;
-  getCollectionItemsByListing(listingId: number): Promise<CollectionItem[]>;
-  addListingToCollection(collectionId: number, listingId: number): Promise<CollectionItem>;
-  removeListingFromCollection(collectionId: number, listingId: number): Promise<boolean>;
+  getCollectionItem(id: number): Promise<CollectionItem | undefined>;
+  createCollectionItem(item: InsertCollectionItem): Promise<CollectionItem>;
   updateCollectionItem(id: number, item: Partial<InsertCollectionItem>): Promise<CollectionItem | undefined>;
+  deleteCollectionItem(id: number): Promise<boolean>;
 }
 
+// Simple in-memory storage implementation
 export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private designerConfigs: Map<number, DesignerConfig>;
-  private portalDomains: Map<number, PortalDomain>;
-  private listings: Map<number, Listing>;
-  private listingAddons: Map<number, ListingAddon>;
-  private formConfigurations: Map<number, FormConfiguration>;
-  private googleDriveCredentials: Map<number, GoogleDriveCredentials>;
-  private collections: Map<number, Collection>;
-  private collectionItems: Map<number, CollectionItem>;
-  
-  currentUserId: number;
-  currentConfigId: number;
-  currentDomainId: number;
-  currentListingId: number;
-  currentListingAddonId: number;
-  currentFormConfigId: number;
-  currentGoogleDriveCredentialsId: number;
-  currentCollectionId: number;
-  currentCollectionItemId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.designerConfigs = new Map();
-    this.portalDomains = new Map();
-    this.listings = new Map();
-    this.listingAddons = new Map();
-    this.formConfigurations = new Map();
-    this.googleDriveCredentials = new Map();
-    this.collections = new Map();
-    this.collectionItems = new Map();
-    
-    this.currentUserId = 1;
-    this.currentConfigId = 1;
-    this.currentDomainId = 1;
-    this.currentListingId = 1;
-    this.currentListingAddonId = 1;
-    this.currentFormConfigId = 1;
-    this.currentGoogleDriveCredentialsId = 1;
-    this.currentCollectionId = 1;
-    this.currentCollectionItemId = 1;
-  }
+  private users: User[] = [];
+  private oauthInstallations: OAuthInstallation[] = [];
+  private designerConfigs: DesignerConfig[] = [];
+  private portalDomains: PortalDomain[] = [];
+  private listings: Listing[] = [];
+  private listingAddons: ListingAddon[] = [];
+  private formConfigurations: FormConfiguration[] = [];
+  private formSubmissions: FormSubmission[] = [];
+  private formFields: FormField[] = [];
+  private googleDriveCredentials: GoogleDriveCredentials[] = [];
+  private collections: Collection[] = [];
+  private collectionItems: CollectionItem[] = [];
+  private nextId = 1;
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    return this.users.find(u => u.id === id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-  
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.email === email,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
-  }
-  
-  // Designer Config methods
-  async getDesignerConfig(userId: number): Promise<DesignerConfig | undefined> {
-    return Array.from(this.designerConfigs.values()).find(
-      (config) => config.userId === userId,
-    );
-  }
-  
-  async createDesignerConfig(config: InsertDesignerConfig): Promise<DesignerConfig> {
-    const id = this.currentConfigId++;
-    const designerConfig: DesignerConfig = { ...config, id };
-    this.designerConfigs.set(id, designerConfig);
-    return designerConfig;
-  }
-  
-  async updateDesignerConfig(userId: number, config: Partial<InsertDesignerConfig>): Promise<DesignerConfig | undefined> {
-    const existingConfig = await this.getDesignerConfig(userId);
-    
-    if (!existingConfig) {
-      return undefined;
-    }
-    
-    const updatedConfig: DesignerConfig = { ...existingConfig, ...config };
-    this.designerConfigs.set(existingConfig.id, updatedConfig);
-    return updatedConfig;
-  }
-  
-  // Portal Domain methods
-  async getPortalDomain(userId: number): Promise<PortalDomain | undefined> {
-    return Array.from(this.portalDomains.values()).find(
-      (domain) => domain.userId === userId,
-    );
-  }
-  
-  async getPortalDomainBySubdomain(subdomain: string, domain: string): Promise<PortalDomain | undefined> {
-    return Array.from(this.portalDomains.values()).find(
-      (portalDomain) => portalDomain.subdomain === subdomain && portalDomain.domain === domain,
-    );
-  }
-  
-  async createPortalDomain(domain: InsertPortalDomain): Promise<PortalDomain> {
-    const id = this.currentDomainId++;
-    const portalDomain: PortalDomain = { ...domain, id };
-    this.portalDomains.set(id, portalDomain);
-    return portalDomain;
-  }
-  
-  async updatePortalDomain(id: number, domain: Partial<InsertPortalDomain>): Promise<PortalDomain | undefined> {
-    const existingDomain = this.portalDomains.get(id);
-    
-    if (!existingDomain) {
-      return undefined;
-    }
-    
-    const updatedDomain: PortalDomain = { ...existingDomain, ...domain };
-    this.portalDomains.set(id, updatedDomain);
-    return updatedDomain;
-  }
-  
-  async verifyPortalDomain(userId: number, subdomain: string, domain: string): Promise<boolean> {
-    const portalDomain = await this.getPortalDomainBySubdomain(subdomain, domain);
-    
-    if (!portalDomain || portalDomain.userId !== userId) {
-      return false;
-    }
-    
-    // Simulate domain verification (in real implementation, this would check DNS records)
-    const updatedDomain = { ...portalDomain, verified: true };
-    this.portalDomains.set(portalDomain.id, updatedDomain);
-    return true;
-  }
-  
-  // Listing methods
-  async getListing(id: number): Promise<Listing | undefined> {
-    return this.listings.get(id);
-  }
-  
-  async getListingBySlug(slug: string): Promise<Listing | undefined> {
-    return Array.from(this.listings.values()).find(
-      (listing) => listing.slug === slug
-    );
-  }
-  
-  async getListingsByUser(userId: number): Promise<Listing[]> {
-    return Array.from(this.listings.values()).filter(
-      (listing) => listing.userId === userId
-    );
-  }
-  
-  async createListing(insertListing: InsertListing): Promise<Listing> {
-    const id = this.currentListingId++;
-    const now = new Date();
-    const listing: Listing = { 
-      ...insertListing, 
-      id,
-      createdAt: now,
-      updatedAt: now
-    };
-    this.listings.set(id, listing);
-    return listing;
-  }
-  
-  async updateListing(id: number, partialListing: Partial<InsertListing>): Promise<Listing | undefined> {
-    const existingListing = this.listings.get(id);
-    
-    if (!existingListing) {
-      return undefined;
-    }
-    
-    const updatedListing: Listing = { 
-      ...existingListing, 
-      ...partialListing,
-      updatedAt: new Date()
-    };
-    
-    this.listings.set(id, updatedListing);
-    return updatedListing;
-  }
-  
-  async deleteListing(id: number): Promise<boolean> {
-    const exists = this.listings.has(id);
-    if (exists) {
-      this.listings.delete(id);
-      return true;
-    }
-    return false;
-  }
-
-  // Listing Addon methods
-  async getListingAddon(id: number): Promise<ListingAddon | undefined> {
-    return this.listingAddons.get(id);
-  }
-
-  async getListingAddonsByListing(listingId: number): Promise<ListingAddon[]> {
-    return Array.from(this.listingAddons.values())
-      .filter(addon => addon.listingId === listingId)
-      .sort((a, b) => a.displayOrder - b.displayOrder);
-  }
-
-  async getListingAddonsByType(listingId: number, type: string): Promise<ListingAddon[]> {
-    return Array.from(this.listingAddons.values())
-      .filter(addon => addon.listingId === listingId && addon.type === type)
-      .sort((a, b) => a.displayOrder - b.displayOrder);
-  }
-
-  async createListingAddon(insertAddon: InsertListingAddon): Promise<ListingAddon> {
-    const id = this.currentListingAddonId++;
-    
-    // Set timestamps
-    const now = new Date();
-    
-    const addon: ListingAddon = { 
-      ...insertAddon, 
-      id,
-      createdAt: now,
-      updatedAt: now
-    };
-    
-    this.listingAddons.set(id, addon);
-    return addon;
-  }
-
-  async updateListingAddon(id: number, partialAddon: Partial<InsertListingAddon>): Promise<ListingAddon | undefined> {
-    const existingAddon = this.listingAddons.get(id);
-    
-    if (!existingAddon) {
-      return undefined;
-    }
-    
-    const updatedAddon: ListingAddon = { 
-      ...existingAddon, 
-      ...partialAddon,
-      updatedAt: new Date()
-    };
-    
-    this.listingAddons.set(id, updatedAddon);
-    return updatedAddon;
-  }
-
-  async deleteListingAddon(id: number): Promise<boolean> {
-    const exists = this.listingAddons.has(id);
-    if (exists) {
-      this.listingAddons.delete(id);
-      return true;
-    }
-    return false;
-  }
-
-  // Google Drive Credentials methods
-  async getGoogleDriveCredentials(userId: number): Promise<GoogleDriveCredentials | undefined> {
-    return Array.from(this.googleDriveCredentials.values())
-      .find(cred => cred.userId === userId && cred.isActive);
-  }
-
-  async createGoogleDriveCredentials(insertCredentials: InsertGoogleDriveCredentials): Promise<GoogleDriveCredentials> {
-    const id = this.currentGoogleDriveCredentialsId++;
-    const now = new Date();
-    
-    // Deactivate any existing credentials for this user
-    await this.deactivateGoogleDriveCredentials(insertCredentials.userId);
-    
-    const credentials: GoogleDriveCredentials = {
-      ...insertCredentials,
-      id,
-      createdAt: now,
-      updatedAt: now
-    };
-    
-    this.googleDriveCredentials.set(id, credentials);
-    return credentials;
-  }
-
-  async updateGoogleDriveCredentials(userId: number, partialCredentials: Partial<InsertGoogleDriveCredentials>): Promise<GoogleDriveCredentials | undefined> {
-    const existingCredentials = Array.from(this.googleDriveCredentials.values())
-      .find(cred => cred.userId === userId && cred.isActive);
-    
-    if (!existingCredentials) {
-      return undefined;
-    }
-    
-    const updatedCredentials: GoogleDriveCredentials = {
-      ...existingCredentials,
-      ...partialCredentials,
-      updatedAt: new Date()
-    };
-    
-    this.googleDriveCredentials.set(existingCredentials.id, updatedCredentials);
-    return updatedCredentials;
-  }
-
-  async deactivateGoogleDriveCredentials(userId: number): Promise<boolean> {
-    const existingCredentials = Array.from(this.googleDriveCredentials.values())
-      .find(cred => cred.userId === userId && cred.isActive);
-    
-    if (!existingCredentials) {
-      return false;
-    }
-    
-    const deactivatedCredentials: GoogleDriveCredentials = {
-      ...existingCredentials,
-      isActive: false,
-      updatedAt: new Date()
-    };
-    
-    this.googleDriveCredentials.set(existingCredentials.id, deactivatedCredentials);
-    return true;
-  }
-
-  // Form Configuration (Directory) methods
-  async getFormConfiguration(id: number): Promise<FormConfiguration | undefined> {
-    return this.formConfigurations.get(id);
-  }
-
-  async getFormConfigurationsByUser(userId: number): Promise<FormConfiguration[]> {
-    return Array.from(this.formConfigurations.values()).filter(
-      (config) => config.userId === userId
-    );
-  }
-
-  async getFormConfigurationByDirectoryName(directoryName: string): Promise<FormConfiguration | undefined> {
-    return Array.from(this.formConfigurations.values()).find(
-      (config) => config.directoryName === directoryName
-    );
-  }
-
-  async createFormConfiguration(insertConfig: InsertFormConfiguration): Promise<FormConfiguration> {
-    const id = this.currentFormConfigId++;
-    const now = new Date();
-    const formConfig: FormConfiguration = {
-      ...insertConfig,
-      id,
-      createdAt: now,
-      updatedAt: now
-    };
-    this.formConfigurations.set(id, formConfig);
-    return formConfig;
-  }
-
-  async updateFormConfiguration(id: number, partialConfig: Partial<InsertFormConfiguration>): Promise<FormConfiguration | undefined> {
-    const existingConfig = this.formConfigurations.get(id);
-    
-    if (!existingConfig) {
-      return undefined;
-    }
-    
-    const updatedConfig: FormConfiguration = {
-      ...existingConfig,
-      ...partialConfig,
-      updatedAt: new Date()
-    };
-    
-    this.formConfigurations.set(id, updatedConfig);
-    return updatedConfig;
-  }
-
-  async deleteFormConfiguration(id: number): Promise<boolean> {
-    const exists = this.formConfigurations.has(id);
-    if (exists) {
-      this.formConfigurations.delete(id);
-      return true;
-    }
-    return false;
-  }
-
-  async getListingsByDirectory(directoryName: string): Promise<Listing[]> {
-    return Array.from(this.listings.values()).filter(
-      (listing) => listing.directoryName === directoryName
-    );
-  }
-
-  // Collection methods
-  async getCollection(id: number): Promise<Collection | undefined> {
-    return this.collections.get(id);
-  }
-
-  async getCollectionsByUser(userId: number): Promise<Collection[]> {
-    return Array.from(this.collections.values()).filter(
-      (collection) => collection.userId === userId
-    );
-  }
-
-  async getCollectionsByDirectory(directoryName: string): Promise<Collection[]> {
-    return Array.from(this.collections.values()).filter(
-      (collection) => collection.directoryName === directoryName
-    );
-  }
-
-  async createCollection(insertCollection: InsertCollection): Promise<Collection> {
-    const id = this.currentCollectionId++;
-    const now = new Date();
-    const collection: Collection = {
-      ...insertCollection,
-      id,
-      createdAt: now,
-      updatedAt: now
-    };
-    this.collections.set(id, collection);
-    return collection;
-  }
-
-  async updateCollection(id: number, partialCollection: Partial<InsertCollection>): Promise<Collection | undefined> {
-    const existingCollection = this.collections.get(id);
-    
-    if (!existingCollection) {
-      return undefined;
-    }
-    
-    const updatedCollection: Collection = {
-      ...existingCollection,
-      ...partialCollection,
-      updatedAt: new Date()
-    };
-    
-    this.collections.set(id, updatedCollection);
-    return updatedCollection;
-  }
-
-  async deleteCollection(id: number): Promise<boolean> {
-    const exists = this.collections.has(id);
-    if (exists) {
-      // Also delete all collection items
-      const itemsToDelete = Array.from(this.collectionItems.values())
-        .filter(item => item.collectionId === id);
-      itemsToDelete.forEach(item => this.collectionItems.delete(item.id));
-      
-      this.collections.delete(id);
-      return true;
-    }
-    return false;
-  }
-
-  // Get all methods for AI agent
-  async getAllUsers(): Promise<User[]> {
-    return Array.from(this.users.values());
-  }
-
-  async getAllDirectories(): Promise<DirectoryConfig[]> {
-    return Array.from(this.directories.values());
-  }
-
-  async getAllListings(): Promise<Listing[]> {
-    return Array.from(this.listings.values());
-  }
-
-  async getAllCollections(): Promise<Collection[]> {
-    return Array.from(this.collections.values());
-  }
-
-  async getDirectoriesByUser(userId: number): Promise<DirectoryConfig[]> {
-    return Array.from(this.directories.values()).filter(dir => dir.userId === userId);
-  }
-
-  async getListingsByUser(userId: number): Promise<Listing[]> {
-    return Array.from(this.listings.values()).filter(listing => listing.userId === userId);
-  }
-
-  async getCollectionsByUser(userId: number): Promise<Collection[]> {
-    return Array.from(this.collections.values()).filter(collection => collection.userId === userId);
-  }
-
-  // Collection Item methods
-  async getCollectionItem(id: number): Promise<CollectionItem | undefined> {
-    return this.collectionItems.get(id);
-  }
-
-  async getCollectionItemsByCollection(collectionId: number): Promise<CollectionItem[]> {
-    return Array.from(this.collectionItems.values()).filter(
-      (item) => item.collectionId === collectionId
-    );
-  }
-
-  async getCollectionItemsWithListings(collectionId: number): Promise<(CollectionItem & { listing?: Listing })[]> {
-    const items = Array.from(this.collectionItems.values()).filter(
-      (item) => item.collectionId === collectionId
-    );
-    
-    return items.map(item => ({
-      ...item,
-      listing: this.listings.get(item.listingId)
-    }));
-  }
-
-  async getCollectionItemsByListing(listingId: number): Promise<CollectionItem[]> {
-    return Array.from(this.collectionItems.values()).filter(
-      (item) => item.listingId === listingId
-    );
-  }
-
-  async addListingToCollection(collectionId: number, listingId: number): Promise<CollectionItem> {
-    const id = this.currentCollectionItemId++;
-    const now = new Date();
-    const item: CollectionItem = {
-      id,
-      collectionId,
-      listingId,
-      ghlItemId: null,
-      syncStatus: 'pending',
-      syncError: null,
-      addedAt: now
-    };
-    this.collectionItems.set(id, item);
-    return item;
-  }
-
-  async removeListingFromCollection(collectionId: number, listingId: number): Promise<boolean> {
-    const item = Array.from(this.collectionItems.values()).find(
-      (item) => item.collectionId === collectionId && item.listingId === listingId
-    );
-    
-    if (item) {
-      this.collectionItems.delete(item.id);
-      return true;
-    }
-    return false;
-  }
-
-  async updateCollectionItem(id: number, partialItem: Partial<InsertCollectionItem>): Promise<CollectionItem | undefined> {
-    const existingItem = this.collectionItems.get(id);
-    
-    if (!existingItem) {
-      return undefined;
-    }
-    
-    const updatedItem: CollectionItem = {
-      ...existingItem,
-      ...partialItem
-    };
-    
-    this.collectionItems.set(id, updatedItem);
-    return updatedItem;
-  }
-}
-
-// Database Storage implementation
-export class DatabaseStorage implements IStorage {
-  // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
-  }
-
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
-    return user;
-  }
-
-  // OAuth-specific user methods
   async getUserById(id: number): Promise<User | undefined> {
-    return this.getUser(id);
+    return this.users.find(u => u.id === id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return this.users.find(u => u.username === username);
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return this.users.find(u => u.email === email);
   }
 
   async getUserByGhlId(ghlUserId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.ghlUserId, ghlUserId));
-    return user || undefined;
+    return this.users.find(u => u.ghlUserId === ghlUserId);
   }
 
-  async createOAuthUser(userData: any): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values({
-        username: userData.username,
-        email: userData.email,
-        displayName: userData.displayName,
-        ghlUserId: userData.ghlUserId,
-        ghlAccessToken: userData.ghlAccessToken,
-        ghlRefreshToken: userData.ghlRefreshToken,
-        ghlTokenExpiry: userData.ghlTokenExpiry,
-        ghlScopes: userData.ghlScopes,
-        ghlLocationId: userData.ghlLocationId,
-        ghlLocationName: userData.ghlLocationName,
-        authType: userData.authType,
-        isActive: userData.isActive,
-      })
-      .returning();
-    return user;
+  async createUser(user: InsertUser): Promise<User> {
+    const newUser: User = {
+      id: this.nextId++,
+      username: user.username,
+      password: user.password || null,
+      displayName: user.displayName || null,
+      email: user.email || null,
+      ghlUserId: user.ghlUserId || null,
+      ghlAccessToken: user.ghlAccessToken || null,
+      ghlRefreshToken: user.ghlRefreshToken || null,
+      ghlTokenExpiry: user.ghlTokenExpiry || null,
+      ghlScopes: user.ghlScopes || null,
+      ghlLocationId: user.ghlLocationId || null,
+      ghlLocationName: user.ghlLocationName || null,
+      authType: user.authType || "local",
+      isActive: user.isActive ?? true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.users.push(newUser);
+    return newUser;
   }
 
-  async updateUserOAuthTokens(userId: number, tokenData: any): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({
-        ghlAccessToken: tokenData.ghlAccessToken,
-        ghlRefreshToken: tokenData.ghlRefreshToken,
-        ghlTokenExpiry: tokenData.ghlTokenExpiry,
-        ghlScopes: tokenData.ghlScopes,
-        ghlLocationId: tokenData.ghlLocationId,
-        ghlLocationName: tokenData.ghlLocationName,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId))
-      .returning();
+  async createOAuthUser(user: InsertUser): Promise<User> {
+    return this.createUser({ ...user, authType: "oauth" });
+  }
+
+  async updateUserOAuthTokens(userId: number, tokens: any): Promise<User> {
+    const user = this.users.find(u => u.id === userId);
+    if (!user) throw new Error("User not found");
+    
+    user.ghlAccessToken = tokens.ghlAccessToken;
+    user.ghlRefreshToken = tokens.ghlRefreshToken;
+    user.ghlTokenExpiry = tokens.ghlTokenExpiry;
+    user.updatedAt = new Date();
+    
     return user;
   }
 
   async getUsers(): Promise<User[]> {
-    return await db.select().from(users);
+    return this.users;
+  }
+
+  async getOAuthUsers(): Promise<User[]> {
+    return this.users.filter(u => u.authType === "oauth");
   }
 
   // OAuth Installation methods
   async createOAuthInstallation(installation: InsertOAuthInstallation): Promise<OAuthInstallation> {
-    const [newInstallation] = await db
-      .insert(oauthInstallations)
-      .values(installation)
-      .returning();
+    const newInstallation: OAuthInstallation = {
+      id: this.nextId++,
+      ...installation,
+      installationDate: new Date(),
+      lastTokenRefresh: null,
+      isActive: installation.isActive ?? true,
+    };
+    this.oauthInstallations.push(newInstallation);
     return newInstallation;
   }
 
   async getOAuthInstallation(ghlUserId: string): Promise<OAuthInstallation | undefined> {
-    const [installation] = await db
-      .select()
-      .from(oauthInstallations)
-      .where(eq(oauthInstallations.ghlUserId, ghlUserId));
-    return installation || undefined;
+    return this.oauthInstallations.find(i => i.ghlUserId === ghlUserId);
   }
 
   async getLatestOAuthInstallation(): Promise<OAuthInstallation | undefined> {
-    const [installation] = await db
-      .select()
-      .from(oauthInstallations)
-      .orderBy(desc(oauthInstallations.installationDate))
-      .limit(1);
-    return installation || undefined;
+    return this.oauthInstallations.sort((a, b) => 
+      b.installationDate.getTime() - a.installationDate.getTime()
+    )[0];
   }
 
   async getAllOAuthInstallations(): Promise<OAuthInstallation[]> {
-    return await db
-      .select()
-      .from(oauthInstallations)
-      .orderBy(desc(oauthInstallations.installationDate));
+    return this.oauthInstallations;
   }
 
-  async clearAllOAuthInstallations(): Promise<{ deletedCount: number }> {
-    const result = await db.delete(oauthInstallations);
-    return { deletedCount: result.rowCount || 0 };
+  async clearAllOAuthInstallations(): Promise<void> {
+    this.oauthInstallations = [];
   }
 
-  // Designer Config methods
+  // Designer Config methods (simplified)
   async getDesignerConfig(userId: number): Promise<DesignerConfig | undefined> {
-    const [config] = await db.select().from(designerConfigs).where(eq(designerConfigs.userId, userId));
-    return config || undefined;
-  }
-
-  async createDesignerConfig(insertConfig: InsertDesignerConfig): Promise<DesignerConfig> {
-    const [config] = await db
-      .insert(designerConfigs)
-      .values(insertConfig)
-      .returning();
-    return config;
+    return this.designerConfigs.find(c => c.userId === userId);
   }
 
   async getDesignerConfigByDirectory(directoryName: string, userId?: number): Promise<DesignerConfig | undefined> {
-    if (userId) {
-      const [config] = await db.select().from(designerConfigs).where(
-        and(eq(designerConfigs.directoryName, directoryName), eq(designerConfigs.userId, userId))
-      );
-      return config || undefined;
-    }
-    
-    const [config] = await db.select().from(designerConfigs).where(eq(designerConfigs.directoryName, directoryName));
-    return config || undefined;
-  }
-
-  async updateDesignerConfig(id: number, partialConfig: Partial<InsertDesignerConfig>): Promise<DesignerConfig | undefined> {
-    const [config] = await db
-      .update(designerConfigs)
-      .set(partialConfig)
-      .where(eq(designerConfigs.id, id))
-      .returning();
-    return config || undefined;
-  }
-
-  // Portal Domain methods
-  async getPortalDomain(userId: number): Promise<PortalDomain | undefined> {
-    const [domain] = await db.select().from(portalDomains).where(eq(portalDomains.userId, userId));
-    return domain || undefined;
-  }
-
-  async getPortalDomainBySubdomain(subdomain: string, domain: string): Promise<PortalDomain | undefined> {
-    const [result] = await db.select().from(portalDomains)
-      .where(and(eq(portalDomains.subdomain, subdomain), eq(portalDomains.domain, domain)));
-    return result || undefined;
-  }
-
-  async createPortalDomain(insertDomain: InsertPortalDomain): Promise<PortalDomain> {
-    const [domain] = await db
-      .insert(portalDomains)
-      .values(insertDomain)
-      .returning();
-    return domain;
-  }
-
-  async updatePortalDomain(id: number, partialDomain: Partial<InsertPortalDomain>): Promise<PortalDomain | undefined> {
-    const [domain] = await db
-      .update(portalDomains)
-      .set(partialDomain)
-      .where(eq(portalDomains.id, id))
-      .returning();
-    return domain || undefined;
-  }
-
-  async verifyPortalDomain(userId: number, subdomain: string, domain: string): Promise<boolean> {
-    const [result] = await db
-      .update(portalDomains)
-      .set({ verified: true })
-      .where(and(
-        eq(portalDomains.userId, userId),
-        eq(portalDomains.subdomain, subdomain),
-        eq(portalDomains.domain, domain)
-      ))
-      .returning();
-    return !!result;
-  }
-
-  // Listing methods
-  async getListing(id: number): Promise<Listing | undefined> {
-    const [listing] = await db.select().from(listings).where(eq(listings.id, id));
-    return listing || undefined;
-  }
-
-  async getListingBySlug(slug: string): Promise<Listing | undefined> {
-    const [listing] = await db.select().from(listings).where(eq(listings.slug, slug));
-    return listing || undefined;
-  }
-
-  async getListingsByUser(userId: number): Promise<Listing[]> {
-    return await db.select().from(listings).where(eq(listings.userId, userId));
-  }
-
-  async getListingsByDirectory(directoryName: string): Promise<Listing[]> {
-    return await db.select().from(listings).where(eq(listings.directoryName, directoryName));
-  }
-
-  async createListing(insertListing: InsertListing): Promise<Listing> {
-    const [listing] = await db
-      .insert(listings)
-      .values(insertListing)
-      .returning();
-    return listing;
-  }
-
-  async updateListing(id: number, partialListing: Partial<InsertListing>): Promise<Listing | undefined> {
-    const [listing] = await db
-      .update(listings)
-      .set(partialListing)
-      .where(eq(listings.id, id))
-      .returning();
-    return listing || undefined;
-  }
-
-  async deleteListing(id: number): Promise<boolean> {
-    const result = await db.delete(listings).where(eq(listings.id, id));
-    return (result.rowCount || 0) > 0;
-  }
-
-  // Listing Addon methods
-  async getListingAddon(id: number): Promise<ListingAddon | undefined> {
-    const [addon] = await db.select().from(listingAddons).where(eq(listingAddons.id, id));
-    return addon || undefined;
-  }
-
-  async getListingAddonsByListing(listingId: number): Promise<ListingAddon[]> {
-    const addons = await db.select().from(listingAddons)
-      .where(eq(listingAddons.listingId, listingId));
-    return addons.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
-  }
-
-  async getListingAddonsByType(listingId: number, type: string): Promise<ListingAddon[]> {
-    const addons = await db.select().from(listingAddons)
-      .where(and(eq(listingAddons.listingId, listingId), eq(listingAddons.type, type)));
-    return addons.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
-  }
-
-  async createListingAddon(insertAddon: InsertListingAddon): Promise<ListingAddon> {
-    const [addon] = await db
-      .insert(listingAddons)
-      .values(insertAddon)
-      .returning();
-    return addon;
-  }
-
-  async updateListingAddon(id: number, partialAddon: Partial<InsertListingAddon>): Promise<ListingAddon | undefined> {
-    const [addon] = await db
-      .update(listingAddons)
-      .set(partialAddon)
-      .where(eq(listingAddons.id, id))
-      .returning();
-    return addon || undefined;
-  }
-
-  async deleteListingAddon(id: number): Promise<boolean> {
-    const result = await db.delete(listingAddons).where(eq(listingAddons.id, id));
-    return (result.rowCount || 0) > 0;
-  }
-
-  // Form Configuration (Directory) methods
-  async getFormConfiguration(id: number): Promise<FormConfiguration | undefined> {
-    const [config] = await db.select().from(formConfigurations).where(eq(formConfigurations.id, id));
-    return config || undefined;
-  }
-
-  async getFormConfigurationsByUser(userId: number): Promise<FormConfiguration[]> {
-    return await db.select().from(formConfigurations).where(eq(formConfigurations.userId, userId));
-  }
-
-  async getFormConfigurationByName(userId: number, directoryName: string): Promise<FormConfiguration | undefined> {
-    const [config] = await db.select().from(formConfigurations)
-      .where(and(eq(formConfigurations.userId, userId), eq(formConfigurations.directoryName, directoryName)));
-    return config || undefined;
+    return this.designerConfigs.find(c => c.directoryName === directoryName);
   }
 
   async getFormConfigurationByDirectoryName(directoryName: string): Promise<FormConfiguration | undefined> {
-    const [config] = await db.select().from(formConfigurations)
-      .where(eq(formConfigurations.directoryName, directoryName));
-    return config || undefined;
+    return this.formConfigurations.find(c => c.directoryName === directoryName);
   }
 
-  async createFormConfiguration(insertConfig: InsertFormConfiguration): Promise<FormConfiguration> {
-    const [config] = await db
-      .insert(formConfigurations)
-      .values(insertConfig)
-      .returning();
-    return config;
+  async createDesignerConfig(config: InsertDesignerConfig): Promise<DesignerConfig> {
+    const newConfig: DesignerConfig = {
+      id: this.nextId++,
+      ...config,
+    };
+    this.designerConfigs.push(newConfig);
+    return newConfig;
   }
 
-  async updateFormConfiguration(id: number, partialConfig: Partial<InsertFormConfiguration>): Promise<FormConfiguration | undefined> {
-    const [config] = await db
-      .update(formConfigurations)
-      .set(partialConfig)
-      .where(eq(formConfigurations.id, id))
-      .returning();
-    return config || undefined;
+  async updateDesignerConfig(id: number, config: Partial<InsertDesignerConfig>): Promise<DesignerConfig | undefined> {
+    const existing = this.designerConfigs.find(c => c.id === id);
+    if (!existing) return undefined;
+    Object.assign(existing, config);
+    return existing;
   }
 
+  // Portal Domain methods (simplified)
+  async getPortalDomain(userId: number): Promise<PortalDomain | undefined> {
+    return this.portalDomains.find(d => d.userId === userId);
+  }
+
+  async getPortalDomainBySubdomain(subdomain: string, domain: string): Promise<PortalDomain | undefined> {
+    return this.portalDomains.find(d => d.subdomain === subdomain && d.domain === domain);
+  }
+
+  async createPortalDomain(domain: InsertPortalDomain): Promise<PortalDomain> {
+    const newDomain: PortalDomain = {
+      id: this.nextId++,
+      ...domain,
+    };
+    this.portalDomains.push(newDomain);
+    return newDomain;
+  }
+
+  async updatePortalDomain(id: number, domain: Partial<InsertPortalDomain>): Promise<PortalDomain | undefined> {
+    const existing = this.portalDomains.find(d => d.id === id);
+    if (!existing) return undefined;
+    Object.assign(existing, domain);
+    return existing;
+  }
+
+  async verifyPortalDomain(userId: number, subdomain: string, domain: string): Promise<boolean> {
+    const existing = this.portalDomains.find(d => 
+      d.userId === userId && d.subdomain === subdomain && d.domain === domain
+    );
+    if (existing) {
+      existing.verified = true;
+      return true;
+    }
+    return false;
+  }
+
+  // Simplified implementations for other methods
+  async getListings(): Promise<Listing[]> { return this.listings; }
+  async getListingsByUser(userId: number): Promise<Listing[]> { return this.listings.filter(l => l.userId === userId); }
+  async getListing(id: number): Promise<Listing | undefined> { return this.listings.find(l => l.id === id); }
+  async getListingBySlug(slug: string): Promise<Listing | undefined> { return this.listings.find(l => l.slug === slug); }
+  async createListing(listing: InsertListing): Promise<Listing> {
+    const newListing: Listing = { id: this.nextId++, ...listing, createdAt: new Date(), updatedAt: new Date() };
+    this.listings.push(newListing);
+    return newListing;
+  }
+  async updateListing(id: number, listing: Partial<InsertListing>): Promise<Listing | undefined> {
+    const existing = this.listings.find(l => l.id === id);
+    if (!existing) return undefined;
+    Object.assign(existing, listing, { updatedAt: new Date() });
+    return existing;
+  }
+  async deleteListing(id: number): Promise<boolean> {
+    const index = this.listings.findIndex(l => l.id === id);
+    if (index === -1) return false;
+    this.listings.splice(index, 1);
+    return true;
+  }
+
+  // Listing Addon methods
+  async getListingAddons(): Promise<ListingAddon[]> { return this.listingAddons; }
+  async getListingAddonsByListing(listingId: number): Promise<ListingAddon[]> { return this.listingAddons.filter(a => a.listingId === listingId); }
+  async getListingAddonsByType(type: string): Promise<ListingAddon[]> { return this.listingAddons.filter(a => a.type === type); }
+  async getListingAddon(id: number): Promise<ListingAddon | undefined> { return this.listingAddons.find(a => a.id === id); }
+  async createListingAddon(addon: InsertListingAddon): Promise<ListingAddon> {
+    const newAddon: ListingAddon = { id: this.nextId++, ...addon, createdAt: new Date(), updatedAt: new Date() };
+    this.listingAddons.push(newAddon);
+    return newAddon;
+  }
+  async updateListingAddon(id: number, addon: Partial<InsertListingAddon>): Promise<ListingAddon | undefined> {
+    const existing = this.listingAddons.find(a => a.id === id);
+    if (!existing) return undefined;
+    Object.assign(existing, addon, { updatedAt: new Date() });
+    return existing;
+  }
+  async deleteListingAddon(id: number): Promise<boolean> {
+    const index = this.listingAddons.findIndex(a => a.id === id);
+    if (index === -1) return false;
+    this.listingAddons.splice(index, 1);
+    return true;
+  }
+
+  // Form Configuration methods
+  async getFormConfigurations(): Promise<FormConfiguration[]> { return this.formConfigurations; }
+  async getFormConfigurationsByUser(userId: number): Promise<FormConfiguration[]> { return this.formConfigurations.filter(c => c.userId === userId); }
+  async getFormConfiguration(id: number): Promise<FormConfiguration | undefined> { return this.formConfigurations.find(c => c.id === id); }
+  async getFormConfigurationByDirectory(directoryName: string, userId?: number): Promise<FormConfiguration | undefined> {
+    return this.formConfigurations.find(c => c.directoryName === directoryName && (!userId || c.userId === userId));
+  }
+  async createFormConfiguration(config: InsertFormConfiguration): Promise<FormConfiguration> {
+    const newConfig: FormConfiguration = { id: this.nextId++, ...config, createdAt: new Date(), updatedAt: new Date() };
+    this.formConfigurations.push(newConfig);
+    return newConfig;
+  }
+  async updateFormConfiguration(id: number, config: Partial<InsertFormConfiguration>): Promise<FormConfiguration | undefined> {
+    const existing = this.formConfigurations.find(c => c.id === id);
+    if (!existing) return undefined;
+    Object.assign(existing, config, { updatedAt: new Date() });
+    return existing;
+  }
   async deleteFormConfiguration(id: number): Promise<boolean> {
-    const result = await db.delete(formConfigurations).where(eq(formConfigurations.id, id));
-    return (result.rowCount || 0) > 0;
+    const index = this.formConfigurations.findIndex(c => c.id === id);
+    if (index === -1) return false;
+    this.formConfigurations.splice(index, 1);
+    return true;
   }
 
   // Form Submission methods
-  async createFormSubmission(insertSubmission: InsertFormSubmission): Promise<FormSubmission> {
-    const [submission] = await db
-      .insert(formSubmissions)
-      .values(insertSubmission)
-      .returning();
-    return submission;
+  async getFormSubmissions(): Promise<FormSubmission[]> { return this.formSubmissions; }
+  async getFormSubmissionsByConfig(formConfigId: number): Promise<FormSubmission[]> { return this.formSubmissions.filter(s => s.formConfigId === formConfigId); }
+  async getFormSubmission(id: number): Promise<FormSubmission | undefined> { return this.formSubmissions.find(s => s.id === id); }
+  async createFormSubmission(submission: InsertFormSubmission): Promise<FormSubmission> {
+    const newSubmission: FormSubmission = { id: this.nextId++, ...submission, submittedAt: new Date() };
+    this.formSubmissions.push(newSubmission);
+    return newSubmission;
+  }
+  async updateFormSubmission(id: number, submission: Partial<InsertFormSubmission>): Promise<FormSubmission | undefined> {
+    const existing = this.formSubmissions.find(s => s.id === id);
+    if (!existing) return undefined;
+    Object.assign(existing, submission);
+    return existing;
+  }
+  async deleteFormSubmission(id: number): Promise<boolean> {
+    const index = this.formSubmissions.findIndex(s => s.id === id);
+    if (index === -1) return false;
+    this.formSubmissions.splice(index, 1);
+    return true;
   }
 
-  async getFormSubmissionsByConfig(configId: number): Promise<FormSubmission[]> {
-    return await db.select().from(formSubmissions).where(eq(formSubmissions.formConfigurationId, configId));
+  // Form Field methods
+  async getFormFields(): Promise<FormField[]> { return this.formFields; }
+  async getFormFieldsByConfig(formConfigId: number): Promise<FormField[]> { return this.formFields.filter(f => f.formConfigId === formConfigId); }
+  async getFormFieldById(id: number): Promise<FormField | undefined> { return this.formFields.find(f => f.id === id); }
+  async createFormField(field: InsertFormField): Promise<FormField> {
+    const newField: FormField = { id: this.nextId++, ...field, createdAt: new Date(), updatedAt: new Date() };
+    this.formFields.push(newField);
+    return newField;
+  }
+  async updateFormField(id: number, field: Partial<InsertFormField>): Promise<FormField | undefined> {
+    const existing = this.formFields.find(f => f.id === id);
+    if (!existing) return undefined;
+    Object.assign(existing, field, { updatedAt: new Date() });
+    return existing;
+  }
+  async deleteFormField(id: number): Promise<boolean> {
+    const index = this.formFields.findIndex(f => f.id === id);
+    if (index === -1) return false;
+    this.formFields.splice(index, 1);
+    return true;
+  }
+  async reorderFormFields(formConfigId: number, fieldIds: number[]): Promise<void> {
+    const fields = this.formFields.filter(f => f.formConfigId === formConfigId);
+    fieldIds.forEach((id, index) => {
+      const field = fields.find(f => f.id === id);
+      if (field) field.displayOrder = index;
+    });
+  }
+  async duplicateFormField(id: number): Promise<FormField | undefined> {
+    const original = this.formFields.find(f => f.id === id);
+    if (!original) return undefined;
+    const duplicate: FormField = {
+      ...original,
+      id: this.nextId++,
+      fieldName: `${original.fieldName}_copy`,
+      fieldLabel: `${original.fieldLabel} (Copy)`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.formFields.push(duplicate);
+    return duplicate;
   }
 
   // Google Drive Credentials methods
-  async getGoogleDriveCredentials(userId: number): Promise<GoogleDriveCredentials | undefined> {
-    const [credentials] = await db.select().from(googleDriveCredentials)
-      .where(and(eq(googleDriveCredentials.userId, userId), eq(googleDriveCredentials.isActive, true)));
-    return credentials || undefined;
+  async getGoogleDriveCredentials(): Promise<GoogleDriveCredentials[]> { return this.googleDriveCredentials; }
+  async getGoogleDriveCredentialsByUser(userId: number): Promise<GoogleDriveCredentials[]> { return this.googleDriveCredentials.filter(c => c.userId === userId); }
+  async getGoogleDriveCredential(id: number): Promise<GoogleDriveCredentials | undefined> { return this.googleDriveCredentials.find(c => c.id === id); }
+  async createGoogleDriveCredentials(credentials: InsertGoogleDriveCredentials): Promise<GoogleDriveCredentials> {
+    const newCredentials: GoogleDriveCredentials = { id: this.nextId++, ...credentials, createdAt: new Date(), updatedAt: new Date() };
+    this.googleDriveCredentials.push(newCredentials);
+    return newCredentials;
   }
-
-  async createGoogleDriveCredentials(insertCredentials: InsertGoogleDriveCredentials): Promise<GoogleDriveCredentials> {
-    const [credentials] = await db
-      .insert(googleDriveCredentials)
-      .values(insertCredentials)
-      .returning();
-    return credentials;
+  async updateGoogleDriveCredentials(id: number, credentials: Partial<InsertGoogleDriveCredentials>): Promise<GoogleDriveCredentials | undefined> {
+    const existing = this.googleDriveCredentials.find(c => c.id === id);
+    if (!existing) return undefined;
+    Object.assign(existing, credentials, { updatedAt: new Date() });
+    return existing;
   }
-
-  async updateGoogleDriveCredentials(id: number, partialCredentials: Partial<InsertGoogleDriveCredentials>): Promise<GoogleDriveCredentials | undefined> {
-    const [credentials] = await db
-      .update(googleDriveCredentials)
-      .set(partialCredentials)
-      .where(eq(googleDriveCredentials.id, id))
-      .returning();
-    return credentials || undefined;
-  }
-
   async deleteGoogleDriveCredentials(id: number): Promise<boolean> {
-    const result = await db.delete(googleDriveCredentials).where(eq(googleDriveCredentials.id, id));
-    return (result.rowCount || 0) > 0;
-  }
-
-  async deactivateGoogleDriveCredentials(userId: number): Promise<boolean> {
-    const result = await db
-      .update(googleDriveCredentials)
-      .set({ isActive: false })
-      .where(eq(googleDriveCredentials.userId, userId));
-    return (result.rowCount || 0) > 0;
-  }
-
-  // Dynamic Form Fields Management
-  async getFormFieldsByConfig(formConfigId: number): Promise<FormField[]> {
-    const fields = await db
-      .select()
-      .from(formFields)
-      .where(eq(formFields.formConfigId, formConfigId))
-      .orderBy(formFields.displayOrder);
-    return fields;
-  }
-
-  async getFormFieldById(id: number): Promise<FormField | null> {
-    const [field] = await db
-      .select()
-      .from(formFields)
-      .where(eq(formFields.id, id));
-    return field || null;
-  }
-
-  async createFormField(insertFormField: InsertFormField): Promise<FormField> {
-    const [field] = await db
-      .insert(formFields)
-      .values(insertFormField)
-      .returning();
-    return field;
-  }
-
-  async updateFormField(id: number, updates: Partial<InsertFormField>): Promise<FormField> {
-    const [field] = await db
-      .update(formFields)
-      .set(updates)
-      .where(eq(formFields.id, id))
-      .returning();
-    return field;
-  }
-
-  async deleteFormField(id: number): Promise<void> {
-    await db
-      .delete(formFields)
-      .where(eq(formFields.id, id));
-  }
-
-  async duplicateFormField(id: number): Promise<FormField> {
-    const originalField = await this.getFormFieldById(id);
-    if (!originalField) {
-      throw new Error("Field not found");
-    }
-
-    const { id: _, ...fieldData } = originalField;
-    const duplicatedField = {
-      ...fieldData,
-      fieldLabel: `${originalField.fieldLabel} (Copy)`,
-      fieldName: `${originalField.fieldName}_copy`,
-      displayOrder: originalField.displayOrder + 1
-    };
-
-    return this.createFormField(duplicatedField);
-  }
-
-  async reorderFormFields(fieldIds: number[]): Promise<void> {
-    // Update display order for each field
-    for (let i = 0; i < fieldIds.length; i++) {
-      await db
-        .update(formFields)
-        .set({ displayOrder: i })
-        .where(eq(formFields.id, fieldIds[i]));
-    }
+    const index = this.googleDriveCredentials.findIndex(c => c.id === id);
+    if (index === -1) return false;
+    this.googleDriveCredentials.splice(index, 1);
+    return true;
   }
 
   // Collection methods
-  async getCollection(id: number): Promise<Collection | undefined> {
-    const [collection] = await db.select().from(collections).where(eq(collections.id, id));
-    return collection || undefined;
+  async getCollections(): Promise<Collection[]> { return this.collections; }
+  async getCollectionsByUser(userId: number): Promise<Collection[]> { return this.collections.filter(c => c.userId === userId); }
+  async getCollection(id: number): Promise<Collection | undefined> { return this.collections.find(c => c.id === id); }
+  async getCollectionBySlug(slug: string): Promise<Collection | undefined> { return this.collections.find(c => c.slug === slug); }
+  async createCollection(collection: InsertCollection): Promise<Collection> {
+    const newCollection: Collection = { id: this.nextId++, ...collection, createdAt: new Date(), updatedAt: new Date() };
+    this.collections.push(newCollection);
+    return newCollection;
   }
-
-  async getCollectionsByUser(userId: number): Promise<Collection[]> {
-    return await db.select().from(collections).where(eq(collections.userId, userId));
+  async updateCollection(id: number, collection: Partial<InsertCollection>): Promise<Collection | undefined> {
+    const existing = this.collections.find(c => c.id === id);
+    if (!existing) return undefined;
+    Object.assign(existing, collection, { updatedAt: new Date() });
+    return existing;
   }
-
-  async getCollectionsByDirectory(directoryName: string): Promise<Collection[]> {
-    return await db.select().from(collections).where(eq(collections.directoryName, directoryName));
-  }
-
-  async createCollection(insertCollection: InsertCollection): Promise<Collection> {
-    const [collection] = await db
-      .insert(collections)
-      .values(insertCollection)
-      .returning();
-    return collection;
-  }
-
-  async updateCollection(id: number, partialCollection: Partial<InsertCollection>): Promise<Collection | undefined> {
-    const [collection] = await db
-      .update(collections)
-      .set(partialCollection)
-      .where(eq(collections.id, id))
-      .returning();
-    return collection || undefined;
-  }
-
   async deleteCollection(id: number): Promise<boolean> {
-    // First delete all collection items
-    await db.delete(collectionItems).where(eq(collectionItems.collectionId, id));
-    
-    // Then delete the collection
-    const result = await db.delete(collections).where(eq(collections.id, id));
-    return (result.rowCount || 0) > 0;
+    const index = this.collections.findIndex(c => c.id === id);
+    if (index === -1) return false;
+    this.collections.splice(index, 1);
+    return true;
   }
 
   // Collection Item methods
-  async getCollectionItem(id: number): Promise<CollectionItem | undefined> {
-    const [item] = await db.select().from(collectionItems).where(eq(collectionItems.id, id));
-    return item || undefined;
+  async getCollectionItems(): Promise<CollectionItem[]> { return this.collectionItems; }
+  async getCollectionItemsByCollection(collectionId: number): Promise<CollectionItem[]> { return this.collectionItems.filter(i => i.collectionId === collectionId); }
+  async getCollectionItem(id: number): Promise<CollectionItem | undefined> { return this.collectionItems.find(i => i.id === id); }
+  async createCollectionItem(item: InsertCollectionItem): Promise<CollectionItem> {
+    const newItem: CollectionItem = { id: this.nextId++, ...item, addedAt: new Date() };
+    this.collectionItems.push(newItem);
+    return newItem;
   }
-
-  async getCollectionItemsByCollection(collectionId: number): Promise<CollectionItem[]> {
-    return await db.select().from(collectionItems).where(eq(collectionItems.collectionId, collectionId));
+  async updateCollectionItem(id: number, item: Partial<InsertCollectionItem>): Promise<CollectionItem | undefined> {
+    const existing = this.collectionItems.find(i => i.id === id);
+    if (!existing) return undefined;
+    Object.assign(existing, item);
+    return existing;
   }
-
-  async getCollectionItemsWithListings(collectionId: number): Promise<(CollectionItem & { listing?: Listing })[]> {
-    const items = await db
-      .select({
-        collectionItem: collectionItems,
-        listing: listings
-      })
-      .from(collectionItems)
-      .leftJoin(listings, eq(collectionItems.listingId, listings.id))
-      .where(eq(collectionItems.collectionId, collectionId));
-
-    return items.map(row => ({
-      ...row.collectionItem,
-      listing: row.listing || undefined
-    }));
-  }
-
-  async getCollectionItemsByListing(listingId: number): Promise<CollectionItem[]> {
-    return await db.select().from(collectionItems).where(eq(collectionItems.listingId, listingId));
-  }
-
-  async addListingToCollection(collectionId: number, listingId: number): Promise<CollectionItem> {
-    const [item] = await db
-      .insert(collectionItems)
-      .values({
-        collectionId,
-        listingId,
-        syncStatus: 'pending'
-      })
-      .returning();
-    return item;
-  }
-
-  async removeListingFromCollection(collectionId: number, listingId: number): Promise<boolean> {
-    const result = await db.delete(collectionItems)
-      .where(and(
-        eq(collectionItems.collectionId, collectionId),
-        eq(collectionItems.listingId, listingId)
-      ));
-    return (result.rowCount || 0) > 0;
-  }
-
-  async updateCollectionItem(id: number, partialItem: Partial<InsertCollectionItem>): Promise<CollectionItem | undefined> {
-    const [item] = await db
-      .update(collectionItems)
-      .set(partialItem)
-      .where(eq(collectionItems.id, id))
-      .returning();
-    return item || undefined;
-  }
-
-  // OAuth methods implementation
-  async getUserById(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
-  }
-
-  async getUserByGhlId(ghlUserId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.ghlUserId, ghlUserId));
-    return user || undefined;
-  }
-
-  async createOAuthUser(userData: any): Promise<User> {
-    const { TokenEncryption } = await import('./token-encryption');
-    
-    const [user] = await db.insert(users).values({
-      username: userData.username,
-      displayName: userData.displayName,
-      email: userData.email,
-      ghlUserId: userData.ghlUserId,
-      ghlAccessToken: TokenEncryption.encrypt(userData.ghlAccessToken),
-      ghlRefreshToken: TokenEncryption.encrypt(userData.ghlRefreshToken),
-      ghlTokenExpiry: userData.ghlTokenExpiry,
-      ghlScopes: userData.ghlScopes,
-      ghlLocationId: userData.ghlLocationId,
-      ghlLocationName: userData.ghlLocationName,
-      authType: 'oauth',
-      isActive: true
-    }).returning();
-    return user;
-  }
-
-  async updateUserOAuthTokens(userId: number, tokens: any): Promise<User | undefined> {
-    const { TokenEncryption } = await import('./token-encryption');
-    
-    const [user] = await db
-      .update(users)
-      .set({
-        ghlAccessToken: TokenEncryption.encrypt(tokens.accessToken),
-        ghlRefreshToken: TokenEncryption.encrypt(tokens.refreshToken),
-        ghlTokenExpiry: tokens.expiresAt,
-        updatedAt: new Date()
-      })
-      .where(eq(users.id, userId))
-      .returning();
-    return user || undefined;
-  }
-
-  async getOAuthUsers(): Promise<User[]> {
-    return await db.select({
-      id: users.id,
-      username: users.username,
-      displayName: users.displayName,
-      ghlLocationId: users.ghlLocationId,
-      ghlLocationName: users.ghlLocationName,
-      authType: users.authType
-    }).from(users).where(eq(users.authType, 'oauth'));
-  }
-
-  async getDesignerConfigByDirectory(directoryName: string): Promise<DesignerConfig | undefined> {
-    const [config] = await db.select().from(designerConfigs).where(eq(designerConfigs.directoryName, directoryName));
-    return config || undefined;
+  async deleteCollectionItem(id: number): Promise<boolean> {
+    const index = this.collectionItems.findIndex(i => i.id === id);
+    if (index === -1) return false;
+    this.collectionItems.splice(index, 1);
+    return true;
   }
 }
 
-// Switch to MockStorage for development to ensure data saving works
-export const storage = new MockStorage();
+export const storage = new MemStorage();
