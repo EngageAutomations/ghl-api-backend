@@ -14,7 +14,6 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
-import { MockStorage } from "./legacy/mock-storage";
 
 // Storage interface with all CRUD methods
 export interface IStorage {
@@ -25,9 +24,10 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByGhlId(ghlUserId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  createOAuthUser(user: any): Promise<User>;
+  createOAuthUser(user: InsertUser): Promise<User>;
   updateUserOAuthTokens(userId: number, tokens: any): Promise<User>;
   getUsers(): Promise<User[]>;
+  getOAuthUsers(): Promise<User[]>;
   
   // OAuth Installation methods
   createOAuthInstallation(installation: InsertOAuthInstallation): Promise<OAuthInstallation>;
