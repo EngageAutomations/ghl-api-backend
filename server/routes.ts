@@ -3,6 +3,10 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { simpleDataStore } from "./simple-storage";
 import { setupWorkingRoutes } from "./working-routes";
+import fs from 'fs';
+import path from 'path';
+import FormData from 'form-data';
+import axios from 'axios';
 import { z } from "zod";
 import { 
   insertUserSchema, 
@@ -723,12 +727,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hasData: !!file.data
       });
       
-      // Use fs to create temp file and stream (as per debug guide)
-      const fs = require('fs');
-      const path = require('path');
-      const FormData = require('form-data');
-      
-      // Create temp file
+      // Create temp file and stream to Railway
       const tempPath = path.join('/tmp', `upload_${Date.now()}_${file.name}`);
       fs.writeFileSync(tempPath, file.data);
       
@@ -737,27 +736,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Forwarding to Railway with headers:', formData.getHeaders());
       
-      // Forward to Railway backend
-      const response = await fetch(`https://dir.engageautomations.com/api/ghl/media/upload?installationId=${installationId}`, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          ...formData.getHeaders()
+      // Forward to Railway backend using axios
+      const response = await axios.post(
+        `https://dir.engageautomations.com/api/ghl/media/upload?installationId=${installationId}`,
+        formData,
+        {
+          headers: {
+            ...formData.getHeaders()
+          }
         }
-      });
+      );
       
       // Clean up temp file
       fs.unlinkSync(tempPath);
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Railway upload successful:', data);
-        return res.json(data);
-      } else {
-        const errorText = await response.text();
-        console.error('❌ Railway upload failed:', response.status, errorText);
-        throw new Error(`Railway upload failed: ${response.status} - ${errorText}`);
-      }
+      console.log('✅ Railway upload successful:', response.data);
+      return res.json(response.data);
       
     } catch (error) {
       console.error('❌ Media upload error:', error);
