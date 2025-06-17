@@ -688,48 +688,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dev/docs/:feature", getFeatureDocumentation);
   app.post("/api/dev/update-code", updateConfigurationCode);
 
-  // Media Upload endpoint - working implementation bypassing ES module conflicts
-  app.post("/api/ghl/media/upload", (req, res) => {
-    console.log('=== MEDIA UPLOAD BYPASS ===');
-    
-    const timestamp = Date.now();
-    const fileName = `${timestamp}_uploaded_image.png`;
-    
-    try {
-      // Create uploads directory
-      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-      
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-      
-      // Create 1x1 transparent PNG
-      const pngBuffer = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
-      const filePath = path.join(uploadsDir, fileName);
-      fs.writeFileSync(filePath, pngBuffer);
-      
-      const fileUrl = `http://localhost:5000/uploads/${fileName}`;
-      
-      console.log('Upload success:', fileName);
-      
-      res.json({
-        success: true,
-        fileUrl: fileUrl,
-        fileName: fileName,
-        originalName: 'uploaded_image.png',
-        size: pngBuffer.length,
-        mimetype: 'image/png',
-        timestamp: timestamp
-      });
-      
-    } catch (error) {
-      console.error('Upload error:', error);
-      res.status(500).json({ 
-        error: 'Upload failed', 
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
+  // Media upload endpoint removed - now handled in index.ts before route registration
 
   // Tracking endpoint for opt-in interactions
   app.post("/api/tracking/opt-in", async (req, res) => {
