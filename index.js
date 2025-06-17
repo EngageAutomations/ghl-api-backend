@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const fileUpload = require('express-fileupload');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -8,6 +9,11 @@ const port = process.env.PORT || 3000;
 // Basic middleware
 app.use(cors());
 app.use(express.json());
+app.use(fileUpload({
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB limit
+  useTempFiles: true,
+  tempFileDir: '/tmp/'
+}));
 
 // In-memory storage for OAuth installations
 const installations = new Map();
@@ -379,6 +385,67 @@ app.post('/api/ghl/contacts/create', async (req, res) => {
     res.status(400).json({
       success: false,
       error: 'Contact creation failed',
+      details: error.response?.data || error.message,
+      status: error.response?.status
+    });
+  }
+});
+
+// Upload media to GoHighLevel
+app.post('/api/ghl/media/upload', async (req, res) => {
+  try {
+    const { installationId } = req.query;
+    const installation = installations.get(installationId || 'install_1750131573635');
+    
+    if (!installation || !installation.accessToken) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Access token not available for installation',
+        availableInstallations: Array.from(installations.keys())
+      });
+    }
+
+    // Handle file upload (assuming multipart form data)
+    if (!req.files || !req.files.file) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'No file provided' 
+      });
+    }
+
+    const file = req.files.file;
+    const formData = new FormData();
+    formData.append('file', file.data, file.name);
+    formData.append('locationId', installation.locationId);
+
+    console.log('Uploading media to GoHighLevel:', file.name);
+
+    const response = await axios.post(
+      'https://services.leadconnectorhq.com/medias/upload-file',
+      formData,
+      {
+        headers: {
+          'Authorization': `Bearer ${installation.accessToken}`,
+          'Version': '2021-07-28',
+          'Content-Type': 'multipart/form-data'
+        },
+        timeout: 30000
+      }
+    );
+
+    res.json({
+      success: true,
+      message: 'Media uploaded successfully to GoHighLevel',
+      url: response.data.url || response.data.fileUrl,
+      fileId: response.data.id,
+      locationId: installation.locationId
+    });
+
+  } catch (error) {
+    console.error('Media upload error:', error.response?.data || error.message);
+    res.status(400).json({
+      success: false,
+      error: 'Media upload failed',
       details: error.response?.data || error.message,
       status: error.response?.status
     });
