@@ -130,12 +130,44 @@ export class MediaUploadHandler {
       const fileName = `${timestamp}_upload${extension}`;
       const filePath = path.join(this.uploadsDir, fileName);
 
-      // Write file to disk
+      // Write file to disk temporarily
       fs.writeFileSync(filePath, fileData);
       
+      try {
+        // Try to upload to GoHighLevel media API
+        const ghlUrl = await this.uploadToGoHighLevel(fileData, fileName, mimeType);
+        
+        if (ghlUrl) {
+          // Success: Return GoHighLevel URL and clean up local file
+          fs.unlinkSync(filePath);
+          
+          console.log('Upload successful to GoHighLevel:', {
+            fileName,
+            ghlUrl,
+            size: fileData.length,
+            mimeType
+          });
+
+          res.json({
+            success: true,
+            fileUrl: ghlUrl,
+            fileName: fileName,
+            originalName: originalName || 'uploaded_file',
+            size: fileData.length,
+            mimetype: mimeType,
+            timestamp: timestamp,
+            source: 'gohighlevel'
+          });
+          return;
+        }
+      } catch (ghlError) {
+        console.log('GoHighLevel upload failed, using local fallback:', ghlError);
+      }
+      
+      // Fallback: Use local URL
       const fileUrl = `/uploads/${fileName}`;
       
-      console.log('Upload successful:', {
+      console.log('Upload successful (local fallback):', {
         fileName,
         size: fileData.length,
         mimeType,
@@ -149,7 +181,8 @@ export class MediaUploadHandler {
         originalName: originalName || 'uploaded_file',
         size: fileData.length,
         mimetype: mimeType,
-        timestamp: timestamp
+        timestamp: timestamp,
+        source: 'local'
       });
 
     } catch (error) {
@@ -158,6 +191,58 @@ export class MediaUploadHandler {
         error: 'Upload failed',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
+    }
+  }
+
+  private async uploadToGoHighLevel(fileData: Buffer, fileName: string, mimeType: string): Promise<string | null> {
+    try {
+      // Get OAuth installation for media upload
+      const FormData = require('form-data');
+      const fetch = require('node-fetch');
+      
+      // Use the authenticated installation for media upload
+      const installationId = 'install_1750131573635';
+      const accessToken = process.env.GHL_ACCESS_TOKEN;
+      const locationId = 'WAvk87RmW9rBSDJHeOpH';
+      
+      if (!accessToken) {
+        throw new Error('No GoHighLevel access token available');
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileData, {
+        filename: fileName,
+        contentType: mimeType
+      });
+      formData.append('hosted', 'true');
+
+      const response = await fetch(`https://services.leadconnectorhq.com/locations/${locationId}/medias/upload-file`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Version': '2021-07-28',
+          ...formData.getHeaders()
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`GoHighLevel media upload failed: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.url) {
+        return result.url;
+      } else if (result.fileUrl) {
+        return result.fileUrl;
+      } else {
+        throw new Error('No URL returned from GoHighLevel media upload');
+      }
+
+    } catch (error) {
+      console.error('GoHighLevel media upload error:', error);
+      return null;
     }
   }
 

@@ -48,14 +48,14 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
 
-  // Upload image to local server with proper file handling
+  // Upload image to Railway backend with GoHighLevel integration
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
       
-      // Upload to local server endpoint that bypasses Vite middleware
-      const response = await fetch('/api/ghl/media/upload', {
+      // Upload to Railway backend which has GoHighLevel integration
+      const response = await fetch('https://dir.engageautomations.com/api/ghl/media/upload?installationId=install_1750131573635', {
         method: 'POST',
         body: formData
       });
