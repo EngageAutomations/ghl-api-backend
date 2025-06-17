@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import cookieParser from "cookie-parser";
-import fileUpload from "express-fileupload";
+import multer from "multer";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 // import { setupProductionRouting } from "./production-routing";
@@ -1787,13 +1787,27 @@ const app = express();
 // Parse JSON requests first
 app.use(express.json());
 
-// Add file upload middleware for handling image uploads
-app.use(fileUpload({
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
-  useTempFiles: false,
-  createParentPath: true,
-  parseNested: true
-}));
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const name = path.basename(file.originalname, ext);
+    cb(null, `${timestamp}_${name}${ext}`);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
 
 // HIGHEST PRIORITY: Session data extraction for your marketplace installation
 app.get('/api/oauth/session-data', async (req, res) => {

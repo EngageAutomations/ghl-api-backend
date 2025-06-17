@@ -688,29 +688,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dev/docs/:feature", getFeatureDocumentation);
   app.post("/api/dev/update-code", updateConfigurationCode);
 
-  // Media Upload endpoint - ES module compatible approach
+  // Media Upload endpoint - custom multipart parser
   app.post("/api/ghl/media/upload", async (req, res) => {
-    console.log('=== MEDIA UPLOAD HANDLER (ES MODULE) ===');
+    console.log('=== MEDIA UPLOAD HANDLER (CUSTOM PARSER) ===');
     
     try {
-      const files = (req as any).files;
-      
-      if (!files || !files.file) {
-        console.log('No file provided in request');
+      // Parse multipart data manually from raw buffer
+      const boundary = req.get('content-type')?.split('boundary=')[1];
+      if (!boundary) {
         return res.status(400).json({ 
-          error: 'No file provided',
-          received: files ? Object.keys(files) : 'no files object'
+          error: 'No multipart boundary found',
+          contentType: req.get('content-type')
         });
       }
 
-      const file = files.file;
+      const body = req.body as Buffer;
+      if (!body || body.length === 0) {
+        return res.status(400).json({ 
+          error: 'No file data received',
+          bodyLength: body?.length || 0
+        });
+      }
+
+      // Simple multipart parsing for file field
+      const bodyString = body.toString('binary');
+      const parts = bodyString.split(`--${boundary}`);
+      
+      let fileData = null;
+      let fileName = 'upload';
+      let mimeType = 'application/octet-stream';
+      
+      for (const part of parts) {
+        if (part.includes('name="file"')) {
+          const headerEnd = part.indexOf('\r\n\r\n');
+          if (headerEnd !== -1) {
+            const headers = part.substring(0, headerEnd);
+            const fileContent = part.substring(headerEnd + 4);
+            
+            // Extract filename from headers
+            const filenameMatch = headers.match(/filename="([^"]+)"/);
+            if (filenameMatch) {
+              fileName = filenameMatch[1];
+            }
+            
+            // Extract content type
+            const typeMatch = headers.match(/Content-Type:\s*([^\r\n]+)/i);
+            if (typeMatch) {
+              mimeType = typeMatch[1].trim();
+            }
+            
+            // Remove trailing boundary markers
+            const cleanContent = fileContent.replace(/\r\n--.*$/, '');
+            fileData = Buffer.from(cleanContent, 'binary');
+            break;
+          }
+        }
+      }
+
+      if (!fileData) {
+        return res.status(400).json({ 
+          error: 'No file data found in multipart upload',
+          partsFound: parts.length
+        });
+      }
+
       console.log('Processing file:', { 
-        name: file.name, 
-        size: file.size, 
-        mimetype: file.mimetype
+        name: fileName, 
+        size: fileData.length, 
+        mimetype: mimeType
       });
       
-      // Create uploads directory using ES imports already available
+      // Create uploads directory
       const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
       
       if (!fs.existsSync(uploadsDir)) {
@@ -720,25 +768,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Generate unique filename
       const timestamp = Date.now();
-      const fileExtension = path.extname(file.name || 'upload');
-      const baseName = path.basename(file.name || 'upload', fileExtension);
-      const fileName = `${timestamp}_${baseName}${fileExtension}`;
-      const filePath = path.join(uploadsDir, fileName);
+      const fileExtension = path.extname(fileName);
+      const baseName = path.basename(fileName, fileExtension);
+      const uniqueFileName = `${timestamp}_${baseName}${fileExtension}`;
+      const filePath = path.join(uploadsDir, uniqueFileName);
       
       // Write file to disk
-      fs.writeFileSync(filePath, file.data);
+      fs.writeFileSync(filePath, fileData);
       console.log('File saved successfully to:', filePath);
       
       // Generate accessible URL
-      const fileUrl = `http://localhost:5000/uploads/${fileName}`;
+      const fileUrl = `http://localhost:5000/uploads/${uniqueFileName}`;
       
       const response = {
         success: true,
         fileUrl: fileUrl,
-        fileName: fileName,
-        originalName: file.name,
-        size: file.size,
-        mimetype: file.mimetype,
+        fileName: uniqueFileName,
+        originalName: fileName,
+        size: fileData.length,
+        mimetype: mimeType,
         timestamp: timestamp
       };
 
@@ -746,11 +794,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response);
       
     } catch (error) {
-      console.error('ES module upload error:', error);
+      console.error('Custom parser upload error:', error);
       res.status(500).json({ 
         error: 'Upload failed', 
         message: error instanceof Error ? error.message : 'Unknown error',
-        type: 'es_module_upload_handler'
+        type: 'custom_parser_upload'
       });
     }
   });
