@@ -1782,104 +1782,21 @@ function getEnhancedOAuthAppHTML(): string {
 </html>`;
 }
 
+import { MediaUploadHandler } from './media-handler';
+
 const app = express();
 
-// CRITICAL: Media upload with proper multipart parsing
+// Initialize media upload handler
+const mediaHandler = new MediaUploadHandler();
+
+// Media upload endpoint - positioned before other middleware to bypass conflicts
 app.post('/api/ghl/media/upload', (req, res) => {
-  console.log('=== MEDIA UPLOAD HANDLER ===');
-  
-  try {
-    const timestamp = Date.now();
-    let fileName = `${timestamp}_upload.png`;
-    
-    // Simple file extension detection from content-type
-    const contentType = req.get('content-type') || '';
-    if (contentType.includes('jpeg')) fileName = `${timestamp}_upload.jpg`;
-    else if (contentType.includes('gif')) fileName = `${timestamp}_upload.gif`;
-    else if (contentType.includes('webp')) fileName = `${timestamp}_upload.webp`;
-    
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    
-    // Ensure uploads directory exists
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-    
-    let body = Buffer.alloc(0);
-    
-    req.on('data', (chunk) => {
-      body = Buffer.concat([body, chunk]);
-    });
-    
-    req.on('end', () => {
-      try {
-        // Create a valid image file (1x1 PNG if no data)
-        let fileData = body.length > 100 ? body : 
-          Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
-        
-        const filePath = path.join(uploadsDir, fileName);
-        fs.writeFileSync(filePath, fileData);
-        
-        const fileUrl = `http://localhost:5000/uploads/${fileName}`;
-        
-        console.log('Upload successful:', fileName, 'Size:', fileData.length);
-        
-        res.json({
-          success: true,
-          fileUrl: fileUrl,
-          fileName: fileName,
-          originalName: 'uploaded_file',
-          size: fileData.length,
-          mimetype: contentType || 'image/png',
-          timestamp: timestamp
-        });
-        
-      } catch (writeError) {
-        console.error('File write error:', writeError);
-        res.status(500).json({ 
-          error: 'File write failed', 
-          message: writeError instanceof Error ? writeError.message : 'Unknown error'
-        });
-      }
-    });
-    
-    req.on('error', (streamError) => {
-      console.error('Stream error:', streamError);
-      res.status(500).json({ 
-        error: 'Upload stream failed', 
-        message: streamError.message 
-      });
-    });
-    
-  } catch (error) {
-    console.error('Upload setup error:', error);
-    res.status(500).json({ 
-      error: 'Upload setup failed', 
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
+  mediaHandler.handleUpload(req, res);
 });
 
 // Cleanup endpoint for temporary image files
 app.post('/api/cleanup-temp-image', express.json(), (req, res) => {
-  try {
-    const { imageUrl } = req.body;
-    
-    if (imageUrl && imageUrl.includes('/uploads/')) {
-      const fileName = imageUrl.split('/uploads/')[1];
-      const filePath = path.join(process.cwd(), 'public', 'uploads', fileName);
-      
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-        console.log('Cleaned up temporary file:', fileName);
-      }
-    }
-    
-    res.json({ success: true, message: 'Cleanup completed' });
-  } catch (error) {
-    console.log('Cleanup note:', error);
-    res.json({ success: false, note: 'Cleanup attempted' });
-  }
+  mediaHandler.handleCleanup(req, res);
 });
 
 // Fallback endpoint that was previously failing
