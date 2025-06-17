@@ -26,7 +26,7 @@ installations.set('install_1750106970265', {
 app.get('/', (req, res) => {
   res.json({
     service: 'GoHighLevel API Backend',
-    version: '1.0.0',
+    version: '1.1.0',
     status: 'running',
     timestamp: new Date().toISOString()
   });
@@ -198,7 +198,7 @@ app.get('/api/ghl/products', async (req, res) => {
   }
 });
 
-// OAuth callback (both routes for compatibility)
+// OAuth callback (primary route)
 app.get('/oauth/callback', async (req, res) => {
   const { code } = req.query;
   
@@ -248,6 +248,8 @@ app.get('/api/oauth/callback', async (req, res) => {
   }
 
   try {
+    console.log('Processing OAuth callback with code:', code);
+    
     const tokenResponse = await axios.post('https://services.leadconnectorhq.com/oauth/token', {
       client_id: process.env.GHL_CLIENT_ID,
       client_secret: process.env.GHL_CLIENT_SECRET,
@@ -259,6 +261,8 @@ app.get('/api/oauth/callback', async (req, res) => {
     const tokenData = tokenResponse.data;
     const installationId = `install_${Date.now()}`;
     
+    console.log('Token exchange successful, creating installation:', installationId);
+    
     installations.set(installationId, {
       id: installationId,
       accessToken: tokenData.access_token,
@@ -269,6 +273,8 @@ app.get('/api/oauth/callback', async (req, res) => {
       createdAt: new Date().toISOString()
     });
 
+    console.log('Installation created with location:', tokenData.locationId);
+
     res.json({
       success: true,
       installationId: installationId,
@@ -278,15 +284,75 @@ app.get('/api/oauth/callback', async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ error: 'OAuth failed', message: error.message });
+    console.error('OAuth error:', error.response?.data || error.message);
+    res.status(500).json({ 
+      error: 'OAuth failed', 
+      message: error.message,
+      details: error.response?.data 
+    });
+  }
+});
+
+// Test product creation with a new installation
+app.post('/api/ghl/test-product', async (req, res) => {
+  try {
+    const { installationId } = req.body;
+    const installation = installations.get(installationId);
+    
+    if (!installation || !installation.accessToken) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Access token not available for installation: ' + installationId 
+      });
+    }
+
+    const testProduct = {
+      name: 'Test Product from OAuth',
+      description: 'This product was created automatically after OAuth installation',
+      locationId: installation.locationId,
+      productType: 'DIGITAL',
+      availableInStore: true,
+      price: 29.99
+    };
+
+    const response = await axios.post(
+      'https://services.leadconnectorhq.com/products/',
+      testProduct,
+      {
+        headers: {
+          'Authorization': `Bearer ${installation.accessToken}`,
+          'Content-Type': 'application/json',
+          'Version': '2021-07-28',
+          'Accept': 'application/json'
+        },
+        timeout: 15000
+      }
+    );
+
+    res.json({
+      success: true,
+      message: 'Test product created successfully after OAuth installation',
+      product: response.data.product,
+      productId: response.data.product?.id,
+      installationId: installationId
+    });
+
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: 'Test product creation failed',
+      details: error.response?.data || error.message,
+      status: error.response?.status
+    });
   }
 });
 
 // Start server
 app.listen(port, '0.0.0.0', () => {
-  console.log(`GoHighLevel API Backend running on port ${port}`);
+  console.log(`GoHighLevel API Backend v1.1.0 running on port ${port}`);
   console.log(`Health check: /health`);
-  console.log(`Access token: ${process.env.GHL_ACCESS_TOKEN ? 'Present' : 'Missing - Set GHL_ACCESS_TOKEN'}`);
+  console.log(`OAuth callback: /api/oauth/callback`);
+  console.log(`Access token: ${process.env.GHL_ACCESS_TOKEN ? 'Present' : 'Missing - Will be captured via OAuth'}`);
 });
 
 module.exports = app;
