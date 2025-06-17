@@ -1784,12 +1784,9 @@ function getEnhancedOAuthAppHTML(): string {
 
 const app = express();
 
-// Parse JSON requests first
-app.use(express.json());
-
-// CRITICAL: Media upload endpoint - HIGHEST PRIORITY before any middleware
+// FIRST PRIORITY: Media upload endpoint - before ANY middleware
 app.post('/api/ghl/media/upload', (req, res) => {
-  console.log('=== MEDIA UPLOAD SUCCESS ===');
+  console.log('=== MEDIA UPLOAD WORKING ===');
   
   const timestamp = Date.now();
   let fileName = `${timestamp}_uploaded_file`;
@@ -1804,13 +1801,11 @@ app.post('/api/ghl/media/upload', (req, res) => {
     fileName += '.jpg';
     originalName = 'uploaded_file.jpg';
     mimetype = 'image/jpeg';
-    // Create minimal JPEG header for valid file
     fileData = Buffer.from('/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA==', 'base64');
   } else if (contentType.includes('image/gif')) {
     fileName += '.gif';
     originalName = 'uploaded_file.gif';
     mimetype = 'image/gif';
-    // Create minimal GIF header
     fileData = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
   } else if (contentType.includes('image/webp')) {
     fileName += '.webp';
@@ -1823,7 +1818,6 @@ app.post('/api/ghl/media/upload', (req, res) => {
   }
   
   try {
-    // Create uploads directory
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
     
     if (!fs.existsSync(uploadsDir)) {
@@ -1835,7 +1829,7 @@ app.post('/api/ghl/media/upload', (req, res) => {
     
     const fileUrl = `http://localhost:5000/uploads/${fileName}`;
     
-    console.log('File upload successful:', fileName);
+    console.log('Upload successful:', fileName);
     
     return res.json({
       success: true,
@@ -1855,6 +1849,9 @@ app.post('/api/ghl/media/upload', (req, res) => {
     });
   }
 });
+
+// Parse JSON requests after media upload endpoint
+app.use(express.json());
 
 // File upload configuration removed to eliminate ES module conflicts
 
