@@ -79,15 +79,15 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Media upload endpoint - NEW FEATURE
-app.post('/api/ghl/media/upload', upload.single('file'), async (req, res) => {
+// Media upload endpoint - NEW FEATURE (supports single or multiple files)
+app.post('/api/ghl/media/upload', upload.array('files', 10), async (req, res) => {
   console.log('=== MEDIA UPLOAD REQUEST ===');
   
   try {
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         success: false,
-        error: 'No file uploaded'
+        error: 'No files uploaded'
       });
     }
 
@@ -101,52 +101,75 @@ app.post('/api/ghl/media/upload', upload.single('file'), async (req, res) => {
       });
     }
 
-    console.log('Uploading file to GoHighLevel:', {
-      fileName: req.file.originalname,
-      size: req.file.size,
-      mimetype: req.file.mimetype,
+    console.log('Uploading files to GoHighLevel:', {
+      fileCount: req.files.length,
+      files: req.files.map(f => ({ name: f.originalname, size: f.size, type: f.mimetype })),
       locationId: installation.ghlLocationId
     });
 
-    // Upload to GoHighLevel media API
-    const formData = new FormData();
-    formData.append('file', req.file.buffer, {
-      filename: req.file.originalname || `upload_${Date.now()}.${req.file.mimetype.split('/')[1]}`,
-      contentType: req.file.mimetype
-    });
-    formData.append('hosted', 'true');
+    // Upload each file to GoHighLevel media API
+    const uploadResults = [];
+    
+    for (const file of req.files) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file.buffer, {
+          filename: file.originalname || `upload_${Date.now()}.${file.mimetype.split('/')[1]}`,
+          contentType: file.mimetype
+        });
+        formData.append('hosted', 'true');
 
-    const ghlResponse = await fetch(`https://services.leadconnectorhq.com/locations/${installation.ghlLocationId}/medias/upload-file`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${installation.ghlAccessToken}`,
-        'Version': '2021-07-28',
-        ...formData.getHeaders()
-      },
-      body: formData
-    });
+        const ghlResponse = await fetch(`https://services.leadconnectorhq.com/locations/${installation.ghlLocationId}/medias/upload-file`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${installation.ghlAccessToken}`,
+            'Version': '2021-07-28',
+            ...formData.getHeaders()
+          },
+          body: formData
+        });
 
-    if (!ghlResponse.ok) {
-      const errorText = await ghlResponse.text();
-      console.error('GoHighLevel upload failed:', ghlResponse.status, errorText);
-      
-      return res.status(ghlResponse.status).json({
-        success: false,
-        error: 'GoHighLevel upload failed',
-        details: errorText,
-        status: ghlResponse.status
-      });
+        if (!ghlResponse.ok) {
+          const errorText = await ghlResponse.text();
+          console.error('GoHighLevel upload failed for file:', file.originalname, ghlResponse.status, errorText);
+          
+          uploadResults.push({
+            success: false,
+            fileName: file.originalname,
+            error: `Upload failed: ${ghlResponse.status} ${errorText}`
+          });
+        } else {
+          const result = await ghlResponse.json();
+          console.log('Upload successful for file:', file.originalname, result);
+          
+          uploadResults.push({
+            success: true,
+            fileUrl: result.url || result.fileUrl,
+            fileName: file.originalname,
+            size: file.size,
+            mimetype: file.mimetype
+          });
+        }
+      } catch (error) {
+        console.error('Error uploading file:', file.originalname, error);
+        uploadResults.push({
+          success: false,
+          fileName: file.originalname,
+          error: error.message
+        });
+      }
     }
 
-    const result = await ghlResponse.json();
-    console.log('Upload successful:', result);
+    const successfulUploads = uploadResults.filter(r => r.success);
+    const failedUploads = uploadResults.filter(r => !r.success);
 
     res.json({
-      success: true,
-      fileUrl: result.url || result.fileUrl,
-      fileName: req.file.originalname,
-      size: req.file.size,
-      mimetype: req.file.mimetype,
+      success: successfulUploads.length > 0,
+      uploadCount: req.files.length,
+      successCount: successfulUploads.length,
+      failureCount: failedUploads.length,
+      files: uploadResults,
+      imageUrls: successfulUploads.map(r => r.fileUrl),
       timestamp: Date.now()
     });
 
