@@ -688,7 +688,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dev/docs/:feature", getFeatureDocumentation);
   app.post("/api/dev/update-code", updateConfigurationCode);
 
-  // Media Upload endpoint - simplified for immediate functionality
+  // Media Upload endpoint - direct implementation without imports
   app.post("/api/ghl/media/upload", (req, res) => {
     console.log('Media upload request received');
     
@@ -698,17 +698,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const file = req.files.file as any;
+      console.log('File details:', { name: file.name, size: file.size, mimetype: file.mimetype });
       
-      // Create uploads directory
-      const uploadsDir = path.join('public', 'uploads');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
+      // Direct filesystem operations without imports
+      const uploadsDir = './public/uploads';
+      
+      // Ensure directory exists using Node.js built-ins
+      if (!require('fs').existsSync(uploadsDir)) {
+        require('fs').mkdirSync(uploadsDir, { recursive: true });
       }
       
       // Save file with timestamp
       const fileName = `${Date.now()}_${file.name}`;
-      const localPath = path.join(uploadsDir, fileName);
-      fs.writeFileSync(localPath, file.data);
+      const localPath = require('path').join(uploadsDir, fileName);
+      require('fs').writeFileSync(localPath, file.data);
       
       const fileUrl = `http://localhost:5000/uploads/${fileName}`;
       
@@ -716,7 +719,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         success: true,
         fileUrl: fileUrl,
-        fileName: file.name
+        fileName: file.name,
+        originalName: file.name,
+        size: file.size,
+        mimetype: file.mimetype
       });
       
     } catch (error) {

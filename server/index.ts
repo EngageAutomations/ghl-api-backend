@@ -15,13 +15,9 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
 
-// ES Module compatibility fixes for __dirname error
+// ES Module compatibility - removed global assignments causing conflicts
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// Make available globally for compatibility with any legacy code
-global.__dirname = __dirname;
-global.__filename = __filename;
 
 // OAuth credential validation and extraction
 function getOAuthCredentials(req: Request) {
