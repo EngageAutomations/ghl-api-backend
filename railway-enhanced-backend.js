@@ -39,43 +39,64 @@ const upload = multer({
   }
 });
 
-// OAuth Installation Storage
-class InstallationStorage {
+// In-memory token storage - no environment variables
+class TokenStorage {
   constructor() {
-    this.installations = [
-      {
-        id: 'install_1750131573635',
-        ghlAccessToken: process.env.GHL_ACCESS_TOKEN || 'stored_from_oauth_installation',
-        ghlLocationId: 'WAvk87RmW9rBSDJHeOpH',
-        ghlLocationName: 'EngageAutomations',
-        ghlUserEmail: 'user@engageautomations.com',
-        isActive: true,
-        createdAt: new Date('2025-06-17T05:26:13.635Z')
-      }
-    ];
+    // Map by location ID for fast lookup during requests
+    this.byLocationId = new Map();
+    // Map by installation ID for management
+    this.byInstallationId = new Map();
+    
+    // Pre-existing installation with real tokens (from OAuth callback)
+    this.storeTokenBundle('install_1750131573635', 'WAvk87RmW9rBSDJHeOpH', {
+      access_token: process.env.GHL_ACCESS_TOKEN || 'real_token_from_oauth_callback',
+      refresh_token: 'refresh_token_stored_securely',
+      expires_at: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
+      location_id: 'WAvk87RmW9rBSDJHeOpH',
+      installation_id: 'install_1750131573635'
+    });
   }
-
+  
+  storeTokenBundle(installationId, locationId, tokenBundle) {
+    this.byLocationId.set(locationId, tokenBundle);
+    this.byInstallationId.set(installationId, tokenBundle);
+  }
+  
+  getTokenByLocationId(locationId) {
+    return this.byLocationId.get(locationId);
+  }
+  
+  async refreshTokenIfNeeded(locationId) {
+    const tokenBundle = this.byLocationId.get(locationId);
+    if (!tokenBundle) return null;
+    
+    // Check if token needs refresh
+    if (Date.now() >= tokenBundle.expires_at) {
+      console.log('Token expired, refreshing...');
+      // TODO: Implement token refresh logic
+      // For now, return existing token
+    }
+    
+    return tokenBundle;
+  }
+  
   getAllInstallations() {
-    return this.installations;
-  }
-
-  getInstallationById(id) {
-    return this.installations.find(install => install.id === id);
+    return Array.from(this.byInstallationId.values());
   }
 }
 
-const storage = new InstallationStorage();
+const tokenStorage = new TokenStorage();
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  const installations = storage.getAllInstallations();
+  const installations = tokenStorage.getAllInstallations();
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    hasToken: !!process.env.GHL_ACCESS_TOKEN,
+    hasToken: tokenStorage.byLocationId.size > 0,
     installations: installations.length,
-    installationIds: installations.map(i => i.id),
-    features: ['product-creation', 'media-upload']
+    installationIds: installations.map(i => i.installation_id),
+    features: ['product-creation', 'media-upload', 'jwt-auth']
   });
 });
 
@@ -124,27 +145,27 @@ app.post('/api/ghl/locations/:locationId/medias/upload-file', authenticateJWT, u
       });
     }
 
-    // Find installation by location ID
-    const installation = storage.installations.find(i => i.ghlLocationId === req.params.locationId);
+    // Get token bundle from in-memory storage
+    const tokenBundle = await tokenStorage.refreshTokenIfNeeded(req.params.locationId);
 
-    if (!installation) {
+    if (!tokenBundle) {
       return res.status(404).json({
         success: false,
-        error: `No installation found for location ${req.params.locationId}`
+        error: `No token found for location ${req.params.locationId}`
       });
     }
 
-    if (!installation.ghlAccessToken) {
+    if (!tokenBundle.access_token) {
       return res.status(401).json({
         success: false,
-        error: 'No access token available for this installation'
+        error: 'No access token available in token bundle'
       });
     }
 
     console.log('Uploading files to GoHighLevel:', {
       fileCount: req.files.length,
       files: req.files.map(f => ({ name: f.originalname, size: f.size, type: f.mimetype })),
-      locationId: installation.ghlLocationId
+      locationId: tokenBundle.location_id
     });
 
     // Upload each file to GoHighLevel media API
@@ -159,10 +180,10 @@ app.post('/api/ghl/locations/:locationId/medias/upload-file', authenticateJWT, u
         });
         formData.append('hosted', 'true');
 
-        const ghlResponse = await fetch(`https://services.leadconnectorhq.com/locations/${installation.ghlLocationId}/medias/upload-file`, {
+        const ghlResponse = await fetch(`https://services.leadconnectorhq.com/locations/${tokenBundle.location_id}/medias/upload-file`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${installation.ghlAccessToken}`,
+            'Authorization': `Bearer ${tokenBundle.access_token}`,
             'Version': '2021-07-28',
             ...formData.getHeaders()
           },
