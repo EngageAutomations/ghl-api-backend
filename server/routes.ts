@@ -691,38 +691,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('Media upload request received');
       console.log('Content-Type:', req.headers['content-type']);
+      console.log('Files:', req.files);
+      console.log('Body:', req.body);
       
-      // Forward to Railway backend for actual GoHighLevel upload
-      const installationId = 'install_1750131573635'; // Use working installation
-      
-      // Create FormData to forward to Railway
-      const formData = new FormData();
-      
-      // Handle different content types
-      if (req.headers['content-type']?.includes('multipart/form-data')) {
-        // Forward the entire request body to Railway
-        const response = await fetch(`https://dir.engageautomations.com/api/ghl/media/upload?installationId=${installationId}`, {
-          method: 'POST',
-          body: req.body,
-          headers: {
-            'Content-Type': req.headers['content-type']
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          return res.json(data);
-        } else {
-          throw new Error(`Railway upload failed: ${response.status}`);
-        }
-      } else {
-        // Handle JSON request (fallback)
+      // Check if file was uploaded
+      if (!req.files || !req.files.file) {
         return res.status(400).json({ 
-          error: 'Invalid content type for file upload',
-          expected: 'multipart/form-data',
-          received: req.headers['content-type']
+          error: 'No file provided',
+          received: req.files ? Object.keys(req.files) : 'no files'
         });
       }
+
+      const file = req.files.file as any;
+      const installationId = 'install_1750131573635'; // Use working installation
+      
+      console.log('Processing file:', {
+        name: file.name,
+        size: file.size,
+        mimetype: file.mimetype
+      });
+      
+      // Create FormData to forward to Railway
+      const FormData = require('form-data');
+      const formData = new FormData();
+      
+      // Add file to form data
+      formData.append('file', file.data, {
+        filename: file.name,
+        contentType: file.mimetype
+      });
+      
+      // Forward to Railway backend for actual GoHighLevel upload
+      const response = await fetch(`https://dir.engageautomations.com/api/ghl/media/upload?installationId=${installationId}`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          ...formData.getHeaders()
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Railway upload successful:', data);
+        return res.json(data);
+      } else {
+        const errorText = await response.text();
+        console.error('Railway upload failed:', response.status, errorText);
+        throw new Error(`Railway upload failed: ${response.status} - ${errorText}`);
+      }
+      
     } catch (error) {
       console.error('Media upload error:', error);
       res.status(500).json({ 
