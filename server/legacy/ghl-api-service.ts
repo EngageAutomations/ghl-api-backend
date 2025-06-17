@@ -41,7 +41,7 @@ interface OAuthInstallation {
 
 export class GoHighLevelAPIService {
   private baseURL = 'https://services.leadconnectorhq.com';
-  private storage: typeof storage;
+  private storage: any;
   
   constructor() {
     this.storage = storage;
