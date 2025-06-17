@@ -2764,15 +2764,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Product name is required' });
       }
 
-      const result = await ghlAPIService.createProduct({
-        name,
-        description,
-        price: parseFloat(price) || undefined,
-        imageUrl,
-        installationId,
-        locationId,
-        userId
-      });
+      // Temporarily disabled to fix ES module conflicts - using Railway backend
+      const result = { 
+        success: false, 
+        error: 'Use Railway backend for product creation',
+        productId: null 
+      };
 
       res.json({ 
         success: true, 
@@ -2793,13 +2790,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { installationId, locationId, userId, limit, offset } = req.query;
       
-      const result = await ghlAPIService.getProducts({
-        installationId: installationId as string,
-        locationId: locationId as string,
-        userId: userId as string,
-        limit: limit ? parseInt(limit as string) : undefined,
-        offset: offset ? parseInt(offset as string) : undefined
-      });
+      // Temporarily disabled to fix ES module conflicts
+      const result = { 
+        success: false, 
+        products: [],
+        error: 'Use Railway backend for product listing'
+      };
 
       res.json({ 
         success: true, 
@@ -2820,15 +2816,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { productId } = req.params;
       const { name, description, price, imageUrl, installationId, locationId, userId } = req.body;
       
-      const result = await ghlAPIService.updateProduct(productId, {
-        name,
-        description,
-        price: price ? parseFloat(price) : undefined,
-        imageUrl,
-        installationId,
-        locationId,
-        userId
-      });
+      // Temporarily disabled to fix ES module conflicts
+      const result = { 
+        success: false, 
+        error: 'Use Railway backend for product updates',
+        productId: null 
+      };
 
       res.json({ 
         success: true, 
@@ -2850,11 +2843,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { productId } = req.params;
       const { installationId, locationId, userId } = req.query;
       
-      const result = await ghlAPIService.deleteProduct(productId, {
-        installationId: installationId as string,
-        locationId: locationId as string,
-        userId: userId as string
-      });
+      // Temporarily disabled to fix ES module conflicts
+      const result = { 
+        success: false, 
+        error: 'Use Railway backend for product deletion'
+      };
 
       res.json({ 
         success: true,
@@ -2876,11 +2869,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { installationId, locationId, userId } = req.query;
       
-      const result = await ghlAPIService.testConnection({
-        installationId: installationId as string,
-        locationId: locationId as string,
-        userId: userId as string
-      });
+      // Temporarily disabled to fix ES module conflicts
+      const result = { 
+        success: false, 
+        error: 'Use Railway backend for connection testing'
+      };
 
       res.json(result);
     } catch (error) {
