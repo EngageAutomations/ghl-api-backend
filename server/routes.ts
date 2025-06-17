@@ -689,39 +689,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GoHighLevel Media Upload endpoint
   app.post("/api/ghl/media/upload", async (req, res) => {
     try {
-      console.log('Media upload request received');
+      console.log('=== MEDIA UPLOAD DEBUG ===');
       console.log('Content-Type:', req.headers['content-type']);
-      console.log('Files:', req.files);
+      console.log('Files received:', req.files);
       console.log('Body:', req.body);
       
-      // Check if file was uploaded
-      if (!req.files || !req.files.file) {
+      // Debug step 1: Check if files are received
+      if (!req.files) {
+        console.log('❌ No req.files object');
         return res.status(400).json({ 
-          error: 'No file provided',
-          received: req.files ? Object.keys(req.files) : 'no files'
+          error: 'No files received - check multipart form data',
+          debug: 'req.files is undefined'
+        });
+      }
+      
+      if (!req.files.file) {
+        console.log('❌ No "file" field in req.files');
+        console.log('Available fields:', Object.keys(req.files));
+        return res.status(400).json({ 
+          error: 'No file field found',
+          availableFields: Object.keys(req.files),
+          debug: 'Field must be named exactly "file"'
         });
       }
 
       const file = req.files.file as any;
-      const installationId = 'install_1750131573635'; // Use working installation
+      const installationId = 'install_1750131573635';
       
-      console.log('Processing file:', {
+      console.log('✅ File received:', {
         name: file.name,
         size: file.size,
-        mimetype: file.mimetype
+        mimetype: file.mimetype,
+        hasData: !!file.data
       });
       
-      // Create FormData to forward to Railway
+      // Use fs to create temp file and stream (as per debug guide)
+      const fs = require('fs');
+      const path = require('path');
       const FormData = require('form-data');
+      
+      // Create temp file
+      const tempPath = path.join('/tmp', `upload_${Date.now()}_${file.name}`);
+      fs.writeFileSync(tempPath, file.data);
+      
       const formData = new FormData();
+      formData.append('file', fs.createReadStream(tempPath), file.name);
       
-      // Add file to form data
-      formData.append('file', file.data, {
-        filename: file.name,
-        contentType: file.mimetype
-      });
+      console.log('Forwarding to Railway with headers:', formData.getHeaders());
       
-      // Forward to Railway backend for actual GoHighLevel upload
+      // Forward to Railway backend
       const response = await fetch(`https://dir.engageautomations.com/api/ghl/media/upload?installationId=${installationId}`, {
         method: 'POST',
         body: formData,
@@ -730,21 +746,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
       
+      // Clean up temp file
+      fs.unlinkSync(tempPath);
+      
       if (response.ok) {
         const data = await response.json();
-        console.log('Railway upload successful:', data);
+        console.log('✅ Railway upload successful:', data);
         return res.json(data);
       } else {
         const errorText = await response.text();
-        console.error('Railway upload failed:', response.status, errorText);
+        console.error('❌ Railway upload failed:', response.status, errorText);
         throw new Error(`Railway upload failed: ${response.status} - ${errorText}`);
       }
       
     } catch (error) {
-      console.error('Media upload error:', error);
+      console.error('❌ Media upload error:', error);
       res.status(500).json({ 
         error: 'Media upload failed', 
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
+        debug: 'Check server logs for details'
       });
     }
   });

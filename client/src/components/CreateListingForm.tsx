@@ -54,10 +54,17 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       const formData = new FormData();
       formData.append('file', file);
       
-      return apiRequest('/api/ghl/media/upload', {
+      // Use direct fetch instead of apiRequest wrapper to preserve FormData
+      const response = await fetch('/api/ghl/media/upload', {
         method: 'POST',
-        data: formData
+        body: formData
       });
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+      }
+      
+      return response.json();
     },
     onSuccess: (response: any) => {
       // Update image URL with the GoHighLevel media URL

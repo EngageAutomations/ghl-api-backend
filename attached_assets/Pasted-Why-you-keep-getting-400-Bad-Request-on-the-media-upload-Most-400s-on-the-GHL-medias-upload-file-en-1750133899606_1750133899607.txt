@@ -1,0 +1,83 @@
+Why you keep getting 400 Bad Request on the media upload
+Most 400s on the GHL /medias/upload-file endpoint come from either
+
+a missing/incorrect form-field name (file vs. anything else), or
+
+a malformed multipart body (wrong Content-Type header, boundary, or you tried to set the header manually).
+The endpoint is very strict: it wants a single field called file (or fileUrl if you set hosted=true) and nothing else. Max size is 25 MB. 
+marketplace.gohighlevel.com
+
+5-minute checklist
+Confirm the field name coming out of React.
+
+js
+Copy
+Edit
+const form = new FormData();
+form.append('file', fileObject);   // must literally be 'file'
+If your form says images, photo, file[], etc., req.files.file will be undefined and you’ll forward an empty body → 400.
+
+Never set Content-Type yourself when you forward.
+Let form-data (Node) or the browser build the header with the boundary:
+
+js
+Copy
+Edit
+const form = new FormData();
+form.append('file', fs.createReadStream(tmpPath), originalName);
+
+const headers = {
+  ...form.getHeaders(),                  // <-- includes multipart boundary
+  Authorization: `Bearer ${token}`,
+  Accept: 'application/json',
+  Version: '2021-07-28'
+};
+
+await axios.post(
+  'https://services.leadconnectorhq.com/medias/upload-file',
+  form,
+  { headers }
+);
+Stream, don’t buffer.
+Pass createReadStream(tmpFilePath) so memory use stays low and the boundary is valid.
+
+Drop hosted and fileUrl unless you really need them.
+If you send hosted: true without a fileUrl, GHL returns 400. 
+marketplace.gohighlevel.com
+
+Location context
+medias/upload-file is not scoped by path (/locations/:id/...) so you don’t send the locationId in the URL—just keep using the same bearer token you already have for that location.
+
+Common coding slip-ups & fixes
+Slip-up	Symptom	Fix
+React <input name="images[]" multiple>	req.files.file is undefined	Use a single <input name="file">, or iterate over images[] in Node and upload one at a time.
+Manually set Content-Type: multipart/form-data	400, “invalid form data”	Remove the header; rely on form-data’s getHeaders().
+Forward buffer instead of stream	400, occasionally 413	Pipe fs.createReadStream() into the form append.
+Send hosted: true but no fileUrl	400 every time	Either omit hosted entirely (default false) or include a valid fileUrl.
+
+Quick live test (cURL)
+bash
+Copy
+Edit
+TOKEN="Bearer YOUR_BEARER_ACCESS_TOKEN"
+curl -L -X POST https://services.leadconnectorhq.com/medias/upload-file \
+  -H "Authorization: $TOKEN" \
+  -H "Accept: application/json" \
+  -H "Version: 2021-07-28" \
+  -F "file=@/path/to/test.jpg"
+If this succeeds (200 + JSON with publicUrl), the issue is in your Express → Railway forwarding layer, not GHL.
+
+Next debugging steps
+console.log(req.files) right before you build the FormData.
+If it’s empty or undefined, fix the field name in the React form.
+
+console.log(form.getHeaders()) to ensure the boundary is present.
+
+Replay exactly the forwarded request with Postman/cURL (above).
+If Postman succeeds but your proxy fails, compare every header—you’ll spot the problem quickly.
+
+Watch size limits—GHL rejects anything over 25 MB. (Your Express 50 MB limit is fine.)
+
+Inspect Railway logs for the raw 400 error body—GHL often returns a JSON reason like {"message":"file is required"} which pinpoints the miss.
+
+Implementing these checks normally resolves the 400 in minutes. Let me know what the logs show and we can zero in further!
