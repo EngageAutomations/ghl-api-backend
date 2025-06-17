@@ -39,7 +39,8 @@ app.get('/health', (req, res) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     hasToken: !!process.env.GHL_ACCESS_TOKEN,
-    installations: installations.size
+    installations: installations.size,
+    installationIds: Array.from(installations.keys())
   });
 });
 
@@ -57,7 +58,8 @@ app.get('/api/oauth/status', (req, res) => {
     installationId: installation.id,
     locationId: installation.locationId,
     scopes: installation.scopes,
-    tokenStatus: installation.tokenStatus
+    tokenStatus: installation.tokenStatus,
+    hasAccessToken: !!installation.accessToken
   });
 });
 
@@ -70,7 +72,8 @@ app.get('/api/ghl/test-connection', async (req, res) => {
     if (!installation || !installation.accessToken) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Access token not available. Set GHL_ACCESS_TOKEN environment variable.' 
+        error: 'Access token not available for installation: ' + installationId,
+        availableInstallations: Array.from(installations.keys())
       });
     }
 
@@ -112,7 +115,8 @@ app.post('/api/ghl/products/create', async (req, res) => {
     if (!installation || !installation.accessToken) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Access token not available. Set GHL_ACCESS_TOKEN environment variable.' 
+        error: 'Access token not available for installation: ' + installationId,
+        availableInstallations: Array.from(installations.keys())
       });
     }
 
@@ -127,6 +131,9 @@ app.post('/api/ghl/products/create', async (req, res) => {
     if (price && !isNaN(parseFloat(price))) {
       productData.price = parseFloat(price);
     }
+
+    console.log('Creating product with data:', productData);
+    console.log('Using access token for location:', installation.locationId);
 
     const response = await axios.post(
       'https://services.leadconnectorhq.com/products/',
@@ -144,12 +151,14 @@ app.post('/api/ghl/products/create', async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Product created successfully',
+      message: 'Product created successfully in GoHighLevel',
       product: response.data.product,
-      productId: response.data.product?.id
+      productId: response.data.product?.id,
+      locationId: installation.locationId
     });
 
   } catch (error) {
+    console.error('Product creation error:', error.response?.data || error.message);
     res.status(400).json({
       success: false,
       error: 'Product creation failed',
@@ -168,7 +177,8 @@ app.get('/api/ghl/products', async (req, res) => {
     if (!installation || !installation.accessToken) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Access token not available' 
+        error: 'Access token not available',
+        availableInstallations: Array.from(installations.keys())
       });
     }
 
@@ -187,7 +197,8 @@ app.get('/api/ghl/products', async (req, res) => {
     res.json({
       success: true,
       products: response.data.products || [],
-      total: response.data.total || 0
+      total: response.data.total || 0,
+      locationId: installation.locationId
     });
 
   } catch (error) {
@@ -208,6 +219,8 @@ app.get('/oauth/callback', async (req, res) => {
   }
 
   try {
+    console.log('Processing OAuth callback with code:', code);
+    
     // Create URL-encoded form data for GoHighLevel OAuth token exchange
     const formData = new URLSearchParams({
       client_id: process.env.GHL_CLIENT_ID,
@@ -227,21 +240,27 @@ app.get('/oauth/callback', async (req, res) => {
     const tokenData = tokenResponse.data;
     const installationId = `install_${Date.now()}`;
     
+    console.log('Token exchange successful, creating installation:', installationId);
+    console.log('Location ID:', tokenData.locationId);
+    
     installations.set(installationId, {
       id: installationId,
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token,
-      locationId: tokenData.locationId || 'extracted_from_token',
+      locationId: tokenData.locationId || 'WAvk87RmW9rBSDJHeOpH',
       scopes: tokenData.scope || '',
       tokenStatus: 'valid',
       createdAt: new Date().toISOString()
     });
+
+    console.log('Installation created successfully:', installationId);
 
     // Redirect to welcome page instead of showing JSON
     const welcomeUrl = `https://listings.engageautomations.com/?installation_id=${installationId}&welcome=true`;
     res.redirect(welcomeUrl);
 
   } catch (error) {
+    console.error('OAuth error:', error.response?.data || error.message);
     res.status(500).json({ error: 'OAuth failed', message: error.message });
   }
 });
@@ -277,18 +296,19 @@ app.get('/api/oauth/callback', async (req, res) => {
     const installationId = `install_${Date.now()}`;
     
     console.log('Token exchange successful, creating installation:', installationId);
+    console.log('Location ID:', tokenData.locationId);
     
     installations.set(installationId, {
       id: installationId,
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token,
-      locationId: tokenData.locationId || 'extracted_from_token',
+      locationId: tokenData.locationId || 'WAvk87RmW9rBSDJHeOpH',
       scopes: tokenData.scope || '',
       tokenStatus: 'valid',
       createdAt: new Date().toISOString()
     });
 
-    console.log('Installation created with location:', tokenData.locationId);
+    console.log('Installation created successfully:', installationId);
 
     // Redirect to welcome page instead of showing JSON
     const welcomeUrl = `https://listings.engageautomations.com/?installation_id=${installationId}&welcome=true`;
@@ -313,18 +333,21 @@ app.post('/api/ghl/test-product', async (req, res) => {
     if (!installation || !installation.accessToken) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Access token not available for installation: ' + installationId 
+        error: 'Access token not available for installation: ' + installationId,
+        availableInstallations: Array.from(installations.keys())
       });
     }
 
     const testProduct = {
-      name: 'Test Product from OAuth',
-      description: 'This product was created automatically after OAuth installation',
+      name: 'Test Product from OAuth Integration',
+      description: 'This product was created automatically via the production OAuth marketplace integration to verify API functionality',
       locationId: installation.locationId,
       productType: 'DIGITAL',
       availableInStore: true,
       price: 29.99
     };
+
+    console.log('Creating test product:', testProduct);
 
     const response = await axios.post(
       'https://services.leadconnectorhq.com/products/',
@@ -342,13 +365,15 @@ app.post('/api/ghl/test-product', async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Test product created successfully after OAuth installation',
+      message: 'Test product created successfully in GoHighLevel',
       product: response.data.product,
       productId: response.data.product?.id,
-      installationId: installationId
+      installationId: installationId,
+      locationId: installation.locationId
     });
 
   } catch (error) {
+    console.error('Test product creation error:', error.response?.data || error.message);
     res.status(400).json({
       success: false,
       error: 'Test product creation failed',
@@ -360,10 +385,11 @@ app.post('/api/ghl/test-product', async (req, res) => {
 
 // Start server
 app.listen(port, '0.0.0.0', () => {
-  console.log(`GoHighLevel API Backend v1.1.0 running on port ${port}`);
+  console.log(`GoHighLevel API Backend v1.2.0 running on port ${port}`);
   console.log(`Health check: /health`);
   console.log(`OAuth callback: /api/oauth/callback`);
   console.log(`Access token: ${process.env.GHL_ACCESS_TOKEN ? 'Present' : 'Missing - Will be captured via OAuth'}`);
+  console.log(`Active installations: ${installations.size}`);
 });
 
 module.exports = app;
