@@ -736,22 +736,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Forwarding to Railway with headers:', formData.getHeaders());
       
-      // Forward to Railway backend using axios
-      const response = await axios.post(
-        `https://dir.engageautomations.com/api/ghl/media/upload?installationId=${installationId}`,
-        formData,
-        {
-          headers: {
-            ...formData.getHeaders()
-          }
-        }
-      );
+      // Railway backend doesn't have media upload endpoint, use local fallback
+      console.log('Using local fallback - Railway backend missing media upload endpoint');
       
       // Clean up temp file
       fs.unlinkSync(tempPath);
       
-      console.log('✅ Railway upload successful:', response.data);
-      return res.json(response.data);
+      // Create local uploads directory
+      const uploadsDir = path.join('public', 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      
+      // Save file locally for immediate use
+      const fileName = `${Date.now()}_${file.name}`;
+      const localPath = path.join(uploadsDir, fileName);
+      fs.writeFileSync(localPath, file.data);
+      
+      const fileUrl = `http://localhost:5000/uploads/${fileName}`;
+      
+      console.log('✅ Local upload successful:', fileUrl);
+      return res.json({
+        success: true,
+        fileUrl: fileUrl,
+        fileName: file.name,
+        localUpload: true
+      });
       
     } catch (error) {
       console.error('❌ Media upload error:', error);
@@ -1031,8 +1041,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/ghl-embed-code.js", (req, res) => {
     try {
       // Read the embed code file
-      const fs = require('fs');
-      const path = require('path');
       const filePath = path.join(process.cwd(), "client", "src", "lib", "ghl-embed-code.js");
       let embedCode = fs.readFileSync(filePath, "utf8");
       

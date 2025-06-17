@@ -2255,6 +2255,9 @@ app.use((req, res, next) => {
     // Serve static files from dist/public directory
     app.use(express.static(path.join(__dirname, '../dist/public')));
     
+    // Serve uploaded files
+    app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+    
     // Catch-all handler: send back index.html file for SPA routing (EXCLUDING API routes)
     app.get('*', (req, res, next) => {
       // Never serve HTML for API routes - they should have been handled above
@@ -2304,6 +2307,9 @@ app.use((req, res, next) => {
         environment: 'development'
       });
     });
+    
+    // Serve uploaded files in development mode
+    app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
     
     await setupVite(app, server);
   }
