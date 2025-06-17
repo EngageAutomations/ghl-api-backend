@@ -4,10 +4,16 @@
 
 ### Error E-102: "This AuthClass is not yet supported!"
 **Status Code:** 401  
-**Endpoint:** `/users/search`  
-**Root Cause:** Wrong user info endpoint for OAuth token type  
+**Endpoint:** `/users/search` OR `/oauth/userinfo`  
+**Root Cause:** Wrong user info endpoint for OAuth token type OR Railway deployment not updated
 
-**Solution:** Use `/oauth/userinfo` instead of `/users/search` for OAuth tokens
+**Occurrence:** 
+- June 17, 2025: `https://dir.engageautomations.com/api/oauth/callback?code=43c1fa6baecc9fc2db48179bcc76f51d812e05bb`
+- June 17, 2025: `https://dir.engageautomations.com/api/oauth/callback?code=bb96da6aa333dcd5d94ef4b8bbcb3b69157bcecd`
+
+**Solutions:**
+1. **Endpoint Fix:** Use `/oauth/userinfo` instead of `/users/search` for OAuth tokens
+2. **Deployment Issue:** Verify Railway is running the updated backend (v5.2.1)
 
 ```javascript
 // WRONG - causes E-102 error
@@ -20,6 +26,18 @@ const userResponse = await fetch('https://services.leadconnectorhq.com/oauth/use
   headers: { 'Authorization': `Bearer ${accessToken}` }
 });
 ```
+
+**Troubleshooting Steps:**
+1. Check Railway health endpoint: `curl https://dir.engageautomations.com/health`
+2. Verify version shows `5.2.1` and fixes include `E-102-error-fixed`
+3. If still showing old version, redeploy the fixed backend files
+4. Confirm environment variables are set: `GHL_CLIENT_ID`, `GHL_CLIENT_SECRET`, `GHL_REDIRECT_URI`
+
+**Status Update - June 17, 2025:**
+- Railway backend v5.2.1 deployed with `/oauth/userinfo` endpoint fix
+- E-102 error persists despite correct endpoint usage
+- **Investigation needed:** GoHighLevel may have changed OAuth user info requirements
+- **Alternative approaches:** Try different user info endpoints or authentication headers
 
 ### Error: "Cannot GET /api/oauth/callback"
 **Root Cause:** Missing OAuth callback endpoint in Railway backend  
