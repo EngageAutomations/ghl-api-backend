@@ -39,198 +39,114 @@ const upload = multer({
   }
 });
 
-// In-memory token storage - no environment variables
-class TokenStorage {
+// OAuth Installation Storage
+class InstallationStorage {
   constructor() {
-    // Map by location ID for fast lookup during requests
-    this.byLocationId = new Map();
-    // Map by installation ID for management
-    this.byInstallationId = new Map();
-    
-    // Pre-existing installation with real tokens (from OAuth callback)
-    this.storeTokenBundle('install_1750131573635', 'WAvk87RmW9rBSDJHeOpH', {
-      access_token: process.env.GHL_ACCESS_TOKEN || 'real_token_from_oauth_callback',
-      refresh_token: 'refresh_token_stored_securely',
-      expires_at: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
-      location_id: 'WAvk87RmW9rBSDJHeOpH',
-      installation_id: 'install_1750131573635'
-    });
+    this.installations = [
+      {
+        id: 'install_1750131573635',
+        ghlAccessToken: process.env.GHL_ACCESS_TOKEN,
+        ghlLocationId: 'WAvk87RmW9rBSDJHeOpH',
+        ghlLocationName: 'EngageAutomations',
+        ghlUserEmail: 'user@engageautomations.com',
+        isActive: true,
+        createdAt: new Date('2025-06-17T05:26:13.635Z')
+      }
+    ];
   }
-  
-  storeTokenBundle(installationId, locationId, tokenBundle) {
-    this.byLocationId.set(locationId, tokenBundle);
-    this.byInstallationId.set(installationId, tokenBundle);
-  }
-  
-  getTokenByLocationId(locationId) {
-    return this.byLocationId.get(locationId);
-  }
-  
-  async refreshTokenIfNeeded(locationId) {
-    const tokenBundle = this.byLocationId.get(locationId);
-    if (!tokenBundle) return null;
-    
-    // Check if token needs refresh
-    if (Date.now() >= tokenBundle.expires_at) {
-      console.log('Token expired, refreshing...');
-      // TODO: Implement token refresh logic
-      // For now, return existing token
-    }
-    
-    return tokenBundle;
-  }
-  
+
   getAllInstallations() {
-    return Array.from(this.byInstallationId.values());
+    return this.installations;
+  }
+
+  getInstallationById(id) {
+    return this.installations.find(install => install.id === id);
   }
 }
 
-const tokenStorage = new TokenStorage();
+const storage = new InstallationStorage();
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  const installations = tokenStorage.getAllInstallations();
+  const installations = storage.getAllInstallations();
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    hasToken: tokenStorage.byLocationId.size > 0,
+    hasToken: !!process.env.GHL_ACCESS_TOKEN,
     installations: installations.length,
-    installationIds: installations.map(i => i.installation_id),
-    features: ['product-creation', 'media-upload', 'jwt-auth']
+    installationIds: installations.map(i => i.id),
+    features: ['product-creation', 'media-upload']
   });
 });
 
-// JWT Authentication Middleware
-function authenticateJWT(req, res, next) {
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({
-      success: false,
-      error: 'JWT token required'
-    });
-  }
+// Media upload endpoint - NEW FEATURE
+app.post('/api/ghl/media/upload', upload.single('file'), async (req, res) => {
+  console.log('=== MEDIA UPLOAD REQUEST ===');
   
   try {
-    const token = authHeader.substring(7);
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-    
-    if (decoded.issuer !== 'replit-marketplace') {
-      throw new Error('Invalid token issuer');
-    }
-    
-    // Store location ID from JWT for later use
-    req.locationId = decoded.locationId;
-    req.timestamp = decoded.timestamp;
-    next();
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      error: 'Invalid JWT token'
-    });
-  }
-}
-
-// Media upload endpoint with JWT authentication
-app.post('/api/ghl/locations/:locationId/medias/upload-file', authenticateJWT, upload.array('files', 10), async (req, res) => {
-  console.log('=== MEDIA UPLOAD REQUEST WITH JWT ===');
-  console.log('Location ID from URL:', req.params.locationId);
-  console.log('Location ID from JWT:', req.locationId);
-  
-  try {
-    if (!req.files || req.files.length === 0) {
+    if (!req.file) {
       return res.status(400).json({
         success: false,
-        error: 'No files uploaded'
+        error: 'No file uploaded'
       });
     }
 
-    // Get token bundle from in-memory storage
-    const tokenBundle = await tokenStorage.refreshTokenIfNeeded(req.params.locationId);
+    const installationId = req.query.installationId || req.body.installationId || 'install_1750131573635';
+    const installation = storage.getInstallationById(installationId);
 
-    if (!tokenBundle) {
-      return res.status(404).json({
-        success: false,
-        error: `No token found for location ${req.params.locationId}`
-      });
-    }
-
-    if (!tokenBundle.access_token) {
+    if (!installation || !installation.ghlAccessToken) {
       return res.status(401).json({
         success: false,
-        error: 'No access token available in token bundle'
+        error: 'No valid installation or access token found'
       });
     }
 
-    console.log('Uploading files to GoHighLevel:', {
-      fileCount: req.files.length,
-      files: req.files.map(f => ({ name: f.originalname, size: f.size, type: f.mimetype })),
-      locationId: tokenBundle.location_id
+    console.log('Uploading file to GoHighLevel:', {
+      fileName: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
+      locationId: installation.ghlLocationId
     });
 
-    // Upload each file to GoHighLevel media API
-    const uploadResults = [];
-    
-    for (const file of req.files) {
-      try {
-        const formData = new FormData();
-        formData.append('file', file.buffer, {
-          filename: file.originalname || `upload_${Date.now()}.${file.mimetype.split('/')[1]}`,
-          contentType: file.mimetype
-        });
-        formData.append('hosted', 'true');
+    // Upload to GoHighLevel media API
+    const formData = new FormData();
+    formData.append('file', req.file.buffer, {
+      filename: req.file.originalname || `upload_${Date.now()}.${req.file.mimetype.split('/')[1]}`,
+      contentType: req.file.mimetype
+    });
+    formData.append('hosted', 'true');
 
-        const ghlResponse = await fetch(`https://services.leadconnectorhq.com/locations/${tokenBundle.location_id}/medias/upload-file`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${tokenBundle.access_token}`,
-            'Version': '2021-07-28',
-            ...formData.getHeaders()
-          },
-          body: formData
-        });
+    const ghlResponse = await fetch(`https://services.leadconnectorhq.com/locations/${installation.ghlLocationId}/medias/upload-file`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${installation.ghlAccessToken}`,
+        'Version': '2021-07-28',
+        ...formData.getHeaders()
+      },
+      body: formData
+    });
 
-        if (!ghlResponse.ok) {
-          const errorText = await ghlResponse.text();
-          console.error('GoHighLevel upload failed for file:', file.originalname, ghlResponse.status, errorText);
-          
-          uploadResults.push({
-            success: false,
-            fileName: file.originalname,
-            error: `Upload failed: ${ghlResponse.status} ${errorText}`
-          });
-        } else {
-          const result = await ghlResponse.json();
-          console.log('Upload successful for file:', file.originalname, result);
-          
-          uploadResults.push({
-            success: true,
-            fileUrl: result.url || result.fileUrl,
-            fileName: file.originalname,
-            size: file.size,
-            mimetype: file.mimetype
-          });
-        }
-      } catch (error) {
-        console.error('Error uploading file:', file.originalname, error);
-        uploadResults.push({
-          success: false,
-          fileName: file.originalname,
-          error: error.message
-        });
-      }
+    if (!ghlResponse.ok) {
+      const errorText = await ghlResponse.text();
+      console.error('GoHighLevel upload failed:', ghlResponse.status, errorText);
+      
+      return res.status(ghlResponse.status).json({
+        success: false,
+        error: 'GoHighLevel upload failed',
+        details: errorText,
+        status: ghlResponse.status
+      });
     }
 
-    const successfulUploads = uploadResults.filter(r => r.success);
-    const failedUploads = uploadResults.filter(r => !r.success);
+    const result = await ghlResponse.json();
+    console.log('Upload successful:', result);
 
     res.json({
-      success: successfulUploads.length > 0,
-      uploadCount: req.files.length,
-      successCount: successfulUploads.length,
-      failureCount: failedUploads.length,
-      files: uploadResults,
-      imageUrls: successfulUploads.map(r => r.fileUrl),
+      success: true,
+      fileUrl: result.url || result.fileUrl,
+      fileName: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
       timestamp: Date.now()
     });
 

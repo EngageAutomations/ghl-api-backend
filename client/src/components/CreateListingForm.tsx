@@ -48,69 +48,32 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
 
-  // Upload images through Railway proxy with JWT authentication
+  // Upload image to Railway backend with GoHighLevel integration
   const uploadImageMutation = useMutation({
-    mutationFn: async (files: File[]) => {
-      // First get JWT token from local backend
-      const authResponse = await fetch('/api/auth/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ locationId: 'WAvk87RmW9rBSDJHeOpH' })
-      });
-      
-      if (!authResponse.ok) {
-        throw new Error('Failed to get authentication token');
-      }
-      
-      const { token } = await authResponse.json();
-      
-      // Upload files to Railway proxy with JWT
+    mutationFn: async (file: File) => {
       const formData = new FormData();
-      files.forEach(file => {
-        formData.append('files', file);
-      });
+      formData.append('file', file);
       
-      console.log('Uploading files through Railway proxy:', files.map(f => f.name));
-      
-      const response = await fetch('https://dir.engageautomations.com/api/ghl/locations/WAvk87RmW9rBSDJHeOpH/medias/upload-file', {
+      // Upload to Railway backend which has GoHighLevel integration
+      const response = await fetch('https://dir.engageautomations.com/api/ghl/media/upload?installationId=install_1750131573635', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
+        body: formData
       });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Upload failed:', response.status, errorText);
         throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
       }
       
-      const result = await response.json();
-      console.log('Upload response:', result);
-      return result;
+      return response.json();
     },
     onSuccess: (response: any) => {
-      // Handle multiple image URLs from GoHighLevel
-      if (response.imageUrls && response.imageUrls.length > 0) {
-        // Store all URLs as comma-separated string for multiple images
-        const allImageUrls = response.imageUrls.join(',');
-        setFormData(prev => ({ ...prev, imageUrl: allImageUrls }));
-        
-        toast({
-          title: `${response.successCount} image${response.successCount > 1 ? 's' : ''} uploaded`,
-          description: "Your images have been uploaded to GoHighLevel successfully!",
-        });
-      } else {
-        // Fallback for single image response
-        const imageUrl = response.url || response.fileUrl || response.data?.url;
-        setFormData(prev => ({ ...prev, imageUrl }));
-        
-        toast({
-          title: "Image Uploaded",
-          description: "Your listing image has been uploaded to GoHighLevel successfully!",
-        });
-      }
+      // Update image URL with the GoHighLevel media URL
+      const imageUrl = response.url || response.fileUrl || response.data?.url;
+      setFormData(prev => ({ ...prev, imageUrl }));
+      toast({
+        title: "Image Uploaded",
+        description: "Your listing image has been uploaded to GoHighLevel successfully!",
+      });
     },
     onError: (error) => {
       console.error('Image upload error:', error);
@@ -380,23 +343,21 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     setIsDragOver(false);
     
     const files = Array.from(e.dataTransfer.files);
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    const imageFile = files.find(file => file.type.startsWith('image/'));
     
-    if (imageFiles.length > 0) {
-      setImageFile(imageFiles[0]); // Set first file for preview
-      // Upload all images to GoHighLevel immediately
-      uploadImageMutation.mutate(imageFiles);
+    if (imageFile) {
+      setImageFile(imageFile);
+      // Upload to GoHighLevel immediately
+      uploadImageMutation.mutate(imageFile);
     }
   };
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
-    
-    if (imageFiles.length > 0) {
-      setImageFile(imageFiles[0]); // Set first file for preview
-      // Upload all selected images to GoHighLevel immediately
-      uploadImageMutation.mutate(imageFiles);
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setImageFile(file);
+      // Upload to GoHighLevel immediately
+      uploadImageMutation.mutate(file);
     }
   };
 
