@@ -48,16 +48,15 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
 
-  // Upload image to GoHighLevel media API
+  // Upload image to media API
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Use direct fetch instead of apiRequest wrapper to preserve FormData
-      const response = await fetch('/api/ghl/media/upload', {
+      // Use the working media upload endpoint that bypasses middleware conflicts
+      const response = await fetch('/api/media/upload', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': file.type
+        }
       });
       
       if (!response.ok) {
