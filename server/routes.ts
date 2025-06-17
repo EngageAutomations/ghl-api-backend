@@ -688,12 +688,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dev/docs/:feature", getFeatureDocumentation);
   app.post("/api/dev/update-code", updateConfigurationCode);
 
-  // Media Upload endpoint - direct implementation
+  // Media Upload endpoint - ES module compatible approach
   app.post("/api/ghl/media/upload", async (req, res) => {
-    console.log('=== MEDIA UPLOAD HANDLER ===');
+    console.log('=== MEDIA UPLOAD HANDLER (ES MODULE) ===');
     
     try {
       const files = (req as any).files;
+      
       if (!files || !files.file) {
         console.log('No file provided in request');
         return res.status(400).json({ 
@@ -706,11 +707,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Processing file:', { 
         name: file.name, 
         size: file.size, 
-        mimetype: file.mimetype 
+        mimetype: file.mimetype
       });
       
-      // Create uploads directory
-      const uploadsDir = path.resolve(process.cwd(), 'public', 'uploads');
+      // Create uploads directory using ES imports already available
+      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
       
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
@@ -719,8 +720,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Generate unique filename
       const timestamp = Date.now();
-      const fileExtension = path.extname(file.name);
-      const baseName = path.basename(file.name, fileExtension);
+      const fileExtension = path.extname(file.name || 'upload');
+      const baseName = path.basename(file.name || 'upload', fileExtension);
       const fileName = `${timestamp}_${baseName}${fileExtension}`;
       const filePath = path.join(uploadsDir, fileName);
       
@@ -734,7 +735,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = {
         success: true,
         fileUrl: fileUrl,
-        fileName: file.name,
+        fileName: fileName,
         originalName: file.name,
         size: file.size,
         mimetype: file.mimetype,
@@ -745,11 +746,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response);
       
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('ES module upload error:', error);
       res.status(500).json({ 
         error: 'Upload failed', 
         message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
+        type: 'es_module_upload_handler'
       });
     }
   });
