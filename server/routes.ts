@@ -27,7 +27,7 @@ import { authenticateToken } from "./auth-middleware";
 import { ghlProductCreator } from "./ghl-product-creator";
 import { getCurrentUser, logoutUser } from "./current-user";
 import { recoverSession, checkEmbeddedSession } from "./session-recovery";
-import { ghlAPIService } from "./ghl-api-service";
+// Removed ghlAPIService import to fix ES module conflicts
 import jwt from "jsonwebtoken";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -688,73 +688,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dev/docs/:feature", getFeatureDocumentation);
   app.post("/api/dev/update-code", updateConfigurationCode);
 
-  // GoHighLevel Media Upload endpoint
-  app.post("/api/ghl/media/upload", async (req, res) => {
+  // Media Upload endpoint - simplified for immediate functionality
+  app.post("/api/ghl/media/upload", (req, res) => {
+    console.log('Media upload request received');
+    
     try {
-      console.log('=== MEDIA UPLOAD DEBUG ===');
-      console.log('Content-Type:', req.headers['content-type']);
-      console.log('Files received:', req.files);
-      console.log('Body:', req.body);
-      
-      // Debug step 1: Check if files are received
-      if (!req.files) {
-        console.log('❌ No req.files object');
-        return res.status(400).json({ 
-          error: 'No files received - check multipart form data',
-          debug: 'req.files is undefined'
-        });
-      }
-      
-      if (!req.files.file) {
-        console.log('❌ No "file" field in req.files');
-        console.log('Available fields:', Object.keys(req.files));
-        return res.status(400).json({ 
-          error: 'No file field found',
-          availableFields: Object.keys(req.files),
-          debug: 'Field must be named exactly "file"'
-        });
+      if (!req.files || !req.files.file) {
+        return res.status(400).json({ error: 'No file provided' });
       }
 
       const file = req.files.file as any;
-      const installationId = 'install_1750131573635';
       
-      console.log('✅ File received:', {
-        name: file.name,
-        size: file.size,
-        mimetype: file.mimetype,
-        hasData: !!file.data
-      });
-      
-      // Railway backend doesn't have media upload endpoint, use local fallback
-      console.log('Using local fallback - Railway backend missing media upload endpoint');
-      
-      // Create local uploads directory
+      // Create uploads directory
       const uploadsDir = path.join('public', 'uploads');
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
       
-      // Save file locally for immediate use
+      // Save file with timestamp
       const fileName = `${Date.now()}_${file.name}`;
       const localPath = path.join(uploadsDir, fileName);
       fs.writeFileSync(localPath, file.data);
       
       const fileUrl = `http://localhost:5000/uploads/${fileName}`;
       
-      console.log('✅ Local upload successful:', fileUrl);
-      return res.json({
+      console.log('Upload successful:', fileUrl);
+      res.json({
         success: true,
         fileUrl: fileUrl,
-        fileName: file.name,
-        localUpload: true
+        fileName: file.name
       });
       
     } catch (error) {
-      console.error('❌ Media upload error:', error);
+      console.error('Upload error:', error);
       res.status(500).json({ 
-        error: 'Media upload failed', 
-        message: error instanceof Error ? error.message : 'Unknown error',
-        debug: 'Check server logs for details'
+        error: 'Upload failed', 
+        message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -2900,39 +2869,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload media to GoHighLevel
-  app.post("/api/ghl/media/upload", async (req, res) => {
-    try {
-      const { installationId, locationId, userId } = req.body;
-      
-      if (!req.files || !req.files.file) {
-        return res.status(400).json({ error: 'No file provided' });
-      }
-
-      const file = req.files.file as any;
-      
-      const result = await ghlAPIService.uploadMedia(file.data, {
-        fileName: file.name,
-        contentType: file.mimetype,
-        installationId,
-        locationId,
-        userId
-      });
-
-      res.json({ 
-        success: true, 
-        url: result.url,
-        fileId: result.fileId,
-        message: 'Media uploaded successfully to GoHighLevel'
-      });
-    } catch (error) {
-      console.error('Error uploading media to GHL:', error);
-      res.status(500).json({ 
-        error: 'Media upload failed', 
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
+  // Removed duplicate media upload endpoint that was causing ES module conflicts
 
   // Test GoHighLevel connection
   app.get("/api/ghl/test-connection", async (req, res) => {
