@@ -1,75 +1,104 @@
-import express from 'express';
-import { createServer } from 'vite';
+import express, { type Request, Response } from "express";
+import { createServer, type Server } from "http";
+import cookieParser from "cookie-parser";
+import { registerRoutes } from "./routes";
+import { setupVite, log } from "./vite";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import path from 'path';
-import viteConfig from '../vite.config.ts';
 
-const app = express();
-const port = 5000;
+// ES Module compatibility fixes
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-// Create Vite server with proper configuration
-const vite = await createServer({
-  ...viteConfig,
-  server: { middlewareMode: true },
-  appType: 'custom',
-  configFile: false
-});
+global.__dirname = __dirname;
+global.__filename = __filename;
 
-// Use vite's connect instance as middleware
-app.use(vite.middlewares);
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'healthy', time: new Date().toISOString() });
-});
-
-// OAuth callback endpoint for Railway backend integration
-app.get('/api/oauth/callback', (req, res) => {
-  const { code, state } = req.query;
-  res.json({ 
-    message: 'OAuth callback received', 
-    code: code ? 'present' : 'missing',
-    state: state ? 'present' : 'missing'
-  });
-});
-
-// Product creation endpoint (connects to Railway backend)
-app.post('/api/ghl/products', express.json(), (req, res) => {
-  console.log('Product creation request:', req.body);
-  res.json({ 
-    success: true, 
-    message: 'Product creation request received',
-    productData: req.body
-  });
-});
-
-// Catch-all handler for SPA routing
-app.use('*', async (req, res, next) => {
-  const url = req.originalUrl;
-  try {
-    const template = await vite.transformIndexHtml(url, `
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>GoHighLevel Marketplace</title>
-        </head>
-        <body>
-          <div id="root"></div>
-          <script type="module" src="/src/main.tsx"></script>
-        </body>
-      </html>
-    `);
-    res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
-  } catch (e) {
-    vite.ssrFixStacktrace(e);
-    next(e);
+// OAuth credential validation
+function getOAuthCredentials() {
+  const envCredentials = {
+    client_id: process.env.GHL_CLIENT_ID,
+    client_secret: process.env.GHL_CLIENT_SECRET,
+    redirect_uri: process.env.GHL_REDIRECT_URI
+  };
+  
+  if (envCredentials.client_id && envCredentials.client_secret && envCredentials.redirect_uri) {
+    console.log('GHL OAuth configured successfully');
+    console.log(`Redirect URI: ${envCredentials.redirect_uri}`);
+    return envCredentials;
   }
+  
+  console.log('OAuth credentials not available');
+  return null;
+}
+
+async function startServer(): Promise<void> {
+  const app = express();
+  const server = createServer(app);
+  
+  app.use(cookieParser());
+  app.use(express.json());
+  
+  // Configure OAuth if available
+  const oauthCredentials = getOAuthCredentials();
+  
+  // Health check endpoint
+  app.get('/api/health', (req, res) => {
+    res.json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
+  
+  // OAuth status endpoint
+  app.get('/api/oauth/status', (req, res) => {
+    res.json({
+      configured: !!oauthCredentials,
+      redirectUri: oauthCredentials?.redirect_uri || null
+    });
+  });
+  
+  // Register API routes
+  try {
+    await registerRoutes(app);
+    console.log('✅ API routes registered successfully');
+  } catch (error) {
+    console.log('⚠️  API routes registration failed, continuing with basic setup');
+  }
+  
+  // Setup Vite development server
+  console.log('Setting up development mode with Vite...');
+  await setupVite(app, server);
+  
+  const port = 5000;
+  
+  server.listen(port, "0.0.0.0", () => {
+    console.log('==================================================');
+    console.log('🚀 Server Running');
+    console.log('==================================================');
+    console.log(`Port: ${port}`);
+    console.log(`Host: 0.0.0.0`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`ES Module compatibility: ✓`);
+    console.log(`__dirname available: ${__dirname}`);
+    console.log('==================================================');
+    log(`serving on port ${port}`);
+  });
+}
+
+// Error handling
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
 });
 
-// Start server
-app.listen(port, '0.0.0.0', () => {
-  console.log(`🚀 GoHighLevel Marketplace running on http://0.0.0.0:${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Preview should be available now`);
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+startServer().catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });
