@@ -83,7 +83,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
       const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
       // Import OAuth functionality
-      const { ghlOAuth } = await import('./ghl-oauth.js');
+      const { ghlOAuth } = await import('./legacy/ghl-oauth.js');
       
       // Generate authorization URL
       const authUrl = ghlOAuth.getAuthorizationUrl(state, true);
@@ -221,7 +221,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
     if (action === 'generate-url') {
       try {
         console.log('Generating OAuth URL via callback endpoint');
-        const { ghlOAuth } = await import('./ghl-oauth.js');
+        const { ghlOAuth } = await import('./legacy/ghl-oauth.js');
         const generatedState = `state_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const authUrl = ghlOAuth.getAuthorizationUrl(generatedState, true);
         
@@ -463,7 +463,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
       console.log('Embedded CRM tab access detected, attempting session recovery...');
       
       try {
-        const { recoverSession } = await import('./session-recovery.js');
+        const { recoverSession } = await import('./legacy/session-recovery.js');
         return recoverSession(req as any, res);
       } catch (error) {
         console.error('Session recovery failed:', error);
@@ -771,7 +771,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
       }
       
       // Import OAuth functionality
-      const { ghlOAuth } = await import('./ghl-oauth.js');
+      const { ghlOAuth } = await import('./legacy/ghl-oauth.js');
       
       // Exchange code for tokens
       const tokenData = await ghlOAuth.exchangeCodeForTokens(code, state);
@@ -969,7 +969,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
       console.log('Processing OAuth code:', String(code).substring(0, 10) + '...');
       
       // Import OAuth functionality
-      const { ghlOAuth } = await import('./ghl-oauth.js');
+      const { ghlOAuth } = await import('./legacy/ghl-oauth.js');
       
       // Exchange code for tokens
       const tokenData = await ghlOAuth.exchangeCodeForTokens(code, state);
@@ -1016,7 +1016,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
       console.log('Processing OAuth code:', code.substring(0, 10) + '...');
       
       // Import OAuth functionality
-      const { ghlOAuth } = await import('./ghl-oauth.js');
+      const { ghlOAuth } = await import('./legacy/ghl-oauth.js');
       
       // Exchange code for tokens
       const tokenData = await ghlOAuth.exchangeCodeForTokens(code, state);
@@ -1057,7 +1057,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
       const state = req.query.state || `state_${Date.now()}`;
       
       // Import OAuth functionality
-      const { ghlOAuth } = await import('./ghl-oauth.js');
+      const { ghlOAuth } = await import('./legacy/ghl-oauth.js');
       
       // Generate authorization URL
       const authUrl = ghlOAuth.getAuthorizationUrl(state, true);
@@ -1097,7 +1097,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
       console.log('State:', state);
 
       // Import OAuth functionality
-      const { ghlOAuth } = await import('./ghl-oauth.js');
+      const { ghlOAuth } = await import('./legacy/ghl-oauth.js');
       
       // Exchange code for tokens
       const tokenData = await ghlOAuth.exchangeCodeForTokens(String(code), String(state));
@@ -1221,7 +1221,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
       const { state, scopes } = req.body;
       
       // Import OAuth functionality
-      const { ghlOAuth } = await import('./ghl-oauth.js');
+      const { ghlOAuth } = await import('./legacy/ghl-oauth.js');
       
       // Generate authorization URL
       const authUrl = ghlOAuth.getAuthorizationUrl(state || `state_${Date.now()}`, true);
@@ -1309,7 +1309,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
           
           try {
             // Import OAuth functionality for token refresh
-            const { ghlOAuth } = await import('./ghl-oauth.js');
+            const { ghlOAuth } = await import('./legacy/ghl-oauth.js');
             const refreshedTokens = await ghlOAuth.refreshToken(installation.ghl_refresh_token);
             
             // Update tokens in database
@@ -1386,7 +1386,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
       console.log('Testing GoHighLevel API with token in production');
       
       // Import OAuth functionality
-      const { ghlOAuth } = await import('./ghl-oauth.js');
+      const { ghlOAuth } = await import('./legacy/ghl-oauth.js');
       
       // Test user info endpoint
       const userInfo = await ghlOAuth.getUserInfo(accessToken);

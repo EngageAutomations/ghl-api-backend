@@ -2466,7 +2466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Test OAuth URL generation
   app.get("/api/oauth/test-url", async (req, res) => {
     try {
-      const { TokenEncryption } = await import('./token-encryption');
+      const { TokenEncryption } = await import('./legacy/token-encryption');
       const state = TokenEncryption.generateState();
       const authUrl = ghlOAuth.getAuthorizationUrl(state, true); // Use marketplace flow
       
@@ -2525,7 +2525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/oauth/start", async (req, res) => {
     try {
       console.log("OAuth start request received");
-      const { TokenEncryption } = await import('./token-encryption');
+      const { TokenEncryption } = await import('./legacy/token-encryption');
       const state = TokenEncryption.generateState();
       const authUrl = ghlOAuth.getAuthorizationUrl(state, true); // Use marketplace flow
       
@@ -2550,7 +2550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/auth/ghl/authorize", async (req, res) => {
     try {
       console.log("OAuth authorization request received");
-      const { TokenEncryption } = await import('./token-encryption');
+      const { TokenEncryption } = await import('./legacy/token-encryption');
       const state = TokenEncryption.generateState();
       const authUrl = ghlOAuth.getAuthorizationUrl(state, true); // Use marketplace flow
       
@@ -2660,7 +2660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Processing OAuth code:', (code as string).substring(0, 10) + '...');
       
       // Import OAuth functionality
-      const { ghlOAuth } = await import('./ghl-oauth.js');
+      const { ghlOAuth } = await import('./legacy/ghl-oauth.js');
       
       // Exchange code for tokens
       const tokenData = await ghlOAuth.exchangeCodeForTokens(code as string, state as string);
@@ -2898,7 +2898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { GHLProductAPI } = await import('./ghl-product-api.js');
+      const { GHLProductAPI } = await import('./legacy/ghl-product-api.js');
       const productAPI = new GHLProductAPI(user.ghlAccessToken, user.ghlLocationId);
       
       const productData = {
@@ -2933,7 +2933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { GHLProductAPI } = await import('./ghl-product-api.js');
+      const { GHLProductAPI } = await import('./legacy/ghl-product-api.js');
       const productAPI = new GHLProductAPI(user.ghlAccessToken, user.ghlLocationId);
       
       const limit = parseInt(req.query.limit as string) || 20;
