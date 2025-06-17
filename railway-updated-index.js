@@ -236,11 +236,9 @@ app.get('/oauth/callback', async (req, res) => {
       createdAt: new Date().toISOString()
     });
 
-    res.json({
-      success: true,
-      installationId: installationId,
-      redirectUrl: `https://listings.engageautomations.com/?installation_id=${installationId}`
-    });
+    // Redirect to welcome page instead of showing JSON
+    const welcomeUrl = `https://listings.engageautomations.com/?installation_id=${installationId}&welcome=true`;
+    res.redirect(welcomeUrl);
 
   } catch (error) {
     res.status(500).json({ error: 'OAuth failed', message: error.message });
@@ -291,13 +289,9 @@ app.get('/api/oauth/callback', async (req, res) => {
 
     console.log('Installation created with location:', tokenData.locationId);
 
-    res.json({
-      success: true,
-      installationId: installationId,
-      redirectUrl: `https://listings.engageautomations.com/?installation_id=${installationId}`,
-      message: 'OAuth installation successful',
-      locationId: tokenData.locationId
-    });
+    // Redirect to welcome page instead of showing JSON
+    const welcomeUrl = `https://listings.engageautomations.com/?installation_id=${installationId}&welcome=true`;
+    res.redirect(welcomeUrl);
 
   } catch (error) {
     console.error('OAuth error:', error.response?.data || error.message);
