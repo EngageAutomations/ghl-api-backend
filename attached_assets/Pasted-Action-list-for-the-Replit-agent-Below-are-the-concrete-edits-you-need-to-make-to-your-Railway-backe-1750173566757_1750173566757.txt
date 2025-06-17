@@ -1,0 +1,153 @@
+Action list for the Replit agent
+Below are the concrete edits you need to make to your Railway backend so it follows the proxy pattern and lets the client upload multiple images in one request.
+
+1 ▪ Stop using process.env.GHL_ACCESS_TOKEN
+Delete the seeded ghlAccessToken line inside InstallationStorage.
+
+Make sure your OAuth callback (not shown in the current file) stores
+
+js
+Copy
+Edit
+const tokenBundle = { accessToken, refreshToken, expiresAt };
+byInstallId.set(installationId, tokenBundle);
+byLocationId.set(locationId,  tokenBundle);
+Remove the “hasToken” flag in /health; instead return the count of stored token bundles.
+
+2 ▪ Add a tiny JWT gatekeeper
+js
+Copy
+Edit
+const jwt  = require('jsonwebtoken');
+const SECRET = process.env.INTERNAL_JWT_SECRET;  // set in Railway vars
+
+function requireSignedJwt(req, res, next) {
+  try {
+    const tok = (req.headers.authorization || '').split(' ')[1];
+    jwt.verify(tok, SECRET);
+    next();
+  } catch (_) {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
+}
+Add app.use(requireSignedJwt); right after the CORS middleware (before any /api/ghl/* routes).
+
+3 ▪ Location-centric routes
+Replace the old product & media routes with:
+
+js
+Copy
+Edit
+// 🚀 create product
+app.post('/api/ghl/locations/:locationId/products', async (req, res) => {
+  const { locationId } = req.params;
+  const inst = byLocationId.get(locationId);
+  if (!inst) return res.status(404).json({ error: 'Unknown locationId' });
+
+  const product = req.body;               // body must match GHL spec
+  const r = await fetch('https://services.leadconnectorhq.com/products/', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${inst.accessToken}`,
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Version: '2021-07-28'
+    },
+    body: JSON.stringify(product)
+  });
+  return proxyResponse(r, res);
+});
+4 ▪ Multi-image upload
+Middleware
+js
+Copy
+Edit
+// accept up to 10 images in the field "file"
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
+Route
+js
+Copy
+Edit
+app.post('/api/ghl/locations/:locationId/media', upload.array('file', 10), async (req, res) => {
+  const { locationId } = req.params;
+  const inst = byLocationId.get(locationId);
+  if (!inst) return res.status(404).json({ error: 'Unknown locationId' });
+
+  if (!req.files || req.files.length === 0)
+    return res.status(400).json({ error: 'No files received' });
+
+  const results = [];
+
+  for (const f of req.files) {
+    const form = new FormData();
+    form.append('file', f.buffer, { filename: f.originalname, contentType: f.mimetype });
+
+    const r = await fetch(`https://services.leadconnectorhq.com/medias/upload-file`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${inst.accessToken}`,
+        Version: '2021-07-28',
+        ...form.getHeaders()
+      },
+      body: form
+    });
+
+    if (!r.ok) {
+      const msg = await r.text();
+      return res.status(r.status).json({ error: 'Upload failed', details: msg });
+    }
+    results.push(await r.json());
+  }
+
+  res.json({ success: true, uploaded: results });
+});
+Important notes
+
+Field name must be file because GHL looks for that exact key.
+
+Do not set Content-Type manually—form-data handles the boundary.
+
+GHL size limit = 25 MB per file.
+
+5 ▪ Utility
+js
+Copy
+Edit
+async function proxyResponse(ghlRes, expressRes) {
+  const raw = await ghlRes.text();              // GHL returns JSON text
+  expressRes.status(ghlRes.status).type('json').send(raw);
+}
+Use proxyResponse in every handler so you always forward status + body exactly.
+
+6 ▪ Frontend changes (minimal)
+Fetch JWT once from /api/auth/token, then for multi-image uploads:
+
+js
+Copy
+Edit
+const form = new FormData();
+files.forEach(f => form.append('file', f));        // multiple files, same key
+
+await axios.post(
+  `/api/ghl/locations/${locationId}/media`,
+  form,
+  { headers: { Authorization: `Bearer ${jwt}` } }
+);
+No bearer token, no installation ID—just locationId in the URL and JWT in the header.
+
+Follow these six steps and your backend will:
+
+keep tokens out of env vars,
+
+enforce JWT access control,
+
+let Replit address any account by locationId, and
+
+support uploading up to ten images in one call.
+
+
+
+
+
+
+
