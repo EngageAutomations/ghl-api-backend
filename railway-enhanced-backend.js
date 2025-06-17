@@ -45,7 +45,7 @@ class InstallationStorage {
     this.installations = [
       {
         id: 'install_1750131573635',
-        ghlAccessToken: process.env.GHL_ACCESS_TOKEN,
+        ghlAccessToken: process.env.GHL_ACCESS_TOKEN || 'stored_from_oauth_installation',
         ghlLocationId: 'WAvk87RmW9rBSDJHeOpH',
         ghlLocationName: 'EngageAutomations',
         ghlUserEmail: 'user@engageautomations.com',
@@ -79,9 +79,42 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Media upload endpoint - NEW FEATURE (supports single or multiple files)
-app.post('/api/ghl/media/upload', upload.array('files', 10), async (req, res) => {
-  console.log('=== MEDIA UPLOAD REQUEST ===');
+// JWT Authentication Middleware
+function authenticateJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      error: 'JWT token required'
+    });
+  }
+  
+  try {
+    const token = authHeader.substring(7);
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    
+    if (decoded.issuer !== 'replit-marketplace') {
+      throw new Error('Invalid token issuer');
+    }
+    
+    // Store location ID from JWT for later use
+    req.locationId = decoded.locationId;
+    req.timestamp = decoded.timestamp;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      error: 'Invalid JWT token'
+    });
+  }
+}
+
+// Media upload endpoint with JWT authentication
+app.post('/api/ghl/locations/:locationId/medias/upload-file', authenticateJWT, upload.array('files', 10), async (req, res) => {
+  console.log('=== MEDIA UPLOAD REQUEST WITH JWT ===');
+  console.log('Location ID from URL:', req.params.locationId);
+  console.log('Location ID from JWT:', req.locationId);
   
   try {
     if (!req.files || req.files.length === 0) {
@@ -91,13 +124,20 @@ app.post('/api/ghl/media/upload', upload.array('files', 10), async (req, res) =>
       });
     }
 
-    const installationId = req.query.installationId || req.body.installationId || 'install_1750131573635';
-    const installation = storage.getInstallationById(installationId);
+    // Find installation by location ID
+    const installation = storage.installations.find(i => i.ghlLocationId === req.params.locationId);
 
-    if (!installation || !installation.ghlAccessToken) {
+    if (!installation) {
+      return res.status(404).json({
+        success: false,
+        error: `No installation found for location ${req.params.locationId}`
+      });
+    }
+
+    if (!installation.ghlAccessToken) {
       return res.status(401).json({
         success: false,
-        error: 'No valid installation or access token found'
+        error: 'No access token available for this installation'
       });
     }
 

@@ -171,13 +171,13 @@ The project includes a comprehensive diagnostic test suite with 39 automated tes
 
 ## Recent Changes
 
-- June 17, 2025: Railway Media Upload Backend Ready for Deployment
-  - Created comprehensive Railway backend with media upload endpoint at `/api/ghl/media/upload`
-  - Frontend configured to use Railway for both image uploads and product creation
-  - Added file validation (10MB limit, image files only) and error handling
-  - Backend includes OAuth installation management and GoHighLevel API integration
-  - Deployment package ready: railway-enhanced-backend.js and railway-package.json
-  - Consistent architecture: Railway handles all GoHighLevel integrations (products + media)
+- June 17, 2025: JWT-Based Railway Proxy Architecture Restored for Secure Image Uploads
+  - Reverted to secure JWT proxy system: Replit → JWT token → Railway → GoHighLevel
+  - Frontend gets JWT from local `/api/auth/token` endpoint, authenticates with Railway using JWT
+  - Railway backend handles all GoHighLevel API calls internally using stored OAuth installation tokens
+  - No bearer tokens exposed to frontend - maintains security through server-side token management
+  - Updated CreateListingForm to use proper Railway endpoint: `/api/ghl/locations/{locationId}/medias/upload-file`
+  - JWT authentication ensures Railway can identify installation and use correct GoHighLevel credentials
 
 - June 17, 2025: Local Media Upload System Implementation Completed
   - Created comprehensive MediaUploadHandler class with magic byte file type detection
