@@ -5,8 +5,6 @@ import { simpleDataStore } from "./simple-storage";
 import { setupWorkingRoutes } from "./working-routes";
 import fs from 'fs';
 import path from 'path';
-import FormData from 'form-data';
-import axios from 'axios';
 import { z } from "zod";
 import { 
   insertUserSchema, 
@@ -727,20 +725,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hasData: !!file.data
       });
       
-      // Create temp file and stream to Railway
-      const tempPath = path.join('/tmp', `upload_${Date.now()}_${file.name}`);
-      fs.writeFileSync(tempPath, file.data);
-      
-      const formData = new FormData();
-      formData.append('file', fs.createReadStream(tempPath), file.name);
-      
-      console.log('Forwarding to Railway with headers:', formData.getHeaders());
-      
       // Railway backend doesn't have media upload endpoint, use local fallback
       console.log('Using local fallback - Railway backend missing media upload endpoint');
-      
-      // Clean up temp file
-      fs.unlinkSync(tempPath);
       
       // Create local uploads directory
       const uploadsDir = path.join('public', 'uploads');
@@ -1066,8 +1052,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve documentation for GHL integration
   app.get("/docs/ghl-integration", (req, res) => {
     try {
-      const fs = require('fs');
-      const path = require('path');
       const filePath = path.join(process.cwd(), "docs", "ghl-integration-guide.md");
       const markdown = fs.readFileSync(filePath, "utf8");
       
