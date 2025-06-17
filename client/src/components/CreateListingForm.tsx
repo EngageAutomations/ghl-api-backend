@@ -48,21 +48,36 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
 
-  // Upload images to Railway backend with GoHighLevel integration (supports multiple files)
+  // Upload images through Railway proxy with JWT authentication
   const uploadImageMutation = useMutation({
     mutationFn: async (files: File[]) => {
+      // First get JWT token from local backend
+      const authResponse = await fetch('/api/auth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locationId: 'WAvk87RmW9rBSDJHeOpH' })
+      });
+      
+      if (!authResponse.ok) {
+        throw new Error('Failed to get authentication token');
+      }
+      
+      const { token } = await authResponse.json();
+      
+      // Upload files to Railway proxy with JWT
       const formData = new FormData();
       files.forEach(file => {
         formData.append('files', file);
       });
       
-      console.log('Uploading files to Railway:', files.map(f => f.name));
+      console.log('Uploading files through Railway proxy:', files.map(f => f.name));
       
-      // Upload to Railway backend which has GoHighLevel integration
-      const response = await fetch('https://dir.engageautomations.com/api/ghl/media/upload?installationId=install_1750131573635', {
+      const response = await fetch('https://dir.engageautomations.com/api/ghl/locations/WAvk87RmW9rBSDJHeOpH/medias/upload-file', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         body: formData,
-        // Don't set Content-Type header - let browser set it with boundary for multipart
       });
       
       if (!response.ok) {

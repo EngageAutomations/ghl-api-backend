@@ -73,6 +73,27 @@ function setupOAuthRoutesProduction(app: express.Express) {
     res.send('Production server test route is working! Backend routing confirmed.');
   });
 
+  // JWT token generation for Railway authentication
+  app.post('/api/auth/token', (req, res) => {
+    console.log('JWT token request for Railway auth:', req.body);
+    const { locationId } = req.body;
+    
+    if (!locationId) {
+      return res.status(400).json({ error: 'locationId is required' });
+    }
+    
+    // Generate a simple JWT-like token for Railway authentication
+    // In production, this would be signed with a secret key
+    const token = Buffer.from(JSON.stringify({
+      locationId,
+      timestamp: Date.now(),
+      issuer: 'replit-marketplace'
+    })).toString('base64');
+    
+    console.log('Generated JWT token for Railway auth');
+    res.json({ token });
+  });
+
   // OAuth start endpoint - initiates GoHighLevel OAuth flow
   app.get('/oauth/start', async (req, res) => {
     try {

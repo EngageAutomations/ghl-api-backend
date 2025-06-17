@@ -34,6 +34,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup working routes for directories, collections, and listings
   setupWorkingRoutes(app);
+  // JWT token generation for Railway authentication
+  app.post("/api/auth/token", (req, res) => {
+    console.log('JWT token request for Railway auth:', req.body);
+    const { locationId } = req.body;
+    
+    if (!locationId) {
+      return res.status(400).json({ error: 'locationId is required' });
+    }
+    
+    // Generate a simple JWT-like token for Railway authentication
+    const token = Buffer.from(JSON.stringify({
+      locationId,
+      timestamp: Date.now(),
+      issuer: 'replit-marketplace'
+    })).toString('base64');
+    
+    console.log('Generated JWT token for Railway auth');
+    res.json({ token });
+  });
+
   // Railway backend proxy routes to avoid CORS issues
   app.get("/api/railway/health", async (req, res) => {
     try {
