@@ -95,7 +95,8 @@ This is a comprehensive GoHighLevel OAuth integration platform designed to enabl
 
 ## Changelog
 
-- June 17, 2025. Initial setup
+- June 17, 2025: Organized server structure by moving legacy files to server/legacy/ folder for better code organization
+- June 17, 2025: Initial setup
 
 ## User Preferences
 
