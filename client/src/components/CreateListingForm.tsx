@@ -48,15 +48,16 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
 
-  // Upload image to media API
+  // Upload image to Railway backend with real file processing
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
-      // Use the working media upload endpoint that bypasses middleware conflicts
-      const response = await fetch('/api/media/upload', {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // Upload to Railway backend which has working GoHighLevel integration
+      const response = await fetch('https://dir.engageautomations.com/api/ghl/media/upload?installationId=install_1750131573635', {
         method: 'POST',
-        headers: {
-          'Content-Type': file.type
-        }
+        body: formData
       });
       
       if (!response.ok) {
