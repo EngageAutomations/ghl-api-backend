@@ -1,10 +1,10 @@
 [deployment]
 deploymentTarget = "autoscale"
-run = ["node", "simple-server.js"]
+run = ["node", "run.js"]
 publicVisible = true
 
 [run]
-run = ["node", "simple-server.js"]
+run = ["node", "run.js"]
 
 # Force all traffic to Express server
 [[deployment.routes]]
