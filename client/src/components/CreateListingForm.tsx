@@ -48,13 +48,13 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
 
-  // Upload image to Railway backend with GoHighLevel integration
+  // Upload image to Railway backend with real file processing
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
       
-      // Upload to Railway backend which has GoHighLevel integration
+      // Upload to Railway backend which has working GoHighLevel integration
       const response = await fetch('https://dir.engageautomations.com/api/ghl/media/upload?installationId=install_1750131573635', {
         method: 'POST',
         body: formData
@@ -236,38 +236,10 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
         });
       }
 
-      // Cleanup: Delete temporary uploaded image after successful submission
-      if (formData.imageUrl && formData.imageUrl.includes('/uploads/')) {
-        try {
-          await fetch('/api/cleanup-temp-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageUrl: formData.imageUrl })
-          });
-        } catch (cleanupError) {
-          console.log('Temp file cleanup note:', cleanupError);
-          // Don't fail the operation for cleanup issues
-        }
-      }
-
       toast({
         title: "Success",
         description: "Listing created successfully!",
       });
-      
-      // Clear form including image preview
-      setFormData({
-        title: '',
-        description: '',
-        category: '',
-        price: '',
-        imageUrl: '',
-        tags: [],
-        metadata: {},
-        contactInfo: ''
-      });
-      setMetadataFields([{ icon: '', text: '' }]);
-      setImageFile(null);
       
       onSuccess();
     } catch (error) {
@@ -553,7 +525,18 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
             </div>
           )}
 
-
+          {/* 5. Image URL */}
+          <div>
+            <Label htmlFor="imageUrl" className="text-sm font-medium text-gray-700 block text-left">Image URL</Label>
+            <Input
+              id="imageUrl"
+              type="url"
+              value={formData.imageUrl}
+              onChange={(e) => handleInputChange('imageUrl', e.target.value)}
+              placeholder="https://example.com/image.jpg"
+              className="mt-1"
+            />
+          </div>
 
           {/* 6. Download URL - If action button download is selected */}
           {directoryConfig?.integrationMethod === 'download' && (

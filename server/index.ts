@@ -1782,26 +1782,11 @@ function getEnhancedOAuthAppHTML(): string {
 </html>`;
 }
 
-import { MediaUploadHandler } from './media-handler';
-
 const app = express();
 
-// Initialize media upload handler
-const mediaHandler = new MediaUploadHandler();
-
-// Media upload endpoint - positioned before other middleware to bypass conflicts
+// ABSOLUTE FIRST: Media upload endpoint - bypasses all middleware completely
 app.post('/api/ghl/media/upload', (req, res) => {
-  mediaHandler.handleUpload(req, res);
-});
-
-// Cleanup endpoint for temporary image files
-app.post('/api/cleanup-temp-image', express.json(), (req, res) => {
-  mediaHandler.handleCleanup(req, res);
-});
-
-// Fallback endpoint that was previously failing
-app.post('/api/ghl/media/upload-fallback', (req, res) => {
-  console.log('=== FALLBACK MEDIA UPLOAD ===');
+  console.log('=== MEDIA UPLOAD ENDPOINT REACHED ===');
   
   const timestamp = Date.now();
   let fileName = `${timestamp}_uploaded_file`;
