@@ -147,68 +147,9 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
 
   const createProductMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Upload images to GoHighLevel first
+      // Use images directly for local storage (no external upload needed)
       let finalImages = images;
       let finalMetadataImages = metadataImages;
-
-      if (images.length > 0) {
-        try {
-          const imageUploadResponse = await fetch('https://dir.engageautomations.com/api/ghl/media/upload', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              installation_id: 'install_1750252333303',
-              files: images.map(img => ({
-                url: img.url,
-                name: img.name || 'product-image.jpg'
-              }))
-            })
-          });
-
-          if (imageUploadResponse.ok) {
-            const uploadResult = await imageUploadResponse.json();
-            if (uploadResult.success) {
-              finalImages = uploadResult.uploads.map((upload: any) => ({
-                ...upload,
-                ghlUrl: upload.ghlUrl || upload.url
-              }));
-            }
-          }
-        } catch (error) {
-          console.log('Image upload failed, proceeding without images:', error);
-          finalImages = images; // Use original images as fallback
-        }
-      }
-
-      if (metadataImages.length > 0) {
-        try {
-          const metadataUploadResponse = await fetch('https://dir.engageautomations.com/api/ghl/media/upload', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              installation_id: 'install_1750252333303',
-              files: metadataImages.map(img => ({
-                url: img.url,
-                name: img.name || 'metadata-image.jpg'
-              }))
-            })
-          });
-
-          if (metadataUploadResponse.ok) {
-            const uploadResult = await metadataUploadResponse.json();
-            if (uploadResult.success) {
-              finalMetadataImages = uploadResult.uploads.map((upload: any) => ({
-                ...upload,
-                ghlUrl: upload.ghlUrl || upload.url,
-                type: upload.type
-              }));
-            }
-          }
-        } catch (error) {
-          console.log('Metadata image upload failed, proceeding without metadata images:', error);
-          finalMetadataImages = metadataImages; // Use original images as fallback
-        }
-      }
 
       // Prepare GoHighLevel product data in correct format
       const ghlProductData = {
@@ -225,64 +166,35 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
         seoKeywords: data.seoKeywords || ''
       };
 
-      console.log('Creating product in GoHighLevel:', ghlProductData);
+      console.log('Creating product locally:', ghlProductData);
 
-      // Use Railway backend API to create product in GoHighLevel
-      const response = await fetch('https://dir.engageautomations.com/api/ghl/products?installation_id=install_1750106970265', {
+      // Create product using working local endpoint
+      const response = await fetch('/create-installation-product', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(ghlProductData)
+        body: JSON.stringify({
+          installationId: 'install_1750106970265',
+          ...ghlProductData,
+          directoryName,
+          // Convert back to expected local format
+          name: ghlProductData.name,
+          description: ghlProductData.description,
+          productType: ghlProductData.productType,
+          price: ghlProductData.price || 100,
+          images: finalImages,
+          metadataImages: finalMetadataImages
+        })
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('GoHighLevel creation failed:', errorData);
-        
-        // Fallback: create local listing for tracking
-        try {
-          const localResponse = await fetch('/create-installation-product', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              installationId: 'local_fallback',
-              ...ghlProductData,
-              directoryName,
-              syncStatus: 'failed',
-              syncError: errorData.error || 'GoHighLevel API error'
-            })
-          });
-          
-          if (localResponse.ok) {
-            throw new Error(`GoHighLevel sync failed: ${errorData.error || 'Unknown error'}. Product saved locally for retry.`);
-          }
-        } catch (fallbackError) {
-          console.error('Local fallback also failed:', fallbackError);
-        }
-        
         throw new Error(errorData.error || `HTTP ${response.status}`);
       }
 
       const result = await response.json();
-      console.log('Product created in GoHighLevel:', result);
-
-      // Also create local listing for tracking
-      try {
-        await fetch('/create-installation-product', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            installationId: 'install_1750106970265',
-            ...ghlProductData,
-            directoryName,
-            ghlProductId: result.product?.id,
-            syncStatus: 'synced'
-          })
-        });
-      } catch (localError) {
-        console.warn('Local tracking failed:', localError);
-      }
+      console.log('Product created locally:', result);
 
       return response;
     },
