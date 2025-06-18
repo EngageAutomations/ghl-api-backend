@@ -119,6 +119,11 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
 
   const effectiveFormFields = generateFormFields();
 
+  // Debug logging to track form generation
+  console.log('WizardConfiguredForm - Directory:', directory);
+  console.log('WizardConfiguredForm - Form Fields:', formFields);
+  console.log('WizardConfiguredForm - Effective Fields:', effectiveFormFields);
+
   // Initialize form data when fields are determined
   useEffect(() => {
     if (effectiveFormFields) {
@@ -136,6 +141,7 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
         }
       });
       setFormData(initialData);
+      console.log('WizardConfiguredForm - Initial form data:', initialData);
     }
   }, [directory, formFields]);
 
