@@ -423,7 +423,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           {/* 2. Metadata Images */}
           <MultiImageUpload
             images={metadataImages}
-            onChange={setMetadataImages}
+            onChange={(images) => setMetadataImages(images as MetadataImageItem[])}
             maxImages={8}
             label="Metadata Images"
             description="Upload logos, banners, and other metadata images that reference GoHighLevel URLs."
