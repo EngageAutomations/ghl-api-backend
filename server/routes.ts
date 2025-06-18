@@ -2286,75 +2286,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create GoHighLevel Product via OAuth
+  // Create GoHighLevel Product via Railway Backend
   app.post("/api/ghl/create-product", async (req, res) => {
     try {
-      const { userId, product, locationId, accessToken } = req.body;
+      const { railwayIntegration } = await import('./railway-integration.js');
       
-      let finalLocationId = locationId;
-      let finalAccessToken = accessToken;
-
-      // If userId provided, fetch OAuth credentials from database
-      if (userId && !locationId && !accessToken) {
-        const user = await storage.getUserById(userId);
-        if (!user || !user.ghlLocationId || !user.ghlAccessToken) {
-          return res.status(400).json({ 
-            error: "User not found or missing OAuth credentials" 
-          });
-        }
-        finalLocationId = user.ghlLocationId;
-        finalAccessToken = user.ghlAccessToken;
-      }
-
-      if (!finalLocationId || !finalAccessToken || !product) {
-        return res.status(400).json({ 
-          error: "Location ID, access token, and product data are required" 
+      console.log('Creating product via Railway backend...');
+      console.log('Request body:', req.body);
+      
+      // Get primary installation from Railway backend
+      const installationId = await railwayIntegration.getPrimaryInstallation();
+      console.log('Using installation ID:', installationId);
+      
+      // Test connection first
+      const connectionTest = await railwayIntegration.testGHLConnection(installationId);
+      if (!connectionTest.success) {
+        console.error('Railway connection test failed:', connectionTest);
+        return res.status(400).json({
+          success: false,
+          error: "Railway backend connection failed",
+          details: connectionTest.error || "Cannot connect to GoHighLevel through Railway"
         });
       }
+      
+      console.log('Railway connection successful:', connectionTest.locationId);
 
-      // Prepare payload for GoHighLevel API
-      const payload = {
-        locationId: finalLocationId,
-        name: product.name,
-        description: product.description || '',
-        imageUrl: product.imageUrl || '',
-        price: product.price || ''
+      // Prepare product data for Railway backend
+      const { formSubmission, product, locationId: providedLocationId } = req.body;
+      
+      const productData = {
+        name: formSubmission?.product_name || product?.name || req.body.name || 'Test Product from Local App',
+        description: formSubmission?.product_description || product?.description || req.body.description || 'Created from local Replit application via Railway backend',
+        productType: req.body.productType || product?.productType || 'DIGITAL',
+        locationId: providedLocationId || connectionTest.locationId,
+        price: formSubmission?.price || product?.price || req.body.price
       };
 
-      // Make direct API call to GoHighLevel
-      const response = await fetch('https://services.leadconnectorhq.com/products/', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${finalAccessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
+      console.log('Sending product data to Railway:', productData);
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('GHL API Error:', response.status, errorData);
-        return res.status(response.status).json({
-          success: false,
-          error: `GoHighLevel API error: ${response.status}`,
-          message: errorData || 'Failed to create product'
-        });
-      }
-
-      const createdProduct = await response.json();
+      // Create product through Railway backend
+      const result = await railwayIntegration.createProduct(productData, installationId);
+      
+      console.log('Railway product creation result:', result);
 
       res.json({
         success: true,
-        product: createdProduct,
-        message: "Product created successfully in GoHighLevel"
+        message: "Product created successfully in GoHighLevel via Railway backend",
+        product: result.product,
+        productId: result.product?.id,
+        locationId: connectionTest.locationId,
+        installationId,
+        railwayBackend: true
       });
 
     } catch (error) {
-      console.error("GHL product creation error:", error);
+      console.error("Railway product creation error:", error);
       res.status(500).json({ 
         success: false,
-        error: "Failed to create product in GoHighLevel",
-        message: error instanceof Error ? error.message : "Unknown error"
+        error: "Failed to create product via Railway backend",
+        details: error instanceof Error ? error.message : 'Unknown error',
+        railwayBackend: false
+      });
+    }
+  });
+
+  // Railway Backend Status and Testing Routes
+  app.get("/api/railway/health", async (req, res) => {
+    try {
+      const { railwayIntegration } = await import('./railway-integration.js');
+      const health = await railwayIntegration.getHealthStatus();
+      res.json({
+        success: true,
+        railwayBackend: health,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: "Railway backend health check failed",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get("/api/railway/test-connection", async (req, res) => {
+    try {
+      const { railwayIntegration } = await import('./railway-integration.js');
+      const installationId = await railwayIntegration.getPrimaryInstallation();
+      const connectionTest = await railwayIntegration.testGHLConnection(installationId);
+      res.json({
+        success: true,
+        installationId,
+        connectionTest,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: "Railway connection test failed",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get("/api/railway/products", async (req, res) => {
+    try {
+      const { railwayIntegration } = await import('./railway-integration.js');
+      const installationId = await railwayIntegration.getPrimaryInstallation();
+      const products = await railwayIntegration.getProducts(installationId);
+      res.json({
+        success: true,
+        installationId,
+        products,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: "Railway products fetch failed",
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });

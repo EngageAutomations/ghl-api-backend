@@ -81,8 +81,8 @@ export function GHLProductDemo() {
       weightUnit: "lb",
       requiresShipping: false
     }),
-    locationId: "sample_location_id", // This would come from OAuth
-    accessToken: "sample_access_token" // This would come from OAuth
+    locationId: "WAvk87RmW9rBSDJHeOpH", // Railway backend location ID
+    accessToken: "railway_backend_token" // Handled automatically by Railway backend
   });
 
   const createProduct = async () => {

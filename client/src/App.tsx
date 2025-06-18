@@ -32,6 +32,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";
 import { GHLProductDemo } from "@/components/GHLProductDemo";
+import { RailwayBackendTest } from "@/components/RailwayBackendTest";
 
 // No authentication required - direct access
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
