@@ -1818,7 +1818,11 @@ app.use((req, res, next) => {
     });
   });
 
-  // Register image upload routes
+  // CRITICAL: Register API routes FIRST
+  server = await registerRoutes(app);
+  console.log("✅ API routes registered successfully");
+
+  // Register image upload routes AFTER main API routes
   app.use('/api/images', imageUploadRouter);
   
   // Register GoHighLevel media upload routes
@@ -1826,10 +1830,6 @@ app.use((req, res, next) => {
   
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
-
-  // CRITICAL: Register API routes AFTER the root route
-  server = await registerRoutes(app);
-  console.log("✅ API routes registered successfully");
 
   // Add request tracing middleware AFTER API routes
   app.use((req, res, next) => {

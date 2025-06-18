@@ -659,9 +659,8 @@ export default function DirectoryDetails() {
             </DialogTitle>
           </DialogHeader>
           <div className="max-h-[75vh] overflow-y-auto pr-2">
-            <CreateListingForm
+            <WizardConfiguredForm
               directoryName={directoryName!}
-              directoryConfig={directory?.config}
               onSuccess={handleFormSuccess}
               onCancel={handleFormClose}
             />
