@@ -164,7 +164,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
             body: JSON.stringify(ghlProductData)
           });
 
-          const ghlResult = await ghlResponse.json();
+          ghlResult = await ghlResponse.json();
           if (ghlResult.success) {
             console.log('GoHighLevel product created via Railway backend');
             console.log('Location ID:', ghlResult.locationId);
