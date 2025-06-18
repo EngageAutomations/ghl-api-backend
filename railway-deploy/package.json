@@ -1,7 +1,7 @@
 {
-  "name": "ghl-oauth-backend",
-  "version": "1.0.0",
-  "description": "GoHighLevel Universal API Backend with OAuth Installation Management",
+  "name": "ghl-oauth-backend-refresh",
+  "version": "2.0.0",
+  "description": "GoHighLevel OAuth Backend with Token Refresh and Product API",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
