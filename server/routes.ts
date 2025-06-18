@@ -2111,7 +2111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Create local listing as fallback
           const localListingData = {
             ...productData,
-            directoryName,
+            directoryName: req.params.directoryName,
             title: productData.name,
             slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
             description: productData.description || '',
