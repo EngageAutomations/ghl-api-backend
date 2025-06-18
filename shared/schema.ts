@@ -91,33 +91,12 @@ export const listings = pgTable("listings", {
   category: text("category"),
   location: text("location"),
   description: text("description"),
-  expandedDescription: text("expanded_description"), // Extended content stored locally
-  metadataBar: text("metadata_bar"), // Additional metadata text
   price: text("price"),
   downloadUrl: text("download_url"),
   linkUrl: text("link_url"),
   popupUrl: text("popup_url"),
   embedFormUrl: text("embed_form_url"),
   imageUrl: text("image_url"),
-  images: jsonb("images").$type<{
-    id: string;
-    url: string;
-    tempPath?: string;
-    ghlUrl?: string;
-    title?: string;
-    alt?: string;
-    order: number;
-  }[]>(), // Multiple images with GHL URLs
-  metadataImages: jsonb("metadata_images").$type<{
-    id: string;
-    type: 'logo' | 'banner' | 'gallery' | 'thumbnail';
-    url: string;
-    tempPath?: string;
-    ghlUrl?: string;
-    title?: string;
-    alt?: string;
-    order: number;
-  }[]>(), // Metadata images referencing GHL URLs
   // SEO fields - auto-filled from title/description but independently editable
   metaTitle: text("meta_title"),
   metaDescription: text("meta_description"),
@@ -125,10 +104,6 @@ export const listings = pgTable("listings", {
   // GoHighLevel integration fields
   ghlProductId: text("ghl_product_id"),
   ghlLocationId: text("ghl_location_id"),
-  ghlImageUrl: text("ghl_image_url"), // URL of uploaded image in GoHighLevel
-  ghlSyncStatus: text("ghl_sync_status").default("pending"), // pending, synced, failed
-  ghlSyncedAt: timestamp("ghl_synced_at"),
-  ghlSyncError: text("ghl_sync_error"), // Error details if sync fails
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

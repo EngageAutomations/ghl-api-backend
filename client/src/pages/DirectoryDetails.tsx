@@ -14,7 +14,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { CreateListingForm } from '@/components/CreateListingForm';
-import { WizardConfiguredForm } from '@/components/WizardConfiguredForm';
 import { ListingViewEdit } from '@/components/ListingViewEdit';
 import CreateCollectionForm from '@/components/CreateCollectionForm';
 
@@ -659,8 +658,9 @@ export default function DirectoryDetails() {
             </DialogTitle>
           </DialogHeader>
           <div className="max-h-[75vh] overflow-y-auto pr-2">
-            <WizardConfiguredForm
+            <CreateListingForm
               directoryName={directoryName!}
+              directoryConfig={directory?.config}
               onSuccess={handleFormSuccess}
               onCancel={handleFormClose}
             />

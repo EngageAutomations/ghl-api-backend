@@ -9,7 +9,6 @@ import { apiRequest } from '@/lib/queryClient';
 import RichTextEditor from '@/components/RichTextEditor';
 import { Plus, Upload, X, Package } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { MultiImageUpload, type ImageItem, type MetadataImageItem } from '@/components/MultiImageUpload';
 
 interface CreateListingFormProps {
   directoryName: string;
@@ -51,11 +50,6 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   const [metadataFields, setMetadataFields] = useState(
     metadataAddon ? JSON.parse(metadataAddon.content || '[]') : [{ icon: '', text: '' }]
   );
-  
-  // Multiple images state
-  const [images, setImages] = useState<ImageItem[]>(editingListing?.images || []);
-  const [metadataImages, setMetadataImages] = useState<MetadataImageItem[]>(editingListing?.metadataImages || []);
-  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -199,19 +193,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           // Include SEO fields
           metaTitle: seoFields.metaTitle,
           metaDescription: seoFields.metaDescription,
-          seoKeywords: seoFields.seoKeywords,
-          // Include multiple images with accessible URLs
-          images: images.map(img => ({
-            ...img,
-            url: img.ghlUrl || img.url // Use GoHighLevel URL if available
-          })),
-          metadataImages: metadataImages.map(img => ({
-            ...img,
-            url: img.ghlUrl || img.url // Use GoHighLevel URL if available
-          })),
-          // Extended content stored locally
-          expandedDescription: expandedDescription,
-          metadataBar: JSON.stringify(metadataFields)
+          seoKeywords: seoFields.seoKeywords
         };
 
         const response = await apiRequest('/api/listings', {
@@ -417,25 +399,90 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Form fields matching wizard preview exactly */}
         <div className="space-y-4">
-          {/* 1. Multiple Listing Images */}
-          <MultiImageUpload
-            images={images}
-            onChange={setImages}
-            maxImages={10}
-            label="Listing Images"
-            description="Upload multiple images for your listing. First image will be the primary image."
-          />
-
-          {/* 2. Metadata Images */}
-          <MultiImageUpload
-            images={metadataImages}
-            onChange={(images) => setMetadataImages(images as MetadataImageItem[])}
-            maxImages={8}
-            label="Metadata Images"
-            description="Upload logos, banners, and other metadata images that reference GoHighLevel URLs."
-            isMetadata={true}
-            metadataTypes={['logo', 'banner', 'gallery', 'thumbnail']}
-          />
+          {/* 1. Listing Image Upload - First field */}
+          <div>
+            <Label className="text-sm font-medium text-gray-700 block text-left">Listing Image</Label>
+            <div className="mt-1 space-y-3">
+              {/* Image Upload Area */}
+              <div
+                onDrop={handleImageDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                className={`
+                  border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer
+                  ${isDragOver 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
+                  }
+                  ${uploadImageMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileChange}
+                  className="hidden"
+                  id="image-upload"
+                  disabled={uploadImageMutation.isPending}
+                />
+                <label htmlFor="image-upload" className={`cursor-pointer ${uploadImageMutation.isPending ? 'cursor-not-allowed' : ''}`}>
+                  {uploadImageMutation.isPending ? (
+                    <div className="flex flex-col items-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-3"></div>
+                      <p className="text-sm font-medium text-blue-600">
+                        Uploading to GoHighLevel...
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                      <p className="text-base font-medium text-gray-700 mb-1">
+                        {isDragOver ? 'Drop image here' : 'Upload listing image'}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Drag and drop or click to browse
+                      </p>
+                    </>
+                  )}
+                </label>
+              </div>
+              
+              {/* Upload Status and Preview */}
+              {formData.imageUrl && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-start space-x-4">
+                    <img 
+                      src={formData.imageUrl} 
+                      alt="Listing image preview" 
+                      className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-green-800">Image uploaded successfully</p>
+                          <p className="text-xs text-green-600">Stored in GoHighLevel media library</p>
+                          {imageFile && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {imageFile.name} ({(imageFile.size / 1024).toFixed(1)}KB)
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={removeImage}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* 2. Listing Title - Always show */}
           <div>

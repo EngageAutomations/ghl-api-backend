@@ -27,116 +27,6 @@ import { getCurrentUser, logoutUser } from "./current-user";
 import { recoverSession, checkEmbeddedSession } from "./session-recovery";
 import jwt from "jsonwebtoken";
 
-// Helper function to generate form fields from wizard configuration
-async function generateFormFieldsFromWizardConfig(directoryId: number, config: any) {
-  try {
-    console.log('Generating form fields for directory:', directoryId, 'with config:', config);
-    
-    // Core required fields for GoHighLevel product creation
-    const coreFields = [
-      {
-        formConfigId: directoryId,
-        name: 'name',
-        label: 'Product Name',
-        type: 'TEXT' as const,
-        required: true,
-        placeholder: 'Enter product name',
-        displayOrder: 1
-      },
-      {
-        formConfigId: directoryId,
-        name: 'description',
-        label: 'Description',
-        type: 'TEXTAREA' as const,
-        required: true,
-        placeholder: 'Describe your product',
-        displayOrder: 2
-      },
-      {
-        formConfigId: directoryId,
-        name: 'productType',
-        label: 'Product Type',
-        type: 'SINGLE_OPTIONS' as const,
-        required: true,
-        options: ['DIGITAL', 'PHYSICAL', 'SERVICE', 'PHYSICAL-DIGITAL'],
-        defaultValue: 'DIGITAL',
-        displayOrder: 3
-      }
-    ];
-
-    // Add pricing field based on wizard configuration
-    if (config.features?.showPrice !== false) {
-      coreFields.push({
-        formConfigId: directoryId,
-        name: 'price',
-        label: 'Price ($)',
-        type: 'NUMBER' as const,
-        required: true,
-        placeholder: '0.00',
-        displayOrder: 4
-      });
-    }
-
-    // Add optional fields based on wizard configuration
-    let displayOrder = 5;
-    
-    if (config.features?.showMetadata !== false) {
-      coreFields.push({
-        formConfigId: directoryId,
-        name: 'category',
-        label: 'Category',
-        type: 'TEXT' as const,
-        required: false,
-        placeholder: 'Product category',
-        displayOrder: displayOrder++
-      });
-    }
-
-    if (config.features?.showDescription !== false) {
-      coreFields.push({
-        formConfigId: directoryId,
-        name: 'metaTitle',
-        label: 'SEO Title',
-        type: 'TEXT' as const,
-        required: false,
-        placeholder: 'SEO-optimized title',
-        displayOrder: displayOrder++
-      },
-      {
-        formConfigId: directoryId,
-        name: 'metaDescription',
-        label: 'SEO Description',
-        type: 'TEXTAREA' as const,
-        required: false,
-        placeholder: 'SEO meta description',
-        displayOrder: displayOrder++
-      });
-    }
-
-    // Always add image upload fields
-    coreFields.push({
-      formConfigId: directoryId,
-      name: 'images',
-      label: 'Product Images',
-      type: 'FILE_UPLOAD' as const,
-      required: false,
-      placeholder: 'Upload product images',
-      displayOrder: displayOrder++
-    });
-
-    // Store all fields using the simple data store
-    for (const field of coreFields) {
-      simpleDataStore.createFormField(field);
-    }
-    
-    console.log(`Generated ${coreFields.length} form fields for directory ${directoryId}`);
-    return coreFields;
-  } catch (error) {
-    console.error('Error generating form fields:', error);
-    return [];
-  }
-}
-
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup working routes for directories, collections, and listings
@@ -537,7 +427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid user ID" });
       }
       
-      const listings = simpleDataStore.getListingsByUser(userId);
+      const listings = await storage.getListingsByUser(userId);
       res.status(200).json(listings);
     } catch (error) {
       console.error("Error getting listings by user:", error);
@@ -636,10 +526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         price: req.body.price,
         category: req.body.category,
         imageUrl: req.body.imageUrl,
-        isActive: req.body.isActive !== false,
-        installationId: req.body.installationId,
-        syncStatus: req.body.syncStatus || 'pending',
-        ghlProductId: req.body.ghlProductId
+        isActive: req.body.isActive !== false
       });
       
       console.log("Created listing:", listing);
@@ -935,24 +822,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get form configuration by directory name for wizard-generated forms
-  app.get("/api/form-configurations/:directoryName", async (req, res) => {
-    try {
-      const directoryName = req.params.directoryName;
-      const directory = await storage.getFormConfigurationByDirectoryName(directoryName);
-      
-      if (!directory) {
-        return res.status(404).json({ message: "Form configuration not found" });
-      }
-      
-      res.status(200).json(directory);
-    } catch (error) {
-      console.error("Error fetching form configuration:", error);
-      res.status(500).json({ message: "Failed to fetch form configuration" });
-    }
-  });
-
-  // Create directory with automatic form field generation
+  // Create directory
   app.post("/api/directories", async (req, res) => {
     try {
       console.log("=== CREATING DIRECTORY ===");
@@ -966,11 +836,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actionButtonColor: req.body.actionButtonColor || '#3b82f6',
         isActive: req.body.isActive !== false
       });
-      
-      // Auto-generate form fields based on wizard configuration
-      if (directory && req.body.config) {
-        await generateFormFieldsFromWizardConfig(directory.id, req.body.config);
-      }
       
       console.log("Created directory:", directory);
       res.status(201).json(directory);
@@ -1038,7 +903,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const listings = simpleDataStore.getListingsByDirectory(directoryName);
       console.log("Found listings:", listings.length);
-      console.log("Listings data:", listings);
       res.status(200).json(listings);
     } catch (error) {
       console.error("Error fetching listings for directory:", error);
@@ -1989,67 +1853,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
-
   app.post("/api/ghl/products", async (req, res) => {
     try {
-      console.log("POST /api/ghl/products received:", JSON.stringify(req.body, null, 2));
-      console.log("Headers:", req.headers);
-      
-      // Check for installation ID to use Railway backend token management
-      const { installationId, ...productData } = req.body;
-      
-      // Handle installation ID requests by redirecting to bypass route
-      if (installationId) {
-        console.log("Installation ID detected, redirecting to bypass route");
-        return res.redirect(307, '/api/products/create-with-installation');
-      }
-      
-      // Fallback to direct GHL API (legacy method)
       const accessToken = req.headers.authorization?.replace('Bearer ', '');
       
       if (!accessToken) {
-        console.log("Missing authorization header - creating local listing only");
-        
-        // Create local listing without GHL sync for testing
-        const localListingData = {
-          ...productData,
-          directoryName: 'default',
-          title: productData.name,
-          slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          description: productData.description || '',
-          price: productData.price?.toString() || '0',
-          category: productData.category || '',
-          metaTitle: productData.metaTitle || productData.name,
-          metaDescription: productData.metaDescription || productData.description || '',
-          seoKeywords: productData.seoKeywords || '',
-          images: productData.images || [],
-          metadataImages: productData.metadataImages || [],
-          syncStatus: 'local_only',
-          ghlSyncError: 'No authorization token provided'
-        };
-
-        const localListing = await storage.createListing(localListingData);
-        
-        return res.status(201).json({
-          success: true,
-          message: 'Local listing created successfully. Provide GHL access token for sync.',
-          listingId: localListing.id,
-          productData: {
-            name: productData.name,
-            description: productData.description,
-            productType: productData.productType,
-            price: productData.price
-          }
-        });
+        return res.status(401).json({ error: "Authorization header with Bearer token required" });
       }
       
       // Validate required fields per GHL API spec
       const { name, locationId, productType } = req.body;
-      console.log("Required fields check:", { name, locationId, productType });
-      
       if (!name || !locationId || !productType) {
-        console.log("Missing required fields:", { name: !!name, locationId: !!locationId, productType: !!productType });
         return res.status(400).json({ 
           error: "Missing required fields: name, locationId, and productType are required" 
         });
@@ -2197,28 +2011,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get directory by name for wizard-configured forms
-  app.get("/api/directories/:directoryName", async (req, res) => {
-    try {
-      const { directoryName } = req.params;
-      const directory = simpleDataStore.getDirectoryByName(directoryName);
-      console.log(`[API] Retrieved directory for ${directoryName}:`, directory);
-      if (!directory) {
-        return res.status(404).json({ error: "Directory not found" });
-      }
-      res.json(directory);
-    } catch (error) {
-      console.error("Get directory by name error:", error);
-      res.status(500).json({ error: "Failed to fetch directory" });
-    }
-  });
-
-  // Dynamic Form Fields Management - now using simple data store
+  // Dynamic Form Fields Management
   app.get("/api/form-fields/:formConfigId", async (req, res) => {
     try {
       const { formConfigId } = req.params;
-      const fields = simpleDataStore.getFormFieldsByConfig(parseInt(formConfigId));
-      console.log(`[API] Retrieved ${fields.length} form fields for config ${formConfigId}`);
+      const fields = await storage.getFormFieldsByConfig(parseInt(formConfigId));
       res.json(fields);
     } catch (error) {
       console.error("Get form fields error:", error);
@@ -3206,23 +3003,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching OAuth installations:", error);
       res.status(500).json({ error: "Failed to fetch OAuth installations" });
-    }
-  });
-
-  // Debug endpoint to check simple storage contents
-  app.get("/api/debug/simple-storage", (req, res) => {
-    try {
-      const allListings = simpleDataStore.getListingsByUser(1);
-      const allDirectories = simpleDataStore.getDirectoriesByUser(1);
-      res.json({
-        listings: allListings,
-        directories: allDirectories,
-        listingCount: allListings.length,
-        directoryCount: allDirectories.length
-      });
-    } catch (error) {
-      console.error("Error fetching simple storage data:", error);
-      res.status(500).json({ error: "Failed to fetch simple storage data" });
     }
   });
 

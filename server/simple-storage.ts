@@ -26,9 +26,6 @@ interface SimpleListing {
   category?: string;
   imageUrl?: string;
   isActive: boolean;
-  installationId?: string;
-  syncStatus?: string;
-  ghlProductId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,31 +42,14 @@ interface SimpleCollection {
   updatedAt: Date;
 }
 
-interface SimpleFormField {
-  id: number;
-  formConfigId: number;
-  name: string;
-  label: string;
-  type: 'TEXT' | 'TEXTAREA' | 'NUMBER' | 'PHONE' | 'EMAIL' | 'CHECKBOX' | 'SINGLE_OPTIONS' | 'MULTIPLE_OPTIONS' | 'DATE' | 'DATETIME' | 'FILE_UPLOAD';
-  required: boolean;
-  placeholder?: string;
-  defaultValue?: string;
-  options?: string[];
-  displayOrder: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 class SimpleDataStore {
   private directories: Map<number, SimpleDirectory> = new Map();
   private listings: Map<number, SimpleListing> = new Map();
   private collections: Map<number, SimpleCollection> = new Map();
-  private formFields: Map<number, SimpleFormField> = new Map();
   
   private nextDirectoryId = 1;
   private nextListingId = 1;
   private nextCollectionId = 1;
-  private nextFormFieldId = 1;
 
   // Directory operations
   createDirectory(data: any): SimpleDirectory {
@@ -124,15 +104,12 @@ class SimpleDataStore {
       category: data.category,
       imageUrl: data.imageUrl,
       isActive: data.isActive !== false,
-      installationId: data.installationId,
-      syncStatus: data.syncStatus || 'pending',
-      ghlProductId: data.ghlProductId,
       createdAt: new Date(),
       updatedAt: new Date()
     };
     
     this.listings.set(listing.id, listing);
-    console.log(`[SIMPLE STORAGE] Created listing: ${listing.title} with installation ID: ${listing.installationId}`);
+    console.log(`[SIMPLE STORAGE] Created listing: ${listing.title}`);
     return listing;
   }
 
@@ -207,51 +184,6 @@ class SimpleDataStore {
 
   deleteCollection(id: number): boolean {
     return this.collections.delete(id);
-  }
-
-  // Form field operations
-  createFormField(data: any): SimpleFormField {
-    const formField: SimpleFormField = {
-      id: this.nextFormFieldId++,
-      formConfigId: data.formConfigId,
-      name: data.name,
-      label: data.label,
-      type: data.type,
-      required: data.required !== false,
-      placeholder: data.placeholder,
-      defaultValue: data.defaultValue,
-      options: data.options,
-      displayOrder: data.displayOrder || 1,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    this.formFields.set(formField.id, formField);
-    console.log(`[SIMPLE STORAGE] Created form field: ${formField.name} for config ${formField.formConfigId}`);
-    return formField;
-  }
-
-  getFormFieldsByConfig(formConfigId: number): SimpleFormField[] {
-    return Array.from(this.formFields.values())
-      .filter(field => field.formConfigId === formConfigId)
-      .sort((a, b) => a.displayOrder - b.displayOrder);
-  }
-
-  getFormField(id: number): SimpleFormField | undefined {
-    return this.formFields.get(id);
-  }
-
-  updateFormField(id: number, data: any): SimpleFormField | undefined {
-    const field = this.formFields.get(id);
-    if (!field) return undefined;
-    
-    const updated = { ...field, ...data, updatedAt: new Date() };
-    this.formFields.set(id, updated);
-    return updated;
-  }
-
-  deleteFormField(id: number): boolean {
-    return this.formFields.delete(id);
   }
 }
 

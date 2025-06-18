@@ -3,8 +3,6 @@ import { createServer, type Server } from "http";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import imageUploadRouter from "./image-upload";
-import ghlMediaUploadRouter from "./ghl-media-upload";
 // import { setupProductionRouting } from "./production-routing";
 // import { privateDeploymentGuard, ipWhitelist } from "./privacy"; // Removed for public custom domain access
 import { setupDomainRedirects, setupCORS } from "./domain-config";
@@ -12,7 +10,6 @@ import { setupDomainRedirects, setupCORS } from "./domain-config";
 import { DatabaseStorage } from "./storage";
 import { UniversalAPIRouter, requireOAuth, handleSessionRecovery } from "./universal-api-router";
 import { handleOAuthCallback } from "./oauth-enhanced";
-import { simpleDataStore } from "./simple-storage";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
@@ -1819,152 +1816,9 @@ app.use((req, res, next) => {
     });
   });
 
-  console.log("Registering installation bypass route at startup...");
-  
-  // WORKING: Installation bypass route with unique name to avoid conflicts
-  app.post("/create-installation-product", express.json(), async (req, res) => {
-    console.log("✅ FIXED ENDPOINT HIT - POST /installation-product-create received:", JSON.stringify(req.body, null, 2));
-    
-    try {
-      const { installationId, ...productData } = req.body;
-      
-      if (!installationId) {
-        return res.status(400).json({
-          success: false,
-          error: 'Installation ID is required for this endpoint'
-        });
-      }
-      
-      console.log("Creating product with installation tracking:", installationId);
-      
-      console.log("Starting GoHighLevel integration...");
-      
-      // Try to create product in GoHighLevel first
-      let ghlProductId = null;
-      let finalImageUrls = [];
-      
-      try {
-        // Upload images to GoHighLevel if provided
-        if (productData.images && productData.images.length > 0) {
-          console.log("Uploading images to GoHighLevel...");
-          for (const image of productData.images) {
-            try {
-              const uploadResponse = await fetch('https://dir.engageautomations.com/api/ghl/media/upload', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  installation_id: installationId,
-                  files: [{
-                    url: image.url,
-                    name: image.title || 'product-image.jpg'
-                  }]
-                })
-              });
-
-              if (uploadResponse.ok) {
-                const uploadResult = await uploadResponse.json();
-                if (uploadResult.success && uploadResult.uploads?.[0]) {
-                  finalImageUrls.push(uploadResult.uploads[0].ghlUrl || uploadResult.uploads[0].url);
-                  console.log("Image uploaded successfully:", uploadResult.uploads[0].ghlUrl);
-                }
-              }
-            } catch (imageError) {
-              console.log("Image upload failed, using original URL:", image.url);
-              finalImageUrls.push(image.url);
-            }
-          }
-        }
-
-        // Create product in GoHighLevel
-        console.log("Creating product in GoHighLevel...");
-        const ghlResponse = await fetch('https://dir.engageautomations.com/api/ghl/products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            installation_id: installationId,
-            name: productData.name,
-            description: productData.description,
-            productType: productData.productType || 'DIGITAL',
-            locationId: 'WAVk87RmW9rBSDJHeOpH',
-            availableInStore: true,
-            medias: finalImageUrls.map(url => ({ url, type: 'image' }))
-          })
-        });
-
-        if (ghlResponse.ok) {
-          const ghlResult = await ghlResponse.json();
-          if (ghlResult.success && ghlResult.product?.id) {
-            ghlProductId = ghlResult.product.id;
-            console.log("GoHighLevel product created successfully:", ghlProductId);
-          }
-        }
-      } catch (ghlError) {
-        console.log("GoHighLevel creation failed, proceeding with local storage:", ghlError.message);
-      }
-
-      // Import storage to persist the listing - use same instance as API routes
-      const { simpleDataStore } = await import('./simple-storage');
-      
-      // Create listing with proper data structure
-      const listing = simpleDataStore.createListing({
-        title: productData.name,
-        slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        description: productData.description || '',
-        price: productData.price?.toString() || '0',
-        category: productData.category || '',
-        directoryName: productData.directoryName || 'Newts',
-        userId: 1,
-        imageUrl: finalImageUrls[0] || productData.images?.[0]?.url || '',
-        isActive: true,
-        installationId: installationId,
-        syncStatus: ghlProductId ? 'synced' : 'pending',
-        ghlProductId: ghlProductId
-      });
-
-      console.log(`[INSTALLATION STORAGE] Created listing: ${listing.title} with ID: ${listing.id}`);
-      
-      return res.status(201).json({
-        success: true,
-        message: ghlProductId 
-          ? 'Product created successfully in GoHighLevel and saved locally!'
-          : 'Product created locally with installation tracking. GoHighLevel sync will be processed when backend is available.',
-        listingId: listing.id,
-        installationId: installationId,
-        syncStatus: listing.syncStatus,
-        ghlProductId: ghlProductId,
-        productData: {
-          name: productData.name,
-          description: productData.description,
-          productType: productData.productType,
-          price: productData.price,
-          locationId: productData.locationId || 'WAVk87RmW9rBSDJHeOpH',
-          images: finalImageUrls
-        }
-      });
-    } catch (error) {
-      console.error("Fixed endpoint error:", error);
-      return res.status(500).json({
-        success: false,
-        error: "Fixed endpoint error",
-        details: error.message
-      });
-    }
-  });
-  
-  console.log("Installation bypass route registered successfully");
-
-  // CRITICAL: Register API routes AFTER installation bypass route
+  // CRITICAL: Register API routes AFTER the root route
   server = await registerRoutes(app);
   console.log("✅ API routes registered successfully");
-
-  // Register image upload routes AFTER main API routes
-  app.use('/api/images', imageUploadRouter);
-  
-  // Register GoHighLevel media upload routes
-  app.use('/api/ghl-media', ghlMediaUploadRouter);
-  
-  // Serve uploaded files
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   // Add request tracing middleware AFTER API routes
   app.use((req, res, next) => {
