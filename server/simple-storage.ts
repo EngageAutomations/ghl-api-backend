@@ -26,6 +26,9 @@ interface SimpleListing {
   category?: string;
   imageUrl?: string;
   isActive: boolean;
+  installationId?: string;
+  syncStatus?: string;
+  ghlProductId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -121,12 +124,15 @@ class SimpleDataStore {
       category: data.category,
       imageUrl: data.imageUrl,
       isActive: data.isActive !== false,
+      installationId: data.installationId,
+      syncStatus: data.syncStatus || 'pending',
+      ghlProductId: data.ghlProductId,
       createdAt: new Date(),
       updatedAt: new Date()
     };
     
     this.listings.set(listing.id, listing);
-    console.log(`[SIMPLE STORAGE] Created listing: ${listing.title}`);
+    console.log(`[SIMPLE STORAGE] Created listing: ${listing.title} with installation ID: ${listing.installationId}`);
     return listing;
   }
 

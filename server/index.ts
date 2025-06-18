@@ -1837,39 +1837,108 @@ app.use((req, res, next) => {
       
       console.log("Creating product with installation tracking:", installationId);
       
-      // Simple listing creation for installation tracking
-      const listingId = Date.now();
-      const listing = {
-        id: listingId,
+      console.log("Starting GoHighLevel integration...");
+      
+      // Try to create product in GoHighLevel first
+      let ghlProductId = null;
+      let finalImageUrls = [];
+      
+      try {
+        // Upload images to GoHighLevel if provided
+        if (productData.images && productData.images.length > 0) {
+          console.log("Uploading images to GoHighLevel...");
+          for (const image of productData.images) {
+            try {
+              const uploadResponse = await fetch('https://dir.engageautomations.com/api/ghl/media/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  installation_id: installationId,
+                  files: [{
+                    url: image.url,
+                    name: image.title || 'product-image.jpg'
+                  }]
+                })
+              });
+
+              if (uploadResponse.ok) {
+                const uploadResult = await uploadResponse.json();
+                if (uploadResult.success && uploadResult.uploads?.[0]) {
+                  finalImageUrls.push(uploadResult.uploads[0].ghlUrl || uploadResult.uploads[0].url);
+                  console.log("Image uploaded successfully:", uploadResult.uploads[0].ghlUrl);
+                }
+              }
+            } catch (imageError) {
+              console.log("Image upload failed, using original URL:", image.url);
+              finalImageUrls.push(image.url);
+            }
+          }
+        }
+
+        // Create product in GoHighLevel
+        console.log("Creating product in GoHighLevel...");
+        const ghlResponse = await fetch('https://dir.engageautomations.com/api/ghl/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            installation_id: installationId,
+            name: productData.name,
+            description: productData.description,
+            productType: productData.productType || 'DIGITAL',
+            locationId: 'WAVk87RmW9rBSDJHeOpH',
+            availableInStore: true,
+            medias: finalImageUrls.map(url => ({ url, type: 'image' }))
+          })
+        });
+
+        if (ghlResponse.ok) {
+          const ghlResult = await ghlResponse.json();
+          if (ghlResult.success && ghlResult.product?.id) {
+            ghlProductId = ghlResult.product.id;
+            console.log("GoHighLevel product created successfully:", ghlProductId);
+          }
+        }
+      } catch (ghlError) {
+        console.log("GoHighLevel creation failed, proceeding with local storage:", ghlError.message);
+      }
+
+      // Import storage to persist the listing
+      const { simpleDataStore } = await import('./simple-storage');
+      
+      // Create listing with proper data structure
+      const listing = simpleDataStore.createListing({
         title: productData.name,
         slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         description: productData.description || '',
         price: productData.price?.toString() || '0',
         category: productData.category || '',
-        directoryName: 'default',
+        directoryName: productData.directoryName || 'Newts',
         userId: 1,
-        imageUrl: productData.images?.[0]?.url || '',
+        imageUrl: finalImageUrls[0] || productData.images?.[0]?.url || '',
         isActive: true,
         installationId: installationId,
-        syncStatus: 'pending',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+        syncStatus: ghlProductId ? 'synced' : 'pending',
+        ghlProductId: ghlProductId
+      });
 
       console.log(`[INSTALLATION STORAGE] Created listing: ${listing.title} with ID: ${listing.id}`);
       
       return res.status(201).json({
         success: true,
-        message: 'Product created successfully with installation tracking. GoHighLevel sync will be processed when backend is available.',
+        message: ghlProductId 
+          ? 'Product created successfully in GoHighLevel and saved locally!'
+          : 'Product created locally with installation tracking. GoHighLevel sync will be processed when backend is available.',
         listingId: listing.id,
         installationId: installationId,
-        syncStatus: 'pending',
+        syncStatus: listing.syncStatus,
+        ghlProductId: ghlProductId,
         productData: {
           name: productData.name,
           description: productData.description,
           productType: productData.productType,
           price: productData.price,
-          locationId: productData.locationId || 'WAVk87RmW9rBSDJHeOpH'
+          locationId: productData.locationId || 'WAVk87RmW9rBSDJHeOpH',
+          images: finalImageUrls
         }
       });
     } catch (error) {
