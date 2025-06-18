@@ -99,16 +99,20 @@ export function MultiImageUpload({
         const uploadResult = await uploadResponse.json();
         
         if (uploadResult.success) {
-          // Update images with server URLs
+          // Update only the newly uploaded images with server URLs
           const updatedImagesWithServerUrls = updatedImages.map((img, index) => {
-            const serverFile = uploadResult.files[index];
-            if (serverFile) {
-              return {
-                ...img,
-                url: serverFile.url,
-                tempPath: serverFile.tempPath,
-                serverUploaded: true
-              };
+            // Only update images that were just added (have tempPath blob URLs)
+            if (img.tempPath && img.tempPath.startsWith('blob:')) {
+              const newImageIndex = index - (images.length);
+              const serverFile = uploadResult.files[newImageIndex];
+              if (serverFile && newImageIndex >= 0) {
+                return {
+                  ...img,
+                  url: serverFile.url,
+                  tempPath: serverFile.tempPath,
+                  serverUploaded: true
+                };
+              }
             }
             return img;
           });

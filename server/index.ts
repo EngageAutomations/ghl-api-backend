@@ -1835,7 +1835,7 @@ app.use((req, res, next) => {
       console.log("Creating product with installation tracking:", installationId);
       
       // Import storage here to avoid circular dependencies
-      const { storage } = await import('./simple-storage');
+      const { simpleDataStore } = await import('./simple-storage');
       
       // Create local listing with installation tracking for future GoHighLevel sync
       const localListingData = {
@@ -1856,7 +1856,7 @@ app.use((req, res, next) => {
         installationId: installationId
       };
 
-      const localListing = await storage.createListing(localListingData);
+      const localListing = simpleDataStore.createListing(localListingData);
       
       return res.status(201).json({
         success: true,
