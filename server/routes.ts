@@ -60,86 +60,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // GHL Product Creation with Token Refresh
+  // GHL Product Creation via Railway Backend with Auto-Refresh
   app.post("/api/ghl/create-product", async (req, res) => {
     try {
-      const locationId = req.body.locationId || 'WAvk87RmW9rBSDJHeOpH';
-      
       const productData = {
+        installationId: 'install_1750252333303', // Active installation with valid OAuth tokens
         name: req.body.name,
         description: req.body.description || '',
         productType: req.body.productType || 'DIGITAL',
-        locationId: locationId
+        price: req.body.price || undefined
       };
 
-      console.log('Creating GHL product with token refresh:', productData);
+      console.log('Creating GHL product via Railway backend:', productData);
 
-      // Try to refresh tokens through Railway backend first
-      let accessToken = null;
-      try {
-        const refreshResponse = await fetch('https://dir.engageautomations.com/api/oauth/refresh', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ installationId: 'install_1750191250983' })
-        });
-        
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          accessToken = refreshData.access_token;
-          console.log('Token refreshed successfully');
-        }
-      } catch (refreshError) {
-        console.log('Token refresh failed, trying with existing credentials');
-      }
-
-      if (!accessToken) {
-        return res.status(401).json({
-          success: false,
-          error: 'Authentication required',
-          details: 'Please complete OAuth authentication to create products in GoHighLevel',
-          locationId: locationId,
-          requiresAuth: true,
-          oauthUrl: 'https://dir.engageautomations.com/api/oauth/url'
-        });
-      }
-
-      // Create product with fresh token
-      const ghlResponse = await fetch('https://services.leadconnectorhq.com/products/', {
+      // Call Railway backend product creation endpoint with automatic token refresh
+      const railwayResponse = await fetch('https://dir.engageautomations.com/api/ghl/products/create', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'Version': '2021-07-28'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(productData)
       });
 
-      if (!ghlResponse.ok) {
-        const errorData = await ghlResponse.json();
-        return res.status(ghlResponse.status).json({
+      const result = await railwayResponse.json();
+
+      if (!railwayResponse.ok) {
+        console.error('Railway backend error:', result);
+        return res.status(railwayResponse.status).json({
           success: false,
-          error: 'GoHighLevel API error',
-          details: errorData.message || errorData.error,
-          status: ghlResponse.status
+          error: result.error || 'Product creation failed',
+          details: result.details || result.message,
+          railwayBackend: true
         });
       }
 
-      const result = await ghlResponse.json();
-      console.log('GHL product created successfully:', result.id);
+      console.log('GHL product created successfully via Railway:', result.productId);
 
       res.json({
         success: true,
-        product: result,
-        productId: result.id,
-        locationId: locationId,
-        message: "Product created successfully in GoHighLevel"
+        product: result.product,
+        productId: result.productId,
+        locationId: result.locationId,
+        message: result.message || "Product created successfully in GoHighLevel",
+        railwayBackend: true
       });
 
     } catch (error) {
       console.error('GHL Product Creation Error:', error);
       res.status(500).json({ 
         success: false, 
-        error: 'Failed to create product in GoHighLevel',
+        error: 'Failed to connect to Railway backend',
         details: error.message
       });
     }
