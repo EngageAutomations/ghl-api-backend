@@ -1,0 +1,99 @@
+Below is a concise check-list that normally clears the “server runs but Preview is blank” pattern on Replit.  I’ve ordered the items from the fastest fixes (often <5 min) to the deeper structural work you may want to schedule for later.
+
+---
+
+### 1 ️⃣  Make sure the app is listening on Replit’s **`process.env.PORT`**
+
+Replit injects a free port number into `process.env.PORT` when the Run-workflow starts.
+If your code hard-codes `5000`, Preview can’t “see” the process even though it’s alive.
+Add a single line near the top of the file that ultimately calls `app.listen`:
+
+```ts
+const PORT = Number(process.env.PORT) || 5000;   // Replit first, fallback local
+```
+
+…and use `PORT` in the `listen()` call.
+Once the process binds to that injected port Replit will automap it to the external port declared in `.replit` and the Preview dropdown will render automatically ([docs.replit.com][1])
+
+---
+
+### 2 ️⃣  Pick **one** way to start the server and wire it to the Run button
+
+Replit only shows Preview for the process that was launched by the “Run” workflow.
+You have two practical approaches:
+
+| Approach                                      | When to choose                          | How to wire it up                                                                                                                                                                                                                                     |
+| --------------------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A. Fix the original TypeScript dev server** | You intend to keep TypeScript long-term | - Open the **Shell** pane, run `npx tsc --noEmit` and clear the reported errors until the command exits cleanly.<br>- Keep `npm run dev` in `package.json` and leave `.replit` unchanged.                                                             |
+| **B. Bypass TypeScript for now**              | You just need the Preview back quickly  | - Create a new Workflow (Tools ▸ **Workflows** ▸ + New).<br>- Add a single “Execute shell command” task: `node server.js` (or whichever JS var-iant starts correctly).<br>- Set **“Assign to Run button”** → your new workflow ([docs.replit.com][2]) |
+
+Either path ensures the Run button starts *exactly one* foreground process that opens the port Replit is waiting for, which in turn re-enables Preview.
+
+---
+
+### 3 ️⃣  Verify the **root route actually returns HTML**
+
+In every server variant make sure the last middleware (after any API routes) sends `index.html`:
+
+```ts
+// DEV (with Vite)
+app.use('*', async (req, res, next) => {
+  try {
+    const html = await vite.transformIndexHtml(req.originalUrl, fs.readFileSync('index.html', 'utf8'));
+    res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+  } catch (e) { next(e); }
+});
+
+// PROD (plain Express)
+app.use(express.static(path.join(__dirname, 'dist')));
+app.get('*', (_, res) => res.sendFile(path.join(__dirname, 'dist', 'index.html')));
+```
+
+If `/api/health` works but `/` is blank, the fallback route is usually the missing piece.
+
+---
+
+### 4 ️⃣  Double-check the **Preview dropdown**
+
+Even after the fixes above the web-view can still be pointed at the wrong external port.
+Click the tiny chevron (▾) next to the URL in the Preview pane and pick **port 80** (or whichever external port you bound in `.replit`) ([docs.replit.com][1])
+
+---
+
+### 5 ️⃣  (Optional) unlock the “fragile” files
+
+If you keep hitting *“permission denied”* on `.replit` or `package.json`, it’s usually because:
+
+* the repo is read-only (fork it to your own account), or
+* it’s write-protected by Git.
+  Run `chmod u+w .replit package.json && git add -u` once to flip the bit.
+
+After that you can safely edit the run command straight in the file editor instead of boxing yourself into work-arounds.
+
+---
+
+## Quick sanity test after applying steps 1–4
+
+1. **Click Run** – you should see exactly one process start and a log line like
+   `Server running on :3000` (whatever `process.env.PORT` happened to be).
+2. **Wait <30 s** – Replit marks the port green in the **Networking** tool.
+3. **Preview refreshes automatically** – you should now see the React UI instead of a white page.
+
+If any step fails, open the Networking panel: if the port is red the app isn’t actually listening on the port the workflow expects.
+
+---
+
+### When to escalate to Replit support
+
+* You’ve proved the server binds to `process.env.PORT` and shows green in Networking **yet Preview stays blank**.
+* You cannot create or assign Workflows because the UI itself errors.
+
+Those cases point to a Replit-side bug rather than project config; grab the Repl URL plus the Console output and open a ticket with support.
+
+---
+
+**Most teams regain Preview after step 1 or step 2B.**
+Give those a shot and let me know where (if anywhere) it still breaks—happy to dig in further!
+
+[1]: https://docs.replit.com/replit-workspace/ports "Replit Docs"
+[2]: https://docs.replit.com/replit-workspace/workflows "Replit Docs"

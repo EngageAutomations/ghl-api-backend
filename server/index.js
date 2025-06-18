@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 
 async function startDevelopmentServer() {
   const app = express();
-  const PORT = process.env.PORT || 5000;
+  const PORT = Number(process.env.PORT) || Number(process.env.REPL_PORT) || 5000;
   
   // Trust proxy for Replit environment
   app.set('trust proxy', true);
