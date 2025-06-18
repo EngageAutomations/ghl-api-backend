@@ -106,6 +106,18 @@ This is a full-stack web application that provides comprehensive directory and c
 - **Production**: Environment variables managed through Replit secrets
 - **Feature Flags**: Environment-based feature toggling
 
+## Recent Changes
+
+- June 18, 2025: Railway OAuth Architecture Implementation
+  - Railway backend at dir.engageautomations.com owns complete OAuth token lifecycle
+  - Installation install_1750252333303 handles automatic token refresh 5 minutes before expiry
+  - Form submissions call Railway /api/ghl/products/create endpoint with installationId
+  - Railway backend manages: OAuth callbacks, token refresh timers, ensureFreshToken guards
+  - Products created successfully in GoHighLevel with automatic token management
+  - System uses Railway's scheduled refresh and on-demand token validation
+  - Local project focuses on frontend interface, Railway handles all OAuth complexity
+  - Complete authentication flow: user OAuth → Railway installation → automatic token refresh
+
 ## Changelog
 
 - June 18, 2025. Initial setup
