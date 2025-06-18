@@ -16,7 +16,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { CreateListingForm } from '@/components/CreateListingForm';
 import { ListingViewEdit } from '@/components/ListingViewEdit';
 import CreateCollectionForm from '@/components/CreateCollectionForm';
-import { GHLProductCreator } from '@/components/GHLProductCreator';
+
 
 type ViewMode = 'grid' | 'list';
 type FilterOption = 'all' | 'active' | 'draft';
@@ -38,7 +38,7 @@ export default function DirectoryDetails() {
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showCollectionForm, setShowCollectionForm] = useState(false);
   const [editingCollection, setEditingCollection] = useState<any | null>(null);
-  const [showGHLProductCreator, setShowGHLProductCreator] = useState(false);
+
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -313,7 +313,7 @@ export default function DirectoryDetails() {
           </div>
           <div className="flex items-center gap-3">
             <Button
-              onClick={() => contentView === 'collections' ? setShowCollectionForm(true) : setShowGHLProductCreator(true)}
+              onClick={() => contentView === 'collections' ? setShowCollectionForm(true) : setShowListingForm(true)}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
@@ -538,7 +538,7 @@ export default function DirectoryDetails() {
               }
             </p>
             {!searchQuery && filterBy === 'all' && (
-              <Button onClick={() => setShowGHLProductCreator(true)}>
+              <Button onClick={() => setShowListingForm(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create First Product
               </Button>
@@ -647,12 +647,14 @@ export default function DirectoryDetails() {
         )
       )}
 
-      {/* Create Listing Dialog */}
+      {/* Create GHL Product Dialog */}
       <Dialog open={showListingForm} onOpenChange={setShowListingForm}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              Create New Listing
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Create GoHighLevel Product
+              <Badge variant="outline">Live Integration</Badge>
             </DialogTitle>
           </DialogHeader>
           <div className="max-h-[75vh] overflow-y-auto pr-2">
@@ -715,16 +717,7 @@ export default function DirectoryDetails() {
         </DialogContent>
       </Dialog>
 
-      {/* GHL Product Creator Dialog */}
-      <GHLProductCreator 
-        isOpen={showGHLProductCreator}
-        onClose={() => setShowGHLProductCreator(false)}
-        directoryName={directoryName!}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['/api/listings', directoryName] });
-          setShowGHLProductCreator(false);
-        }}
-      />
+
 
       {/* Prominent Back to Directories Button - Fixed Position */}
       <div className="fixed bottom-6 z-50" style={{ left: 'max(1.5rem, calc(50% - 768px / 2 + 1.5rem - 50px))' }}>
