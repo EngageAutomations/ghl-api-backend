@@ -1902,8 +1902,8 @@ app.use((req, res, next) => {
         console.log("GoHighLevel creation failed, proceeding with local storage:", ghlError.message);
       }
 
-      // Import storage to persist the listing
-      const { simpleDataStore } = await import('./simple-storage');
+      // Import storage to persist the listing - use same instance as API routes
+      const { simpleDataStore } = require('./simple-storage');
       
       // Create listing with proper data structure
       const listing = simpleDataStore.createListing({

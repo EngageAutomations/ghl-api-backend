@@ -537,7 +537,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid user ID" });
       }
       
-      const listings = await storage.getListingsByUser(userId);
+      const listings = simpleDataStore.getListingsByUser(userId);
       res.status(200).json(listings);
     } catch (error) {
       console.error("Error getting listings by user:", error);
