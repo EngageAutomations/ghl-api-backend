@@ -45,53 +45,76 @@ export function MultiImageUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = async (files: FileList) => {
-    // Upload files to temp server storage first
-    const formData = new FormData();
     const newImages: (ImageItem | MetadataImageItem)[] = [];
     
+    // Process files immediately for visual feedback
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (allowedTypes.includes(file.type)) {
-        formData.append('images', file);
+        const fileId = `img_${Date.now()}_${i}`;
+        const blobUrl = URL.createObjectURL(file);
+        
+        const baseImage: ImageItem = {
+          id: fileId,
+          url: blobUrl,
+          tempPath: blobUrl,
+          title: file.name,
+          alt: file.name,
+          order: images.length + i
+        };
+
+        if (isMetadata) {
+          const metadataImage: MetadataImageItem = {
+            ...baseImage,
+            type: metadataTypes[0]
+          };
+          newImages.push(metadataImage);
+        } else {
+          newImages.push(baseImage);
+        }
       }
     }
 
+    // Immediately update UI with blob URLs for instant feedback
+    const updatedImages = [...images, ...newImages].slice(0, maxImages);
+    onChange(updatedImages);
+
+    // Upload to server in background and update with server URLs
     try {
-      // Upload to temporary server storage
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (allowedTypes.includes(file.type)) {
+          formData.append('images', file);
+        }
+      }
+
       const uploadResponse = await fetch('/api/images/upload-temp', {
         method: 'POST',
         body: formData
       });
 
-      const uploadResult = await uploadResponse.json();
-      
-      if (uploadResult.success) {
-        // Create image objects with server URLs
-        uploadResult.files.forEach((file: any, index: number) => {
-          const baseImage: ImageItem = {
-            id: file.id,
-            url: file.url, // Server-accessible URL
-            tempPath: file.tempPath,
-            title: file.originalName,
-            alt: file.originalName,
-            order: images.length + index
-          };
-
-          if (isMetadata) {
-            const metadataImage: MetadataImageItem = {
-              ...baseImage,
-              type: metadataTypes[0]
-            };
-            newImages.push(metadataImage);
-          } else {
-            newImages.push(baseImage);
-          }
-        });
-
-        const updatedImages = [...images, ...newImages].slice(0, maxImages);
-        onChange(updatedImages);
+      if (uploadResponse.ok) {
+        const uploadResult = await uploadResponse.json();
+        
+        if (uploadResult.success) {
+          // Update images with server URLs
+          const updatedImagesWithServerUrls = updatedImages.map((img, index) => {
+            const serverFile = uploadResult.files[index];
+            if (serverFile) {
+              return {
+                ...img,
+                url: serverFile.url,
+                tempPath: serverFile.tempPath,
+                serverUploaded: true
+              };
+            }
+            return img;
+          });
+          onChange(updatedImagesWithServerUrls);
+        }
       } else {
-        console.error('Failed to upload images:', uploadResult.error);
+        console.error('Failed to upload images:', await uploadResponse.text());
       }
     } catch (error) {
       console.error('Image upload error:', error);
@@ -182,8 +205,16 @@ export function MultiImageUpload({
       >
         <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
         <p className="text-sm font-medium mb-2">
-          Drop images here or click to browse
+          {images.length > 0 ? 'Add more images' : 'Drop images here or click to browse'}
         </p>
+        {images.length > 0 && (
+          <div className="mb-2">
+            <Badge variant="secondary" className="flex items-center gap-1 w-fit mx-auto">
+              <ImageIcon className="h-3 w-3" />
+              {images.length} photo{images.length !== 1 ? 's' : ''} added
+            </Badge>
+          </div>
+        )}
         <p className="text-xs text-muted-foreground">
           {images.length}/{maxImages} images • JPG, PNG, WebP up to 10MB each
         </p>

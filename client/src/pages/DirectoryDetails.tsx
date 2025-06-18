@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { CreateListingForm } from '@/components/CreateListingForm';
+import { WizardConfiguredForm } from '@/components/WizardConfiguredForm';
 import { ListingViewEdit } from '@/components/ListingViewEdit';
 import CreateCollectionForm from '@/components/CreateCollectionForm';
 
