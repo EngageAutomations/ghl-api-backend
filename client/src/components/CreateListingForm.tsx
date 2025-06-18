@@ -137,25 +137,17 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
         
         listingId = editingListing.id;
       } else {
+        // Initialize variables for GoHighLevel integration
+        let ghlResult = null;
+        
         // First, create GoHighLevel product if not editing
         try {
           console.log('Creating GoHighLevel product for listing...');
           const ghlProductData = {
-            // Required fields - always pass through
+            installationId: 'install_1750252333303', // Active Railway installation with valid OAuth
             name: formData.title,
-            locationId: 'WAvk87RmW9rBSDJHeOpH', // GoHighLevel location ID
-            productType: 'DIGITAL', // Required: DIGITAL, PHYSICAL, SERVICE, PHYSICAL/DIGITAL
-            
-            // Standard fields - always include
             description: formData.description || '',
-            availableInStore: true, // Default to true as requested
-            image: formData.imageUrl || null,
-            
-            // SEO fields - now standard with every submission
-            seo: {
-              title: seoFields.metaTitle || formData.title,
-              description: seoFields.metaDescription || formData.description || ''
-            },
+            productType: 'DIGITAL', // Required: DIGITAL, PHYSICAL, SERVICE, PHYSICAL/DIGITAL
             
             // Price - always required for GoHighLevel store availability
             // Use $100 default when pricing is disabled, otherwise parse user input
@@ -163,22 +155,26 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
                    (formData.price ? parseFloat(formData.price.replace(/[^0-9.-]/g, '')) || 100 : 100)
           };
 
-          const ghlResponse = await apiRequest('/api/ghl/create-product', {
+          // Call Railway backend endpoint directly for reliable token management
+          const ghlResponse = await fetch('https://dir.engageautomations.com/api/ghl/products/create', {
             method: 'POST',
-            data: ghlProductData
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(ghlProductData)
           });
 
           const ghlResult = await ghlResponse.json();
           if (ghlResult.success) {
-            ghlProductId = ghlResult.productId;
-            console.log('GoHighLevel product created:', ghlProductId);
+            console.log('GoHighLevel product created via Railway backend');
+            console.log('Location ID:', ghlResult.locationId);
             
             toast({
               title: "GoHighLevel Product Created",
               description: `Product "${formData.title}" created in your GoHighLevel account`,
             });
           } else {
-            console.warn('GoHighLevel product creation failed:', ghlResult.error);
+            console.warn('GoHighLevel product creation failed:', ghlResult.message);
             // Continue with local listing creation even if GHL fails
           }
         } catch (ghlError) {
@@ -193,7 +189,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           slug, 
           directoryName,
           ghlProductId, // Link to GoHighLevel product if created
-          ghlLocationId: ghlProductId ? 'WAvk87RmW9rBSDJHeOpH' : undefined,
+          ghlLocationId: ghlResult?.success ? ghlResult.locationId : undefined,
           // Include SEO fields
           metaTitle: seoFields.metaTitle,
           metaDescription: seoFields.metaDescription,
