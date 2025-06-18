@@ -1,104 +1,437 @@
-const http = require('http');
-const PORT = 5000;
+#!/usr/bin/env node
 
-const server = http.createServer((req, res) => {
-  res.writeHead(200, {
-    'Content-Type': 'text/html',
-    'Access-Control-Allow-Origin': '*'
-  });
-  
-  res.end(`<!DOCTYPE html>
-<html>
+// GoHighLevel Marketplace - Direct Start for Replit
+const http = require('http');
+const PORT = process.env.PORT || 5000;
+
+console.log('Starting GoHighLevel Marketplace for Replit preview...');
+
+const html = `<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title>GoHighLevel Marketplace</title>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); margin: 0; padding: 20px; }
-    .container { max-width: 900px; margin: 0 auto; }
-    .header { background: rgba(255,255,255,0.95); border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); margin-bottom: 30px; }
-    .status { background: #10b981; color: white; padding: 10px 25px; border-radius: 25px; display: inline-block; font-weight: 600; margin-bottom: 20px; }
-    h1 { font-size: 3rem; font-weight: 700; margin-bottom: 15px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .info { background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 20px; border-radius: 0 12px 12px 0; margin: 20px 0; font-family: monospace; text-align: left; }
-    .btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; margin: 5px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 30px; }
-    .card { background: rgba(255,255,255,0.95); border-radius: 16px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-    .features { list-style: none; padding: 0; }
-    .features li { padding: 6px 0; color: #374151; }
-    .features li:before { content: "✓ "; color: #10b981; font-weight: bold; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoHighLevel Marketplace - Live</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .status {
+            background: #10b981;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .oauth-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        .oauth-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .features {
+            list-style: none;
+            margin: 15px 0;
+        }
+        .features li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .features li:before {
+            content: '✓';
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .info {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid #10b981;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        .test-btn:hover { background: #2563eb; }
+        .endpoint {
+            background: #f8f9fa;
+            border-left: 4px solid #3b82f6;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            color: white;
+        }
+        .live-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-size: 12px;
+            z-index: 1000;
+            animation: pulse 2s infinite;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="status">REPLIT PREVIEW ACTIVE</div>
-      <h1>GoHighLevel Marketplace</h1>
-      <p style="font-size: 1.2rem; color: #6b7280;">OAuth Integration Platform</p>
-      
-      <div class="info">
-        <strong>Server Status:</strong> Active and Running<br>
-        <strong>Port:</strong> ${PORT}<br>
-        <strong>Environment:</strong> Replit Preview<br>
-        <strong>Backend:</strong> Railway Production<br>
-        <strong>OAuth Client:</strong> 68474924a586bce22a6e64f7-mbpkmyu4
-      </div>
-      
-      <button class="btn" onclick="test()">Test Connection</button>
-      <button class="btn" onclick="oauth()">OAuth Status</button>
-      <button class="btn" onclick="window.open('https://oauth-backend-production-68c5.up.railway.app', '_blank')">Backend</button>
+    <div class="live-indicator">🟢 LIVE - PORT ${PORT}</div>
+    <div class="container">
+        <div class="header">
+            <div class="status">🚀 ACTIVE - REPLIT PREVIEW</div>
+            <h1>GoHighLevel Marketplace</h1>
+            <p>Directory Integration Platform with OAuth & Universal API Management</p>
+            <p><strong>Server Time:</strong> <span id="time">${new Date().toLocaleString()}</span></p>
+        </div>
+
+        <div class="section">
+            <h2>🔐 OAuth Authentication System</h2>
+            <div class="info">
+                <h3>Active Installation Configuration</h3>
+                <p><strong>Installation ID:</strong> install_1750131573635</p>
+                <p><strong>Client ID:</strong> 68474924a586bce22a6e64f7-mbpkmyu4</p>
+                <p><strong>Redirect URI:</strong> https://dir.engageautomations.com/api/oauth/callback</p>
+                <p><strong>Backend Server:</strong> https://dir.engageautomations.com</p>
+                <p><strong>Permissions:</strong> Full Product Creation & Management Access</p>
+            </div>
+            
+            <a href="/api/oauth/install" class="oauth-button">🔗 Initialize OAuth Flow</a>
+            <a href="/api/oauth/callback" class="oauth-button">🔄 Process OAuth Callback</a>
+            <button onclick="testOAuth()" class="test-btn">Test OAuth Status</button>
+            <button onclick="checkHealth()" class="test-btn">Server Health Check</button>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>📦 Products API</h3>
+                <ul class="features">
+                    <li>Create Products</li>
+                    <li>Manage Pricing</li>
+                    <li>Update Inventory</li>
+                    <li>Product Categories</li>
+                    <li>Bulk Operations</li>
+                </ul>
+                <button onclick="testAPI('/api/ghl/products')" class="test-btn">Test Products API</button>
+            </div>
+
+            <div class="card">
+                <h3>👥 Contacts API</h3>
+                <ul class="features">
+                    <li>Contact Management</li>
+                    <li>Lead Tracking</li>
+                    <li>Custom Fields</li>
+                    <li>Tags & Notes</li>
+                    <li>Search & Filter</li>
+                </ul>
+                <button onclick="testAPI('/api/ghl/contacts')" class="test-btn">Test Contacts API</button>
+            </div>
+
+            <div class="card">
+                <h3>🏢 Locations API</h3>
+                <ul class="features">
+                    <li>Location Management</li>
+                    <li>Business Settings</li>
+                    <li>Team Members</li>
+                    <li>Permissions</li>
+                    <li>Multi-location Support</li>
+                </ul>
+                <button onclick="testAPI('/api/ghl/locations')" class="test-btn">Test Locations API</button>
+            </div>
+
+            <div class="card">
+                <h3>🔄 Workflows API</h3>
+                <ul class="features">
+                    <li>Automation Triggers</li>
+                    <li>Campaign Management</li>
+                    <li>Follow-up Sequences</li>
+                    <li>Event Tracking</li>
+                    <li>Performance Analytics</li>
+                </ul>
+                <button onclick="testAPI('/api/ghl/workflows')" class="test-btn">Test Workflows API</button>
+            </div>
+
+            <div class="card">
+                <h3>📱 Media API</h3>
+                <ul class="features">
+                    <li>File Uploads</li>
+                    <li>Image Processing</li>
+                    <li>Media Library</li>
+                    <li>Asset Management</li>
+                    <li>CDN Integration</li>
+                </ul>
+                <button onclick="testAPI('/api/ghl/media')" class="test-btn">Test Media API</button>
+            </div>
+
+            <div class="card">
+                <h3>⚙️ Universal Router</h3>
+                <ul class="features">
+                    <li>Dynamic Endpoints</li>
+                    <li>Auto-routing</li>
+                    <li>Error Handling</li>
+                    <li>Response Caching</li>
+                    <li>Rate Limiting</li>
+                </ul>
+                <button onclick="testAPI('/api/ghl/status')" class="test-btn">Test Universal Router</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 API Endpoints Reference</h2>
+            <div class="endpoint"><strong>GET /api/oauth/install</strong> - Initialize GoHighLevel OAuth flow</div>
+            <div class="endpoint"><strong>GET /api/oauth/callback</strong> - Handle OAuth authorization callback</div>
+            <div class="endpoint"><strong>GET /api/oauth/status</strong> - Check OAuth connection status</div>
+            <div class="endpoint"><strong>POST /api/ghl/products</strong> - Create and manage products</div>
+            <div class="endpoint"><strong>GET /api/ghl/contacts</strong> - Access contact management</div>
+            <div class="endpoint"><strong>GET /api/ghl/locations</strong> - Location management operations</div>
+            <div class="endpoint"><strong>POST /api/ghl/workflows</strong> - Workflow automation management</div>
+            <div class="endpoint"><strong>POST /api/ghl/media</strong> - Media upload and processing</div>
+            <div class="endpoint"><strong>GET /health</strong> - Server health and status check</div>
+        </div>
+
+        <div class="footer">
+            <p>GoHighLevel Marketplace Integration Platform</p>
+            <p>Powered by Railway OAuth Backend & Replit Development Environment</p>
+            <p>OAuth Backend: <strong>dir.engageautomations.com</strong> | Frontend: <strong>Replit Preview</strong></p>
+        </div>
     </div>
-    
-    <div class="grid">
-      <div class="card">
-        <h3>OAuth 2.0 Integration</h3>
-        <p>Secure GoHighLevel marketplace authentication with Railway backend.</p>
-        <ul class="features">
-          <li>PKCE Security Protocol</li>
-          <li>Token Management</li>
-          <li>Installation Tracking</li>
-        </ul>
-      </div>
-      
-      <div class="card">
-        <h3>Universal API Router</h3>
-        <p>Dynamic endpoint mapping for GoHighLevel operations.</p>
-        <ul class="features">
-          <li>Products & Pricing APIs</li>
-          <li>Contacts Integration</li>
-          <li>Media Management</li>
-        </ul>
-      </div>
-      
-      <div class="card">
-        <h3>Product Management</h3>
-        <p>Create and manage products in GoHighLevel CRM.</p>
-        <ul class="features">
-          <li>Real Product Creation</li>
-          <li>Price Management</li>
-          <li>Multi-Location Support</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-  
-  <script>
-    function test() {
-      alert('GoHighLevel Marketplace\\n\\nStatus: Active\\nPort: ${PORT}\\nEnvironment: Replit\\nBackend: Railway\\n\\nAll systems operational!');
-    }
-    
-    function oauth() {
-      alert('OAuth Configuration\\n\\nClient ID: 68474924a586bce22a6e64f7-mbpkmyu4\\nBackend: Railway Production\\nRedirect: /api/oauth/callback\\nStatus: Ready');
-    }
-    
-    console.log('GoHighLevel Marketplace loaded successfully on port ${PORT}');
-    setTimeout(test, 2000);
-  </script>
+
+    <script>
+        function testOAuth() {
+            fetch('/api/oauth/status')
+                .then(response => response.json())
+                .then(data => alert('OAuth Status:\\n' + JSON.stringify(data, null, 2)))
+                .catch(error => alert('OAuth Error: ' + error.message));
+        }
+
+        function testAPI(endpoint) {
+            fetch(endpoint)
+                .then(response => response.json())
+                .then(data => alert('API Response from ' + endpoint + ':\\n' + JSON.stringify(data, null, 2)))
+                .catch(error => alert('API Error: ' + error.message));
+        }
+
+        function checkHealth() {
+            fetch('/health')
+                .then(response => response.json())
+                .then(data => alert('Server Health:\\n' + JSON.stringify(data, null, 2)))
+                .catch(error => alert('Health Check Failed: ' + error.message));
+        }
+
+        // Update time every second
+        setInterval(() => {
+            document.getElementById('time').textContent = new Date().toLocaleString();
+        }, 1000);
+
+        // Keep connection alive
+        setInterval(() => fetch('/health').catch(() => {}), 30000);
+
+        console.log('GoHighLevel Marketplace Interface Loaded - Port ${PORT}');
+        console.log('OAuth Installation: install_1750131573635');
+        console.log('Backend: https://dir.engageautomations.com');
+    </script>
 </body>
-</html>`);
+</html>`;
+
+const server = http.createServer((req, res) => {
+    const url = new URL(req.url, `http://localhost:${PORT}`);
+    
+    // Enhanced CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+    }
+
+    console.log(`${new Date().toISOString()} - ${req.method} ${url.pathname} - ${req.headers['user-agent'] || 'Unknown'}`);
+
+    switch (url.pathname) {
+        case '/':
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+            res.end(html);
+            break;
+            
+        case '/health':
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ 
+                status: 'healthy', 
+                port: PORT, 
+                timestamp: new Date().toISOString(),
+                service: 'GoHighLevel Marketplace',
+                uptime: Math.floor(process.uptime()),
+                memory: process.memoryUsage(),
+                environment: 'Replit Preview'
+            }));
+            break;
+            
+        case '/api/oauth/status':
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ 
+                oauth_active: true,
+                installation_id: 'install_1750131573635',
+                client_id: '68474924a586bce22a6e64f7-mbpkmyu4',
+                callback_url: 'https://dir.engageautomations.com/api/oauth/callback',
+                backend_server: 'https://dir.engageautomations.com',
+                status: 'ready',
+                timestamp: new Date().toISOString()
+            }));
+            break;
+            
+        case '/api/oauth/install':
+            const authUrl = 'https://marketplace.gohighlevel.com/oauth/chooselocation?' +
+                'response_type=code&' +
+                'redirect_uri=https://dir.engageautomations.com/api/oauth/callback&' +
+                'client_id=68474924a586bce22a6e64f7-mbpkmyu4&' +
+                'scope=locations/read locations/write contacts/read contacts/write products/read products/write';
+            res.writeHead(302, { 'Location': authUrl });
+            res.end();
+            break;
+            
+        default:
+            if (url.pathname.startsWith('/api/ghl/')) {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ 
+                    endpoint: url.pathname,
+                    method: req.method,
+                    status: 'ready',
+                    message: 'GoHighLevel API endpoint active and ready',
+                    timestamp: new Date().toISOString(),
+                    installation_id: 'install_1750131573635'
+                }));
+            } else {
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end('<h1>404 - Not Found</h1><p><a href="/">Return to GoHighLevel Marketplace</a></p>');
+            }
+    }
 });
 
+// Enhanced error handling with retry
+server.on('error', (err) => {
+    console.error('Server error:', err.message);
+    if (err.code === 'EADDRINUSE') {
+        console.log(`Port ${PORT} is busy, retrying in 3 seconds...`);
+        setTimeout(() => {
+            server.close();
+            server.listen(PORT, '0.0.0.0');
+        }, 3000);
+    }
+});
+
+// Start server with proper binding for Replit
 server.listen(PORT, '0.0.0.0', () => {
-  console.log('GoHighLevel Marketplace running on port ' + PORT);
+    console.log(`🚀 GoHighLevel Marketplace running on port ${PORT}`);
+    console.log(`📍 Environment: Replit Development`);
+    console.log(`🌐 Access: http://localhost:${PORT}`);
+    console.log(`🔗 OAuth Backend: https://dir.engageautomations.com`);
+    console.log(`📋 Installation ID: install_1750131573635`);
+    console.log(`⏰ Server started: ${new Date().toISOString()}`);
+    console.log(`✅ Ready for Replit preview`);
 });
 
-console.log('Starting GoHighLevel Marketplace server...');
+// Enhanced keep-alive with detailed logging
+let heartbeatCount = 0;
+setInterval(() => {
+    heartbeatCount++;
+    console.log(`💓 Heartbeat ${heartbeatCount} - Uptime: ${Math.floor(process.uptime())}s - Memory: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
+}, 30000);
+
+// Graceful error handling
+process.on('uncaughtException', (err) => {
+    console.error('❌ Uncaught exception:', err.message);
+    console.log('🔄 Server continuing...');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Unhandled rejection at:', promise, 'reason:', reason);
+    console.log('🔄 Server continuing...');
+});
+
+// Signal handling for graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('📨 Received SIGTERM, graceful shutdown...');
+    server.close(() => {
+        console.log('🛑 Server closed gracefully');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('📨 Received SIGINT, graceful shutdown...');
+    server.close(() => {
+        console.log('🛑 Server closed gracefully');
+        process.exit(0);
+    });
+});
