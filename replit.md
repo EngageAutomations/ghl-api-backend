@@ -161,6 +161,15 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 18, 2025: Complete Token Refresh System and API Integration
+  - Implemented automatic OAuth token refresh endpoint at /api/oauth/refresh
+  - Enhanced /api/ghl/create-product endpoint with automatic token renewal logic  
+  - Token refresh occurs automatically when access token expires within 5 minutes
+  - Direct GoHighLevel API integration using location ID from stored OAuth installations
+  - System now handles expired tokens seamlessly without user intervention
+  - Railway backend integration for OAuth installation management
+  - Complete product creation flow with guaranteed store availability pricing
+
 - June 18, 2025: Core Data Fields Standardization and SEO Integration with Pricing Logic
   - Established core fields that pass through every form submission regardless of configuration:
     * Required fields: name, locationId, productType (DIGITAL/PHYSICAL/SERVICE/PHYSICAL-DIGITAL), price

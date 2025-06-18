@@ -2670,10 +2670,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Test product creation with stored OAuth tokens
-  app.post("/api/test/ghl-product", async (req, res) => {
+  // OAuth token refresh endpoint
+  app.post("/api/oauth/refresh", async (req, res) => {
     try {
-      console.log("=== TESTING GHL PRODUCT CREATION ===");
+      console.log("=== TOKEN REFRESH REQUEST ===");
+      
+      // Get installation from Railway backend
+      const installationsResponse = await fetch('https://dir.engageautomations.com/api/debug/installations');
+      const installationsData = await installationsResponse.json();
+      
+      if (!installationsData.success || installationsData.installations.length === 0) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "No OAuth installations found" 
+        });
+      }
+      
+      const installation = installationsData.installations[0];
+      
+      if (!installation.ghlRefreshToken) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "No refresh token available" 
+        });
+      }
+      
+      // Call GoHighLevel token refresh endpoint
+      const refreshResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          client_id: process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4',
+          client_secret: process.env.GHL_CLIENT_SECRET || '',
+          grant_type: 'refresh_token',
+          refresh_token: installation.ghlRefreshToken
+        })
+      });
+      
+      const refreshData = await refreshResponse.json();
+      
+      if (!refreshResponse.ok) {
+        console.error("Token refresh failed:", refreshData);
+        return res.status(400).json({ 
+          success: false, 
+          error: "Token refresh failed",
+          details: refreshData
+        });
+      }
+      
+      console.log("Token refreshed successfully");
+      
+      // Update installation on Railway backend
+      await fetch('https://dir.engageautomations.com/api/oauth/installation', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          installationId: installation.id,
+          ghlAccessToken: refreshData.access_token,
+          ghlTokenExpiresAt: new Date(Date.now() + (refreshData.expires_in * 1000)).toISOString()
+        })
+      });
+      
+      res.json({
+        success: true,
+        access_token: refreshData.access_token,
+        expires_in: refreshData.expires_in,
+        message: "Token refreshed successfully"
+      });
+      
+    } catch (error) {
+      console.error("Token refresh error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to refresh token",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Enhanced create-product endpoint with automatic token refresh
+  app.post("/api/ghl/create-product", async (req, res) => {
+    try {
+      console.log("=== GHL PRODUCT CREATION REQUEST ===");
       
       // Get stored OAuth installation data
       const installationsResponse = await fetch('https://dir.engageautomations.com/api/debug/installations');
@@ -2695,8 +2775,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Create test product data
-      // Core fields that always pass through regardless of form configuration
+      // Check if token needs refresh (expires within 5 minutes)
+      let accessToken = installation.ghlAccessToken;
+      if (installation.ghlTokenExpiresAt) {
+        const expiryTime = new Date(installation.ghlTokenExpiresAt);
+        const now = new Date();
+        const timeUntilExpiry = expiryTime.getTime() - now.getTime();
+        
+        if (timeUntilExpiry < (5 * 60 * 1000)) { // 5 minutes
+          console.log("Token near expiry, refreshing...");
+          
+          const refreshResponse = await fetch(`${req.protocol}://${req.get('host')}/api/oauth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+            accessToken = refreshData.access_token;
+            console.log("Token refreshed successfully for product creation");
+          } else {
+            console.error("Token refresh failed, proceeding with existing token");
+          }
+        }
+      }
+      
+      // Create product data with core fields
       const productData = {
         // Required fields - GoHighLevel API requirements
         name: req.body.name || "Untitled Product",
@@ -2742,27 +2846,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Creating product with data:", productData);
       console.log("Using access token from installation:", installation.id);
       
-      // Use our updated API class
-      const product = await ghlAPI.createProduct(productData, installation.ghlAccessToken);
+      // Call GoHighLevel Product Creation API directly
+      const ghlResponse = await fetch('https://services.leadconnectorhq.com/products/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'Version': '2021-07-28'
+        },
+        body: JSON.stringify(productData)
+      });
       
-      console.log("Product created successfully:", product);
+      const ghlResult = await ghlResponse.json();
+      
+      if (!ghlResponse.ok) {
+        console.error("GoHighLevel API error:", ghlResult);
+        return res.status(ghlResponse.status).json({ 
+          success: false, 
+          error: "GoHighLevel API error",
+          details: ghlResult
+        });
+      }
+      
+      console.log("Product created successfully in GoHighLevel:", ghlResult);
       
       res.json({ 
         success: true, 
-        product: product,
+        product: ghlResult,
         installation: {
           id: installation.id,
           ghlLocationId: installation.ghlLocationId,
           ghlLocationName: installation.ghlLocationName
         },
-        message: "Product created successfully in GoHighLevel using OAuth tokens"
+        message: "Product created successfully in GoHighLevel"
       });
       
     } catch (error) {
-      console.error("Test product creation error:", error);
+      console.error("Product creation error:", error);
       res.status(500).json({ 
         success: false, 
-        error: "Failed to test product creation",
+        error: "Failed to create product",
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
