@@ -156,7 +156,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           };
 
           // Call Railway backend endpoint directly for reliable token management
-          const ghlResponse = await fetch('https://dir.engageautomations.com/api/ghl/products/create', {
+          const ghlResponse = await fetch('/api/ghl/products/create', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'

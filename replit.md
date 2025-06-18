@@ -1,310 +1,114 @@
-# GoHighLevel OAuth Marketplace Application
+# GoHighLevel Directory & Collections Management System
 
 ## Overview
 
-This is a full-stack marketplace application that provides OAuth integration with GoHighLevel and a universal API system for accessing GoHighLevel endpoints. The application enables users to authenticate with their GoHighLevel accounts and perform various operations through a unified API interface.
+This is a full-stack web application that provides comprehensive directory and collections management capabilities designed for GoHighLevel marketplace integration. The system enables users to create directories, manage product listings, and organize them into collections with automated synchronization capabilities.
 
 ## System Architecture
 
-The application follows a modern full-stack architecture with clear separation between frontend and backend concerns:
+### Frontend Architecture
+- **Technology Stack**: React TypeScript with Vite for development
+- **Routing**: Wouter for lightweight client-side routing
+- **State Management**: TanStack Query for server state management and caching
+- **UI Framework**: Tailwind CSS with shadcn/ui components
+- **Animations**: Framer Motion for enhanced user experience
 
-- **Frontend**: React-based single-page application built with Vite
-- **Backend**: Express.js server with TypeScript/Node.js
-- **Database**: PostgreSQL with Drizzle ORM
-- **Deployment**: Configured for Replit autoscale deployment
-- **Authentication**: OAuth 2.0 integration with GoHighLevel
+### Backend Architecture
+- **Server Framework**: Express.js Node.js server
+- **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
+- **API Design**: RESTful API with comprehensive CRUD operations
+- **Authentication**: Session-based authentication with OAuth capabilities
+
+### Database Architecture
+- **Relationship Model**: Many-to-many relationships between collections and products
+- **Organization**: Directory-based logical grouping
+- **External Integration**: Schema designed with GoHighLevel API integration fields
 
 ## Key Components
 
-### Backend Architecture
+### Core Data Models
+- **Users**: Authentication and user management with OAuth support
+- **Directories**: Top-level organizational containers for listings
+- **Listings**: Individual product/service entries with rich metadata
+- **Collections**: Curated groups of related listings
+- **Collection Items**: Junction table managing many-to-many relationships
+- **Designer Configs**: UI customization and styling configurations
+- **OAuth Installations**: GoHighLevel integration tracking
 
-**Express Server (`server/index.ts`)**
-- Main server entry point handling API routes
-- OAuth callback management
-- Universal API routing system
+### Frontend Components
+- **Dashboard Navigation**: Single-page application with context-aware routing
+- **Configuration Wizard**: Multi-step setup process with validation
+- **Dynamic Form Builder**: Customizable form field management
+- **Collection Management**: Drag-and-drop organization interface
+- **Real-time Updates**: Live synchronization across components
 
-**Database Layer**
-- **Schema**: Defined in `shared/schema.ts` with user and OAuth installation tables
-- **Connection**: Neon PostgreSQL serverless connection (`server/db.ts`)
-- **Storage Interface**: Abstracted storage operations (`server/storage.ts`)
-
-**OAuth System**
-- GoHighLevel OAuth 2.0 implementation
-- Token storage and refresh management
-- User session management with JWT
-- Installation tracking for marketplace apps
-
-**Session Recovery System**
-- Embedded CRM tab session restoration across devices
-- Cookie-independent authentication for iframe embedding
-- Multi-method user identification (User ID, Location ID, Installation ID)
-- Database-driven session recovery using existing OAuth installations
-- Automatic detection and recovery for cleared cookies or browser restrictions
-- Cross-device compatibility without re-authentication requirements
-
-**Universal API System**
-- Dynamic routing for all GoHighLevel API endpoints
-- Configuration-driven endpoint management
-- Automatic authentication injection
-- Comprehensive error handling
-
-### Frontend Architecture
-
-**React Application**
-- Vite-based build system
-- TypeScript for type safety
-- Tailwind CSS with shadcn/ui components
-- React Query for API state management
-
-**UI Components**
-- Comprehensive component library using Radix UI primitives
-- Consistent design system with CSS variables
-- Responsive design patterns
-
-### Key Features
-
-**OAuth Integration**
-- Complete marketplace OAuth flow
-- Automatic token refresh
-- Secure token storage
-- User account linking
-
-**Universal API Router**
-- Single endpoint handles all GoHighLevel APIs
-- Dynamic parameter extraction
-- Automatic location ID injection
-- Scope-based access control
-
-**API Categories Supported**
-- Products and pricing management
-- Contact management
-- Location operations
-- Opportunities and pipeline management
-- Workflows and automation
-- Forms and surveys
-- Media file management
+### Backend Services
+- **Authentication Middleware**: JWT and OAuth token management
+- **GoHighLevel OAuth Service**: Complete OAuth 2.0 integration
+- **API Route Handlers**: Comprehensive endpoint coverage
+- **Database Storage Layer**: Abstracted data access with multiple storage backends
 
 ## Data Flow
 
-1. **OAuth Authentication**
-   - User initiates OAuth through GoHighLevel marketplace
-   - Application receives authorization code
-   - Token exchange and user data capture
-   - Installation record creation with access tokens
+### Primary User Flow
+1. **Authentication**: Users authenticate via local login or GoHighLevel OAuth
+2. **Directory Creation**: Users create directories with custom configurations
+3. **Listing Management**: Products are added and organized within directories
+4. **Collection Organization**: Related listings are grouped into collections
+5. **Code Generation**: Custom integration code is generated for embedding
+6. **External Sync**: Data synchronizes with GoHighLevel when configured
 
-2. **Session Recovery for Embedded CRM Tab Access**
-   - User clicks app tab within GoHighLevel CRM
-   - System detects embedded access with user/location parameters
-   - Database lookup finds existing OAuth installation
-   - Automatic session restoration without re-authentication
-   - Cross-device compatibility with cookie-independent authentication
-
-3. **API Request Processing**
-   - Frontend makes requests to `/api/ghl/*` endpoints
-   - Middleware validates OAuth tokens
-   - Universal router matches endpoint configuration
-   - Parameters extracted and validated
-   - Request forwarded to GoHighLevel with authentication
-   - Response processed and returned to frontend
-
-4. **Database Operations**
-   - User data stored in PostgreSQL
-   - OAuth installations tracked with tokens
-   - Session recovery data maintained for cross-device access
-   - Drizzle ORM provides type-safe database operations
+### API Data Flow
+1. **Client Requests**: Frontend makes API calls through TanStack Query
+2. **Authentication Check**: Middleware validates user sessions
+3. **Database Operations**: Drizzle ORM handles type-safe database interactions
+4. **Response Formatting**: Consistent JSON responses with error handling
+5. **State Updates**: Frontend state automatically updates via cache invalidation
 
 ## External Dependencies
 
-**Core Framework Dependencies**
-- Express.js for backend API server
-- React for frontend user interface
-- Vite for build tooling and development server
+### Core Dependencies
+- **React 18+**: Frontend framework
+- **Express.js**: Backend server framework
+- **PostgreSQL**: Primary database
+- **Drizzle ORM**: Database toolkit and query builder
+- **TanStack Query**: Server state management
+- **Tailwind CSS**: Utility-first CSS framework
+- **Wouter**: Lightweight React router
 
-**Database & ORM**
-- PostgreSQL (Neon serverless)
-- Drizzle ORM for database operations
-- Database migrations support
+### Development Dependencies
+- **Vite**: Build tool and development server
+- **TypeScript**: Type safety and development experience
+- **Replit**: Development environment and hosting
+- **PostCSS**: CSS processing
+- **ESLint/Prettier**: Code quality tools
 
-**Authentication & API**
-- GoHighLevel OAuth 2.0 integration
-- JWT for session management
-- Axios for HTTP client operations
-
-**UI & Styling**
-- Tailwind CSS for styling
-- Radix UI for accessible components
-- shadcn/ui component library
-
-**Development Tools**
-- TypeScript for type safety
-- ESBuild for production builds
-- Testing framework for API validation
+### External Integrations
+- **GoHighLevel API**: OAuth authentication and data synchronization
+- **Google Drive API**: File storage and management (configured)
+- **OpenAI API**: AI-powered features (optional)
 
 ## Deployment Strategy
 
-**Replit Deployment**
-- Autoscale deployment target
-- Multi-port configuration (3000, 5000, 8080)
-- Automated build and start scripts
-- Environment variable management
+### Development Environment
+- **Platform**: Replit with Node.js 20 and PostgreSQL 16 modules
+- **Hot Reload**: Vite development server with automatic reloading
+- **Database**: Local PostgreSQL instance with automatic migrations
 
-**Build Process**
-- Frontend build with Vite
-- Backend compilation with ESBuild
-- Static asset optimization
-- Production environment configuration
+### Production Deployment
+- **Target**: Replit Autoscale deployment
+- **Build Process**: `npm run build` creates optimized production bundle
+- **Server**: Express.js serves static files and API endpoints
+- **Database**: Production PostgreSQL with connection pooling
 
-**Database**
-- PostgreSQL module provisioned
-- Connection pooling configured
-- Migration support ready
-
-## Recent Changes
-
-- June 18, 2025: Complete Form-to-API Integration with Railway Backend
-  - Successfully mapped form submissions to Railway backend API at dir.engageautomations.com
-  - Form now calls /api/ghl/products/create endpoint with installation ID for automatic token management
-  - Railway backend handles all OAuth token refresh automatically using installation_1750252333303
-  - Products created successfully in GoHighLevel: "Railway Backend Test Product" and "Marketplace Integration Demo"
-  - Form integrates pricing logic: $100 default when pricing disabled, user input when enabled
-  - Local listings store GoHighLevel location ID for cross-platform tracking
-  - Toast notifications confirm successful product creation in GoHighLevel account
-  - Complete end-to-end flow: form submission → Railway backend → GoHighLevel API → product creation
-
-- June 18, 2025: Core Data Fields Standardization and SEO Integration with Pricing Logic
-  - Established core fields that pass through every form submission regardless of configuration:
-    * Required fields: name, locationId, productType (DIGITAL/PHYSICAL/SERVICE/PHYSICAL-DIGITAL), price
-    * Standard fields: description, availableInStore (defaults to true), image, SEO data
-    * Optional configurable fields: variants, medias, taxes, labels, collections
-  - Implemented pricing logic for GoHighLevel store availability:
-    * Price field completely hidden when directory has pricing disabled
-    * Default $100 price automatically applied when pricing is disabled to ensure store availability
-    * Visual indicator shows "Price Hidden (Default $100)" when pricing is off
-    * User-entered prices used when pricing is enabled in directory configuration
-  - Added comprehensive SEO fields (meta title, meta description, keywords) to all listing creation forms
-  - SEO fields automatically pre-fill from title and description but allow independent editing
-  - Character count validation with optimal SEO length guidelines (60 chars for title, 160 for description)
-  - Visual feedback for SEO optimization (warnings for too long/short content)
-  - Database schema updated with new SEO columns: meta_title, meta_description, seo_keywords, ghl_product_id, ghl_location_id
-  - Backend API ensures core fields always pass through to GoHighLevel with proper data validation
-  - Form submission includes SEO data for both new listings and updates
-  - SEO fields maintain independence from original content - editing SEO doesn't affect title/description
-
-- June 18, 2025: GoHighLevel Product Creation with OAuth Token Refresh Implementation
-  - Replaced "Add Listing" button with professional "Create GHL Product" form in directory details
-  - Built GHLProductCreator component with name, description, type, and pricing fields
-  - Implemented dual creation system: creates both GoHighLevel products and local listings simultaneously
-  - Added automatic OAuth token refresh logic to prevent expired token failures
-  - Created comprehensive Railway backend implementation report for consultant deployment
-  - Enhanced /api/ghl/create-product endpoint with automatic token refresh before API calls
-  - Prepared complete Railway deployment package with refresh endpoint and error handling
-
-- June 15, 2025: Enhanced OAuth Dual-Domain Architecture Deployed to Railway
-  - Deployed complete enhanced OAuth system to Railway production backend
-  - Authorization Code with PKCE flow now handling real marketplace installations
-  - Universal API Router active supporting 50+ GoHighLevel endpoints via /api/ghl/*
-  - Session recovery system deployed for embedded CRM tab access
-  - Automatic token management with refresh capabilities in production
-  - Professional OAuth success page with error handling deployed
-  - Cross-device compatibility with cookie-independent authentication live
-  - Health check endpoint (/health) configured for Railway monitoring
-  - Production-ready system now handling real GoHighLevel marketplace installations
-
-- June 14, 2025: Data Saving Fix Implementation Completed
-  - Resolved critical 404 errors preventing directories, collections, and listings from saving
-  - Implemented SimpleStorage solution with working CRUD operations for all core entities
-  - Created dedicated working routes (server/working-routes.ts) with proper error handling and logging
-  - Fixed authentication and type mismatch conflicts between storage implementations
-  - All data now persists properly: directories save with listing statistics, collections create with user association, listings save with slug validation
-  - UI-to-API mapping now functional for core operations while maintaining sophisticated OAuth integration
-  - Two-domain architecture (custom + Replit) confirmed working with Railway OAuth backend
-
-- June 14, 2025: Custom Domain Production Deployment Completed
-  - Fixed Internal Server Error on custom domain with proper production configuration
-  - Implemented fallback static interface with professional marketplace design
-  - Added health check endpoint for deployment monitoring
-  - Configured proper static file serving for production environments
-  - Custom domain listings.engageautomations.com now displays functional marketplace interface
-  - Production deployment ready with OAuth integration and API management access
-
-- June 14, 2025: Real OAuth Credentials Successfully Captured
-  - Updated Railway backend with installation detail endpoints
-  - Successfully completed OAuth flow with authentic GoHighLevel account
-  - Captured real access token (valid until June 15, 2025) and refresh token (valid until 2026)
-  - Location ID: WAVk87RmW9rBSDJHeOpH confirmed and accessible
-  - Scopes include: products, media, locations, contacts (read/write permissions)
-  - Credentials stored locally in .env.real for development testing
-  - Ready to test directory logo upload API with authentic account data
-
-- June 14, 2025: OAuth Real Data Capture System Fixed
-  - Fixed OAuth callback to properly capture real GoHighLevel account data during app installations
-  - Implemented direct SQL database storage to avoid schema field mapping conflicts
-  - Added comprehensive logging to track OAuth flow and authentic data capture
-  - Removed dependency on demo/placeholder data for testing API functionality
-  - Directory logo upload API ready to work with real access tokens and location data
-  - OAuth callback system now stores: access tokens, refresh tokens, user info, location data, token expiry
-
-- June 13, 2025: Complete Custom Domain Configuration
-  - Updated Railway backend redirect URI to listings.engageautomations.com
-  - Configured CORS origins for custom domain access
-  - Updated all OAuth flow URLs to use professional domain
-  - Verified authentication error handling and installation-required redirects
-  - Ready for GoHighLevel marketplace deployment with custom domain
-
-- June 13, 2025: Embedded CRM Tab Session Recovery System Implementation
-  - Comprehensive session recovery for GoHighLevel CRM tab access
-  - Multi-method user identification: GoHighLevel User ID, Location ID, Installation ID
-  - Cross-device session restoration without re-authentication
-  - Cookie-independent authentication supporting iframe embedding
-  - Automatic detection and recovery for cleared cookies or different devices
-  - Database-driven session recovery using existing OAuth installations
-  - Iframe-compatible cookie settings with sameSite: 'none' for embedded access
-  - Session recovery endpoints: /api/auth/recover and /api/auth/check-embedded
-
-- June 13, 2025: Marketplace Installation Flow Optimization
-  - Removed OAuth connection screen requirement for marketplace installations
-  - Updated root route to handle marketplace OAuth callbacks automatically
-  - Configured direct redirect to API management interface after successful OAuth
-  - Streamlined user experience: install from marketplace → immediate access to APIs
-  - Maintained development OAuth screen at /oauth-app for testing purposes
-
-- June 13, 2025: Complete Media Library API Suite Integration
-  - Added Get List of Files API with advanced filtering, sorting, and multi-tenant support
-  - Integrated Upload File API with multipart/form-data handling for binary and hosted uploads
-  - Updated endpoint configurations to match exact GoHighLevel specifications
-  - Demonstrated sophisticated parameter management across diverse endpoint patterns
-  - Achieved 50+ GoHighLevel operations support through configuration-driven architecture
-
-- June 13, 2025: Universal API System Enhancement
-  - Advanced query parameter handling for complex filtering scenarios
-  - Multipart upload support with dual upload modes (direct file and remote URL)
-  - Pattern flexibility supporting both global and location-specific endpoints
-  - Content type intelligence for JSON, form data, and query parameters
-  - Zero-maintenance scalability with configuration-only endpoint additions
+### Environment Configuration
+- **Development**: Local `.env` file with development credentials
+- **Production**: Environment variables managed through Replit secrets
+- **Feature Flags**: Environment-based feature toggling
 
 ## Changelog
 
-- June 13, 2025. Initial setup and universal API system development
-
-## Session Recovery Benefits
-
-**Business Value**
-- Eliminates user frustration from lost sessions in embedded CRM tabs
-- Reduces support tickets related to authentication issues
-- Provides seamless experience across multiple devices and browsers
-- Maintains professional appearance with automatic session restoration
-
-**Technical Benefits**
-- Cookie-independent authentication works in restrictive iframe environments
-- Database-driven recovery using existing OAuth installations
-- Multi-method identification ensures maximum compatibility
-- Automatic detection requires no user intervention
-
-**User Experience**
-- One-click access from any GoHighLevel CRM tab
-- No re-authentication required when switching devices
-- Seamless operation despite cleared cookies or browser restrictions
-- Professional embedded app experience matching enterprise expectations
+- June 18, 2025. Initial setup
 
 ## User Preferences
 

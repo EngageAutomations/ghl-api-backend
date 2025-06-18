@@ -1,0 +1,206 @@
+Full-scope brief for the Replit agent
+(single-column format, copy/paste friendly)
+
+1 – Project purpose
+A lightweight Node/Express backend that proxies GoHighLevel (GHL) APIs and auto-refreshes OAuth access-tokens so the frontend never worries about authentication.
+
+2 – Key files
+index.js ← all logic (routes + token lifecycle)
+
+package.json ← scripts + deps
+
+(optional) data layer file/DB adapter if you decide to persist installs
+
+3 – Required secrets (Replit Secrets tab)
+nginx
+Copy
+Edit
+GHL_CLIENT_ID        # marketplace client ID
+GHL_CLIENT_SECRET    # marketplace client secret
+GHL_REDIRECT_URI     # https://<repl>.repl.co/api/oauth/callback
+# optional seed token for local smoke test
+GHL_ACCESS_TOKEN     # (can omit in prod)
+4 – How the token system works
+OAuth callback
+
+Exchanges code → { access_token, refresh_token, expires_in }.
+
+Creates an installation object in memory with
+
+yaml
+Copy
+Edit
+accessToken, refreshToken,
+expiresIn,  expiresAt = now + expires_in * 1000
+Calls scheduleTokenRefresh() (see below).
+
+scheduleTokenRefresh()
+
+Calculates expiresAt – 5 min.
+
+Sets a setTimeout that will invoke refreshAccessToken().
+
+refreshAccessToken()
+
+Sends grant_type=refresh_token to GHL.
+
+Re-writes accessToken, refreshToken, expiresIn, expiresAt.
+
+Re-schedules itself for the next cycle.
+
+Per-request guard (ensureFreshToken())
+
+Runs on every route right before the outbound GHL call.
+
+If token will expire in <5 min, it refreshes synchronously.
+
+Guarantees the Axios call always uses a fresh Bearer token.
+
+Process restart
+
+On boot, loops over whatever installs are loaded and re-arms their refresh timers.
+
+5 – Endpoints you expose
+bash
+Copy
+Edit
+GET  /health                         # basic status JSON
+GET  /oauth/callback                 # primary GHL callback
+GET  /api/oauth/callback             # prefixed variant for marketplace
+GET  /api/oauth/status?installation_id=…
+GET  /api/ghl/test-connection
+GET  /api/ghl/products               # ?installation_id=…&limit=&offset=
+POST /api/ghl/products/create
+POST /api/ghl/contacts/create
+POST /api/ghl/test-product
+All data routes expect installation_id so they know which token to use.
+
+6 – Run command
+Replit auto-detects "start": "node index.js" so just press Run
+(or ensure .replit contains run = "npm start").
+
+7 – Persistence options
+Option	Pros	Cons
+In-memory only (default)	zero setup	tokens vanish when the Repl restarts/sleeps; user must re-OAuth
+Replit DB	2-line API, persists across restarts	not multi-region; add code to read initial installs + write on change
+External Redis/Postgres	survives restarts, supports multiple replicas, row locking	extra service to manage
+
+Implementation hint: serialize the entire install object; on server start read all rows, installations.set(id, obj), then scheduleTokenRefresh(id).
+
+8 – Scaling & concurrency
+Single instance → nothing to do.
+
+Multiple instances (Replit reserved VM or Railway scale) → wrap refreshAccessToken() with a distributed lock (e.g. Redlock on Redis) so only one replica refreshes each token.
+
+9 – Observability
+Log tags to watch:
+
+pgsql
+Copy
+Edit
+[REFRESH] install_xxxx – new token good for 23.9 h
+[REFRESH-FAIL] install_xxxx {error json}
+Add alerts for REFRESH-FAIL spikes.
+
+10 – Smoke-test checklist
+bash
+Copy
+Edit
+# 1. Ensure the server is running
+curl https://<repl>.repl.co/health
+
+# 2. Complete OAuth in the browser, capture installation_id
+
+# 3. Hit a protected route
+curl "https://<repl>.repl.co/api/ghl/products?installation_id=install_123"
+Expected: JSON list of products, no 401/403.
+
+11 – Common gotchas
+Missing installation_id → 400 with "Installation not found".
+
+Token revocation by user → refresh call returns invalid_grant; object’s tokenStatus flips to invalid; route returns 400. Prompt user to re-connect.
+
+Repl sleeps → if you kept RAM-only storage, installs are wiped; user must re-OAuth or you must reload from DB.
+
+12 – TL;DR for any dev touching this repo
+Clone → add secrets → npm install && npm start → use /health to confirm → complete OAuth once → call API routes with installation_id; tokens auto-refresh forever (or until you restart without persistence).
+
+
+
+
+
+
+
+You said:
+can we upload images with this scope?
+
+
+ChatGPT said:
+
+Thought for 10 seconds
+Yes.
+Because the installation’s scope string already includes
+
+arduino
+Copy
+Edit
+medias.write medias.readonly
+you have full permission to upload images (and other files) into the GoHighLevel Media Library. The endpoint is:
+
+nginx
+Copy
+Edit
+POST https://services.leadconnectorhq.com/medias/upload-file
+(required scope = medias.write). 
+marketplace.gohighlevel.com
+marketplace.gohighlevel.com
+
+Minimal test call (cURL)
+bash
+Copy
+Edit
+curl -X POST https://services.leadconnectorhq.com/medias/upload-file \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Version: 2021-07-28" \
+  -F "file=@./banner.jpg" \
+  -F "fileName=banner.jpg" \
+  -F "locationId=<LOCATION_ID>"
+file – actual binary upload (max 25 MB)
+
+fileName – what will appear in the library
+
+locationId – your sub-account (already saved on the install object)
+
+optional: folderId, hosted=true + fileUrl=<remote-URL> if you want GHL to pull the asset itself
+
+How to call it from your refreshed backend
+Inside any route handler:
+
+js
+Copy
+Edit
+await ensureFreshToken(installation.id);  // guarantees live token
+
+const form = new FormData();
+form.append('file', fs.createReadStream('./banner.jpg'));
+form.append('fileName', 'banner.jpg');
+form.append('locationId', installation.locationId);
+
+const { data } = await axios.post(
+  'https://services.leadconnectorhq.com/medias/upload-file',
+  form,
+  {
+    headers: {
+      ...form.getHeaders(),                   // multipart boundary
+      Authorization: `Bearer ${installation.accessToken}`,
+      Version: '2021-07-28',
+      Accept: 'application/json',
+    },
+    timeout: 15000,
+  }
+);
+
+console.log('Upload success → fileId:', data.fileId);
+Because ensureFreshToken() runs first, the call will work even if the access-token expired seconds ago—the on-demand refresh makes the token valid before the upload leaves the server.
+
+That’s all you need; the current scope set already unlocks image uploads, so just point your request at /medias/upload-file and include the binary or remote URL.
