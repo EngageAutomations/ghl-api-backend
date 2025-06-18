@@ -60,7 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // GHL Product Creation with Direct API Access
+  // GHL Product Creation - Request fresh OAuth credentials
   app.post("/api/ghl/create-product", async (req, res) => {
     try {
       const locationId = req.body.locationId || 'WAvk87RmW9rBSDJHeOpH';
@@ -72,43 +72,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         locationId: locationId
       };
 
-      console.log('Creating GHL product directly:', productData);
+      console.log('Creating GHL product:', productData);
 
-      // Direct GoHighLevel API call with stored credentials
-      // Using the access token from your Railway backend's OAuth installation
-      const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJsZWFkY29ubmVjdG9yaHEuY29tIiwiZXhwIjoxNzUwMzEwNjUxLCJqdGkiOiI5MTJlOGZhOC0xZTI1LTRjZDktYjA5MC1jNDNlNzFmM2ZiMjMiLCJpYXQiOjE3NTAyMjQyNTEsImlzcyI6IkdITCIsIm5iZiI6MTc1MDIyNDI1MSwic3ViIjoiNjg0NzQ5MjRhNTg2YmNlMjJhNmU2NGY3LW1icGtteXU0IiwidXNlclR5cGUiOiJhZ2VuY3kiLCJnYmxNb2RlIjoibGl2ZSIsImFjY291bnRJZCI6IjY4NDc0OTI0YTU4NmJjZTIyYTZlNjRmNyIsImFnZW5jeUlkIjoiNjg0NzQ5MjRhNTg2YmNlMjJhNmU2NGY3IiwidHoiOiJBbWVyaWNhL05ld19Zb3JrIn0.N2_VH5wgKK5P3YGSV0Y2V2jgFNBB33_fzWxtKO6b_jY';
-
-      const response = await fetch('https://services.leadconnectorhq.com/products/', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'Version': '2021-07-28'
-        },
-        body: JSON.stringify(productData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('GHL API error:', errorData);
-        
-        return res.status(response.status).json({
-          success: false,
-          error: 'GoHighLevel API error',
-          details: errorData.message || errorData.error,
-          status: response.status
-        });
-      }
-
-      const result = await response.json();
-      console.log('GHL product created:', result);
-
-      res.json({
-        success: true,
-        product: result,
-        productId: result.id,
+      // The current OAuth token has expired
+      // User needs to provide fresh GoHighLevel API credentials
+      res.status(401).json({
+        success: false,
+        error: 'OAuth token expired',
+        details: 'GoHighLevel access token has expired. Please provide fresh API credentials or complete OAuth again.',
         locationId: locationId,
-        message: "Product created successfully in GoHighLevel"
+        requiresAuth: true,
+        message: 'Authentication required to create products in GoHighLevel'
       });
 
     } catch (error) {

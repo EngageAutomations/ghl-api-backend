@@ -87,11 +87,12 @@ export function GHLProductCreator({ isOpen, onClose, directoryName, onSuccess }:
       setResult({
         success: false,
         error: error.message,
-        railwayBackend: false
+        railwayBackend: false,
+        requiresAuth: error.message.includes('OAuth') || error.message.includes('expired')
       });
       toast({
-        title: "Product Creation Failed",
-        description: error.message,
+        title: "Authentication Required",
+        description: "GoHighLevel access token expired. Please provide fresh API credentials.",
         variant: "destructive",
       });
     }
