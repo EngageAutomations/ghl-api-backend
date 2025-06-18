@@ -1035,6 +1035,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const listings = simpleDataStore.getListingsByDirectory(directoryName);
       console.log("Found listings:", listings.length);
+      console.log("Listings data:", listings);
       res.status(200).json(listings);
     } catch (error) {
       console.error("Error fetching listings for directory:", error);
@@ -3202,6 +3203,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching OAuth installations:", error);
       res.status(500).json({ error: "Failed to fetch OAuth installations" });
+    }
+  });
+
+  // Debug endpoint to check simple storage contents
+  app.get("/api/debug/simple-storage", (req, res) => {
+    try {
+      const allListings = simpleDataStore.getListingsByUser(1);
+      const allDirectories = simpleDataStore.getDirectoriesByUser(1);
+      res.json({
+        listings: allListings,
+        directories: allDirectories,
+        listingCount: allListings.length,
+        directoryCount: allDirectories.length
+      });
+    } catch (error) {
+      console.error("Error fetching simple storage data:", error);
+      res.status(500).json({ error: "Failed to fetch simple storage data" });
     }
   });
 
