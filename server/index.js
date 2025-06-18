@@ -9,8 +9,9 @@ import path from "path";
 import fs from "fs";
 
 const isProd   = process.env.NODE_ENV === "production";
-const PORT     = Number(process.env.PORT) || 5000;
-console.log("[DEBUG] process.env.PORT =", process.env.PORT);
+// Replit PORT detection with fallback
+const PORT = process.env.PORT ? parseInt(process.env.PORT.toString().replace(/[^\d]/g, '')) : 5000;
+console.log(`[SERVER] Starting on port ${PORT}`);
 
 const app = express();
 
