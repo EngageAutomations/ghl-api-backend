@@ -1987,15 +1987,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/ghl/products", async (req, res) => {
     try {
+      console.log("POST /api/ghl/products received:", JSON.stringify(req.body, null, 2));
+      console.log("Headers:", req.headers);
+      
       const accessToken = req.headers.authorization?.replace('Bearer ', '');
       
       if (!accessToken) {
+        console.log("Missing authorization header");
         return res.status(401).json({ error: "Authorization header with Bearer token required" });
       }
       
       // Validate required fields per GHL API spec
       const { name, locationId, productType } = req.body;
+      console.log("Required fields check:", { name, locationId, productType });
+      
       if (!name || !locationId || !productType) {
+        console.log("Missing required fields:", { name: !!name, locationId: !!locationId, productType: !!productType });
         return res.status(400).json({ 
           error: "Missing required fields: name, locationId, and productType are required" 
         });

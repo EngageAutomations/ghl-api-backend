@@ -449,28 +449,42 @@ export class GoHighLevelAPI {
     return GHLProductSchema.parse(response.product);
   }
 
-  async createProduct(productData: z.infer<typeof GHLCreateProductSchema>, accessToken: string): Promise<GHLProduct> {
-    // Validate input data
-    const validatedData = GHLCreateProductSchema.parse(productData);
+  async createProduct(productData: any, accessToken: string): Promise<GHLProduct> {
+    // Extract locationId from productData
+    const { locationId, ...productFields } = productData;
     
-    // Use the correct GHL API endpoint from the documentation
-    const response = await fetch('https://services.leadconnectorhq.com/products/', {
+    if (!locationId) {
+      throw new Error('Location ID is required for product creation');
+    }
+    
+    // Use the correct location-specific endpoint
+    const response = await fetch(`https://services.leadconnectorhq.com/products/`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
         'Version': '2021-07-28',
       },
-      body: JSON.stringify(validatedData),
+      body: JSON.stringify({
+        locationId,
+        ...productFields
+      }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('GHL Create Product API Error Details:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText,
+        requestData: { locationId, ...productFields }
+      });
       throw new Error(`GHL Create Product API Error: ${response.status} ${errorText}`);
     }
 
     const responseData = await response.json();
-    return GHLProductSchema.parse(responseData);
+    console.log('GHL Product Creation Success:', responseData);
+    return responseData.product || responseData;
   }
 
   async updateProduct(locationId: string, productId: string, updates: Partial<GHLProduct>, accessToken: string): Promise<GHLProduct> {

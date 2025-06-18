@@ -219,13 +219,24 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
         seoKeywords: data.seoKeywords || ''
       };
 
-      return apiRequest('/api/ghl/products/create', {
+      const response = await fetch('/api/ghl/products', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ghl_eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6IjY3NWQwNmI4ZDU5NzJjNzUyNGQ5OGY0MCIsImNsaWVudFNlY3JldCI6IjMyMzE4OWU0LTcyNmMtNDJmMy1iYjk4LWFiOWMyZTdlNmI3YyIsInVzZXJUeXBlIjoiTG9jYXRpb24iLCJ1c2VySWQiOiJXQVZrODdSbVc5ckJTREpIZU9wSCIsInNvdXJjZSI6IlB1YmxpY0FwaSIsImV4cCI6MTc1MDI2MDcyMiwiaWF0IjoxNzUwMTc0MzIyfQ._R_ZP7VhxDjpOc9TVvmqEyUr6M4LIqP5iCxuC6Y2aBI'
+        },
         body: JSON.stringify({
           installationId: 'install_1750252333303',
           ...productData
         })
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      return response;
     },
     onSuccess: () => {
       toast({
