@@ -1903,7 +1903,7 @@ app.use((req, res, next) => {
       }
 
       // Import storage to persist the listing - use same instance as API routes
-      const { simpleDataStore } = require('./simple-storage');
+      const { simpleDataStore } = await import('./simple-storage');
       
       // Create listing with proper data structure
       const listing = simpleDataStore.createListing({
