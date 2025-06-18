@@ -1986,7 +1986,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Installation ID Product Creation (bypasses authorization middleware)
-  app.post("/api/products/create-with-installation", async (req, res) => {
+  app.post("/installation-product-create", async (req, res) => {
     try {
       console.log("POST /api/products/create-with-installation received:", JSON.stringify(req.body, null, 2));
       

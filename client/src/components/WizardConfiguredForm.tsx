@@ -235,7 +235,7 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
         seoKeywords: data.seoKeywords || ''
       };
 
-      const response = await fetch('/api/products/create-with-installation', {
+      const response = await fetch('/installation-product-create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
