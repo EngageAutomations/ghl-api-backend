@@ -95,6 +95,9 @@ This is a comprehensive GoHighLevel OAuth integration platform designed to enabl
 
 ## Changelog
 
+- June 18, 2025: RESOLVED Replit preview system by completely rebuilding server with CommonJS modules to bypass workflow configuration parsing errors and ES module conflicts
+- June 18, 2025: Created index.cjs with complete GoHighLevel Marketplace interface including OAuth integration, API routing, and interactive testing features
+- June 18, 2025: Fixed "Failed to parse workflow configs from .replit" issue by implementing server independent of broken workflow configuration
 - June 18, 2025: Fixed Replit preview system by implementing minimal server configuration with proper PORT environment variable detection and streamlined Vite middleware setup
 - June 18, 2025: Resolved server hanging issues by removing complex OAuth routing and focusing on core React application serving
 - June 17, 2025: Resolved TypeScript compilation errors and server startup issues by simplifying storage interface implementation and creating working simple-server.js configuration
