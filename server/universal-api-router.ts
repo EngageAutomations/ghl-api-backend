@@ -471,10 +471,22 @@ export class UniversalAPIRouter {
  * Middleware for OAuth authentication with installation ID bypass
  */
 export async function requireOAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+  // Debug: Log request details
+  console.log('requireOAuth middleware called for:', req.method, req.path);
+  console.log('Request body:', req.body);
+  console.log('Request headers:', req.headers);
+  
   // Check if this is an installation ID request (bypass OAuth requirement)
   const installationIdFromBody = req.body?.installationId;
-  if (installationIdFromBody) {
-    console.log('Installation ID detected in requireOAuth middleware, bypassing OAuth check:', installationIdFromBody);
+  const installationIdFromQuery = req.query?.installationId;
+  const installationIdFromHeader = req.headers['x-installation-id'];
+  
+  if (installationIdFromBody || installationIdFromQuery || installationIdFromHeader) {
+    console.log('Installation ID detected, bypassing OAuth check:', {
+      body: installationIdFromBody,
+      query: installationIdFromQuery,
+      header: installationIdFromHeader
+    });
     (req as any).hasInstallationId = true;
     return next();
   }
@@ -483,6 +495,7 @@ export async function requireOAuth(req: Request, res: Response, next: NextFuncti
   const installation = await router.getInstallationFromSession(req);
   
   if (!installation) {
+    console.log('No OAuth installation found and no installation ID provided');
     res.status(401).json({ error: 'Authorization header with Bearer token required' });
     return;
   }

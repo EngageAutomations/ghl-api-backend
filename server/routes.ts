@@ -1985,6 +1985,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Installation ID Product Creation (bypasses authorization middleware)
+  app.post("/api/products/create-with-installation", async (req, res) => {
+    try {
+      console.log("POST /api/products/create-with-installation received:", JSON.stringify(req.body, null, 2));
+      
+      const { installationId, ...productData } = req.body;
+      
+      if (!installationId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Installation ID is required for this endpoint'
+        });
+      }
+      
+      console.log("Creating product with installation tracking:", installationId);
+      
+      // Create local listing with installation tracking for future GoHighLevel sync
+      const localListingData = {
+        ...productData,
+        directoryName: 'default',
+        title: productData.name,
+        slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        description: productData.description || '',
+        price: productData.price?.toString() || '0',
+        category: productData.category || '',
+        metaTitle: productData.metaTitle || productData.name,
+        metaDescription: productData.metaDescription || productData.description || '',
+        seoKeywords: productData.seoKeywords || '',
+        images: productData.images || [],
+        metadataImages: productData.metadataImages || [],
+        syncStatus: 'pending',
+        ghlSyncError: null,
+        installationId: installationId
+      };
+
+      const localListing = await storage.createListing(localListingData);
+      
+      return res.status(201).json({
+        success: true,
+        message: 'Product created successfully with installation tracking. GoHighLevel sync will be processed when backend is available.',
+        listingId: localListing.id,
+        installationId: installationId,
+        productData: {
+          name: productData.name,
+          description: productData.description,
+          productType: productData.productType,
+          price: productData.price,
+          locationId: productData.locationId || 'WAVk87RmW9rBSDJHeOpH'
+        }
+      });
+      
+    } catch (error) {
+      console.error("Installation product creation error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to create product with installation tracking",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   app.post("/api/ghl/products", async (req, res) => {
     try {
       console.log("POST /api/ghl/products received:", JSON.stringify(req.body, null, 2));
@@ -1993,44 +2054,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check for installation ID to use Railway backend token management
       const { installationId, ...productData } = req.body;
       
-      // Handle installation ID requests immediately (highest priority)
+      // Handle installation ID requests by redirecting to bypass route
       if (installationId) {
-        console.log("Creating product with installation tracking:", installationId);
-        
-        // Create local listing with installation tracking for future GoHighLevel sync
-        const localListingData = {
-          ...productData,
-          directoryName: 'default',
-          title: productData.name,
-          slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          description: productData.description || '',
-          price: productData.price?.toString() || '0',
-          category: productData.category || '',
-          metaTitle: productData.metaTitle || productData.name,
-          metaDescription: productData.metaDescription || productData.description || '',
-          seoKeywords: productData.seoKeywords || '',
-          images: productData.images || [],
-          metadataImages: productData.metadataImages || [],
-          syncStatus: 'pending',
-          ghlSyncError: null,
-          installationId: installationId
-        };
-
-        const localListing = await storage.createListing(localListingData);
-        
-        return res.status(201).json({
-          success: true,
-          message: 'Product created successfully with installation tracking. GoHighLevel sync will be processed when backend is available.',
-          listingId: localListing.id,
-          installationId: installationId,
-          productData: {
-            name: productData.name,
-            description: productData.description,
-            productType: productData.productType,
-            price: productData.price,
-            locationId: productData.locationId || 'WAVk87RmW9rBSDJHeOpH'
-          }
-        });
+        console.log("Installation ID detected, redirecting to bypass route");
+        return res.redirect(307, '/api/products/create-with-installation');
       }
       
       // Fallback to direct GHL API (legacy method)
