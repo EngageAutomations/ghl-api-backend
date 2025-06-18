@@ -99,7 +99,25 @@ export const listings = pgTable("listings", {
   popupUrl: text("popup_url"),
   embedFormUrl: text("embed_form_url"),
   imageUrl: text("image_url"),
-  tempImagePath: text("temp_image_path"), // Temporary local image storage before GHL upload
+  images: jsonb("images").$type<{
+    id: string;
+    url: string;
+    tempPath?: string;
+    ghlUrl?: string;
+    title?: string;
+    alt?: string;
+    order: number;
+  }[]>(), // Multiple images with GHL URLs
+  metadataImages: jsonb("metadata_images").$type<{
+    id: string;
+    type: 'logo' | 'banner' | 'gallery' | 'thumbnail';
+    url: string;
+    tempPath?: string;
+    ghlUrl?: string;
+    title?: string;
+    alt?: string;
+    order: number;
+  }[]>(), // Metadata images referencing GHL URLs
   // SEO fields - auto-filled from title/description but independently editable
   metaTitle: text("meta_title"),
   metaDescription: text("meta_description"),
