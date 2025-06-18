@@ -27,6 +27,116 @@ import { getCurrentUser, logoutUser } from "./current-user";
 import { recoverSession, checkEmbeddedSession } from "./session-recovery";
 import jwt from "jsonwebtoken";
 
+// Helper function to generate form fields from wizard configuration
+async function generateFormFieldsFromWizardConfig(directoryId: number, config: any) {
+  try {
+    console.log('Generating form fields for directory:', directoryId, 'with config:', config);
+    
+    // Core required fields for GoHighLevel product creation
+    const coreFields = [
+      {
+        formConfigId: directoryId,
+        name: 'name',
+        label: 'Product Name',
+        type: 'TEXT' as const,
+        required: true,
+        placeholder: 'Enter product name',
+        displayOrder: 1
+      },
+      {
+        formConfigId: directoryId,
+        name: 'description',
+        label: 'Description',
+        type: 'TEXTAREA' as const,
+        required: true,
+        placeholder: 'Describe your product',
+        displayOrder: 2
+      },
+      {
+        formConfigId: directoryId,
+        name: 'productType',
+        label: 'Product Type',
+        type: 'SINGLE_OPTIONS' as const,
+        required: true,
+        options: ['DIGITAL', 'PHYSICAL', 'SERVICE', 'PHYSICAL-DIGITAL'],
+        defaultValue: 'DIGITAL',
+        displayOrder: 3
+      }
+    ];
+
+    // Add pricing field based on wizard configuration
+    if (config.features?.showPrice !== false) {
+      coreFields.push({
+        formConfigId: directoryId,
+        name: 'price',
+        label: 'Price ($)',
+        type: 'NUMBER' as const,
+        required: true,
+        placeholder: '0.00',
+        displayOrder: 4
+      });
+    }
+
+    // Add optional fields based on wizard configuration
+    let displayOrder = 5;
+    
+    if (config.features?.showMetadata !== false) {
+      coreFields.push({
+        formConfigId: directoryId,
+        name: 'category',
+        label: 'Category',
+        type: 'TEXT' as const,
+        required: false,
+        placeholder: 'Product category',
+        displayOrder: displayOrder++
+      });
+    }
+
+    if (config.features?.showDescription !== false) {
+      coreFields.push({
+        formConfigId: directoryId,
+        name: 'metaTitle',
+        label: 'SEO Title',
+        type: 'TEXT' as const,
+        required: false,
+        placeholder: 'SEO-optimized title',
+        displayOrder: displayOrder++
+      },
+      {
+        formConfigId: directoryId,
+        name: 'metaDescription',
+        label: 'SEO Description',
+        type: 'TEXTAREA' as const,
+        required: false,
+        placeholder: 'SEO meta description',
+        displayOrder: displayOrder++
+      });
+    }
+
+    // Always add image upload fields
+    coreFields.push({
+      formConfigId: directoryId,
+      name: 'images',
+      label: 'Product Images',
+      type: 'FILE_UPLOAD' as const,
+      required: false,
+      placeholder: 'Upload product images',
+      displayOrder: displayOrder++
+    });
+
+    // Store all fields using the simple data store
+    for (const field of coreFields) {
+      simpleDataStore.createFormField(field);
+    }
+    
+    console.log(`Generated ${coreFields.length} form fields for directory ${directoryId}`);
+    return coreFields;
+  } catch (error) {
+    console.error('Error generating form fields:', error);
+    return [];
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup working routes for directories, collections, and listings
@@ -822,7 +932,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create directory
+  // Get form configuration by directory name for wizard-generated forms
+  app.get("/api/form-configurations/:directoryName", async (req, res) => {
+    try {
+      const directoryName = req.params.directoryName;
+      const directory = await storage.getFormConfigurationByDirectoryName(directoryName);
+      
+      if (!directory) {
+        return res.status(404).json({ message: "Form configuration not found" });
+      }
+      
+      res.status(200).json(directory);
+    } catch (error) {
+      console.error("Error fetching form configuration:", error);
+      res.status(500).json({ message: "Failed to fetch form configuration" });
+    }
+  });
+
+  // Create directory with automatic form field generation
   app.post("/api/directories", async (req, res) => {
     try {
       console.log("=== CREATING DIRECTORY ===");
@@ -836,6 +963,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actionButtonColor: req.body.actionButtonColor || '#3b82f6',
         isActive: req.body.isActive !== false
       });
+      
+      // Auto-generate form fields based on wizard configuration
+      if (directory && req.body.config) {
+        await generateFormFieldsFromWizardConfig(directory.id, req.body.config);
+      }
       
       console.log("Created directory:", directory);
       res.status(201).json(directory);

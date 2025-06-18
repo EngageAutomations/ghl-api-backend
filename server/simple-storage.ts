@@ -42,14 +42,31 @@ interface SimpleCollection {
   updatedAt: Date;
 }
 
+interface SimpleFormField {
+  id: number;
+  formConfigId: number;
+  name: string;
+  label: string;
+  type: 'TEXT' | 'TEXTAREA' | 'NUMBER' | 'PHONE' | 'EMAIL' | 'CHECKBOX' | 'SINGLE_OPTIONS' | 'MULTIPLE_OPTIONS' | 'DATE' | 'DATETIME' | 'FILE_UPLOAD';
+  required: boolean;
+  placeholder?: string;
+  defaultValue?: string;
+  options?: string[];
+  displayOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 class SimpleDataStore {
   private directories: Map<number, SimpleDirectory> = new Map();
   private listings: Map<number, SimpleListing> = new Map();
   private collections: Map<number, SimpleCollection> = new Map();
+  private formFields: Map<number, SimpleFormField> = new Map();
   
   private nextDirectoryId = 1;
   private nextListingId = 1;
   private nextCollectionId = 1;
+  private nextFormFieldId = 1;
 
   // Directory operations
   createDirectory(data: any): SimpleDirectory {
