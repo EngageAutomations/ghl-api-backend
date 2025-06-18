@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import imageUploadRouter from "./image-upload";
 // import { setupProductionRouting } from "./production-routing";
 // import { privateDeploymentGuard, ipWhitelist } from "./privacy"; // Removed for public custom domain access
 import { setupDomainRedirects, setupCORS } from "./domain-config";
@@ -1815,6 +1816,12 @@ app.use((req, res, next) => {
       environment: process.env.NODE_ENV || 'development'
     });
   });
+
+  // Register image upload routes
+  app.use('/api/images', imageUploadRouter);
+  
+  // Serve uploaded files
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   // CRITICAL: Register API routes AFTER the root route
   server = await registerRoutes(app);

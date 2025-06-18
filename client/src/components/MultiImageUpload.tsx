@@ -45,39 +45,57 @@ export function MultiImageUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = async (files: FileList) => {
+    // Upload files to temp server storage first
+    const formData = new FormData();
     const newImages: (ImageItem | MetadataImageItem)[] = [];
     
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      
       if (allowedTypes.includes(file.type)) {
-        // Create temporary URL for preview
-        const tempUrl = URL.createObjectURL(file);
-        const id = `img_${Date.now()}_${i}`;
-        
-        const baseImage: ImageItem = {
-          id,
-          url: tempUrl,
-          tempPath: tempUrl, // Will be replaced with actual server path
-          title: file.name,
-          alt: file.name,
-          order: images.length + i
-        };
-
-        if (isMetadata) {
-          const metadataImage: MetadataImageItem = {
-            ...baseImage,
-            type: metadataTypes[0] // Default to first type, user can change
-          };
-          newImages.push(metadataImage);
-        } else {
-          newImages.push(baseImage);
-        }
+        formData.append('images', file);
       }
     }
 
-    const updatedImages = [...images, ...newImages].slice(0, maxImages);
-    onChange(updatedImages);
+    try {
+      // Upload to temporary server storage
+      const uploadResponse = await fetch('/api/images/upload-temp', {
+        method: 'POST',
+        body: formData
+      });
+
+      const uploadResult = await uploadResponse.json();
+      
+      if (uploadResult.success) {
+        // Create image objects with server URLs
+        uploadResult.files.forEach((file: any, index: number) => {
+          const baseImage: ImageItem = {
+            id: file.id,
+            url: file.url, // Server-accessible URL
+            tempPath: file.tempPath,
+            title: file.originalName,
+            alt: file.originalName,
+            order: images.length + index
+          };
+
+          if (isMetadata) {
+            const metadataImage: MetadataImageItem = {
+              ...baseImage,
+              type: metadataTypes[0]
+            };
+            newImages.push(metadataImage);
+          } else {
+            newImages.push(baseImage);
+          }
+        });
+
+        const updatedImages = [...images, ...newImages].slice(0, maxImages);
+        onChange(updatedImages);
+      } else {
+        console.error('Failed to upload images:', uploadResult.error);
+      }
+    } catch (error) {
+      console.error('Image upload error:', error);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
