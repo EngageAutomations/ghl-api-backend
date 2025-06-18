@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import RichTextEditor from '@/components/RichTextEditor';
-import { Plus, Upload, X } from 'lucide-react';
+import { Plus, Upload, X, Package } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface CreateListingFormProps {
   directoryName: string;
@@ -310,11 +311,32 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <h4 className="font-medium text-blue-900 mb-2">Directory: {directoryName}</h4>
-        <p className="text-sm text-blue-700">
-          This form is configured based on your directory settings from the wizard.
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
+        <div className="flex items-center gap-2 mb-2">
+          <h4 className="font-medium text-blue-900">Directory: {directoryName}</h4>
+          <span className="px-2 py-1 bg-white border border-blue-300 rounded text-xs text-blue-600">GoHighLevel Integration</span>
+        </div>
+        <p className="text-sm text-blue-700 mb-3">
+          This form is configured based on your directory settings from the wizard and will create both a GoHighLevel product and local listing.
         </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-blue-600">
+          <span className="flex items-center gap-1">
+            <span className={features.showPrice !== false ? "text-green-600" : "text-gray-400"}>●</span>
+            Price Display
+          </span>
+          <span className="flex items-center gap-1">
+            <span className={features.showDescription ? "text-green-600" : "text-gray-400"}>●</span>
+            Rich Description
+          </span>
+          <span className="flex items-center gap-1">
+            <span className={features.showMetadata ? "text-green-600" : "text-gray-400"}>●</span>
+            Metadata Fields
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="text-green-600">●</span>
+            Image Upload
+          </span>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
