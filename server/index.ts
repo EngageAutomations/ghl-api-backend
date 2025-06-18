@@ -1822,7 +1822,7 @@ app.use((req, res, next) => {
   console.log("Registering installation bypass route at startup...");
   
   // WORKING: Installation bypass route with unique name to avoid conflicts
-  app.post("/create-installation-product", express.json(), (req, res) => {
+  app.post("/create-installation-product", express.json(), async (req, res) => {
     console.log("✅ FIXED ENDPOINT HIT - POST /installation-product-create received:", JSON.stringify(req.body, null, 2));
     
     try {

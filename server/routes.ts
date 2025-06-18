@@ -636,7 +636,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         price: req.body.price,
         category: req.body.category,
         imageUrl: req.body.imageUrl,
-        isActive: req.body.isActive !== false
+        isActive: req.body.isActive !== false,
+        installationId: req.body.installationId,
+        syncStatus: req.body.syncStatus || 'pending',
+        ghlProductId: req.body.ghlProductId
       });
       
       console.log("Created listing:", listing);
