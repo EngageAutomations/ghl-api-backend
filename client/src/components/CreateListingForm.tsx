@@ -200,9 +200,15 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           metaTitle: seoFields.metaTitle,
           metaDescription: seoFields.metaDescription,
           seoKeywords: seoFields.seoKeywords,
-          // Include multiple images
-          images: images,
-          metadataImages: metadataImages,
+          // Include multiple images with accessible URLs
+          images: images.map(img => ({
+            ...img,
+            url: img.ghlUrl || img.url // Use GoHighLevel URL if available
+          })),
+          metadataImages: metadataImages.map(img => ({
+            ...img,
+            url: img.ghlUrl || img.url // Use GoHighLevel URL if available
+          })),
           // Extended content stored locally
           expandedDescription: expandedDescription,
           metadataBar: JSON.stringify(metadataFields)

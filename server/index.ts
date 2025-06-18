@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import imageUploadRouter from "./image-upload";
+import ghlMediaUploadRouter from "./ghl-media-upload";
 // import { setupProductionRouting } from "./production-routing";
 // import { privateDeploymentGuard, ipWhitelist } from "./privacy"; // Removed for public custom domain access
 import { setupDomainRedirects, setupCORS } from "./domain-config";
@@ -1819,6 +1820,9 @@ app.use((req, res, next) => {
 
   // Register image upload routes
   app.use('/api/images', imageUploadRouter);
+  
+  // Register GoHighLevel media upload routes
+  app.use('/api/ghl-media', ghlMediaUploadRouter);
   
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
