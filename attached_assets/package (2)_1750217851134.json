@@ -1,0 +1,19 @@
+{
+  "name": "gohighlevel-oauth-backend",
+  "version": "1.2.0",
+  "description": "GoHighLevel OAuth and API Backend for Railway",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0",
+    "express-fileupload": "^1.4.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
