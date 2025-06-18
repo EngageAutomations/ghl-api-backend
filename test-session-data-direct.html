@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Session Data Extraction Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .result { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007bff; }
+    .success { border-left-color: #28a745; background: #d4edda; }
+    .error { border-left-color: #dc3545; background: #f8d7da; }
+    .btn { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; margin: 10px 5px; }
+    .btn:hover { background: #0056b3; }
+    pre { background: #f8f9fa; padding: 15px; border-radius: 6px; overflow-x: auto; }
+    .timestamp { color: #6c757d; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>OAuth Session Data Extraction Test</h1>
+    <p>Testing direct session data retrieval from your marketplace installation.</p>
+    
+    <div class="result">
+      <h3>Your Marketplace Installation Details</h3>
+      <p><strong>Installation Timestamp:</strong> 1749738603465</p>
+      <p><strong>Installation Time:</strong> <span id="installTime"></span></p>
+      <p><strong>Domain:</strong> dir.engageautomations.com</p>
+      <p><strong>OAuth Client ID:</strong> 67472ecce8b57dd9eda067a8</p>
+    </div>
+
+    <button onclick="testSessionData()" class="btn">Extract Session Data</button>
+    <button onclick="testDirectAPI()" class="btn">Test API Direct</button>
+    <button onclick="simulateDataExtraction()" class="btn">Simulate Extraction</button>
+
+    <div id="results"></div>
+  </div>
+
+  <script>
+    // Display installation time
+    const timestamp = 1749738603465;
+    const installDate = new Date(timestamp);
+    document.getElementById('installTime').textContent = installDate.toISOString() + ' (' + installDate.toLocaleString() + ')';
+
+    async function testSessionData() {
+      showResult('Testing session data extraction...', 'info');
+      
+      try {
+        const response = await fetch('/api/oauth/session-data?success=true&timestamp=1749738603465', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          showResult('Session Data Retrieved Successfully!', 'success', data);
+        } else {
+          showResult('Session Data Retrieval Failed', 'error', data);
+        }
+        
+      } catch (error) {
+        showResult('Network Error', 'error', { error: error.message });
+      }
+    }
+
+    async function testDirectAPI() {
+      showResult('Testing direct API call...', 'info');
+      
+      // Test multiple endpoints
+      const endpoints = [
+        '/api/oauth/session-data',
+        '/oauth/session-data',
+        '/session-data'
+      ];
+      
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(`${endpoint}?success=true&timestamp=1749738603465`);
+          const data = await response.json();
+          
+          showResult(`Endpoint ${endpoint}`, response.ok ? 'success' : 'error', {
+            status: response.status,
+            statusText: response.statusText,
+            data: data
+          });
+          
+        } catch (error) {
+          showResult(`Endpoint ${endpoint} Failed`, 'error', { error: error.message });
+        }
+      }
+    }
+
+    function simulateDataExtraction() {
+      showResult('Simulating OAuth Data Extraction', 'info');
+      
+      // Simulate the data that should have been captured during your installation
+      const simulatedData = {
+        success: true,
+        installationConfirmed: true,
+        installationTime: new Date(1749738603465).toISOString(),
+        userInstallation: {
+          timestamp: '1749738603465',
+          domain: 'dir.engageautomations.com',
+          marketplaceSource: 'GoHighLevel',
+          status: 'Installation successful'
+        },
+        oauthConfig: {
+          clientId: '67472ecce8b57dd9eda067a8',
+          redirectUri: 'https://dir.engageautomations.com/',
+          scopes: [
+            'products/prices.write',
+            'products/prices.readonly', 
+            'products/collection.write',
+            'products/collection.readonly',
+            'medias.write',
+            'medias.readonly',
+            'locations.readonly',
+            'contacts.readonly',
+            'contacts.write'
+          ]
+        },
+        message: 'Your marketplace installation was successful',
+        nextSteps: [
+          'OAuth app is properly configured',
+          'All product-related scopes are included',
+          'Ready for directory app functionality'
+        ]
+      };
+      
+      showResult('Simulated Installation Data', 'success', simulatedData);
+      
+      // Store the simulated data
+      localStorage.setItem('oauth_installation_data', JSON.stringify(simulatedData));
+      showResult('Installation data stored in localStorage', 'info');
+    }
+
+    function showResult(title, type, data = null) {
+      const results = document.getElementById('results');
+      const resultDiv = document.createElement('div');
+      resultDiv.className = `result ${type}`;
+      
+      let content = `<h4>${title}</h4>`;
+      content += `<p class="timestamp">${new Date().toLocaleString()}</p>`;
+      
+      if (data) {
+        content += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      }
+      
+      resultDiv.innerHTML = content;
+      results.appendChild(resultDiv);
+      
+      // Scroll to bottom
+      resultDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Auto-run simulation on page load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        showResult('Page loaded - ready for testing', 'info');
+      }, 500);
+    });
+  </script>
+</body>
+</html>

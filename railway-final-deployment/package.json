@@ -1,0 +1,19 @@
+{
+  "name": "gohighlevel-enhanced-oauth-backend",
+  "version": "2.0.0",
+  "description": "Enhanced OAuth Dual-Domain Architecture for GoHighLevel Marketplace",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "@neondatabase/serverless": "^0.9.0",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

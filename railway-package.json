@@ -1,0 +1,17 @@
+{
+  "name": "railway-ghl-backend",
+  "version": "1.0.0",
+  "description": "GoHighLevel API Backend for Railway",
+  "main": "railway-basic.js",
+  "scripts": {
+    "start": "node railway-basic.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "railway-hybrid-oauth-backend",
+  "version": "2.2.0",
+  "description": "Railway OAuth Backend with Hybrid Credential Support",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

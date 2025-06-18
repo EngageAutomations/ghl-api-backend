@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { simpleDataStore } from "./legacy/simple-storage";
-import { setupWorkingRoutes } from "./legacy/working-routes";
+import { simpleDataStore } from "./simple-storage";
+import { setupWorkingRoutes } from "./working-routes";
 import { z } from "zod";
 import { 
   insertUserSchema, 
@@ -14,18 +14,18 @@ import {
   insertCollectionSchema,
   insertCollectionItemSchema
 } from "@shared/schema";
-// import { generateBulletPoints } from "./legacy/ai-summarizer";
-import { googleDriveService } from "./legacy/google-drive";
-import { runTestSuite, runFormTests, generateCode, getFeatureDocumentation, updateConfigurationCode } from "./legacy/dev-tools";
-import { handleFormSubmission, getFormSubmissions, downloadJSONFile } from "./legacy/form-submission-handler";
+// import { generateBulletPoints } from "./ai-summarizer";
+import { googleDriveService } from "./google-drive";
+import { runTestSuite, runFormTests, generateCode, getFeatureDocumentation, updateConfigurationCode } from "./dev-tools";
+import { handleFormSubmission, getFormSubmissions, downloadJSONFile } from "./form-submission-handler";
 // import { aiAgent, AIRequest } from "./ai-agent-simple";
-import { ghlAPI } from "./legacy/ghl-api";
-import { ghlOAuth } from "./legacy/ghl-oauth";
-import { authenticateToken } from "./legacy/auth-middleware";
-import { ghlProductCreator } from "./legacy/ghl-product-creator";
-import { getCurrentUser, logoutUser } from "./legacy/current-user";
-import { recoverSession, checkEmbeddedSession } from "./legacy/session-recovery";
-import { ghlAPIService } from "./legacy/ghl-api-service";
+import { ghlAPI } from "./ghl-api";
+import { ghlOAuth } from "./ghl-oauth";
+import { authenticateToken } from "./auth-middleware";
+import { ghlProductCreator } from "./ghl-product-creator";
+import { getCurrentUser, logoutUser } from "./current-user";
+import { recoverSession, checkEmbeddedSession } from "./session-recovery";
+import { ghlAPIService } from "./ghl-api-service";
 import jwt from "jsonwebtoken";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -2466,7 +2466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Test OAuth URL generation
   app.get("/api/oauth/test-url", async (req, res) => {
     try {
-      const { TokenEncryption } = await import('./legacy/token-encryption');
+      const { TokenEncryption } = await import('./token-encryption');
       const state = TokenEncryption.generateState();
       const authUrl = ghlOAuth.getAuthorizationUrl(state, true); // Use marketplace flow
       
@@ -2525,7 +2525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/oauth/start", async (req, res) => {
     try {
       console.log("OAuth start request received");
-      const { TokenEncryption } = await import('./legacy/token-encryption');
+      const { TokenEncryption } = await import('./token-encryption');
       const state = TokenEncryption.generateState();
       const authUrl = ghlOAuth.getAuthorizationUrl(state, true); // Use marketplace flow
       
@@ -2550,7 +2550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/auth/ghl/authorize", async (req, res) => {
     try {
       console.log("OAuth authorization request received");
-      const { TokenEncryption } = await import('./legacy/token-encryption');
+      const { TokenEncryption } = await import('./token-encryption');
       const state = TokenEncryption.generateState();
       const authUrl = ghlOAuth.getAuthorizationUrl(state, true); // Use marketplace flow
       
@@ -2660,7 +2660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Processing OAuth code:', (code as string).substring(0, 10) + '...');
       
       // Import OAuth functionality
-      const { ghlOAuth } = await import('./legacy/ghl-oauth.js');
+      const { ghlOAuth } = await import('./ghl-oauth.js');
       
       // Exchange code for tokens
       const tokenData = await ghlOAuth.exchangeCodeForTokens(code as string, state as string);
@@ -2898,7 +2898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { GHLProductAPI } = await import('./legacy/ghl-product-api.js');
+      const { GHLProductAPI } = await import('./ghl-product-api.js');
       const productAPI = new GHLProductAPI(user.ghlAccessToken, user.ghlLocationId);
       
       const productData = {
@@ -2933,7 +2933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { GHLProductAPI } = await import('./legacy/ghl-product-api.js');
+      const { GHLProductAPI } = await import('./ghl-product-api.js');
       const productAPI = new GHLProductAPI(user.ghlAccessToken, user.ghlLocationId);
       
       const limit = parseInt(req.query.limit as string) || 20;

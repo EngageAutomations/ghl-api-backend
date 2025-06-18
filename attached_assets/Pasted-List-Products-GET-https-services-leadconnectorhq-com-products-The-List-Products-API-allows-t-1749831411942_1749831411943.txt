@@ -1,0 +1,148 @@
+List Products
+GET
+https://services.leadconnectorhq.com/products/
+The "List Products" API allows to retrieve a paginated list of products. Customize your results by filtering products based on name or paginate through the list using the provided query parameters. This endpoint provides a straightforward way to explore and retrieve product information.
+
+Requirements
+Scope(s)
+products.readonly
+Auth Method(s)
+OAuth Access Token
+Private Integration Token
+Token Type(s)
+Sub-Account Token
+Agency Token
+Request
+Header Parameters
+Authorization
+string
+required
+Access Token
+
+Example: Bearer 9c48df2694a849b6089f9d0d3513efe
+Version
+string
+required
+Possible values: [2021-07-28]
+
+API Version
+
+Query Parameters
+limit
+number
+The maximum number of items to be included in a single page of results
+
+Default value:0
+Example: 20
+offset
+number
+The starting index of the page, indicating the position from which the results should be retrieved.
+
+Default value:0
+Example: 0
+locationId
+string
+required
+LocationId is the id of the sub-account
+
+Example: 3SwdhCu3svxI8AKsPJt6
+search
+string
+The name of the product for searching.
+
+Example: Awesome product
+Responses
+200
+400
+401
+422
+Successful response
+application/json
+Schema
+Example (auto)
+Schema
+products
+object[]
+required
+An array of products
+
+Array [
+_id
+string
+required
+The unique identifier for the product.
+
+Example:655b33a82209e60b6adb87a5
+description
+string
+product description
+
+Example:This is a really awesome product
+variants
+object[]
+medias
+object[]
+locationId
+string
+required
+The unique identifier for the location.
+
+Example:3SwdhCsvxI8Au3KsPJt6
+name
+string
+required
+The name of the product.
+
+Example:Awesome Product
+productType
+string
+required
+The type of the product (e.g., PHYSICAL).
+
+Example:PHYSICAL
+availableInStore
+boolean
+Indicates whether the product is available in-store.
+
+Example:true
+userId
+string
+The unique identifier for the user who created the product.
+
+Example:6YAtzfzpmHAdj0e8GkKp
+createdAt
+date-time
+required
+The creation timestamp of the product.
+
+Example:2023-11-20T10:23:36.515Z
+updatedAt
+date-time
+required
+The last update timestamp of the product.
+
+Example:2024-01-23T09:57:04.846Z
+statementDescriptor
+string
+The statement descriptor for the product.
+
+Example:abcde
+image
+string
+The URL for the product image.
+
+Example:https://storage.googleapis.com/ghl-test/3SwdhCsvxI8Au3KsPJt6/media/65af8d5df88bdb4b1022ee90.png
+]
+total
+object[]
+required
+list products status
+
+Array [
+total
+number
+required
+Total number of products
+
+Example:20
+]
