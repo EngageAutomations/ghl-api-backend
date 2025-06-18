@@ -399,7 +399,7 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Form Fields from Wizard Configuration */}
           <div className="grid gap-6">
-            {formFields?.map((field: any) => renderFormField(field))}
+            {effectiveFormFields?.map((field: any) => renderFormField(field))}
           </div>
 
           {/* Product Images Section */}
@@ -440,7 +440,7 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
               isMetadata={true}
               title="Upload Brand Assets"
               description="Add logos, banners, and other brand materials"
-              metadataTypes={['logo', 'banner', 'gallery', 'thumbnail', 'icon', 'cover', 'background', 'watermark']}
+              metadataTypes={['logo', 'banner', 'gallery', 'thumbnail']}
             />
           </div>
 

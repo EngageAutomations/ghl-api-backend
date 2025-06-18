@@ -2143,6 +2143,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get directory by name for wizard-configured forms
+  app.get("/api/directories/:directoryName", async (req, res) => {
+    try {
+      const { directoryName } = req.params;
+      const directory = simpleDataStore.getDirectoryByName(directoryName);
+      console.log(`[API] Retrieved directory for ${directoryName}:`, directory);
+      if (!directory) {
+        return res.status(404).json({ error: "Directory not found" });
+      }
+      res.json(directory);
+    } catch (error) {
+      console.error("Get directory by name error:", error);
+      res.status(500).json({ error: "Failed to fetch directory" });
+    }
+  });
+
   // Dynamic Form Fields Management - now using simple data store
   app.get("/api/form-fields/:formConfigId", async (req, res) => {
     try {
