@@ -1990,11 +1990,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("POST /api/ghl/products received:", JSON.stringify(req.body, null, 2));
       console.log("Headers:", req.headers);
       
+      // Check for installation ID to use Railway backend token management
+      const { installationId, ...productData } = req.body;
+      
+      if (installationId) {
+        console.log("Using Railway backend for token management with installation:", installationId);
+        
+        // Forward request to Railway backend
+        const railwayResponse = await fetch('https://dir.engageautomations.com/api/ghl/products/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            installationId,
+            ...productData
+          })
+        });
+
+        if (!railwayResponse.ok) {
+          const errorText = await railwayResponse.text();
+          console.error('Railway backend error:', railwayResponse.status, errorText);
+          return res.status(railwayResponse.status).json({ 
+            error: `Railway backend error: ${errorText}` 
+          });
+        }
+
+        const railwayResult = await railwayResponse.json();
+        console.log('Railway backend success:', railwayResult);
+        return res.status(201).json(railwayResult);
+      }
+      
+      // Fallback to direct GHL API (legacy method)
       const accessToken = req.headers.authorization?.replace('Bearer ', '');
       
       if (!accessToken) {
-        console.log("Missing authorization header");
-        return res.status(401).json({ error: "Authorization header with Bearer token required" });
+        console.log("Missing authorization header and installation ID");
+        return res.status(401).json({ error: "Authorization header with Bearer token or installationId required" });
       }
       
       // Validate required fields per GHL API spec
