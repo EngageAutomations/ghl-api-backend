@@ -12,6 +12,7 @@ import { setupDomainRedirects, setupCORS } from "./domain-config";
 import { DatabaseStorage } from "./storage";
 import { UniversalAPIRouter, requireOAuth, handleSessionRecovery } from "./universal-api-router";
 import { handleOAuthCallback } from "./oauth-enhanced";
+import { simpleDataStore } from "./simple-storage";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
@@ -1833,29 +1834,35 @@ app.use((req, res, next) => {
       }
       
       console.log("Creating product with installation tracking:", installationId);
+      console.log("simpleDataStore available:", !!simpleDataStore);
+      console.log("simpleDataStore methods:", Object.keys(simpleDataStore || {}));
       
-      // Import storage here to avoid circular dependencies
-      const { simpleDataStore } = await import('./simple-storage');
-      
+      // Verify storage is available
+      if (!simpleDataStore || typeof simpleDataStore.createListing !== 'function') {
+        console.error("Storage not available or createListing method missing");
+        return res.status(500).json({
+          success: false,
+          error: "Storage system not available",
+          details: "simpleDataStore not properly initialized"
+        });
+      }
+
       // Create local listing with installation tracking for future GoHighLevel sync
       const localListingData = {
-        ...productData,
-        directoryName: 'default',
         title: productData.name,
         slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         description: productData.description || '',
         price: productData.price?.toString() || '0',
         category: productData.category || '',
-        metaTitle: productData.metaTitle || productData.name,
-        metaDescription: productData.metaDescription || productData.description || '',
-        seoKeywords: productData.seoKeywords || '',
-        images: productData.images || [],
-        metadataImages: productData.metadataImages || [],
-        syncStatus: 'pending',
-        ghlSyncError: null,
-        installationId: installationId
+        directoryName: 'default',
+        userId: 1, // Default user ID
+        imageUrl: productData.images?.[0]?.url || '',
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
+      console.log("Creating listing with data:", localListingData);
       const localListing = simpleDataStore.createListing(localListingData);
       
       return res.status(201).json({
