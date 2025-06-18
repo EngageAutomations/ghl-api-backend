@@ -2033,45 +2033,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      if (installationId) {
-        console.log("Creating product with installation tracking:", installationId);
-        
-        // Create local listing with installation tracking for future GoHighLevel sync
-        const localListingData = {
-          ...productData,
-          directoryName: 'default',
-          title: productData.name,
-          slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          description: productData.description || '',
-          price: productData.price?.toString() || '0',
-          category: productData.category || '',
-          metaTitle: productData.metaTitle || productData.name,
-          metaDescription: productData.metaDescription || productData.description || '',
-          seoKeywords: productData.seoKeywords || '',
-          images: productData.images || [],
-          metadataImages: productData.metadataImages || [],
-          syncStatus: 'pending',
-          ghlSyncError: null,
-          installationId: installationId
-        };
-
-        const localListing = await storage.createListing(localListingData);
-        
-        return res.status(201).json({
-          success: true,
-          message: 'Product created successfully. GoHighLevel sync will be processed when backend is available.',
-          listingId: localListing.id,
-          installationId: installationId,
-          productData: {
-            name: productData.name,
-            description: productData.description,
-            productType: productData.productType,
-            price: productData.price,
-            locationId: productData.locationId || 'WAVk87RmW9rBSDJHeOpH'
-          }
-        });
-      }
-      
       // Fallback to direct GHL API (legacy method)
       const accessToken = req.headers.authorization?.replace('Bearer ', '');
       
