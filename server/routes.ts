@@ -2707,6 +2707,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: req.body.description || "",
         availableInStore: req.body.availableInStore !== undefined ? req.body.availableInStore : true,
         
+        // Price - always required for GoHighLevel store availability
+        // Default to $100 if no price provided to ensure products show as available
+        price: req.body.price || 100,
+        
         // Image field if provided
         ...(req.body.image && { image: req.body.image }),
         

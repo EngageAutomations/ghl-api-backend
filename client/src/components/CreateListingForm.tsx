@@ -157,8 +157,10 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
               description: seoFields.metaDescription || formData.description || ''
             },
             
-            // Optional pricing if provided
-            ...(formData.price && { price: parseFloat(formData.price.replace(/[^0-9.-]/g, '')) })
+            // Price - always required for GoHighLevel store availability
+            // Use $100 default when pricing is disabled, otherwise parse user input
+            price: features.showPrice === false ? 100 : 
+                   (formData.price ? parseFloat(formData.price.replace(/[^0-9.-]/g, '')) || 100 : 100)
           };
 
           const ghlResponse = await apiRequest('/api/ghl/create-product', {
@@ -380,8 +382,8 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
         </p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-blue-600">
           <span className="flex items-center gap-1">
-            <span className={features.showPrice !== false ? "text-green-600" : "text-gray-400"}>●</span>
-            Price Display
+            <span className={features.showPrice !== false ? "text-green-600" : "text-orange-600"}>●</span>
+            {features.showPrice !== false ? "Price Display" : "Price Hidden (Default $100)"}
           </span>
           <span className="flex items-center gap-1">
             <span className={features.showDescription ? "text-green-600" : "text-gray-400"}>●</span>
@@ -500,21 +502,22 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
             />
           </div>
 
-          {/* 3. Listing Price - Show field or placeholder */}
-          <div>
-            <Label htmlFor="price" className="text-sm font-medium text-gray-700 block text-left">
-              Listing Price {features.showPrice === false && <span className="text-xs text-gray-500">(Hidden from display)</span>}
-            </Label>
-            <Input
-              id="price"
-              type="text"
-              value={formData.price}
-              onChange={(e) => handleInputChange('price', e.target.value)}
-              placeholder={features.showPrice !== false ? "$50,000" : "$1 (placeholder value)"}
-              className="mt-1"
-              style={features.showPrice === false ? { backgroundColor: '#f9fafb', color: '#6b7280' } : {}}
-            />
-          </div>
+          {/* 3. Listing Price - Show field only when pricing is enabled, hide completely when disabled */}
+          {features.showPrice !== false && (
+            <div>
+              <Label htmlFor="price" className="text-sm font-medium text-gray-700 block text-left">
+                Listing Price
+              </Label>
+              <Input
+                id="price"
+                type="text"
+                value={formData.price}
+                onChange={(e) => handleInputChange('price', e.target.value)}
+                placeholder="e.g., $99, Free, Contact for pricing"
+                className="mt-1"
+              />
+            </div>
+          )}
 
           {/* 3. Basic Description with AI Summarizer */}
           <div>

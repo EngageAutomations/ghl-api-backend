@@ -161,11 +161,16 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
-- June 18, 2025: Core Data Fields Standardization and SEO Integration
+- June 18, 2025: Core Data Fields Standardization and SEO Integration with Pricing Logic
   - Established core fields that pass through every form submission regardless of configuration:
-    * Required fields: name, locationId, productType (DIGITAL/PHYSICAL/SERVICE/PHYSICAL-DIGITAL)
+    * Required fields: name, locationId, productType (DIGITAL/PHYSICAL/SERVICE/PHYSICAL-DIGITAL), price
     * Standard fields: description, availableInStore (defaults to true), image, SEO data
     * Optional configurable fields: variants, medias, taxes, labels, collections
+  - Implemented pricing logic for GoHighLevel store availability:
+    * Price field completely hidden when directory has pricing disabled
+    * Default $100 price automatically applied when pricing is disabled to ensure store availability
+    * Visual indicator shows "Price Hidden (Default $100)" when pricing is off
+    * User-entered prices used when pricing is enabled in directory configuration
   - Added comprehensive SEO fields (meta title, meta description, keywords) to all listing creation forms
   - SEO fields automatically pre-fill from title and description but allow independent editing
   - Character count validation with optimal SEO length guidelines (60 chars for title, 160 for description)
