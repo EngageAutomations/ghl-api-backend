@@ -161,6 +161,15 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 18, 2025: GoHighLevel Product Creation with OAuth Token Refresh Implementation
+  - Replaced "Add Listing" button with professional "Create GHL Product" form in directory details
+  - Built GHLProductCreator component with name, description, type, and pricing fields
+  - Implemented dual creation system: creates both GoHighLevel products and local listings simultaneously
+  - Added automatic OAuth token refresh logic to prevent expired token failures
+  - Created comprehensive Railway backend implementation report for consultant deployment
+  - Enhanced /api/ghl/create-product endpoint with automatic token refresh before API calls
+  - Prepared complete Railway deployment package with refresh endpoint and error handling
+
 - June 15, 2025: Enhanced OAuth Dual-Domain Architecture Deployed to Railway
   - Deployed complete enhanced OAuth system to Railway production backend
   - Authorization Code with PKCE flow now handling real marketplace installations
