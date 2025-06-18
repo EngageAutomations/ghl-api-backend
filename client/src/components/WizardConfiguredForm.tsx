@@ -152,45 +152,61 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
       let finalMetadataImages = metadataImages;
 
       if (images.length > 0) {
-        const imageUploadResponse = await fetch('/api/images/upload-to-ghl', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            tempFiles: images,
-            installationId: 'install_1750252333303'
-          })
-        });
+        try {
+          const imageUploadResponse = await fetch('https://dir.engageautomations.com/api/ghl/media/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              installation_id: 'install_1750252333303',
+              files: images.map(img => ({
+                url: img.url,
+                name: img.name || 'product-image.jpg'
+              }))
+            })
+          });
 
-        if (imageUploadResponse.ok) {
-          const uploadResult = await imageUploadResponse.json();
-          if (uploadResult.success) {
-            finalImages = uploadResult.uploads.map((upload: any) => ({
-              ...upload,
-              ghlUrl: upload.ghlUrl
-            }));
+          if (imageUploadResponse.ok) {
+            const uploadResult = await imageUploadResponse.json();
+            if (uploadResult.success) {
+              finalImages = uploadResult.uploads.map((upload: any) => ({
+                ...upload,
+                ghlUrl: upload.ghlUrl || upload.url
+              }));
+            }
           }
+        } catch (error) {
+          console.log('Image upload failed, proceeding without images:', error);
+          finalImages = images; // Use original images as fallback
         }
       }
 
       if (metadataImages.length > 0) {
-        const metadataUploadResponse = await fetch('/api/images/upload-to-ghl', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            tempFiles: metadataImages,
-            installationId: 'install_1750252333303'
-          })
-        });
+        try {
+          const metadataUploadResponse = await fetch('https://dir.engageautomations.com/api/ghl/media/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              installation_id: 'install_1750252333303',
+              files: metadataImages.map(img => ({
+                url: img.url,
+                name: img.name || 'metadata-image.jpg'
+              }))
+            })
+          });
 
-        if (metadataUploadResponse.ok) {
-          const uploadResult = await metadataUploadResponse.json();
-          if (uploadResult.success) {
-            finalMetadataImages = uploadResult.uploads.map((upload: any) => ({
-              ...upload,
-              ghlUrl: upload.ghlUrl,
-              type: upload.type
-            }));
+          if (metadataUploadResponse.ok) {
+            const uploadResult = await metadataUploadResponse.json();
+            if (uploadResult.success) {
+              finalMetadataImages = uploadResult.uploads.map((upload: any) => ({
+                ...upload,
+                ghlUrl: upload.ghlUrl || upload.url,
+                type: upload.type
+              }));
+            }
           }
+        } catch (error) {
+          console.log('Metadata image upload failed, proceeding without metadata images:', error);
+          finalMetadataImages = metadataImages; // Use original images as fallback
         }
       }
 
