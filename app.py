@@ -1,207 +1,58 @@
+#!/usr/bin/env python3
 import http.server
 import socketserver
 import os
+from urllib.parse import urlparse
 
 PORT = 5000
 
-html_content = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoHighLevel Marketplace | OAuth Integration Platform</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-            padding: 20px;
-        }
-        .container { max-width: 1000px; margin: 0 auto; }
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        .status {
-            background: #10b981;
-            color: white;
-            padding: 8px 20px;
-            border-radius: 25px;
-            display: inline-block;
-            font-weight: 600;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
-        h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .subtitle { font-size: 1.3rem; color: #6b7280; margin-bottom: 30px; }
-        .info {
-            background: #f0f9ff;
-            border-left: 4px solid #0ea5e9;
-            padding: 20px;
-            border-radius: 0 12px 12px 0;
-            margin: 20px 0;
-            font-family: 'SF Mono', Monaco, monospace;
-            text-align: left;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
-        .card:hover { transform: translateY(-5px); }
-        .card h3 { color: #1a202c; margin-bottom: 15px; font-size: 1.4rem; }
-        .card p { color: #4a5568; line-height: 1.6; margin-bottom: 20px; }
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            margin: 5px;
-            transition: all 0.3s ease;
-        }
-        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
-        .features { list-style: none; padding: 0; }
-        .features li { padding: 8px 0; color: #374151; }
-        .features li:before { content: "✓ "; color: #10b981; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="status">REPLIT PREVIEW ACTIVE</div>
-            <h1>GoHighLevel Marketplace</h1>
-            <div class="subtitle">OAuth Integration Platform</div>
-            
-            <div class="info">
-                <strong>Server Status:</strong> Active and Stable<br>
-                <strong>Port:</strong> 5000 (Replit Preview)<br>
-                <strong>Environment:</strong> Development<br>
-                <strong>Backend:</strong> Railway Production<br>
-                <strong>OAuth Client ID:</strong> 68474924a586bce22a6e64f7-mbpkmyu4
-            </div>
-            
-            <button class="btn" onclick="testConnection()">Test API Connection</button>
-            <button class="btn" onclick="checkOAuth()">OAuth Status</button>
-            <button class="btn" onclick="window.open('https://oauth-backend-production-68c5.up.railway.app', '_blank')">Backend Dashboard</button>
-        </div>
-        
-        <div class="grid">
-            <div class="card">
-                <h3>OAuth 2.0 Integration</h3>
-                <p>Secure GoHighLevel marketplace authentication with Railway backend deployment.</p>
-                <ul class="features">
-                    <li>PKCE Security Protocol</li>
-                    <li>Automatic Token Refresh</li>
-                    <li>Comprehensive Scope Management</li>
-                    <li>Installation Data Persistence</li>
-                </ul>
-            </div>
-            
-            <div class="card">
-                <h3>Universal API Router</h3>
-                <p>Dynamic endpoint mapping for comprehensive GoHighLevel API operations.</p>
-                <ul class="features">
-                    <li>Products & Pricing APIs</li>
-                    <li>Contacts & CRM Integration</li>
-                    <li>Media & File Management</li>
-                    <li>Location Context Management</li>
-                </ul>
-            </div>
-            
-            <div class="card">
-                <h3>Product Management</h3>
-                <p>Create and manage products directly in GoHighLevel CRM with real-time operations.</p>
-                <ul class="features">
-                    <li>Real Product Creation</li>
-                    <li>Dynamic Price Management</li>
-                    <li>Inventory Tracking</li>
-                    <li>Multi-Location Support</li>
-                </ul>
-            </div>
-            
-            <div class="card">
-                <h3>Database Integration</h3>
-                <p>PostgreSQL backend with Drizzle ORM for reliable data persistence.</p>
-                <ul class="features">
-                    <li>User Session Management</li>
-                    <li>Installation Data Tracking</li>
-                    <li>Comprehensive Audit Logs</li>
-                    <li>Type-Safe Database Operations</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        function testConnection() {
-            alert('GoHighLevel Marketplace Connection Test:\\n\\nStatus: Active\\nEnvironment: Replit Preview\\nBackend: Railway Production\\nOAuth: Configured\\n\\nAll systems operational!');
-        }
-        
-        function checkOAuth() {
-            const status = {
-                configured: true,
-                backend: 'Railway Production',
-                clientId: '68474924a586bce22a6e64f7-mbpkmyu4',
-                redirectUri: 'https://oauth-backend-production-68c5.up.railway.app/api/oauth/callback',
-                ready: true
-            };
-            alert('OAuth Configuration Status:\\n\\n' + JSON.stringify(status, null, 2));
-        }
-        
-        window.addEventListener('load', function() {
-            console.log('GoHighLevel Marketplace loaded successfully');
-            setTimeout(testConnection, 2000);
-        });
-    </script>
-</body>
-</html>"""
-
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/' or self.path == '/index.html':
+        parsed_path = urlparse(self.path)
+        print(f"Request: {self.command} {parsed_path.path}")
+        
+        # Serve index.html for root requests
+        if parsed_path.path == '/':
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
-            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write(html_content.encode())
-        elif self.path == '/health':
+            
+            # Read and serve the HTML file
+            try:
+                with open('index.html', 'r', encoding='utf-8') as f:
+                    content = f.read()
+                self.wfile.write(content.encode('utf-8'))
+            except FileNotFoundError:
+                self.wfile.write(b'<h1>GoHighLevel Marketplace</h1><p>Loading...</p>')
+        
+        # Handle API status endpoints
+        elif parsed_path.path == '/health':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            health_data = '{"status":"healthy","port":5000,"service":"GoHighLevel Marketplace"}'
-            self.wfile.write(health_data.encode())
+            response = '{"status": "healthy", "service": "GoHighLevel Marketplace", "port": 5000}'
+            self.wfile.write(response.encode('utf-8'))
+        
+        elif parsed_path.path.startswith('/api/'):
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = '{"status": "ready", "endpoint": "' + parsed_path.path + '", "backend": "https://dir.engageautomations.com"}'
+            self.wfile.write(response.encode('utf-8'))
+        
         else:
+            # Default file serving
             super().do_GET()
 
-with socketserver.TCPServer(("0.0.0.0", PORT), MyHTTPRequestHandler) as httpd:
-    print(f"GoHighLevel Marketplace serving on port {PORT}")
-    print("Server ready for Replit preview")
-    httpd.serve_forever()
+if __name__ == "__main__":
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    
+    with socketserver.TCPServer(("0.0.0.0", PORT), MyHTTPRequestHandler) as httpd:
+        print(f"GoHighLevel Marketplace running on port {PORT}")
+        print(f"Access at: http://localhost:{PORT}")
+        print(f"OAuth Backend: https://dir.engageautomations.com")
+        print(f"Installation: install_1750131573635")
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("\nServer stopped")
