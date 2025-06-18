@@ -2036,8 +2036,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const accessToken = req.headers.authorization?.replace('Bearer ', '');
       
       if (!accessToken) {
-        console.log("Missing authorization header and installation ID");
-        return res.status(401).json({ error: "Authorization header with Bearer token or installationId required" });
+        console.log("Missing authorization header - creating local listing only");
+        
+        // Create local listing without GHL sync for testing
+        const localListingData = {
+          ...productData,
+          directoryName: 'default',
+          title: productData.name,
+          slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          description: productData.description || '',
+          price: productData.price?.toString() || '0',
+          category: productData.category || '',
+          metaTitle: productData.metaTitle || productData.name,
+          metaDescription: productData.metaDescription || productData.description || '',
+          seoKeywords: productData.seoKeywords || '',
+          images: productData.images || [],
+          metadataImages: productData.metadataImages || [],
+          syncStatus: 'local_only',
+          ghlSyncError: 'No authorization token provided'
+        };
+
+        const localListing = await storage.createListing(localListingData);
+        
+        return res.status(201).json({
+          success: true,
+          message: 'Local listing created successfully. Provide GHL access token for sync.',
+          listingId: localListing.id,
+          productData: {
+            name: productData.name,
+            description: productData.description,
+            productType: productData.productType,
+            price: productData.price
+          }
+        });
       }
       
       // Validate required fields per GHL API spec
