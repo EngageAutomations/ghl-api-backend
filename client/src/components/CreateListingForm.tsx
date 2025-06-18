@@ -141,10 +141,24 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
         try {
           console.log('Creating GoHighLevel product for listing...');
           const ghlProductData = {
+            // Required fields - always pass through
             name: formData.title,
+            locationId: 'WAvk87RmW9rBSDJHeOpH', // GoHighLevel location ID
+            productType: 'DIGITAL', // Required: DIGITAL, PHYSICAL, SERVICE, PHYSICAL/DIGITAL
+            
+            // Standard fields - always include
             description: formData.description || '',
-            productType: 'DIGITAL',
-            price: formData.price ? parseFloat(formData.price.replace(/[^0-9.-]/g, '')) : undefined
+            availableInStore: true, // Default to true as requested
+            image: formData.imageUrl || null,
+            
+            // SEO fields - now standard with every submission
+            seo: {
+              title: seoFields.metaTitle || formData.title,
+              description: seoFields.metaDescription || formData.description || ''
+            },
+            
+            // Optional pricing if provided
+            ...(formData.price && { price: parseFloat(formData.price.replace(/[^0-9.-]/g, '')) })
           };
 
           const ghlResponse = await apiRequest('/api/ghl/create-product', {

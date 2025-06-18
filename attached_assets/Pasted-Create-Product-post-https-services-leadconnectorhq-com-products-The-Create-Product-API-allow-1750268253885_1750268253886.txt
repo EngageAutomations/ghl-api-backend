@@ -1,0 +1,377 @@
+Create Product
+post
+https://services.leadconnectorhq.com/products/
+The "Create Product" API allows adding a new product to the system. Use this endpoint to create a product with the specified details. Ensure that the required information is provided in the request payload.
+
+Request
+Use the Access Token generated with user type as Sub-Account (OR) Private Integration Token of Sub-Account.
+
+Provide your bearer token in the Authorization header when making requests to protected resources.
+
+Example: Authorization: Bearer 123
+
+Use the Access Token generated with user type as Agency (OR) Private Integration Token of Agency.
+
+Provide your bearer token in the Authorization header when making requests to protected resources.
+
+Example: Authorization: Bearer 123
+
+Headers
+Authorization
+string
+required
+Access Token
+
+Example:
+Bearer 9c48df2694a849b6089f9d0d3513efe
+Version
+string
+required
+API Version
+
+Allowed value:
+2021-07-28
+Body
+
+application/json
+
+application/json
+name
+string
+required
+The name of the product.
+
+Example:
+Awesome Product
+locationId
+string
+required
+The unique identifier for the location.
+
+Example:
+3SwdhCsvxI8Au3KsPJt6
+description
+string
+A brief description of the product.
+
+Example:
+Product description goes here.
+productType
+string
+required
+Allowed values:
+DIGITAL
+PHYSICAL
+SERVICE
+PHYSICAL/DIGITAL
+image
+string
+The URL for the product image.
+
+Example:
+https://storage.googleapis.com/ghl-test/3SwdhCsvxI8Au3KsPJt6/media/65af8d5df88bdb4b1022ee90.png
+statementDescriptor
+string
+The statement descriptor for the product.
+
+Example:
+abcde
+availableInStore
+boolean
+Indicates whether the product is available in-store.
+
+Example:
+true
+medias
+array[object]
+An array of medias for the product.
+
+variants
+array[object]
+An array of variants for the product.
+
+collectionIds
+array[string]
+An array of category Ids for the product
+
+Example:
+["65d71377c326ea78e1c47df5","65d71377c326ea78e1c47d34"]
+isTaxesEnabled
+boolean
+Are there any taxes attached to the product. If this is true, taxes array cannot be empty.
+
+Default:
+false
+Example:
+true
+taxes
+array[string]
+List of ids of Taxes attached to the Product. If taxes are passed, isTaxesEnabled should be true.
+
+Example:
+["654492a4e6bef380114de15a"]
+automaticTaxCategoryId
+string
+Tax category ID for Automatic taxes calculation.
+
+Example:
+65d71377c326ea78e1c47df5
+isLabelEnabled
+boolean
+Is the product label enabled. If this is true, label object cannot be empty.
+
+Default:
+false
+Example:
+true
+label
+object
+Details for Product Label
+
+slug
+string
+The slug using which the product navigation will be handled
+
+Example:
+awesome-product
+seo
+object
+SEO data for the product that will be displayed in the preview
+
+Responses
+201
+400
+401
+422
+Successful response
+
+Body
+
+application/json
+
+application/json
+responses
+/
+201
+/
+automaticTaxCategoryId
+_id
+string
+required
+The unique identifier for the product.
+
+Example:
+655b33a82209e60b6adb87a5
+description
+string
+product description
+
+Example:
+This is a really awesome product
+variants
+array[object]
+An array of variants for the product.
+
+id
+string
+required
+A unique identifier for the variant.
+
+Example:
+38s63qmxfr4
+name
+string
+required
+The name of the variant.
+
+Example:
+Size
+options
+array[object]
+required
+An array of options for the variant.
+
+medias
+array[object]
+An array of medias for the product.
+
+id
+string
+required
+The unique identifier for the media.
+
+Example:
+fzrgusiuu0m
+title
+string
+The title of the media file.
+
+Example:
+1dd7dcd0-e71d-4cf7-a06b-6d47723d6a29.png
+url
+string
+required
+The URL where the media file is stored.
+
+Example:
+https://storage.googleapis.com/ghl-test/3SwdhCsvxI8Au3KsPJt6/media/sample.png
+type
+string
+required
+The type of the media file (e.g., image, video will be supporting soon).
+
+Allowed values:
+image
+video
+Example:
+image
+isFeatured
+boolean
+Indicates whether the media is featured.
+
+Example:
+true
+priceIds
+array[array]
+Mongo ObjectIds of the prices for which the media is assigned
+
+Example:
+6578278e879ad2646715ba9c
+locationId
+string
+required
+The unique identifier for the location.
+
+Example:
+3SwdhCsvxI8Au3KsPJt6
+name
+string
+required
+The name of the product.
+
+Example:
+Awesome Product
+productType
+string
+required
+The type of the product (e.g., PHYSICAL).
+
+Example:
+PHYSICAL
+availableInStore
+boolean
+Indicates whether the product is available in-store.
+
+Example:
+true
+userId
+string
+The unique identifier for the user who created the product.
+
+Example:
+6YAtzfzpmHAdj0e8GkKp
+createdAt
+string<date-time>
+required
+The creation timestamp of the product.
+
+Example:
+2023-11-20T10:23:36.515Z
+updatedAt
+string<date-time>
+required
+The last update timestamp of the product.
+
+Example:
+2024-01-23T09:57:04.846Z
+statementDescriptor
+string
+The statement descriptor for the product.
+
+Example:
+abcde
+image
+string
+The URL for the product image.
+
+Example:
+https://storage.googleapis.com/ghl-test/3SwdhCsvxI8Au3KsPJt6/media/65af8d5df88bdb4b1022ee90.png
+collectionIds
+array[string]
+An array of category Ids for the product
+
+Example:
+["65d71377c326ea78e1c47df5","65d71377c326ea78e1c47d34"]
+isTaxesEnabled
+boolean
+The field indicates whether taxes are enabled for the product or not.
+
+Default:
+false
+Example:
+true
+taxes
+array[string]
+An array of ids of Taxes attached to the Product. If the expand query includes tax, the taxes will be of type ProductTaxDto. Please refer to the ProductTaxDto for additional details.
+
+Example:
+["654492a4e6bef380114de15a"]
+automaticTaxCategoryId
+string
+Tax category ID for Automatic taxes calculation.
+
+Example:
+65d71377c326ea78e1c47df5
+isLabelEnabled
+boolean
+A boolean representing whether a product label is enabled or not
+
+Default:
+false
+Example:
+true
+label
+object
+The Product label details
+
+title
+string
+required
+The content for the product label.
+
+Example:
+Featured
+startDate
+string
+Start date in YYYY-MM-DDTHH:mm:ssZ format
+
+Example:
+2024-06-26T05:43:35.000Z
+endDate
+string
+Start date in YYYY-MM-DDTHH:mm:ssZ format
+
+Example:
+2024-06-30T05:43:39.000Z
+slug
+string
+The slug of the product by which the product will be navigated
+
+Example:
+washing-machine
+seo
+object
+The SEO information for the product requested
+
+title
+string
+SEO title of the product which will be displayed in the preview
+
+Example:
+Apple iPhone 14
+description
+string
+SEO Description for the product which will be displayed in the preview
+
+Example:
+New iPhone with all new features

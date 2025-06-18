@@ -2696,20 +2696,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create test product data
-      const testProductData = {
-        name: req.body.name || "Test Directory Product",
+      // Core fields that always pass through regardless of form configuration
+      const productData = {
+        // Required fields - GoHighLevel API requirements
+        name: req.body.name || "Untitled Product",
         locationId: installation.ghlLocationId,
-        description: req.body.description || "Test product created via OAuth API integration",
-        productType: req.body.productType || "DIGITAL",
-        availableInStore: req.body.availableInStore || true,
-        ...req.body
+        productType: req.body.productType || "DIGITAL", // DIGITAL, PHYSICAL, SERVICE, PHYSICAL/DIGITAL
+        
+        // Standard fields - always include for consistency
+        description: req.body.description || "",
+        availableInStore: req.body.availableInStore !== undefined ? req.body.availableInStore : true,
+        
+        // Image field if provided
+        ...(req.body.image && { image: req.body.image }),
+        
+        // SEO fields - now standard with every submission
+        ...(req.body.seo && {
+          seo: {
+            title: req.body.seo.title || req.body.name || "Untitled Product",
+            description: req.body.seo.description || req.body.description || ""
+          }
+        }),
+        
+        // Optional fields that may be configured per form
+        ...(req.body.statementDescriptor && { statementDescriptor: req.body.statementDescriptor }),
+        ...(req.body.slug && { slug: req.body.slug }),
+        ...(req.body.collectionIds && { collectionIds: req.body.collectionIds }),
+        ...(req.body.variants && { variants: req.body.variants }),
+        ...(req.body.medias && { medias: req.body.medias }),
+        
+        // Tax configuration if provided
+        ...(req.body.isTaxesEnabled !== undefined && { isTaxesEnabled: req.body.isTaxesEnabled }),
+        ...(req.body.taxes && { taxes: req.body.taxes }),
+        ...(req.body.automaticTaxCategoryId && { automaticTaxCategoryId: req.body.automaticTaxCategoryId }),
+        
+        // Label configuration if provided
+        ...(req.body.isLabelEnabled !== undefined && { isLabelEnabled: req.body.isLabelEnabled }),
+        ...(req.body.label && { label: req.body.label })
       };
       
-      console.log("Creating product with data:", testProductData);
+      console.log("Creating product with data:", productData);
       console.log("Using access token from installation:", installation.id);
       
       // Use our updated API class
-      const product = await ghlAPI.createProduct(testProductData, installation.ghlAccessToken);
+      const product = await ghlAPI.createProduct(productData, installation.ghlAccessToken);
       
       console.log("Product created successfully:", product);
       
