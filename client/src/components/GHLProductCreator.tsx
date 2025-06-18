@@ -51,13 +51,10 @@ export function GHLProductCreator({ isOpen, onClose, directoryName, onSuccess }:
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          formSubmission: {
-            product_name: productData.name,
-            product_description: productData.description,
-          },
-          productType: productData.productType,
+          locationId: "WAvk87RmW9rBSDJHeOpH",
           name: productData.name,
-          description: productData.description
+          description: productData.description,
+          productType: productData.productType
         }),
       });
 

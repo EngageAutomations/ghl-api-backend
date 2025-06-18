@@ -63,27 +63,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GHL Product Creation Route
   app.post("/api/ghl/create-product", async (req, res) => {
     try {
-      const response = await fetch('https://dir.engageautomations.com/api/ghl/create-product', {
+      // Use Railway universal API pattern for product creation
+      const installationId = 'install_1750191250983'; // Your valid installation
+      const locationId = req.body.locationId || 'WAvk87RmW9rBSDJHeOpH';
+      
+      const productData = {
+        name: req.body.name,
+        description: req.body.description || '',
+        productType: req.body.productType || 'DIGITAL',
+        locationId: locationId
+      };
+
+      console.log('Creating product with Railway universal API:', productData);
+
+      const response = await fetch(`https://dir.engageautomations.com/api/ghl/products?installationId=${installationId}&locationId=${locationId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(req.body)
+        body: JSON.stringify(productData)
       });
 
       const data = await response.json();
       
+      console.log('Railway API response:', data);
+      
       if (!response.ok) {
-        return res.status(response.status).json(data);
+        return res.status(response.status).json({
+          success: false,
+          error: data.error || 'Product creation failed',
+          details: data.details || data.message,
+          railwayResponse: data
+        });
       }
 
-      res.json(data);
+      res.json({
+        success: true,
+        product: data.product || data.data,
+        productId: data.product?.id || data.data?.id,
+        locationId: locationId,
+        installationId: installationId,
+        railwayBackend: true
+      });
     } catch (error) {
       console.error('GHL Product Creation Error:', error);
       res.status(500).json({ 
         success: false, 
         error: 'Failed to create product in GoHighLevel',
-        details: error.message 
+        details: error.message,
+        railwayBackend: false
       });
     }
   });
