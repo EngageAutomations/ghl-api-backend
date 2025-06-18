@@ -216,11 +216,21 @@ app.get('*', (req, res) => {
   `);
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
+// Start server with error handling
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`GoHighLevel Marketplace running on port ${PORT}`);
   console.log(`Access URL: http://localhost:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Server binding: 0.0.0.0:${PORT}`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`Port ${PORT} is busy, trying port ${PORT + 1}`);
+    server.listen(PORT + 1, '0.0.0.0');
+  } else {
+    console.error('Server error:', err);
+  }
 });
 
 module.exports = app;

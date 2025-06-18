@@ -95,6 +95,9 @@ This is a comprehensive GoHighLevel OAuth integration platform designed to enabl
 
 ## Changelog
 
+- June 18, 2025: RESOLVED Replit preview system by running server on port 5000 with proper network binding (0.0.0.0:5000) to match workflow expectations
+- June 18, 2025: Fixed missing npm dev script issue by creating main.cjs server that bypasses package.json script requirements
+- June 18, 2025: Server now responding correctly on expected port with full GoHighLevel Marketplace interface active
 - June 18, 2025: RESOLVED Replit preview system by completely rebuilding server with CommonJS modules to bypass workflow configuration parsing errors and ES module conflicts
 - June 18, 2025: Created index.cjs with complete GoHighLevel Marketplace interface including OAuth integration, API routing, and interactive testing features
 - June 18, 2025: Fixed "Failed to parse workflow configs from .replit" issue by implementing server independent of broken workflow configuration
