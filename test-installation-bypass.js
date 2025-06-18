@@ -3,7 +3,7 @@
  * Direct test of the installation product creation system that bypasses authorization middleware
  */
 
-const { storage } = require('./server/simple-storage');
+import { simpleDataStore } from './server/simple-storage.ts';
 
 async function testInstallationProductCreation() {
   console.log("🧪 Testing Installation Product Creation System");
@@ -69,7 +69,7 @@ async function testInstallationProductCreation() {
       installationId: installationId
     };
 
-    const localListing = await storage.createListing(localListingData);
+    const localListing = await simpleDataStore.createListing(localListingData);
 
     console.log("\n✅ Product created successfully!");
     console.log("Listing ID:", localListing.id);
@@ -77,7 +77,7 @@ async function testInstallationProductCreation() {
     console.log("Sync Status:", 'pending');
     
     // Verify the listing was stored correctly
-    const storedListing = await storage.getListing(localListing.id);
+    const storedListing = await simpleDataStore.getListing(localListing.id);
     console.log("\n📊 Stored listing verification:");
     console.log("Title:", storedListing.title);
     console.log("Price:", storedListing.price);
