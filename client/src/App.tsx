@@ -149,6 +149,15 @@ function Router() {
           </AppLayout>
         </ProtectedRoute>
       </Route>
+
+      {/* Railway Backend Integration Test */}
+      <Route path="/railway-test">
+        <ProtectedRoute>
+          <AppLayout>
+            <RailwayBackendTest />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
       
       {/* API Management Interface */}
       <Route path="/api-management">

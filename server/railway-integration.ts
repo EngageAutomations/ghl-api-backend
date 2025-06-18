@@ -134,6 +134,7 @@ export class RailwayIntegration {
 
   /**
    * Get the primary installation ID from Railway backend
+   * Prioritizes installations with valid tokens
    */
   async getPrimaryInstallation(): Promise<string> {
     try {
@@ -141,7 +142,24 @@ export class RailwayIntegration {
       if (health.installationIds.length === 0) {
         throw new Error('No OAuth installations found on Railway backend');
       }
-      return health.installationIds[0]; // Return first available installation
+      
+      // Check each installation for valid tokens
+      for (const installationId of health.installationIds) {
+        try {
+          const status = await this.getOAuthStatus(installationId);
+          if (status.authenticated && status.hasAccessToken && status.tokenStatus === 'valid') {
+            console.log(`Found working installation: ${installationId}`);
+            return installationId;
+          }
+        } catch (error) {
+          console.log(`Installation ${installationId} check failed, trying next...`);
+          continue;
+        }
+      }
+      
+      // Fallback to first installation if none have valid tokens
+      console.log('No installations with valid tokens found, using first available');
+      return health.installationIds[0];
     } catch (error) {
       throw new Error(`Failed to get primary installation: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
