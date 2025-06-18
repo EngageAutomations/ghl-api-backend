@@ -1,0 +1,70 @@
+How the token-refresh system works on Railway (one-column view)
+1. Railway’s role
+Merely starts your container, injects env-vars, and routes HTTP traffic.
+
+Does not store, rotate, or inspect OAuth tokens.
+
+2. Where the tokens live
+Process RAM – installations Map inside index.js holds access token, refresh token, expiresAt, etc.
+
+Timers – scheduleTokenRefresh() sets a setTimeout that fires ~5 min before expiresAt and calls refreshAccessToken().
+
+Persistence (optional) – if you add Postgres/Redis/File storage, reload installs on boot so timers can be re-armed.
+
+3. What happens on every incoming request
+Route receives installation_id from the query/body.
+
+requireInstall() fetches the install object.
+
+ensureFreshToken()
+
+If token is about to expire, refreshes it on the spot.
+
+Throws an error if refresh fails.
+
+Your route’s Axios request is sent to GoHighLevel with a guaranteed-fresh Bearer token.
+
+Response is returned to the caller; the frontend never sees the token.
+
+4. Restart / scale considerations
+Simple redeploy – memory clears, so reload installs from your store (or let users re-auth).
+
+Multiple replicas – each would refresh the same token; use a distributed lock if you scale horizontally.
+
+Seed token in env-var – handy for smoke tests but it isn’t updated after the first refresh; always read the live token from your store.
+
+Example test call
+Assumptions
+
+Your Railway URL: https://dir.engageautomations.app
+
+You completed OAuth and received installation_id=install_1750106970265.
+
+curl
+
+bash
+Copy
+Edit
+curl -X GET \
+  "https://dir.engageautomations.app/api/ghl/products?installation_id=install_1750106970265" \
+  -H "Accept: application/json"
+What you should see
+
+json
+Copy
+Edit
+{
+  "success": true,
+  "products": [ ... ],
+  "total": 12,
+  "locationId": "WAvk87RmW9rBSDJHeOpH"
+}
+Behind the scenes the server:
+
+Checks or refreshes the token for install_1750106970265.
+
+Sends the request to GoHighLevel with Authorization: Bearer <fresh-token>.
+
+Returns the JSON payload to you.
+
+That’s all you need—just supply the installation_id; the backend handles every token detail automatically.
