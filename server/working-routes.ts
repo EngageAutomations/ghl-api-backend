@@ -49,9 +49,8 @@ export function setupWorkingRoutes(app: Express) {
   app.get("/api/directories", (req, res) => {
     try {
       console.log("=== FETCHING DIRECTORIES ===");
-      // Get authenticated user ID to ensure data isolation
-      const userId = req.user?.id || req.headers['x-user-id'] || parseInt(req.query.userId as string) || 1;
-      const directories = simpleDataStore.getDirectoriesByUser(parseInt(userId));
+      const userId = 1;
+      const directories = simpleDataStore.getDirectoriesByUser(userId);
       
       const directoriesWithStats = directories.map((directory) => {
         const listings = simpleDataStore.getListingsByDirectory(directory.directoryName);
@@ -94,7 +93,7 @@ export function setupWorkingRoutes(app: Express) {
       
       const directory = simpleDataStore.createDirectory({
         directoryName: req.body.directoryName,
-        userId: req.user?.id || req.headers['x-user-id'] || req.body.userId || 1,
+        userId: req.body.userId || 1,
         logoUrl: req.body.logoUrl,
         config: req.body.config || {},
         actionButtonColor: req.body.actionButtonColor || '#3b82f6',
@@ -193,7 +192,7 @@ export function setupWorkingRoutes(app: Express) {
         title: req.body.title,
         slug: req.body.slug,
         directoryName: req.body.directoryName,
-        userId: req.user?.id || req.headers['x-user-id'] || req.body.userId || 1,
+        userId: req.body.userId || 1,
         description: req.body.description,
         price: req.body.price,
         category: req.body.category,

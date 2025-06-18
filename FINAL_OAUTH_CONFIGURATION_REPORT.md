@@ -1,135 +1,90 @@
 # Final OAuth Configuration Report
-## Production Deployment Ready
 
-**Date:** June 15, 2025  
-**Status:** ✅ PRODUCTION READY  
-**Deployment Target:** Railway  
+## Current Configuration (Correct)
 
-## Executive Summary
+### GoHighLevel Marketplace
+**Redirect URL:** `https://dir.engageautomations.com/api/oauth/callback`
+**Status:** CORRECT - Keep this configuration
 
-The OAuth user info retrieval system has been completely fixed and is ready for production deployment. The critical routing issues identified in development have been resolved through a dedicated production backend that ensures all API endpoints return proper JSON responses.
+### Railway Backend
+**Domain:** `https://dir.engageautomations.com`
+**Status:** ACTIVE - Production OAuth handler
+**Installations:** 2 active installations with valid tokens
 
-## Critical Issues Resolved
+## Verified Installation Data on Railway
 
-### 1. OAuth Status Endpoint JSON Response ✅
-**Problem:** Development environment returned HTML instead of JSON for `/api/oauth/status`
-**Solution:** Created production-optimized Express backend with dedicated API route handling
-**Verification:** All API routes now return structured JSON responses with proper error codes
+Railway backend currently contains:
+- Installation ID 1: user_1749916467875 (June 14, 2025 15:54:27)
+- Installation ID 2: user_1749917439420 (June 14, 2025 16:10:39)
+- Both installations: hasToken: true, isActive: true
 
-### 2. GoHighLevel Scope Configuration ✅
-**Problem:** Missing `users.read` scope caused user info retrieval failures
-**Solution:** Updated OAuth scopes to include `users.read` for proper user data access
-**Implementation:** Environment variable `GHL_SCOPES="users.read products/prices.write products/prices.readonly"`
+## Required Action
 
-### 3. API Endpoint Correction ✅
-**Problem:** Incorrect GoHighLevel API endpoint `/users/me` 
-**Solution:** Updated to correct endpoint `/v1/users/me` with proper version headers
-**Standard:** GoHighLevel API v2021-07-28 specification compliance
+Railway backend needs to expose installation details for development access. Add these endpoints to Railway:
 
-### 4. Token Refresh Automation ✅
-**Problem:** Manual token management without automatic refresh
-**Solution:** Implemented comprehensive token refresh with database updates
-**Features:** Automatic expiry detection, refresh token handling, error recovery
+```javascript
+// Complete installation details
+app.get('/api/installations/:id/details', (req, res) => {
+  const installation = storage.getAllInstallations().find(inst => inst.id == req.params.id);
+  if (installation) {
+    res.json({
+      success: true,
+      installation: {
+        id: installation.id,
+        ghlUserId: installation.ghlUserId,
+        ghlLocationId: installation.ghlLocationId,
+        ghlAccessToken: installation.ghlAccessToken,
+        ghlRefreshToken: installation.ghlRefreshToken,
+        installationDate: installation.installationDate,
+        isActive: installation.isActive
+      }
+    });
+  } else {
+    res.status(404).json({ success: false, error: 'Installation not found' });
+  }
+});
 
-## Production Deployment Package
-
-**Location:** `railway-oauth-complete/`  
-**Package:** `railway-oauth-complete.tar.gz`  
-**Entry Point:** `index.js` (production-optimized Express server)
-
-### Key Components
-- **OAuth Status Endpoint:** `/api/oauth/status` returns proper JSON responses
-- **OAuth Callback Handler:** `/oauth/callback` processes GoHighLevel marketplace installations
-- **Health Check:** `/api/health` for Railway monitoring and uptime verification
-- **Installation Management:** `/api/installations` for OAuth data access
-- **CORS Configuration:** Enhanced for embedded CRM tab and cross-domain access
-
-### Environment Variables Required
-```bash
-GHL_CLIENT_ID=your_gohighlevel_client_id
-GHL_CLIENT_SECRET=your_gohighlevel_client_secret
-GHL_REDIRECT_URI=https://your-railway-domain.railway.app/oauth/callback
-GHL_SCOPES="users.read products/prices.write products/prices.readonly"
+// Latest installation endpoint
+app.get('/api/installations/latest', (req, res) => {
+  const installations = storage.getAllInstallations();
+  if (installations.length > 0) {
+    const latest = installations.sort((a, b) => new Date(b.installationDate) - new Date(a.installationDate))[0];
+    res.json({
+      success: true,
+      installation: {
+        id: latest.id,
+        ghlUserId: latest.ghlUserId,
+        ghlLocationId: latest.ghlLocationId,
+        ghlAccessToken: latest.ghlAccessToken,
+        ghlRefreshToken: latest.ghlRefreshToken,
+        installationDate: latest.installationDate,
+        isActive: latest.isActive
+      }
+    });
+  } else {
+    res.status(404).json({ success: false, error: 'No installations found' });
+  }
+});
 ```
 
-## Production Verification Commands
+## Alternative: Direct Credential Access
 
-After Railway deployment, verify OAuth functionality:
+If Railway endpoints can't be updated immediately, provide your real credentials directly:
 
-```bash
-# Health check
-curl https://your-railway-domain.railway.app/api/health
+1. Access Railway backend logs or database
+2. Retrieve access_token and location_id from installation ID 2 (most recent)
+3. Provide as environment variables:
+   - GHL_ACCESS_TOKEN: [your real access token]
+   - GHL_LOCATION_ID: [your real location ID]
 
-# OAuth status endpoint (should return 400 with JSON)
-curl -H "Accept: application/json" \
-  "https://your-railway-domain.railway.app/api/oauth/status?installation_id=test"
+## Workflow After Credential Access
 
-# OAuth callback verification
-curl "https://your-railway-domain.railway.app/oauth/callback?code=test"
-```
+Once real credentials are available:
+1. Test GoHighLevel API connection with authentic tokens
+2. Store installation data locally for development
+3. Test directory logo upload API with real account
+4. Verify media upload functionality works with actual permissions
 
-Expected responses:
-- All endpoints return JSON (never HTML)
-- Proper HTTP status codes (400, 404, 500)
-- Structured error messages with `error` and `message` fields
-- CORS headers for embedded iframe access
+## Summary
 
-## Smoke Test Results
-
-| Test Category | Status | Details |
-|---------------|--------|---------|
-| **Routing Fixed** | ✅ READY | Production backend ensures JSON responses |
-| **End-to-End Flow** | ✅ READY | OAuth callback and status endpoints functional |
-| **Token Refresh** | ✅ READY | Comprehensive refresh logic implemented |
-| **Error Scenarios** | ✅ READY | Structured JSON error responses |
-| **CORS & Cookies** | ✅ READY | Enhanced CORS for embedded CRM tab access |
-
-**Overall Readiness:** 100% (5/5 tests pass with production deployment)
-
-## GoHighLevel App Configuration
-
-Update your GoHighLevel developer console with:
-
-1. **OAuth Scopes:** Add `users.read` to existing scopes
-2. **Redirect URI:** Update to Railway domain `https://your-domain.railway.app/oauth/callback`
-3. **Webhook URLs:** Configure for installation callbacks if needed
-
-## Monitoring & Alerting
-
-Railway automatically provides:
-- **Health Checks:** `/api/health` endpoint monitoring
-- **Error Tracking:** 4xx/5xx response monitoring
-- **Performance Metrics:** Response time and throughput
-- **SSL/TLS:** Automatic certificate management
-
-## Post-Deployment Checklist
-
-- [ ] Deploy `railway-oauth-complete/` to Railway
-- [ ] Set all required environment variables
-- [ ] Update GoHighLevel app configuration with new domain
-- [ ] Test OAuth flow with real GoHighLevel account
-- [ ] Verify embedded CRM tab functionality
-- [ ] Monitor health check and error rates
-
-## Success Metrics
-
-The OAuth system is production-ready when:
-- ✅ OAuth status endpoint returns JSON for all requests
-- ✅ User info retrieval works with `users.read` scope
-- ✅ Token refresh happens automatically on expiry
-- ✅ Embedded CRM tab access functions properly
-- ✅ Multi-user installations maintain data isolation
-
-## Technical Architecture
-
-**Backend:** Express.js with dedicated API routing  
-**Storage:** In-memory for OAuth installations (scalable to database)  
-**Authentication:** JWT with automatic token refresh  
-**CORS:** Enhanced for iframe embedding and cross-domain access  
-**Monitoring:** Railway health checks and logging  
-
-## Conclusion
-
-The OAuth user info retrieval system is now production-ready with comprehensive error handling, automatic token management, and proper JSON API responses. The Railway deployment package addresses all critical issues identified during development and testing.
-
-**Next Step:** Deploy to Railway and update GoHighLevel app configuration for marketplace launch.
+Railway configuration is correct as production OAuth handler. The missing piece is exposing installation details for development access to your real GoHighLevel credentials.

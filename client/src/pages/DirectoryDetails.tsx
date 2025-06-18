@@ -129,74 +129,10 @@ export default function DirectoryDetails() {
 
   // Collection mutations
   const createCollectionMutation = useMutation({
-    mutationFn: async (data: any) => {
-      // Create collection locally first
-      const response = await apiRequest('/api/collections', {
-        method: 'POST',
-        data: { ...data, directoryName }
-      });
-      
-      const responseData = await response.json();
-      const collectionId = responseData.id;
-      
-      // Try to sync with GoHighLevel
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const installationId = urlParams.get('installation_id') || localStorage.getItem('ghl_installation_id');
-        
-        if (installationId) {
-          // Create a corresponding product collection in GoHighLevel
-          const ghlResponse = await apiRequest('/api/ghl/products/create', {
-            method: 'POST',
-            data: {
-              name: `Collection: ${data.name}`,
-              description: `Collection - ${data.description || data.name}`,
-              price: 0, // Collections are typically free containers
-              installationId: installationId
-            }
-          });
-
-          if (ghlResponse.ok) {
-            const ghlData = await ghlResponse.json();
-            
-            // Update collection with GHL collection ID
-            await apiRequest(`/api/collections/${collectionId}`, {
-              method: 'PATCH',
-              data: {
-                ghlCollectionId: ghlData.product?.id,
-                syncStatus: 'synced',
-                syncError: null
-              }
-            });
-          } else {
-            // Mark as failed sync but don't fail the operation
-            await apiRequest(`/api/collections/${collectionId}`, {
-              method: 'PATCH',
-              data: {
-                syncStatus: 'failed',
-                syncError: 'Failed to sync with GoHighLevel'
-              }
-            });
-          }
-        }
-      } catch (ghlError) {
-        console.error('GoHighLevel collection sync error:', ghlError);
-        // Update sync status but don't fail the operation
-        try {
-          await apiRequest(`/api/collections/${collectionId}`, {
-            method: 'PATCH',
-            data: {
-              syncStatus: 'failed',
-              syncError: 'GoHighLevel sync error: ' + (ghlError as Error).message
-            }
-          });
-        } catch (updateError) {
-          console.error('Failed to update collection sync status:', updateError);
-        }
-      }
-      
-      return response;
-    },
+    mutationFn: (data: any) => apiRequest('/api/collections', {
+      method: 'POST',
+      data: { ...data, directoryName }
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/collections/directory', directoryName] });
       setShowCollectionForm(false);

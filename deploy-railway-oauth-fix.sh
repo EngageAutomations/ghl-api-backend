@@ -1,39 +1,29 @@
 #!/bin/bash
 
-# Deploy Railway OAuth Fix - Environment Variable Validation
-# This script deploys the updated Railway backend with environment variable debugging
+# Deploy Updated Railway Backend with Installation Detail Endpoints
+# This script deploys the complete Railway backend to expose OAuth credentials
 
-echo "🚀 Deploying Railway OAuth Fix with Environment Variable Validation"
-echo "=================================================================="
+echo "🚀 Deploying Railway OAuth Backend with Installation Detail Endpoints..."
 
 # Create deployment package
 echo "📦 Creating deployment package..."
+cp railway-backend-complete-index.js railway-deploy/index.js
 
-# Copy the updated railway-index.js with environment variable validation
-cp railway-index.js railway-oauth-fixed.js
-
-# Verify the environment variable validation is in place
-echo "✅ Verifying environment variable validation..."
-if grep -q "Environment Variables Check" railway-oauth-fixed.js; then
-    echo "   ✓ Environment variable validation added"
-else
-    echo "   ❌ Environment variable validation missing"
-    exit 1
-fi
-
-# Create package.json for Railway
-cat > railway-fixed-package.json << 'EOF'
+# Add package.json for Railway deployment
+cat > railway-deploy/package.json << 'EOF'
 {
-  "name": "gohighlevel-oauth-backend",
-  "version": "2.0.1",
-  "description": "GoHighLevel OAuth Backend with Environment Variable Validation",
-  "main": "railway-oauth-fixed.js",
+  "name": "ghl-oauth-backend",
+  "version": "1.0.0",
+  "description": "GoHighLevel Universal API Backend with OAuth Installation Management",
+  "main": "index.js",
   "scripts": {
-    "start": "node railway-oauth-fixed.js",
-    "dev": "node railway-oauth-fixed.js"
+    "start": "node index.js",
+    "dev": "node index.js"
   },
   "dependencies": {
     "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5"
   },
   "engines": {
@@ -42,50 +32,37 @@ cat > railway-fixed-package.json << 'EOF'
 }
 EOF
 
-echo "✅ Package.json created for Railway deployment"
-
 # Create Railway configuration
-cat > railway.json << 'EOF'
-{
-  "$schema": "https://railway.app/railway.schema.json",
-  "build": {
-    "builder": "NIXPACKS"
-  },
-  "deploy": {
-    "startCommand": "npm start",
-    "healthcheckPath": "/health"
-  }
-}
+cat > railway-deploy/railway.toml << 'EOF'
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "npm start"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[[deploy.environmentVariables]]
+name = "NODE_ENV"
+value = "production"
+
+[[deploy.environmentVariables]]
+name = "PORT"
+value = "5000"
 EOF
 
-echo "✅ Railway configuration created"
-
-# Package everything
-echo "📦 Creating deployment archive..."
-tar -czf railway-oauth-fix.tar.gz railway-oauth-fixed.js railway-fixed-package.json railway.json
-
+echo "✅ Deployment package created in railway-deploy/"
 echo ""
-echo "🎯 Deployment Package Ready"
-echo "=========================="
-echo "Files created:"
-echo "  - railway-oauth-fixed.js (Updated backend with env validation)"
-echo "  - railway-fixed-package.json (Package configuration)"
-echo "  - railway.json (Railway deployment config)"
-echo "  - railway-oauth-fix.tar.gz (Complete deployment package)"
+echo "📋 Next Steps:"
+echo "1. Upload the contents of railway-deploy/ to your Railway project"
+echo "2. Set environment variables in Railway:"
+echo "   - GHL_CLIENT_ID: 68474924a586bce22a6e64f7-mbpkmyu4"
+echo "   - GHL_CLIENT_SECRET: [your client secret]"
+echo "   - GHL_REDIRECT_URI: https://dir.engageautomations.com/api/oauth/callback"
 echo ""
-echo "📋 Deployment Instructions:"
-echo "1. Go to your Railway dashboard"
-echo "2. Select your OAuth backend service"
-echo "3. Go to Settings → Deploy"
-echo "4. Upload railway-oauth-fix.tar.gz"
-echo "5. Check the logs for environment variable validation output"
+echo "3. Deploy the updated backend"
+echo "4. Test the new endpoints:"
+echo "   - GET https://dir.engageautomations.com/api/installations/latest"
+echo "   - GET https://dir.engageautomations.com/api/installations/2/details"
 echo ""
-echo "🔍 Expected Log Output:"
-echo "=== Environment Variables Check ==="
-echo "GHL_CLIENT_ID: SET"
-echo "GHL_CLIENT_SECRET: SET" 
-echo "GHL_REDIRECT_URI: https://dir.engageautomations.com/oauth/callback"
-echo ""
-echo "If any variables show 'NOT SET', add them in Railway Variables section"
-
-ls -la railway-oauth-fix.tar.gz railway-oauth-fixed.js railway-fixed-package.json
+echo "🎯 This will expose your real OAuth credentials for API testing!"

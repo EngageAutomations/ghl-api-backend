@@ -22,41 +22,9 @@ const __dirname = dirname(__filename);
 global.__dirname = __dirname;
 global.__filename = __filename;
 
-// OAuth credential validation and extraction
-function getOAuthCredentials(req: Request) {
-  // Try per-request credentials first (Railway compatibility)
-  if (req.body && req.body.oauth_credentials) {
-    const { client_id, client_secret, redirect_uri } = req.body.oauth_credentials;
-    if (client_id && client_secret && redirect_uri) {
-      console.log('✅ Using per-request OAuth credentials');
-      return { client_id, client_secret, redirect_uri };
-    }
-  }
-  
-  // Fallback to environment variables (standard approach)
-  const envCredentials = {
-    client_id: process.env.GHL_CLIENT_ID,
-    client_secret: process.env.GHL_CLIENT_SECRET,
-    redirect_uri: process.env.GHL_REDIRECT_URI
-  };
-  
-  if (envCredentials.client_id && envCredentials.client_secret && envCredentials.redirect_uri) {
-    console.log('✅ Using environment variable OAuth credentials');
-    return envCredentials;
-  }
-  
-  console.log('❌ No OAuth credentials available');
-  return null;
-}
-
 // OAuth setup function for production mode - MUST be called before any middleware
 function setupOAuthRoutesProduction(app: express.Express) {
   console.log('Setting up OAuth routes for production mode...');
-  console.log('OAuth Credential Check:');
-  console.log(`GHL_CLIENT_ID: ${process.env.GHL_CLIENT_ID ? 'SET' : 'NOT SET'}`);
-  console.log(`GHL_CLIENT_SECRET: ${process.env.GHL_CLIENT_SECRET ? 'SET' : 'NOT SET'}`);
-  console.log(`GHL_REDIRECT_URI: ${process.env.GHL_REDIRECT_URI ? 'SET' : 'NOT SET'}`);
-  console.log('Per-request credentials: SUPPORTED');
   
   // Initialize storage for OAuth callbacks
   const storage = new DatabaseStorage();
@@ -106,110 +74,9 @@ function setupOAuthRoutesProduction(app: express.Express) {
     }
   });
 
-  // POST OAuth callback with per-request credentials (Railway compatibility)
-  app.post(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
-    console.log('=== POST OAUTH CALLBACK HIT ===');
-    console.log('Body:', req.body);
-    console.log('Method:', req.method);
-
-    const { code, state, oauth_credentials } = req.body;
-    
-    if (!code) {
-      return res.status(400).json({
-        error: 'authorization_code_missing',
-        message: 'Authorization code is required'
-      });
-    }
-
-    try {
-      const credentials = getOAuthCredentials(req);
-      
-      if (!credentials) {
-        return res.status(400).json({
-          error: 'oauth_credentials_missing',
-          message: 'OAuth credentials required in request body or environment variables',
-          required_format: {
-            oauth_credentials: {
-              client_id: 'your_client_id',
-              client_secret: 'your_client_secret',
-              redirect_uri: 'your_redirect_uri'
-            }
-          }
-        });
-      }
-
-      // Exchange authorization code for access token
-      const tokenResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          grant_type: 'authorization_code',
-          client_id: credentials.client_id,
-          client_secret: credentials.client_secret,
-          code: code,
-          redirect_uri: credentials.redirect_uri
-        })
-      });
-
-      const tokenData = await tokenResponse.json();
-
-      if (!tokenResponse.ok) {
-        console.log('❌ Token exchange failed:', tokenData);
-        return res.status(400).json({
-          error: 'token_exchange_failed',
-          details: tokenData,
-          solution: 'Verify OAuth credentials and authorization code'
-        });
-      }
-
-      // Get user information
-      const userResponse = await fetch('https://services.leadconnectorhq.com/users/me', {
-        headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`,
-          'Version': '2021-07-28'
-        }
-      });
-
-      const userData = await userResponse.json();
-
-      if (!userResponse.ok) {
-        console.log('❌ User info retrieval failed:', userData);
-        return res.status(400).json({
-          error: 'user_info_failed',
-          details: userData
-        });
-      }
-
-      // Store installation data in memory for now
-      const installationId = `install_${Date.now()}`;
-      console.log('✅ OAuth installation successful (POST):', {
-        installationId,
-        userId: userData.id,
-        locationId: userData.locationId
-      });
-
-      // Return JSON response for API calls
-      res.json({
-        success: true,
-        installation_id: installationId,
-        user_info: userData,
-        redirect_url: `https://listings.engageautomations.com/oauth-success?installation_id=${installationId}`
-      });
-
-    } catch (error) {
-      console.error('❌ OAuth callback error:', error);
-      res.status(500).json({
-        error: 'oauth_callback_failed',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
   // OAuth callback - handles complete OAuth flow
   app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
-    console.log('=== GET OAUTH CALLBACK HIT ===');
+    console.log('=== OAUTH CALLBACK HIT ===');
     console.log('URL:', req.url);
     console.log('Query params:', req.query);
     console.log('Headers:', req.headers);
@@ -793,12 +660,13 @@ function setupOAuthRoutesProduction(app: express.Express) {
         let userData = null;
         let locationData = null;
         try {
-          const userDataResponse = await fetch('https://services.leadconnectorhq.com/v1/users/me', {
+          const userDataResponse = await fetch('https://services.leadconnectorhq.com/users/me', {
             headers: {
               'Authorization': `Bearer ${tokenData.access_token}`,
               'Version': '2021-07-28',
               'Content-Type': 'application/json'
-            }
+            },
+            timeout: 5000
           });
           if (userDataResponse.ok) {
             userData = await userDataResponse.json();
@@ -820,7 +688,8 @@ function setupOAuthRoutesProduction(app: express.Express) {
                 'Authorization': `Bearer ${tokenData.access_token}`,
                 'Version': '2021-07-28',
                 'Content-Type': 'application/json'
-              }
+              },
+              timeout: 5000
             });
             if (locationResponse.ok) {
               const locationResult = await locationResponse.json();
@@ -1200,8 +1069,8 @@ function setupOAuthRoutesProduction(app: express.Express) {
         console.log('Location ID:', result.rows[0].ghl_location_id);
         console.log('✅ REAL ACCESS TOKEN AND USER DATA CAPTURED');
 
-        // Redirect to success page with installation ID for frontend tracking
-        res.redirect(`/?oauth_success=true&installation_id=${result.rows[0].id}&user_id=${result.rows[0].ghl_user_id}&location_id=${result.rows[0].ghl_location_id}`);
+        // Redirect to success page
+        res.redirect(`/?oauth_success=true&installation_id=${result.rows[0].id}`);
         
       } catch (dbError) {
         console.error('❌ Failed to save OAuth installation to database:', dbError);
@@ -1240,134 +1109,6 @@ function setupOAuthRoutesProduction(app: express.Express) {
       res.status(500).json({
         success: false,
         error: 'Failed to generate OAuth URL',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
-  // OAuth status endpoint - retrieves current user info
-  app.get('/api/oauth/status', async (req, res) => {
-    try {
-      console.log('OAuth status endpoint hit - retrieving user info');
-      
-      // Get installation ID from query params or headers
-      const installationId = req.query.installation_id || req.headers['x-installation-id'];
-      
-      if (!installationId) {
-        return res.status(400).json({ 
-          error: 'user_info_failed', 
-          message: 'Installation ID required for user info retrieval' 
-        });
-      }
-
-      // Import database functionality
-      const { db } = await import('./db.js');
-      
-      // Get installation from database
-      const installationQuery = `
-        SELECT ghl_access_token, ghl_refresh_token, ghl_user_id, ghl_location_id, ghl_location_name
-        FROM oauth_installations 
-        WHERE id = $1 AND is_active = true
-      `;
-      
-      const result = await db.query(installationQuery, [parseInt(installationId as string)]);
-      
-      if (!result.rows || result.rows.length === 0) {
-        return res.status(404).json({ 
-          error: 'user_info_failed', 
-          message: 'OAuth installation not found' 
-        });
-      }
-
-      const installation = result.rows[0];
-      const accessToken = installation.ghl_access_token;
-      
-      if (!accessToken) {
-        return res.status(401).json({ 
-          error: 'user_info_failed', 
-          message: 'No valid access token found' 
-        });
-      }
-
-      // Call correct GoHighLevel user info endpoint
-      console.log('Calling GoHighLevel /v1/users/me endpoint');
-      const ghlResponse = await fetch('https://services.leadconnectorhq.com/v1/users/me', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Version': '2021-07-28',
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!ghlResponse.ok) {
-        const errorText = await ghlResponse.text();
-        console.error('GHL userinfo failed:', ghlResponse.status, errorText);
-        
-        // Handle token refresh if 401
-        if (ghlResponse.status === 401) {
-          console.log('Access token expired, attempting refresh');
-          
-          try {
-            // Import OAuth functionality for token refresh
-            const { ghlOAuth } = await import('./ghl-oauth.js');
-            const refreshedTokens = await ghlOAuth.refreshToken(installation.ghl_refresh_token);
-            
-            // Update tokens in database
-            await db.query(
-              'UPDATE oauth_installations SET ghl_access_token = $1, last_token_refresh = NOW() WHERE id = $2',
-              [refreshedTokens.access_token, installationId]
-            );
-            
-            // Retry user info request with new token
-            const retryResponse = await fetch('https://services.leadconnectorhq.com/v1/users/me', {
-              headers: {
-                'Authorization': `Bearer ${refreshedTokens.access_token}`,
-                'Version': '2021-07-28',
-                'Content-Type': 'application/json'
-              }
-            });
-            
-            if (retryResponse.ok) {
-              const userData = await retryResponse.json();
-              return res.json({ 
-                success: true,
-                user: userData,
-                installation: {
-                  id: installationId,
-                  locationId: installation.ghl_location_id,
-                  locationName: installation.ghl_location_name
-                }
-              });
-            }
-          } catch (refreshError) {
-            console.error('Token refresh failed:', refreshError);
-          }
-        }
-        
-        return res.status(500).json({ 
-          error: 'user_info_failed', 
-          message: `GHL API error: ${ghlResponse.status}`,
-          details: errorText
-        });
-      }
-
-      const userData = await ghlResponse.json();
-      console.log('User info retrieved successfully:', userData.id);
-      
-      res.json({ 
-        success: true,
-        user: userData,
-        installation: {
-          id: installationId,
-          locationId: installation.ghl_location_id,
-          locationName: installation.ghl_location_name
-        }
-      });
-      
-    } catch (error) {
-      console.error('OAuth status error:', error);
-      return res.status(500).json({ 
-        error: 'user_info_failed', 
         message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -2075,133 +1816,7 @@ app.use((req, res, next) => {
     });
   });
 
-  // CRITICAL: Add OAuth status endpoint BEFORE registerRoutes to prevent HTML responses
-  app.get('/api/oauth/status', async (req, res) => {
-    console.log('OAuth Status endpoint hit with query:', req.query);
-    
-    try {
-      const installationId = req.query.installation_id as string;
-      
-      if (!installationId) {
-        return res.status(400).json({
-          success: false,
-          error: 'missing_installation_id',
-          message: 'Installation ID is required'
-        });
-      }
-
-      // Query database for OAuth installation
-      const { db } = await import("./db");
-      const installationQuery = await db.query(
-        'SELECT * FROM oauth_installations WHERE id = $1 AND is_active = true',
-        [installationId]
-      );
-
-      if (installationQuery.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'installation_not_found',
-          message: 'OAuth installation not found or inactive'
-        });
-      }
-
-      const installation = installationQuery.rows[0];
-      
-      // Check if access token is expired
-      const now = new Date();
-      const tokenExpiry = new Date(installation.ghl_token_expiry);
-      
-      if (now >= tokenExpiry) {
-        console.log('Access token expired, attempting refresh...');
-        
-        // Attempt token refresh
-        const refreshResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            grant_type: 'refresh_token',
-            client_id: process.env.GHL_CLIENT_ID!,
-            client_secret: process.env.GHL_CLIENT_SECRET!,
-            refresh_token: installation.ghl_refresh_token
-          })
-        });
-
-        if (refreshResponse.ok) {
-          const tokenData = await refreshResponse.json();
-          const newExpiry = new Date(Date.now() + (tokenData.expires_in * 1000));
-          
-          // Update database with new tokens
-          await db.query(
-            'UPDATE oauth_installations SET ghl_access_token = $1, ghl_token_expiry = $2 WHERE id = $3',
-            [tokenData.access_token, newExpiry, installationId]
-          );
-          
-          installation.ghl_access_token = tokenData.access_token;
-          installation.ghl_token_expiry = newExpiry;
-          console.log('Token refreshed successfully');
-        } else {
-          return res.status(401).json({
-            success: false,
-            error: 'token_refresh_failed',
-            message: 'Unable to refresh expired access token'
-          });
-        }
-      }
-
-      // Get user info from GoHighLevel
-      const userInfoResponse = await fetch('https://services.leadconnectorhq.com/v1/users/me', {
-        headers: {
-          'Authorization': `Bearer ${installation.ghl_access_token}`,
-          'Version': '2021-07-28',
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (userInfoResponse.ok) {
-        const userInfo = await userInfoResponse.json();
-        
-        return res.json({
-          success: true,
-          user: {
-            id: userInfo.id,
-            name: userInfo.name,
-            email: userInfo.email,
-            phone: userInfo.phone
-          },
-          installation: {
-            id: installation.id,
-            locationId: installation.ghl_location_id,
-            locationName: installation.ghl_location_name,
-            scopes: installation.ghl_scopes
-          },
-          tokenStatus: 'valid'
-        });
-      } else {
-        const errorText = await userInfoResponse.text();
-        console.error('GoHighLevel user info API error:', errorText);
-        
-        return res.status(userInfoResponse.status).json({
-          success: false,
-          error: 'user_info_failed',
-          message: 'Failed to retrieve user information from GoHighLevel',
-          details: errorText
-        });
-      }
-
-    } catch (error) {
-      console.error('OAuth status error:', error);
-      return res.status(500).json({
-        success: false,
-        error: 'internal_error',
-        message: 'Internal server error during OAuth status check',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
-  // CRITICAL: Register API routes AFTER the OAuth status endpoint
+  // CRITICAL: Register API routes AFTER the root route
   server = await registerRoutes(app);
   console.log("✅ API routes registered successfully");
 
@@ -2246,56 +1861,13 @@ app.use((req, res, next) => {
     // Serve static files from dist/public directory
     app.use(express.static(path.join(__dirname, '../dist/public')));
     
-    // Catch-all handler: send back index.html file for SPA routing (EXCLUDING API routes)
-    app.get('*', (req, res, next) => {
-      // Never serve HTML for API routes - they should have been handled above
-      if (req.path.startsWith('/api/')) {
-        return res.status(404).json({
-          error: 'API endpoint not found',
-          path: req.path,
-          message: 'This API endpoint is not implemented'
-        });
-      }
-      
-      // For non-API routes, serve the SPA
+    // Catch-all handler: send back index.html file for SPA routing
+    app.get('*', (req, res) => {
       res.sendFile(path.join(__dirname, '../dist/public/index.html'));
     });
     
   } else {
     console.log("Setting up development mode with Vite...");
-    
-    // CRITICAL: In development, Vite middleware catches all routes including API
-    // We need to explicitly handle API routes BEFORE Vite setup
-    console.log("Registering development API route handlers...");
-    
-    // Development-specific API route handling
-    app.use('/api/*', (req, res, next) => {
-      console.log(`Development API request: ${req.method} ${req.path}`);
-      
-      // If this is an OAuth status request, handle it directly
-      if (req.path === '/oauth/status') {
-        console.log('Intercepting OAuth status request in development mode');
-        
-        // Return proper JSON response structure
-        return res.status(400).json({
-          success: false,
-          error: 'missing_installation_id',
-          message: 'Installation ID is required',
-          environment: 'development',
-          note: 'This is a development environment response'
-        });
-      }
-      
-      // For other API routes, return JSON 404
-      return res.status(404).json({
-        error: 'API endpoint not found',
-        path: req.path,
-        method: req.method,
-        message: 'This API endpoint is not implemented',
-        environment: 'development'
-      });
-    });
-    
     await setupVite(app, server);
   }
 

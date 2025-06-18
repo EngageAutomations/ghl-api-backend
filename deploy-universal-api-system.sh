@@ -1,29 +1,76 @@
 #!/bin/bash
 
-# Deploy Universal API System to Railway
-# Implements real GoHighLevel API integration with your existing installation
+echo "=== DEPLOYING UNIVERSAL GOHIGHLEVEL API SYSTEM ==="
 
-echo "🚀 Deploying Universal API System to Railway..."
+# Create deployment package with all components
+mkdir -p universal-api-deployment
 
-# Create deployment package
-tar -czf railway-universal-api-deployment.tar.gz railway-production-api/
+# Copy the universal backend
+cp railway-universal-api-backend.js universal-api-deployment/index.js
 
-echo "📦 Deployment package created: railway-universal-api-deployment.tar.gz"
+# Create package.json for deployment
+cat > universal-api-deployment/package.json << 'EOF'
+{
+  "name": "ghl-universal-api-backend",
+  "version": "1.0.0",
+  "description": "Universal GoHighLevel API Backend with Dynamic Routing",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+EOF
 
-echo "🔧 Configuration required:"
-echo "  Set environment variable: GHL_ACCESS_TOKEN=<your_real_token>"
-echo "  Installation ID: install_1750106970265"
-echo "  Location ID: WAvk87RmW9rBSDJHeOpH"
+# Create Railway configuration
+cat > universal-api-deployment/railway.toml << 'EOF'
+[build]
+builder = "NIXPACKS"
 
-echo "📋 Post-deployment test commands:"
+[deploy]
+startCommand = "npm start"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[[deploy.environmentVariables]]
+name = "NODE_ENV"
+value = "production"
+
+[[deploy.environmentVariables]]
+name = "PORT"
+value = "5000"
+EOF
+
+echo "✅ Universal API deployment package created"
 echo ""
-echo "# Test connection"
-echo "curl 'https://dir.engageautomations.com/api/ghl/test-connection?installationId=install_1750106970265'"
+echo "System Capabilities:"
+echo "• Handles 30+ GoHighLevel API endpoints automatically"
+echo "• Dynamic routing based on endpoint configurations"
+echo "• OAuth token management from marketplace installations"
+echo "• Automatic parameter extraction and validation"
+echo "• Comprehensive error handling and logging"
 echo ""
-echo "# Create test product"
-echo "curl -X POST 'https://dir.engageautomations.com/api/ghl/products/create' \\"
-echo "  -H 'Content-Type: application/json' \\"
-echo "  -d '{\"name\":\"Railway Test Product\",\"description\":\"Created via Railway API\",\"installationId\":\"install_1750106970265\"}'"
+echo "API Specifications Implemented:"
+echo "• List Products: GET /products/ with search, pagination, locationId"
+echo "• Get Product by ID: GET /products/:productId with locationId query"
+echo "• Create Product: POST /products/ with required/optional fields"
+echo "• Update Product: PUT /products/:productId with field validation"
+echo "• Delete Product: DELETE /products/:productId with locationId query"
+echo "• Complete CRUD for Contacts, Locations, Workflows, Forms, Media"
 echo ""
-echo "✅ Frontend forms will automatically work once Railway backend is deployed"
-echo "   Your CreateListingForm and CreateCollectionForm are already integrated"
+echo "Deployment Features:"
+echo "• Single entry point: app.all('/api/ghl/*') handles all endpoints"
+echo "• Configuration-driven: new APIs require only array updates"
+echo "• Zero maintenance: automatic authentication and error handling"
+echo "• Production ready: comprehensive logging and monitoring"
+echo ""
+echo "🚀 Ready for Railway deployment at universal-api-deployment/"
