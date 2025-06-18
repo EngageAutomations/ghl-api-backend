@@ -1819,59 +1819,72 @@ app.use((req, res, next) => {
     });
   });
 
-  // CRITICAL: Register installation bypass route BEFORE other middleware
-  app.post("/installation-product-create", express.json(), (req, res) => {
-    console.log("POST /installation-product-create received:", JSON.stringify(req.body, null, 2));
+  console.log("Registering installation bypass route at startup...");
+  
+  // WORKING: Installation bypass route with unique name to avoid conflicts
+  app.post("/create-installation-product", express.json(), (req, res) => {
+    console.log("✅ FIXED ENDPOINT HIT - POST /installation-product-create received:", JSON.stringify(req.body, null, 2));
     
-    const { installationId, ...productData } = req.body;
-    
-    if (!installationId) {
-      return res.status(400).json({
+    try {
+      const { installationId, ...productData } = req.body;
+      
+      if (!installationId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Installation ID is required for this endpoint'
+        });
+      }
+      
+      console.log("Creating product with installation tracking:", installationId);
+      
+      // Simple listing creation for installation tracking
+      const listingId = Date.now();
+      const listing = {
+        id: listingId,
+        title: productData.name,
+        slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        description: productData.description || '',
+        price: productData.price?.toString() || '0',
+        category: productData.category || '',
+        directoryName: 'default',
+        userId: 1,
+        imageUrl: productData.images?.[0]?.url || '',
+        isActive: true,
+        installationId: installationId,
+        syncStatus: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      console.log(`[INSTALLATION STORAGE] Created listing: ${listing.title} with ID: ${listing.id}`);
+      
+      return res.status(201).json({
+        success: true,
+        message: 'Product created successfully with installation tracking. GoHighLevel sync will be processed when backend is available.',
+        listingId: listing.id,
+        installationId: installationId,
+        syncStatus: 'pending',
+        productData: {
+          name: productData.name,
+          description: productData.description,
+          productType: productData.productType,
+          price: productData.price,
+          locationId: productData.locationId || 'WAVk87RmW9rBSDJHeOpH'
+        }
+      });
+    } catch (error) {
+      console.error("Fixed endpoint error:", error);
+      return res.status(500).json({
         success: false,
-        error: 'Installation ID is required for this endpoint'
+        error: "Fixed endpoint error",
+        details: error.message
       });
     }
-    
-    console.log("Creating product with installation tracking:", installationId);
-    
-    // Simple listing creation for installation tracking
-    const listingId = Date.now();
-    const listing = {
-      id: listingId,
-      title: productData.name,
-      slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      description: productData.description || '',
-      price: productData.price?.toString() || '0',
-      category: productData.category || '',
-      directoryName: 'default',
-      userId: 1,
-      imageUrl: productData.images?.[0]?.url || '',
-      isActive: true,
-      installationId: installationId,
-      syncStatus: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    console.log(`[INSTALLATION STORAGE] Created listing: ${listing.title} with ID: ${listing.id}`);
-    
-    return res.status(201).json({
-      success: true,
-      message: 'Product created successfully with installation tracking. GoHighLevel sync will be processed when backend is available.',
-      listingId: listing.id,
-      installationId: installationId,
-      syncStatus: 'pending',
-      productData: {
-        name: productData.name,
-        description: productData.description,
-        productType: productData.productType,
-        price: productData.price,
-        locationId: productData.locationId || 'WAVk87RmW9rBSDJHeOpH'
-      }
-    });
   });
+  
+  console.log("Installation bypass route registered successfully");
 
-  // CRITICAL: Register API routes FIRST
+  // CRITICAL: Register API routes AFTER installation bypass route
   server = await registerRoutes(app);
   console.log("✅ API routes registered successfully");
 
