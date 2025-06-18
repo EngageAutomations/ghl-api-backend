@@ -161,6 +161,15 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 18, 2025: GoHighLevel Product Sync Integration Fixed - Products Now Appear in GHL Account
+  - Fixed product creation to sync directly with GoHighLevel using Railway backend API
+  - Updated form to use `https://dir.engageautomations.com/api/ghl/products` endpoint
+  - Integrated installation ID `install_1750106970265` for automatic OAuth token refresh
+  - Products now created in actual GoHighLevel account with location ID `WAVk87RmW9rBSDJHeOpH`
+  - Added dual tracking system: GHL sync + local listing backup with sync status
+  - Implemented fallback error handling for failed GHL API calls
+  - Product data format optimized for GoHighLevel API requirements with medias array
+
 - June 18, 2025: ES Module Compatibility Error Fixed - Product Creation Endpoint Now Functional
   - Resolved critical "require is not defined" error causing product creation failures
   - Changed server/index.ts from CommonJS require() to ES module imports for compatibility

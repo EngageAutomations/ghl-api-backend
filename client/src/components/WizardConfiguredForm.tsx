@@ -210,45 +210,78 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
         }
       }
 
-      // Create product with GoHighLevel integration
-      const productData = {
-        ...data,
-        images: finalImages.map(img => ({
-          ...img,
-          url: img.ghlUrl || img.url
-        })),
-        metadataImages: finalMetadataImages.map(img => ({
-          ...img,
-          url: img.ghlUrl || img.url
-        })),
-        directoryName,
-        // Core required fields for GoHighLevel
+      // Prepare GoHighLevel product data in correct format
+      const ghlProductData = {
         name: data.name || data.title,
-        locationId: 'WAVk87RmW9rBSDJHeOpH',
-        productType: data.productType || 'DIGITAL',
-        price: data.price || (directory?.config?.features?.showPrice !== false ? undefined : 100), // Default $100 when pricing disabled
-        availableInStore: true,
         description: data.description || '',
+        productType: data.productType || 'DIGITAL',
+        availableInStore: true,
+        medias: finalImages.map(img => img.ghlUrl || img.url), // GHL expects 'medias' array
+        // Add price if available
+        ...(data.price && { price: parseFloat(data.price) }),
         // SEO fields
         seoTitle: data.seoTitle || data.name || data.title,
         seoDescription: data.seoDescription || data.description,
         seoKeywords: data.seoKeywords || ''
       };
 
-      const response = await fetch('/create-installation-product', {
+      console.log('Creating product in GoHighLevel:', ghlProductData);
+
+      // Use Railway backend API to create product in GoHighLevel
+      const response = await fetch('https://dir.engageautomations.com/api/ghl/products?installation_id=install_1750106970265', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          installationId: 'install_1750252333303',
-          ...productData
-        })
+        body: JSON.stringify(ghlProductData)
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('GoHighLevel creation failed:', errorData);
+        
+        // Fallback: create local listing for tracking
+        try {
+          const localResponse = await fetch('/create-installation-product', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              installationId: 'local_fallback',
+              ...ghlProductData,
+              directoryName,
+              syncStatus: 'failed',
+              syncError: errorData.error || 'GoHighLevel API error'
+            })
+          });
+          
+          if (localResponse.ok) {
+            throw new Error(`GoHighLevel sync failed: ${errorData.error || 'Unknown error'}. Product saved locally for retry.`);
+          }
+        } catch (fallbackError) {
+          console.error('Local fallback also failed:', fallbackError);
+        }
+        
         throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Product created in GoHighLevel:', result);
+
+      // Also create local listing for tracking
+      try {
+        await fetch('/create-installation-product', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            installationId: 'install_1750106970265',
+            ...ghlProductData,
+            directoryName,
+            ghlProductId: result.product?.id,
+            syncStatus: 'synced'
+          })
+        });
+      } catch (localError) {
+        console.warn('Local tracking failed:', localError);
       }
 
       return response;
