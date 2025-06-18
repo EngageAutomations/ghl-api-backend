@@ -95,6 +95,8 @@ This is a comprehensive GoHighLevel OAuth integration platform designed to enabl
 
 ## Changelog
 
+- June 18, 2025: Fixed Replit preview system by implementing minimal server configuration with proper PORT environment variable detection and streamlined Vite middleware setup
+- June 18, 2025: Resolved server hanging issues by removing complex OAuth routing and focusing on core React application serving
 - June 17, 2025: Resolved TypeScript compilation errors and server startup issues by simplifying storage interface implementation and creating working simple-server.js configuration
 - June 17, 2025: Successfully established working development environment with server running on port 5000, Vite frontend active, and GoHighLevel OAuth integration operational
 - June 17, 2025: Organized server structure by moving legacy files to server/legacy/ folder for better code organization
