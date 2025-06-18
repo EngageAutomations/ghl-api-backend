@@ -710,17 +710,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Directory (Form Configuration) Routes
   // Get all directories for a user
-  app.get("/api/directories", authenticateToken, async (req, res) => {
+  app.get("/api/directories", async (req, res) => {
     try {
       console.log("=== DIRECTORY API CALLED ===");
-      const user = (req as any).user;
-      const userId = user?.id;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "User authentication required" });
-      }
-      
-      console.log("Fetching directories for authenticated user:", userId);
+      const userId = 1; // Using default user for development
+      console.log("Fetching directories for user:", userId);
       
       const directories = simpleDataStore.getDirectoriesByUser(userId);
       console.log("Raw directories from simple storage:", directories);
@@ -2711,70 +2705,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Logout error:", error);
       res.status(500).json({ error: "Logout failed" });
-    }
-  });
-
-  // GoHighLevel Product Creation API
-  app.post("/api/ghl/products", authenticateToken, async (req, res) => {
-    try {
-      const user = (req as any).user;
-      
-      if (!user.ghlAccessToken || !user.ghlLocationId) {
-        return res.status(401).json({ 
-          error: "GoHighLevel OAuth required", 
-          message: "Please complete OAuth setup to create products" 
-        });
-      }
-
-      const { GHLProductAPI } = await import('./ghl-product-api.js');
-      const productAPI = new GHLProductAPI(user.ghlAccessToken, user.ghlLocationId);
-      
-      const productData = {
-        name: req.body.name,
-        description: req.body.description,
-        productType: req.body.productType || 'DIGITAL',
-        availabilityType: req.body.availabilityType || 'AVAILABLE_NOW',
-        statementDescriptor: req.body.statementDescriptor,
-        medias: req.body.medias || [],
-        prices: req.body.prices || []
-      };
-
-      const result = await productAPI.createProduct(productData);
-      res.json({ success: true, product: result });
-    } catch (error) {
-      console.error("Error creating GoHighLevel product:", error);
-      res.status(500).json({ 
-        error: "Product creation failed", 
-        message: error.message 
-      });
-    }
-  });
-
-  // Get GoHighLevel Products
-  app.get("/api/ghl/products", authenticateToken, async (req, res) => {
-    try {
-      const user = (req as any).user;
-      
-      if (!user.ghlAccessToken || !user.ghlLocationId) {
-        return res.status(401).json({ 
-          error: "GoHighLevel OAuth required" 
-        });
-      }
-
-      const { GHLProductAPI } = await import('./ghl-product-api.js');
-      const productAPI = new GHLProductAPI(user.ghlAccessToken, user.ghlLocationId);
-      
-      const limit = parseInt(req.query.limit as string) || 20;
-      const offset = parseInt(req.query.offset as string) || 0;
-      
-      const result = await productAPI.getProducts(limit, offset);
-      res.json(result);
-    } catch (error) {
-      console.error("Error fetching GoHighLevel products:", error);
-      res.status(500).json({ 
-        error: "Failed to fetch products", 
-        message: error.message 
-      });
     }
   });
 
