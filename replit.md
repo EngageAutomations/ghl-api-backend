@@ -13,11 +13,11 @@ This is a full-stack web application that provides comprehensive directory and c
 - **UI Framework**: Tailwind CSS with shadcn/ui components
 - **Animations**: Framer Motion for enhanced user experience
 
-### Backend Architecture
-- **Server Framework**: Express.js Node.js server
-- **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
-- **API Design**: RESTful API with comprehensive CRUD operations
-- **Authentication**: Session-based authentication with OAuth capabilities
+### Backend Architecture (Railway Integration)
+- **Primary Frontend**: React TypeScript application with local data management
+- **GoHighLevel Integration**: Railway backend at dir.engageautomations.com handles OAuth token lifecycle
+- **Token Management**: Railway installation (install_1750252333303) owns complete token refresh cycle
+- **API Flow**: Form submissions → Railway backend → GoHighLevel API → product creation
 
 ### Database Architecture
 - **Relationship Model**: Many-to-many relationships between collections and products

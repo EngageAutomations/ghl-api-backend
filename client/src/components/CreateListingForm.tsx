@@ -144,7 +144,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
         try {
           console.log('Creating GoHighLevel product for listing...');
           const ghlProductData = {
-            installationId: 'install_1750252333303', // Active Railway installation with valid OAuth
+            installationId: 'install_1750252333303', // Railway installation with automatic token management
             name: formData.title,
             description: formData.description || '',
             productType: 'DIGITAL', // Required: DIGITAL, PHYSICAL, SERVICE, PHYSICAL/DIGITAL
@@ -156,7 +156,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           };
 
           // Call Railway backend endpoint directly for reliable token management
-          const ghlResponse = await fetch('/api/ghl/products/create', {
+          const ghlResponse = await fetch('https://dir.engageautomations.com/api/ghl/products/create', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
