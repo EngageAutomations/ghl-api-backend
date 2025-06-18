@@ -120,7 +120,15 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       if (isEditing) {
         // Update existing listing
         const slug = formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        const listingData = { ...formData, slug, directoryName };
+        const listingData = { 
+          ...formData, 
+          slug, 
+          directoryName,
+          // Include SEO fields
+          metaTitle: seoFields.metaTitle,
+          metaDescription: seoFields.metaDescription,
+          seoKeywords: seoFields.seoKeywords
+        };
         
         await apiRequest(`/api/listings/id/${editingListing.id}`, {
           method: 'PATCH',
