@@ -22,27 +22,108 @@ interface WizardConfiguredFormProps {
 export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: WizardConfiguredFormProps) {
   const { toast } = useToast();
   
-  // Fetch form configuration from wizard
-  const { data: formConfig, isLoading: configLoading } = useQuery({
-    queryKey: ['/api/form-configurations', directoryName],
+  // Fetch directory configuration from wizard
+  const { data: directory, isLoading: configLoading } = useQuery({
+    queryKey: ['/api/directories', directoryName],
     enabled: !!directoryName
   });
 
-  // Fetch form fields based on configuration
+  // Fetch form fields based on directory ID
   const { data: formFields, isLoading: fieldsLoading } = useQuery({
-    queryKey: ['/api/form-fields', formConfig?.id],
-    enabled: !!formConfig?.id
+    queryKey: ['/api/form-fields', directory?.id],
+    enabled: !!directory?.id
   });
 
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [images, setImages] = useState<ImageItem[]>([]);
   const [metadataImages, setMetadataImages] = useState<MetadataImageItem[]>([]);
 
-  // Initialize form data when fields load
+  // Generate appropriate form fields based on wizard configuration
+  const generateFormFields = () => {
+    // Use stored form fields if available, otherwise generate based on directory config
+    if (formFields && formFields.length > 0) {
+      return formFields;
+    }
+
+    // Generate default fields based on wizard configuration
+    const defaultFields = [
+      {
+        id: 1,
+        name: 'name',
+        label: 'Product Name',
+        type: 'TEXT',
+        required: true,
+        placeholder: 'Enter product name',
+        displayOrder: 1
+      },
+      {
+        id: 2,
+        name: 'description',
+        label: 'Description',
+        type: 'TEXTAREA',
+        required: true,
+        placeholder: 'Describe your product',
+        displayOrder: 2
+      },
+      {
+        id: 3,
+        name: 'productType',
+        label: 'Product Type',
+        type: 'SINGLE_OPTIONS',
+        required: true,
+        options: ['DIGITAL', 'PHYSICAL', 'SERVICE', 'PHYSICAL-DIGITAL'],
+        defaultValue: 'DIGITAL',
+        displayOrder: 3
+      }
+    ];
+
+    // Add pricing field based on wizard configuration
+    if (directory?.config?.features?.showPrice !== false) {
+      defaultFields.push({
+        id: 4,
+        name: 'price',
+        label: 'Price ($)',
+        type: 'NUMBER',
+        required: true,
+        placeholder: '0.00',
+        displayOrder: 4
+      });
+    }
+
+    // Add optional fields based on wizard configuration
+    if (directory?.config?.features?.showMetadata !== false) {
+      defaultFields.push({
+        id: 5,
+        name: 'category',
+        label: 'Category',
+        type: 'TEXT',
+        required: false,
+        placeholder: 'Product category',
+        displayOrder: 5
+      });
+    }
+
+    // Always add image upload field
+    defaultFields.push({
+      id: 6,
+      name: 'images',
+      label: 'Product Images',
+      type: 'FILE_UPLOAD',
+      required: false,
+      placeholder: 'Upload product images',
+      displayOrder: 6
+    });
+
+    return defaultFields;
+  };
+
+  const effectiveFormFields = generateFormFields();
+
+  // Initialize form data when fields are determined
   useEffect(() => {
-    if (formFields) {
+    if (effectiveFormFields) {
       const initialData: Record<string, any> = {};
-      formFields.forEach((field: any) => {
+      effectiveFormFields.forEach((field: any) => {
         switch (field.type) {
           case 'CHECKBOX':
             initialData[field.name] = false;
@@ -56,7 +137,7 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
       });
       setFormData(initialData);
     }
-  }, [formFields]);
+  }, [directory, formFields]);
 
   const createProductMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -123,7 +204,7 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
         name: data.name || data.title,
         locationId: 'WAVk87RmW9rBSDJHeOpH',
         productType: data.productType || 'DIGITAL',
-        price: data.price || (formConfig?.pricing?.enabled ? undefined : 100), // Default $100 when pricing disabled
+        price: data.price || (directory?.config?.features?.showPrice !== false ? undefined : 100), // Default $100 when pricing disabled
         availableInStore: true,
         description: data.description || '',
         // SEO fields
@@ -364,7 +445,7 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
           </div>
 
           {/* Pricing Logic Display */}
-          {!formConfig?.pricing?.enabled && (
+          {directory?.config?.features?.showPrice === false && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
               <p className="text-sm text-amber-800">
                 <strong>Price Hidden (Default $100)</strong> - This directory has pricing disabled. 

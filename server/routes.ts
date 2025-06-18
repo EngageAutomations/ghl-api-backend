@@ -2143,11 +2143,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Dynamic Form Fields Management
+  // Dynamic Form Fields Management - now using simple data store
   app.get("/api/form-fields/:formConfigId", async (req, res) => {
     try {
       const { formConfigId } = req.params;
-      const fields = await storage.getFormFieldsByConfig(parseInt(formConfigId));
+      const fields = simpleDataStore.getFormFieldsByConfig(parseInt(formConfigId));
+      console.log(`[API] Retrieved ${fields.length} form fields for config ${formConfigId}`);
       res.json(fields);
     } catch (error) {
       console.error("Get form fields error:", error);

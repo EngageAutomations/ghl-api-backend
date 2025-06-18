@@ -202,6 +202,51 @@ class SimpleDataStore {
   deleteCollection(id: number): boolean {
     return this.collections.delete(id);
   }
+
+  // Form field operations
+  createFormField(data: any): SimpleFormField {
+    const formField: SimpleFormField = {
+      id: this.nextFormFieldId++,
+      formConfigId: data.formConfigId,
+      name: data.name,
+      label: data.label,
+      type: data.type,
+      required: data.required !== false,
+      placeholder: data.placeholder,
+      defaultValue: data.defaultValue,
+      options: data.options,
+      displayOrder: data.displayOrder || 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.formFields.set(formField.id, formField);
+    console.log(`[SIMPLE STORAGE] Created form field: ${formField.name} for config ${formField.formConfigId}`);
+    return formField;
+  }
+
+  getFormFieldsByConfig(formConfigId: number): SimpleFormField[] {
+    return Array.from(this.formFields.values())
+      .filter(field => field.formConfigId === formConfigId)
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  getFormField(id: number): SimpleFormField | undefined {
+    return this.formFields.get(id);
+  }
+
+  updateFormField(id: number, data: any): SimpleFormField | undefined {
+    const field = this.formFields.get(id);
+    if (!field) return undefined;
+    
+    const updated = { ...field, ...data, updatedAt: new Date() };
+    this.formFields.set(id, updated);
+    return updated;
+  }
+
+  deleteFormField(id: number): boolean {
+    return this.formFields.delete(id);
+  }
 }
 
 export const simpleDataStore = new SimpleDataStore();
