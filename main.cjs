@@ -2,8 +2,8 @@
 const express = require('express');
 const app = express();
 
-// Use Replit's injected PORT or fallback to common preview ports
-const PORT = process.env.PORT || process.env.REPL_PORT || 3000;
+// Use port 5000 as expected by Replit's workflow configuration
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json());
