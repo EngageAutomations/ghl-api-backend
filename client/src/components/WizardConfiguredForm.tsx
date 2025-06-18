@@ -235,11 +235,10 @@ export function WizardConfiguredForm({ directoryName, onSuccess, onCancel }: Wiz
         seoKeywords: data.seoKeywords || ''
       };
 
-      const response = await fetch('/api/ghl/products', {
+      const response = await fetch('/api/products/create-with-installation', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ghl_eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6IjY3NWQwNmI4ZDU5NzJjNzUyNGQ5OGY0MCIsImNsaWVudFNlY3JldCI6IjMyMzE4OWU0LTcyNmMtNDJmMy1iYjk4LWFiOWMyZTdlNmI3YyIsInVzZXJUeXBlIjoiTG9jYXRpb24iLCJ1c2VySWQiOiJXQVZrODdSbVc5ckJTREpIZU9wSCIsInNvdXJjZSI6IlB1YmxpY0FwaSIsImV4cCI6MTc1MDI2MDcyMiwiaWF0IjoxNzUwMTc0MzIyfQ._R_ZP7VhxDjpOc9TVvmqEyUr6M4LIqP5iCxuC6Y2aBI'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           installationId: 'install_1750252333303',
