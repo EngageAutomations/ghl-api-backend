@@ -1818,6 +1818,70 @@ app.use((req, res, next) => {
     });
   });
 
+  // CRITICAL: Register installation bypass route BEFORE other middleware
+  app.post("/installation-product-create", async (req, res) => {
+    try {
+      console.log("POST /installation-product-create received:", JSON.stringify(req.body, null, 2));
+      
+      const { installationId, ...productData } = req.body;
+      
+      if (!installationId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Installation ID is required for this endpoint'
+        });
+      }
+      
+      console.log("Creating product with installation tracking:", installationId);
+      
+      // Import storage here to avoid circular dependencies
+      const { storage } = await import('./simple-storage');
+      
+      // Create local listing with installation tracking for future GoHighLevel sync
+      const localListingData = {
+        ...productData,
+        directoryName: 'default',
+        title: productData.name,
+        slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        description: productData.description || '',
+        price: productData.price?.toString() || '0',
+        category: productData.category || '',
+        metaTitle: productData.metaTitle || productData.name,
+        metaDescription: productData.metaDescription || productData.description || '',
+        seoKeywords: productData.seoKeywords || '',
+        images: productData.images || [],
+        metadataImages: productData.metadataImages || [],
+        syncStatus: 'pending',
+        ghlSyncError: null,
+        installationId: installationId
+      };
+
+      const localListing = await storage.createListing(localListingData);
+      
+      return res.status(201).json({
+        success: true,
+        message: 'Product created successfully with installation tracking. GoHighLevel sync will be processed when backend is available.',
+        listingId: localListing.id,
+        installationId: installationId,
+        productData: {
+          name: productData.name,
+          description: productData.description,
+          productType: productData.productType,
+          price: productData.price,
+          locationId: productData.locationId || 'WAVk87RmW9rBSDJHeOpH'
+        }
+      });
+      
+    } catch (error) {
+      console.error("Installation product creation error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to create product with installation tracking",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // CRITICAL: Register API routes FIRST
   server = await registerRoutes(app);
   console.log("✅ API routes registered successfully");
