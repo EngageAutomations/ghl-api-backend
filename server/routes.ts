@@ -60,7 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Simple GHL Product Creation Route
+  // GHL Product Creation with Direct API Access
   app.post("/api/ghl/create-product", async (req, res) => {
     try {
       const locationId = req.body.locationId || 'WAvk87RmW9rBSDJHeOpH';
@@ -72,39 +72,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         locationId: locationId
       };
 
-      console.log('Creating product with minimal payload:', productData);
+      console.log('Creating GHL product directly:', productData);
 
-      // Use Railway backend as proxy to avoid CORS and auth issues
-      const response = await fetch('https://dir.engageautomations.com/api/test/ghl-product', {
+      // Direct GoHighLevel API call with stored credentials
+      // Using the access token from your Railway backend's OAuth installation
+      const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJsZWFkY29ubmVjdG9yaHEuY29tIiwiZXhwIjoxNzUwMzEwNjUxLCJqdGkiOiI5MTJlOGZhOC0xZTI1LTRjZDktYjA5MC1jNDNlNzFmM2ZiMjMiLCJpYXQiOjE3NTAyMjQyNTEsImlzcyI6IkdITCIsIm5iZiI6MTc1MDIyNDI1MSwic3ViIjoiNjg0NzQ5MjRhNTg2YmNlMjJhNmU2NGY3LW1icGtteXU0IiwidXNlclR5cGUiOiJhZ2VuY3kiLCJnYmxNb2RlIjoibGl2ZSIsImFjY291bnRJZCI6IjY4NDc0OTI0YTU4NmJjZTIyYTZlNjRmNyIsImFnZW5jeUlkIjoiNjg0NzQ5MjRhNTg2YmNlMjJhNmU2NGY3IiwidHoiOiJBbWVyaWNhL05ld19Zb3JrIn0.N2_VH5wgKK5P3YGSV0Y2V2jgFNBB33_fzWxtKO6b_jY';
+
+      const response = await fetch('https://services.leadconnectorhq.com/products/', {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
+          'Version': '2021-07-28'
         },
         body: JSON.stringify(productData)
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Railway response error:', response.status, errorText);
+        const errorData = await response.json();
+        console.error('GHL API error:', errorData);
         
-        return res.status(500).json({
+        return res.status(response.status).json({
           success: false,
-          error: 'Product creation failed through Railway backend',
-          details: `HTTP ${response.status}: ${errorText}`,
-          locationId: locationId
+          error: 'GoHighLevel API error',
+          details: errorData.message || errorData.error,
+          status: response.status
         });
       }
 
       const result = await response.json();
-      console.log('Railway product creation result:', result);
+      console.log('GHL product created:', result);
 
       res.json({
         success: true,
-        product: result.product || result.data,
-        productId: result.product?.id || result.data?.id,
+        product: result,
+        productId: result.id,
         locationId: locationId,
-        installationId: result.installation?.id,
-        railwayBackend: true,
         message: "Product created successfully in GoHighLevel"
       });
 
@@ -113,8 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         error: 'Failed to create product in GoHighLevel',
-        details: error.message,
-        railwayBackend: false
+        details: error.message
       });
     }
   });
