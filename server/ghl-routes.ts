@@ -15,10 +15,18 @@ const router = Router();
 // ============================================================================
 
 /**
- * Authentication middleware - ensures OAuth installation exists
+ * Authentication middleware - ensures OAuth installation exists or allows installation ID bypass
  */
 async function requireOAuthInstallation(req: Request, res: Response, next: any) {
   try {
+    // Check if this is an installation ID request (bypass OAuth requirement)
+    const installationIdFromBody = req.body?.installationId;
+    if (installationIdFromBody) {
+      console.log('Installation ID detected in request body, bypassing OAuth check:', installationIdFromBody);
+      (req as any).hasInstallationId = true;
+      return next();
+    }
+    
     const installations = storage.getAllInstallations();
     
     if (installations.length === 0) {
