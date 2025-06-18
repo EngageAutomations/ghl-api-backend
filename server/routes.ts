@@ -60,11 +60,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // GHL Product Creation Route
+  // Simple GHL Product Creation Route
   app.post("/api/ghl/create-product", async (req, res) => {
     try {
-      // Use Railway universal API pattern for product creation
-      const installationId = 'install_1750191250983'; // Your valid installation
       const locationId = req.body.locationId || 'WAvk87RmW9rBSDJHeOpH';
       
       const productData = {
@@ -74,39 +72,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         locationId: locationId
       };
 
-      console.log('Creating product with Railway universal API:', productData);
+      console.log('Creating product with minimal payload:', productData);
 
-      const response = await fetch(`https://dir.engageautomations.com/api/ghl/products?installationId=${installationId}&locationId=${locationId}`, {
+      // Use Railway backend as proxy to avoid CORS and auth issues
+      const response = await fetch('https://dir.engageautomations.com/api/test/ghl-product', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-installation-id': installationId,
-          'x-location-id': locationId
         },
         body: JSON.stringify(productData)
       });
 
-      const data = await response.json();
-      
-      console.log('Railway API response:', data);
-      
       if (!response.ok) {
-        return res.status(response.status).json({
+        const errorText = await response.text();
+        console.error('Railway response error:', response.status, errorText);
+        
+        return res.status(500).json({
           success: false,
-          error: data.error || 'Product creation failed',
-          details: data.details || data.message,
-          railwayResponse: data
+          error: 'Product creation failed through Railway backend',
+          details: `HTTP ${response.status}: ${errorText}`,
+          locationId: locationId
         });
       }
 
+      const result = await response.json();
+      console.log('Railway product creation result:', result);
+
       res.json({
         success: true,
-        product: data.product || data.data,
-        productId: data.product?.id || data.data?.id,
+        product: result.product || result.data,
+        productId: result.product?.id || result.data?.id,
         locationId: locationId,
-        installationId: installationId,
-        railwayBackend: true
+        installationId: result.installation?.id,
+        railwayBackend: true,
+        message: "Product created successfully in GoHighLevel"
       });
+
     } catch (error) {
       console.error('GHL Product Creation Error:', error);
       res.status(500).json({ 
