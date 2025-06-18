@@ -1997,7 +1997,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Using Railway backend for token management with installation:", installationId);
         
         // Forward request to Railway backend using correct endpoint
-        const railwayResponse = await fetch(`https://dir.engageautomations.com/api/ghl/products?installation_id=${installationId}`, {
+        const railwayResponse = await fetch(`https://dir.engageautomations.com/api/ghl/products?installationId=${installationId}&locationId=WAVk87RmW9rBSDJHeOpH`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
