@@ -101,10 +101,22 @@ export function GHLProductCreator({ isOpen, onClose, directoryName, onSuccess }:
   });
 
   const createLocalListingMutation = useMutation({
-    mutationFn: (listingData: any) => apiRequest('/api/listings', {
-      method: 'POST',
-      body: JSON.stringify(listingData)
-    }),
+    mutationFn: async (listingData: any) => {
+      const response = await fetch('/api/listings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(listingData)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create local listing');
+      }
+      
+      return response.json();
+    },
     onSuccess: (localListing) => {
       toast({
         title: "Local Listing Created",

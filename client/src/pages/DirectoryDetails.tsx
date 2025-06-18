@@ -16,6 +16,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { CreateListingForm } from '@/components/CreateListingForm';
 import { ListingViewEdit } from '@/components/ListingViewEdit';
 import CreateCollectionForm from '@/components/CreateCollectionForm';
+import { GHLProductCreator } from '@/components/GHLProductCreator';
 
 type ViewMode = 'grid' | 'list';
 type FilterOption = 'all' | 'active' | 'draft';
@@ -37,6 +38,7 @@ export default function DirectoryDetails() {
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showCollectionForm, setShowCollectionForm] = useState(false);
   const [editingCollection, setEditingCollection] = useState<any | null>(null);
+  const [showGHLProductCreator, setShowGHLProductCreator] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -311,11 +313,11 @@ export default function DirectoryDetails() {
           </div>
           <div className="flex items-center gap-3">
             <Button
-              onClick={() => contentView === 'collections' ? setShowCollectionForm(true) : setShowListingForm(true)}
+              onClick={() => contentView === 'collections' ? setShowCollectionForm(true) : setShowGHLProductCreator(true)}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
-              {contentView === 'collections' ? 'New Collection' : 'Add Listing'}
+              {contentView === 'collections' ? 'New Collection' : 'Create GHL Product'}
             </Button>
           </div>
         </div>
@@ -536,9 +538,9 @@ export default function DirectoryDetails() {
               }
             </p>
             {!searchQuery && filterBy === 'all' && (
-              <Button onClick={() => setShowListingForm(true)}>
+              <Button onClick={() => setShowGHLProductCreator(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add First Listing
+                Create First Product
               </Button>
             )}
           </div>
@@ -712,6 +714,17 @@ export default function DirectoryDetails() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* GHL Product Creator Dialog */}
+      <GHLProductCreator 
+        isOpen={showGHLProductCreator}
+        onClose={() => setShowGHLProductCreator(false)}
+        directoryName={directoryName!}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/listings', directoryName] });
+          setShowGHLProductCreator(false);
+        }}
+      />
 
       {/* Prominent Back to Directories Button - Fixed Position */}
       <div className="fixed bottom-6 z-50" style={{ left: 'max(1.5rem, calc(50% - 768px / 2 + 1.5rem - 50px))' }}>

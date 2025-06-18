@@ -60,6 +60,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GHL Product Creation Route
+  app.post("/api/ghl/create-product", async (req, res) => {
+    try {
+      const response = await fetch('https://dir.engageautomations.com/api/ghl/create-product', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(req.body)
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        return res.status(response.status).json(data);
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('GHL Product Creation Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to create product in GoHighLevel',
+        details: error.message 
+      });
+    }
+  });
+
   // User authentication routes
   app.get("/api/auth/me", getCurrentUser);
   app.post("/api/auth/logout", logoutUser);
