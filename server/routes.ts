@@ -80,6 +80,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-installation-id': installationId,
+          'x-location-id': locationId
         },
         body: JSON.stringify(productData)
       });
