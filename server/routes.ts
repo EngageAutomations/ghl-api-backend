@@ -60,6 +60,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Railway Media Upload Integration - v1.2.1
+  app.post("/api/railway/media/upload", async (req, res) => {
+    try {
+      // Forward multipart form data to Railway backend
+      const installationId = req.body.installation_id || req.query.installation_id || 'install_1750191250983';
+      
+      // Create form data for Railway backend
+      const formData = new FormData();
+      
+      // Note: In a real implementation, you'd use multer middleware to handle the file upload
+      // For now, we'll proxy the request to Railway backend
+      const response = await fetch(`https://dir.engageautomations.com/api/ghl/media/upload?installation_id=${installationId}`, {
+        method: 'POST',
+        body: req.body, // This should be the FormData from the client
+        headers: {
+          // Don't set Content-Type, let fetch handle it for FormData
+        }
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        return res.status(response.status).json({
+          success: false,
+          error: data.error || 'Media upload failed',
+          details: data.message || data.details
+        });
+      }
+
+      res.json({
+        success: true,
+        url: data.url,
+        mediaId: data.mediaId,
+        filename: data.filename,
+        size: data.size,
+        uploadedAt: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Railway Media Upload Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to upload media to GoHighLevel',
+        details: error.message 
+      });
+    }
+  });
+
   // GHL Product Creation Route
   app.post("/api/ghl/create-product", async (req, res) => {
     try {

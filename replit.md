@@ -161,6 +161,16 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 19, 2025: Railway Backend Media Upload Integration v1.2.1
+  - Enhanced Railway backend with automatic token refresh and media upload capabilities
+  - Added /api/ghl/media/upload endpoint for direct GoHighLevel Media Library uploads
+  - Implemented multer-based file handling supporting images, PDFs, videos ≤ 25MB
+  - Database schema extended with image_urls[] and ghl_media_ids[] for listings
+  - ensureFreshToken() guard protects all routes from token expiry issues
+  - Multi-image listing support with gallery capabilities ready for implementation
+  - Improved error handling with [REFRESH], [REFRESH-FAIL], and [UPLOAD-FAIL] logging
+  - Backend versioning implemented for better deployment tracking
+
 - June 15, 2025: Enhanced OAuth Dual-Domain Architecture Deployed to Railway
   - Deployed complete enhanced OAuth system to Railway production backend
   - Authorization Code with PKCE flow now handling real marketplace installations

@@ -97,6 +97,12 @@ export const listings = pgTable("listings", {
   popupUrl: text("popup_url"),
   embedFormUrl: text("embed_form_url"),
   imageUrl: text("image_url"),
+  // Railway backend v1.2.1 media support
+  imageUrls: jsonb("image_urls").$type<string[]>(), // Array of image URLs from GHL Media Library
+  ghlMediaIds: jsonb("ghl_media_ids").$type<string[]>(), // Array of GHL media IDs for tracking
+  // GoHighLevel product integration
+  ghlProductId: text("ghl_product_id"), // Link to created GHL product
+  ghlLocationId: text("ghl_location_id"), // GHL location for this listing
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
