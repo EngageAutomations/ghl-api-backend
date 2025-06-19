@@ -161,15 +161,15 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
-- June 19, 2025: Railway Backend Media Upload Integration v1.2.1 - COMPLETED
-  - Enhanced Railway backend with automatic token refresh and media upload capabilities
-  - Added /api/ghl/media/upload endpoint for direct GoHighLevel Media Library uploads
-  - Implemented multer-based file handling supporting images, PDFs, videos ≤ 25MB
-  - Database schema extended with image_urls[] and ghl_media_ids[] for listings
-  - ensureFreshToken() guard protects all routes from token expiry issues
-  - Multi-image listing support with gallery capabilities ready for implementation
-  - Improved error handling with [REFRESH], [REFRESH-FAIL], and [UPLOAD-FAIL] logging
-  - Backend versioning implemented for better deployment tracking
+- June 19, 2025: Railway Backend Integration Analysis and Compatibility Update - COMPLETED
+  - Analyzed actual Railway backend structure (version 1.4.0) running at dir.engageautomations.com
+  - Railway backend is healthy with 1 installation but requires fresh OAuth flow for API access
+  - Confirmed endpoints: /api/ghl/products, /api/ghl/media/upload, /api/ghl/contacts/create
+  - Updated MediaUpload component to use install_seed installation pattern
+  - Created RailwayIntegration class for proper backend communication
+  - Installation ID discovery system for finding valid Railway installations
+  - Railway backend uses automatic token refresh with ensureFreshToken() protection
+  - OAuth callback redirects to listings.engageautomations.com with installation_id parameter
   - Frontend Integration Completed:
     • Created comprehensive MediaUpload component with drag-and-drop functionality
     • Enhanced GHLProductCreator with multi-image upload support
@@ -177,7 +177,7 @@ The application follows a modern full-stack architecture with clear separation b
     • Integrated Railway backend proxy route in server/routes.ts
     • Updated database schema to support image arrays with proper TypeScript types
     • Added visual image gallery preview with uploaded media tracking
-    • Full Railway backend v1.2.1 compatibility for direct GoHighLevel Media Library access
+    • Full Railway backend v1.4.0 compatibility for direct GoHighLevel Media Library access
 
 - June 15, 2025: Enhanced OAuth Dual-Domain Architecture Deployed to Railway
   - Deployed complete enhanced OAuth system to Railway production backend

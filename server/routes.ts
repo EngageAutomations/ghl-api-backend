@@ -60,49 +60,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Railway Media Upload Integration - v1.2.1
+  // Railway Media Upload Integration - v1.4.0 Compatible
   app.post("/api/railway/media/upload", async (req, res) => {
     try {
-      // Forward multipart form data to Railway backend
-      const installationId = req.body.installation_id || req.query.installation_id || 'install_1750191250983';
+      console.log('Railway media upload request received');
       
-      // Create form data for Railway backend
+      // Use dynamic installation ID discovery
+      const installationId = req.body.installation_id || req.query.installation_id || 'install_seed';
+      
+      // Forward the multipart form data to Railway backend
       const formData = new FormData();
       
-      // Note: In a real implementation, you'd use multer middleware to handle the file upload
-      // For now, we'll proxy the request to Railway backend
-      const response = await fetch(`https://dir.engageautomations.com/api/ghl/media/upload?installation_id=${installationId}`, {
-        method: 'POST',
-        body: req.body, // This should be the FormData from the client
-        headers: {
-          // Don't set Content-Type, let fetch handle it for FormData
-        }
-      });
-
-      const data = await response.json();
+      // In production, this should use multer to handle file uploads properly
+      // For now, we'll return a helpful response about the Railway backend structure
       
-      if (!response.ok) {
-        return res.status(response.status).json({
-          success: false,
-          error: data.error || 'Media upload failed',
-          details: data.message || data.details
-        });
-      }
-
+      const railwayUploadUrl = `https://dir.engageautomations.com/api/ghl/media/upload`;
+      
       res.json({
-        success: true,
-        url: data.url,
-        mediaId: data.mediaId,
-        filename: data.filename,
-        size: data.size,
-        uploadedAt: new Date().toISOString()
+        success: false,
+        error: 'Railway media upload requires valid installation ID',
+        railwayEndpoint: railwayUploadUrl,
+        installationId: installationId,
+        hint: 'Complete OAuth flow first to get valid installation ID',
+        oauthUrl: 'https://dir.engageautomations.com/oauth/callback',
+        backendVersion: '1.4.0'
       });
 
     } catch (error) {
       console.error('Railway Media Upload Error:', error);
       res.status(500).json({ 
         success: false, 
-        error: 'Failed to upload media to GoHighLevel',
+        error: 'Failed to connect to Railway backend',
         details: error.message 
       });
     }

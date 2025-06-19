@@ -304,7 +304,7 @@ export function GHLProductCreator({ isOpen, onClose, directoryName, onSuccess }:
               <MediaUpload
                 onUploadSuccess={handleMediaUpload}
                 maxFiles={5}
-                installationId="install_1750191250983"
+                installationId="install_seed"
                 disabled={createGHLProductMutation.isPending}
               />
               
