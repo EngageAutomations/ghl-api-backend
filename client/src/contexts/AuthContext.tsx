@@ -1,87 +1,84 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-interface User {
-  id: number;
-  username: string;
-  displayName: string;
-  email: string;
-}
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { getCurrentUser, User } from '@/lib/auth';
 
 interface AuthContextType {
   user: User | null;
+  loading: boolean;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
-  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("AUTH PROVIDER - Initial Load");
-    // Check for saved user in localStorage for development
-    const savedMockUser = localStorage.getItem('mockUser');
-    const savedUser = localStorage.getItem('user');
-    
-    console.log("Saved mock user in localStorage:", savedMockUser);
-    console.log("Saved user in localStorage:", savedUser);
-    
-    if (savedUser) {
+    // Check for existing authentication on mount
+    const checkAuth = async () => {
       try {
-        const userData = JSON.parse(savedUser);
-        setUser(userData);
-      } catch (e) {
-        localStorage.removeItem('user');
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+      } finally {
+        setLoading(false);
       }
-    } else {
-      // For development, auto-login with a test user
-      const mockUser = {
-        id: 1,
-        username: 'developer@test.com',
-        displayName: 'Developer',
-        email: 'developer@test.com'
-      };
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-    }
+    };
     
-    setIsLoading(false);
+    checkAuth();
   }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
         body: JSON.stringify({ username, password }),
-        credentials: 'include'
       });
-
+      
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
         return true;
       }
-      
       return false;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login failed:', error);
       return false;
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      setUser(null);
+    }
+  };
+
+  const value: AuthContextType = {
+    user,
+    loading,
+    login,
+    logout,
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
