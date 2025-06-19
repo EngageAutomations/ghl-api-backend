@@ -1,8 +1,10 @@
 [workflows.dev]
-name = "dev"
-author = "agent"
+name = "Start application"
+author = "replit"
+template = "basic"
+language = "bash"
+runButton = "Open website"
 
-[[workflows.dev.tasks]]
-task = "shell.exec"
-args = "node index.js"
-waitForPort = 3000
+[workflows.dev.deployment]
+run = ["node", "web-server.js"]
+deploymentTarget = "cloudrun"
