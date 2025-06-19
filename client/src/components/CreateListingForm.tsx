@@ -7,8 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import RichTextEditor from '@/components/RichTextEditor';
-import { Plus, Upload, X, Package } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Plus, Upload, X } from 'lucide-react';
 
 interface CreateListingFormProps {
   directoryName: string;
@@ -34,13 +33,6 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     isActive: editingListing?.isActive ?? true,
     downloadUrl: editingListing?.downloadUrl || '',
   });
-
-  // SEO fields state - auto-filled but independently editable
-  const [seoFields, setSeoFields] = useState({
-    metaTitle: editingListing?.metaTitle || editingListing?.title || '',
-    metaDescription: editingListing?.metaDescription || editingListing?.description || '',
-    seoKeywords: editingListing?.seoKeywords || '',
-  });
   
   // Separate state for extended fields that will be saved as addons
   const expandedDescriptionAddon = editingAddons?.find((addon: any) => addon.type === 'expanded_description');
@@ -55,27 +47,6 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
-
-  // Auto-fill SEO fields when title or description changes
-  const autoFillSEO = (field: 'title' | 'description', value: string) => {
-    setSeoFields(prev => {
-      const updates: any = {};
-      
-      if (field === 'title' && !prev.metaTitle.trim()) {
-        updates.metaTitle = value;
-      }
-      
-      if (field === 'description' && !prev.metaDescription.trim()) {
-        // Truncate description for meta description (ideal length 150-160 chars)
-        const cleanDescription = value.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-        updates.metaDescription = cleanDescription.length > 155 
-          ? cleanDescription.substring(0, 152) + '...'
-          : cleanDescription;
-      }
-      
-      return { ...prev, ...updates };
-    });
-  };
 
   // Upload image to GoHighLevel media API
   const uploadImageMutation = useMutation({
@@ -120,15 +91,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       if (isEditing) {
         // Update existing listing
         const slug = formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        const listingData = { 
-          ...formData, 
-          slug, 
-          directoryName,
-          // Include SEO fields
-          metaTitle: seoFields.metaTitle,
-          metaDescription: seoFields.metaDescription,
-          seoKeywords: seoFields.seoKeywords
-        };
+        const listingData = { ...formData, slug, directoryName };
         
         await apiRequest(`/api/listings/id/${editingListing.id}`, {
           method: 'PATCH',
@@ -137,44 +100,32 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
         
         listingId = editingListing.id;
       } else {
-        // Initialize variables for GoHighLevel integration
-        let ghlResult = null;
-        
         // First, create GoHighLevel product if not editing
         try {
           console.log('Creating GoHighLevel product for listing...');
           const ghlProductData = {
-            installationId: 'install_1750252333303', // Railway installation with automatic token management
             name: formData.title,
             description: formData.description || '',
-            productType: 'DIGITAL', // Required: DIGITAL, PHYSICAL, SERVICE, PHYSICAL/DIGITAL
-            
-            // Price - always required for GoHighLevel store availability
-            // Use $100 default when pricing is disabled, otherwise parse user input
-            price: features.showPrice === false ? 100 : 
-                   (formData.price ? parseFloat(formData.price.replace(/[^0-9.-]/g, '')) || 100 : 100)
+            productType: 'DIGITAL',
+            price: formData.price ? parseFloat(formData.price.replace(/[^0-9.-]/g, '')) : undefined
           };
 
-          // Call Railway backend endpoint directly for reliable token management
-          const ghlResponse = await fetch('https://dir.engageautomations.com/api/ghl/products/create', {
+          const ghlResponse = await apiRequest('/api/ghl/create-product', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(ghlProductData)
+            data: ghlProductData
           });
 
-          ghlResult = await ghlResponse.json();
+          const ghlResult = await ghlResponse.json();
           if (ghlResult.success) {
-            console.log('GoHighLevel product created via Railway backend');
-            console.log('Location ID:', ghlResult.locationId);
+            ghlProductId = ghlResult.productId;
+            console.log('GoHighLevel product created:', ghlProductId);
             
             toast({
               title: "GoHighLevel Product Created",
               description: `Product "${formData.title}" created in your GoHighLevel account`,
             });
           } else {
-            console.warn('GoHighLevel product creation failed:', ghlResult.message);
+            console.warn('GoHighLevel product creation failed:', ghlResult.error);
             // Continue with local listing creation even if GHL fails
           }
         } catch (ghlError) {
@@ -189,11 +140,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           slug, 
           directoryName,
           ghlProductId, // Link to GoHighLevel product if created
-          ghlLocationId: ghlResult?.success ? ghlResult.locationId : undefined,
-          // Include SEO fields
-          metaTitle: seoFields.metaTitle,
-          metaDescription: seoFields.metaDescription,
-          seoKeywords: seoFields.seoKeywords
+          ghlLocationId: ghlProductId ? 'WAvk87RmW9rBSDJHeOpH' : undefined
         };
 
         const response = await apiRequest('/api/listings', {
@@ -272,11 +219,6 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       ...prev,
       [field]: value
     }));
-    
-    // Auto-fill SEO fields when title or description changes
-    if (field === 'title' || field === 'description') {
-      autoFillSEO(field as 'title' | 'description', value);
-    }
   };
 
   const handleAISummarize = async () => {
@@ -368,32 +310,11 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
-        <div className="flex items-center gap-2 mb-2">
-          <h4 className="font-medium text-blue-900">Directory: {directoryName}</h4>
-          <span className="px-2 py-1 bg-white border border-blue-300 rounded text-xs text-blue-600">GoHighLevel Integration</span>
-        </div>
-        <p className="text-sm text-blue-700 mb-3">
-          This form is configured based on your directory settings from the wizard and will create both a GoHighLevel product and local listing.
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <h4 className="font-medium text-blue-900 mb-2">Directory: {directoryName}</h4>
+        <p className="text-sm text-blue-700">
+          This form is configured based on your directory settings from the wizard.
         </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-blue-600">
-          <span className="flex items-center gap-1">
-            <span className={features.showPrice !== false ? "text-green-600" : "text-orange-600"}>●</span>
-            {features.showPrice !== false ? "Price Display" : "Price Hidden (Default $100)"}
-          </span>
-          <span className="flex items-center gap-1">
-            <span className={features.showDescription ? "text-green-600" : "text-gray-400"}>●</span>
-            Rich Description
-          </span>
-          <span className="flex items-center gap-1">
-            <span className={features.showMetadata ? "text-green-600" : "text-gray-400"}>●</span>
-            Metadata Fields
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="text-green-600">●</span>
-            Image Upload
-          </span>
-        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -498,22 +419,21 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
             />
           </div>
 
-          {/* 3. Listing Price - Show field only when pricing is enabled, hide completely when disabled */}
-          {features.showPrice !== false && (
-            <div>
-              <Label htmlFor="price" className="text-sm font-medium text-gray-700 block text-left">
-                Listing Price
-              </Label>
-              <Input
-                id="price"
-                type="text"
-                value={formData.price}
-                onChange={(e) => handleInputChange('price', e.target.value)}
-                placeholder="e.g., $99, Free, Contact for pricing"
-                className="mt-1"
-              />
-            </div>
-          )}
+          {/* 3. Listing Price - Show field or placeholder */}
+          <div>
+            <Label htmlFor="price" className="text-sm font-medium text-gray-700 block text-left">
+              Listing Price {features.showPrice === false && <span className="text-xs text-gray-500">(Hidden from display)</span>}
+            </Label>
+            <Input
+              id="price"
+              type="text"
+              value={formData.price}
+              onChange={(e) => handleInputChange('price', e.target.value)}
+              placeholder={features.showPrice !== false ? "$50,000" : "$1 (placeholder value)"}
+              className="mt-1"
+              style={features.showPrice === false ? { backgroundColor: '#f9fafb', color: '#6b7280' } : {}}
+            />
+          </div>
 
           {/* 3. Basic Description with AI Summarizer */}
           <div>
@@ -698,77 +618,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           )}
         </div>
 
-        {/* SEO Fields Section - Always show */}
-        <div className="border-t pt-6">
-          <div className="mb-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">SEO Settings</h3>
-            <p className="text-sm text-gray-600">These fields help search engines understand your listing. They auto-fill from your title and description but can be edited independently.</p>
-          </div>
-          
-          <div className="space-y-4">
-            {/* Meta Title */}
-            <div>
-              <Label htmlFor="metaTitle" className="text-sm font-medium text-gray-700 block text-left">
-                SEO Title
-                <span className="text-xs text-gray-500 ml-2">(Appears in search results)</span>
-              </Label>
-              <Input
-                id="metaTitle"
-                type="text"
-                value={seoFields.metaTitle}
-                onChange={(e) => setSeoFields(prev => ({ ...prev, metaTitle: e.target.value }))}
-                placeholder="Enter SEO title (auto-filled from listing title)"
-                className="mt-1"
-                maxLength={60}
-              />
-              <div className="text-xs text-gray-500 mt-1">
-                {seoFields.metaTitle.length}/60 characters
-                {seoFields.metaTitle.length > 60 && <span className="text-red-500 ml-2">Too long for optimal SEO</span>}
-              </div>
-            </div>
 
-            {/* Meta Description */}
-            <div>
-              <Label htmlFor="metaDescription" className="text-sm font-medium text-gray-700 block text-left">
-                SEO Description
-                <span className="text-xs text-gray-500 ml-2">(Appears under title in search results)</span>
-              </Label>
-              <Textarea
-                id="metaDescription"
-                value={seoFields.metaDescription}
-                onChange={(e) => setSeoFields(prev => ({ ...prev, metaDescription: e.target.value }))}
-                placeholder="Enter SEO description (auto-filled from listing description)"
-                className="mt-1"
-                rows={3}
-                maxLength={160}
-              />
-              <div className="text-xs text-gray-500 mt-1">
-                {seoFields.metaDescription.length}/160 characters
-                {seoFields.metaDescription.length > 160 && <span className="text-red-500 ml-2">Too long for optimal SEO</span>}
-                {seoFields.metaDescription.length < 120 && seoFields.metaDescription.length > 0 && <span className="text-yellow-600 ml-2">Consider adding more detail</span>}
-              </div>
-            </div>
-
-            {/* SEO Keywords */}
-            <div>
-              <Label htmlFor="seoKeywords" className="text-sm font-medium text-gray-700 block text-left">
-                SEO Keywords
-                <span className="text-xs text-gray-500 ml-2">(Comma-separated, helps with search relevance)</span>
-              </Label>
-              <Input
-                id="seoKeywords"
-                type="text"
-                value={seoFields.seoKeywords}
-                onChange={(e) => setSeoFields(prev => ({ ...prev, seoKeywords: e.target.value }))}
-                placeholder="e.g. software, productivity, automation, business tools"
-                className="mt-1"
-              />
-              <div className="text-xs text-gray-500 mt-1">
-                Separate keywords with commas. Focus on terms your customers would search for.
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div className="flex justify-end space-x-3 pt-4 border-t">
           <Button type="button" variant="outline" onClick={onCancel}>

@@ -1,8 +1,0 @@
-[deployment]
-deploymentTarget = "autoscale"
-run = ["node", "start.js"]
-publicVisible = true
-
-[[ports]]
-localPort = 5000
-externalPort = 80

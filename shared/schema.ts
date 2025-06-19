@@ -97,13 +97,6 @@ export const listings = pgTable("listings", {
   popupUrl: text("popup_url"),
   embedFormUrl: text("embed_form_url"),
   imageUrl: text("image_url"),
-  // SEO fields - auto-filled from title/description but independently editable
-  metaTitle: text("meta_title"),
-  metaDescription: text("meta_description"),
-  seoKeywords: text("seo_keywords"),
-  // GoHighLevel integration fields
-  ghlProductId: text("ghl_product_id"),
-  ghlLocationId: text("ghl_location_id"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
