@@ -1,24 +1,27 @@
-#!/usr/bin/env node
-
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
 
 const app = express();
-const PORT = 5000;
 
-// Serve static files from client directory
-app.use(express.static(path.join(__dirname, 'client')));
+// Middleware for parsing JSON
+app.use(express.json());
 
-// Serve attached assets
-app.use('/attached_assets', express.static(path.join(__dirname, 'attached_assets')));
+// Serve static files from dist directory
+app.use(express.static(path.join(__dirname, 'dist')));
 
-// Handle all routes by serving index.html (SPA)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client', 'index.html'));
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// SPA fallback - serve index.html for all routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running at http://0.0.0.0:${PORT}`);
-  console.log(`Local: http://localhost:${PORT}`);
+  console.log(`🚀 GoHighLevel Marketplace running on port ${PORT}`);
+  console.log(`📡 Railway OAuth: dir.engageautomations.com`);
+  console.log(`🔑 Installation: install_1750252333303`);
 });

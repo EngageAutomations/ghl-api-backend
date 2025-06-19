@@ -196,6 +196,14 @@ const ghlResponse = await fetch('https://dir.engageautomations.com/api/ghl/produ
 
 ## Recent Changes
 
+- June 19, 2025: Server Configuration & Workflow Setup
+  - Fixed server startup issues caused by using unsupported npm run commands
+  - Created proper Express server (start.js) to serve static files from dist folder
+  - Updated replit.toml deployment configuration to use node start.js
+  - Established proper workflow configuration for continuous server operation
+  - Application build exists in dist folder and ready to serve
+  - Server configured on port 5000 with health check endpoint
+
 - June 18, 2025: Railway OAuth Architecture Implementation
   - Railway backend at dir.engageautomations.com owns complete OAuth token lifecycle
   - Installation install_1750252333303 handles automatic token refresh 5 minutes before expiry

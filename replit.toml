@@ -1,6 +1,6 @@
 [deployment]
 deploymentTarget = "autoscale"
-run = ["npx", "tsx", "server/index.ts"]
+run = ["node", "start.js"]
 publicVisible = true
 
 # Force all traffic to Express server

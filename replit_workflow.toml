@@ -4,5 +4,5 @@ author = "agent"
 
 [[workflows.app.tasks]]
 task = "shell.exec"
-args = "node run-dev.js"
+args = "node start.js"
 waitForPort = 5000
