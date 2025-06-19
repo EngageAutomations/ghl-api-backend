@@ -1,34 +1,36 @@
 {
-  "name": "ghl-universal-api-backend",
+  "name": "workspace",
   "version": "1.0.0",
-  "description": "Universal GoHighLevel API Backend with Dynamic Routing",
-  "main": "index.js",
+  "main": "start.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node index.js"
+    "dev": "node start.js",
+    "start": "node start.js"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.1.1",
     "@replit/vite-plugin-cartographer": "^0.2.7",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@tailwindcss/typography": "^0.5.16",
-    "@tanstack/react-query": "^5.80.10",
+    "@tanstack/react-query": "^5.80.7",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.5.2",
     "autoprefixer": "^10.4.21",
-    "axios": "^1.10.0",
-    "cookie-parser": "^1.4.6",
-    "cors": "^2.8.5",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "drizzle-kit": "^0.31.1",
-    "express": "^4.21.2",
-    "form-data": "^4.0.3",
+    "drizzle-zod": "^0.8.2",
+    "express": "^4.18.2",
+    "lucide-react": "^0.517.0",
     "postcss": "^8.5.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-hook-form": "^7.58.1",
+    "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.10",
     "tailwindcss-animate": "^1.0.7",
     "vite": "^6.3.5",
-    "wouter": "^3.7.1"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+    "wouter": "^3.7.1",
+    "zod": "^3.25.67"
   }
 }
