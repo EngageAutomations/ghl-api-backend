@@ -86,7 +86,6 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
 
     try {
       let listingId: number;
-      let ghlProductId: string | null = null;
       
       if (isEditing) {
         // Update existing listing
@@ -100,48 +99,9 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
         
         listingId = editingListing.id;
       } else {
-        // First, create GoHighLevel product if not editing
-        try {
-          console.log('Creating GoHighLevel product for listing...');
-          const ghlProductData = {
-            name: formData.title,
-            description: formData.description || '',
-            productType: 'DIGITAL',
-            price: formData.price ? parseFloat(formData.price.replace(/[^0-9.-]/g, '')) : undefined
-          };
-
-          const ghlResponse = await apiRequest('/api/ghl/create-product', {
-            method: 'POST',
-            data: ghlProductData
-          });
-
-          const ghlResult = await ghlResponse.json();
-          if (ghlResult.success) {
-            ghlProductId = ghlResult.productId;
-            console.log('GoHighLevel product created:', ghlProductId);
-            
-            toast({
-              title: "GoHighLevel Product Created",
-              description: `Product "${formData.title}" created in your GoHighLevel account`,
-            });
-          } else {
-            console.warn('GoHighLevel product creation failed:', ghlResult.error);
-            // Continue with local listing creation even if GHL fails
-          }
-        } catch (ghlError) {
-          console.warn('GoHighLevel integration error:', ghlError);
-          // Continue with local listing creation even if GHL fails
-        }
-
-        // Create new local listing
+        // Create new listing
         const slug = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        const listingData = { 
-          ...formData, 
-          slug, 
-          directoryName,
-          ghlProductId, // Link to GoHighLevel product if created
-          ghlLocationId: ghlProductId ? 'WAvk87RmW9rBSDJHeOpH' : undefined
-        };
+        const listingData = { ...formData, slug, directoryName };
 
         const response = await apiRequest('/api/listings', {
           method: 'POST',
@@ -195,10 +155,8 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       }
 
       toast({
-        title: "Product Created Successfully",
-        description: ghlProductId 
-          ? "Product created in GoHighLevel and added to your directory!"
-          : "Product added to your directory!",
+        title: "Success",
+        description: "Listing created successfully!",
       });
       
       onSuccess();
