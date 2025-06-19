@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 console.log(`[${new Date().toISOString()}] Starting GoHighLevel Directory & Collections Management System...`);
 

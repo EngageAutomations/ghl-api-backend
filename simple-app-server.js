@@ -1,16 +1,25 @@
 const express = require('express');
 const path = require('path');
-const app = express();
 
-// Serve static files from dist directory
+const app = express();
+const PORT = process.env.PORT;
+
+console.log(`Starting server with PORT: ${PORT}`);
+
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Handle SPA routing - serve index.html for all routes
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    port: PORT 
+  });
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`GoHighLevel Marketplace running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
