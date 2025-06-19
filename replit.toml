@@ -1,4 +1,4 @@
-run = "node app-server.js"
+run = "node start-preview.js"
 
 [deployment]
 deploymentTarget = "autoscale"
