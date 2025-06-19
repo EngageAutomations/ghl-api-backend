@@ -97,6 +97,9 @@ export const listings = pgTable("listings", {
   popupUrl: text("popup_url"),
   embedFormUrl: text("embed_form_url"),
   imageUrl: text("image_url"),
+  // Multiple image support for enhanced listings
+  imageUrls: jsonb("image_urls").$type<string[]>().default([]),
+  ghlMediaIds: jsonb("ghl_media_ids").$type<string[]>().default([]),
   // SEO fields - auto-filled from title/description but independently editable
   metaTitle: text("meta_title"),
   metaDescription: text("meta_description"),

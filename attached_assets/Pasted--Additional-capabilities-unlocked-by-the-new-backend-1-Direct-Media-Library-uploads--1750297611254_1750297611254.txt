@@ -1,0 +1,62 @@
+### Additional capabilities unlocked by the new backend
+
+1. **Direct Media-Library uploads**
+
+   * Any file (images, PDFs, videos ≤ 25 MB) can now be streamed straight into the GoHighLevel Media Library with one call (`/api/ghl/media/upload`).
+   * Returns both a **public CDN URL** and the **GHL mediaId**, so you can embed the asset anywhere inside GHL (emails, funnels, calendars) without another lookup.
+
+2. **Multiple-image listings**
+
+   * Listings can now store an **array** of image URLs (`image_urls[]`) and their matching media IDs.
+   * Enables gallery sliders, metadata-bar thumbnails, and sortable drag-and-drop image sets.
+
+3. **Automatic token freshness on *every* route**
+
+   * The single `ensureFreshToken()` guard means *all* product, contact **and now media** calls are protected.
+   * Tokens refresh \~5 min before expiry and again on-demand, eliminating 401 “token expired” errors.
+
+4. **One-click retry logic for uploads**
+
+   * Because uploads are proxied through the backend, the frontend can simply re-POST the same FormData on failure—no need to re-sign a new token in the browser.
+
+5. **Cleaner, reusable helpers**
+
+   * `requireInstall()` centralizes installation lookup + error handling.
+   * `scheduleRefresh()` and `refreshAccessToken()` are shared across every endpoint, shrinking code surface and making monitoring simpler.
+
+6. **Drop-in CORS safety**
+
+   * Frontend no longer touches `services.leadconnectorhq.com` directly; all requests hit your domain, so CORS settings stay stable.
+
+7. **Future asset types ready**
+
+   * The `/media/upload` proxy works for **videos, PDFs, audio**—not just images—so expanding into courses or file downloads needs no backend change.
+
+8. **Slimmer dependency footprint**
+
+   * Replaced `express-fileupload` with **multer** (streams to /tmp) and **form-data** (streams onward), cutting memory use on large uploads.
+
+9. **DB-backed token persistence compatible**
+
+   * Install objects now carry `expiresIn` & `expiresAt`; if you already persist installs, refreshing after a cold boot happens automatically.
+
+10. **Scalability hooks in place**
+
+    * A single `scheduleRefresh()` per install means you can add a distributed lock (Redis Redlock) and safely scale to multiple Railway or Replit replicas.
+
+11. **Improved observability**
+
+    * Logs add `[REFRESH]` and `[REFRESH-FAIL]` markers plus `[UPLOAD-FAIL]` on media errors—ready for Datadog / Grafana alerts.
+
+12. **Versioned backend (`1.2.1`)**
+
+    * Semver bump makes it easy to tag Docker images and roll back if needed.
+
+With these pieces in place the frontend can:
+
+* Upload unlimited photos per listing,
+* Show live previews, crop, reorder, then commit,
+* Reference those images anywhere inside GoHighLevel,
+* Never worry about token expiry or CORS headaches.
+
+Feel free to share this extended list with the rest of the team!

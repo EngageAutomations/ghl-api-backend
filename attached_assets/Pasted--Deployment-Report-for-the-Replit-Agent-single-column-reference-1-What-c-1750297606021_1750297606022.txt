@@ -1,0 +1,112 @@
+### 🚀 Deployment Report for the Replit Agent
+
+(single-column reference)
+
+---
+
+#### 1 — What changed
+
+* **New code:** updated `index.js` (token-refresh helpers refactored, media-upload route added).
+* **New deps:** `multer` and `form-data` (replaced `express-fileupload`).
+* **package.json** bumped to v 1.2.1 and now lists those two libs.
+* **Routes added/retained**
+
+```
+GET  /health                       (unchanged)
+GET  /api/ghl/test-connection      (unchanged)
+GET  /api/ghl/products             (unchanged)
+POST /api/ghl/products/create      (unchanged)
+POST /api/ghl/contacts/create      (unchanged)
+POST /api/ghl/media/upload         (NEW)  ← multipart field `file`
+```
+
+* **Database schema** (Postgres):
+
+```sql
+ALTER TABLE listings
+  ADD COLUMN image_urls    JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN ghl_media_ids JSONB DEFAULT '[]'::jsonb;
+```
+
+---
+
+#### 2 — Why the new endpoint matters
+
+* Keeps **access tokens server-side**; browser never sees them.
+* Uses `ensureFreshToken()` so uploads succeed even if the token just expired.
+* Returns `{ success, mediaId, url }` for storing in `listings.image_urls` + `ghl_media_ids`.
+
+---
+
+#### 3 — Replit setup delta
+
+| Area                    | Action                                                                                                                               |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **package.json**        | Pull the new file from Git (or the canvas). Run `npm install` to bring in `multer` + `form-data`.                                    |
+| **Secrets tab**         | No new env-vars. Keep `GHL_CLIENT_ID`, `GHL_CLIENT_SECRET`, `GHL_REDIRECT_URI`.                                                      |
+| **.replit / run cmd**   | Still `npm start` → `node index.js`.                                                                                                 |
+| **Health endpoint**     | `/health` unchanged.                                                                                                                 |
+| **Persistent installs** | If you already dump `installations` to Replit DB / Redis, append `expiresIn` & `expiresAt` in your model (auto-added on next OAuth). |
+
+---
+
+#### 4 — Frontend integration checklist
+
+1. **Upload component**
+
+```js
+const fd = new FormData();
+fd.append('file', file);                 // user-selected File/Blob
+fd.append('installation_id', installId); // query param also works
+
+const res = await fetch('/api/ghl/media/upload', {
+  method: 'POST',
+  body: fd
+});
+const { url, mediaId } = await res.json();
+```
+
+2. **CreateListingForm**
+
+   * Push `url` into `image_urls[]`, `mediaId` into `ghl_media_ids[]`.
+   * Submit both arrays along with the rest of the listing fields.
+
+3. **Edit flow**
+
+   * Preload previews from `image_urls`.
+   * Support reorder / delete, then PATCH the arrays.
+
+---
+
+#### 5 — Local smoke test
+
+```bash
+node index.js
+# → "GHL proxy listening on 3000"
+
+curl -F "file=@./banner.jpg" \
+     "http://localhost:3000/api/ghl/media/upload?installation_id=<id>"
+
+# Expect: { "success": true, "url": "https://cdn...", "mediaId": "abc123" }
+```
+
+---
+
+#### 6 — Logging & alerts
+
+* `"[REFRESH] install_x…"` — successful token refresh.
+* `"[REFRESH-FAIL] install_x…"` — refresh error; surface in Slack.
+* Media uploads log nothing unless they throw; monitor 4xx/5xx on `/medias/upload-file`.
+
+---
+
+#### 7 — Final checklist for the Replit agent
+
+* [ ] Pull latest `index.js` + `package.json`.
+* [ ] `npm install` (verify `multer` + `form-data` in `node_modules`).
+* [ ] Confirm secrets still present.
+* [ ] Run → `/health` returns 200.
+* [ ] Perform an image upload round-trip from the UI.
+* [ ] Apply DB migration if not yet merged.
+
+You’re good to ship—ping if anything breaks!

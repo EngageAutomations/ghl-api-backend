@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import RichTextEditor from '@/components/RichTextEditor';
+import { ImageUploadManager } from '@/components/ImageUploadManager';
 import { Plus, Upload, X, Package } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -52,8 +53,14 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [isDragOver, setIsDragOver] = useState(false);
+  const [images, setImages] = useState<Array<{url: string; mediaId: string; filename: string; size: number}>>(
+    editingListing?.imageUrls ? editingListing.imageUrls.map((url: string, index: number) => ({
+      url,
+      mediaId: editingListing.ghlMediaIds?.[index] || '',
+      filename: `image-${index + 1}`,
+      size: 0
+    })) : []
+  );
   const { toast } = useToast();
 
   // Auto-fill SEO fields when title or description changes
@@ -77,35 +84,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     });
   };
 
-  // Upload image to GoHighLevel media API
-  const uploadImageMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      return apiRequest('/api/ghl/media/upload', {
-        method: 'POST',
-        data: formData
-      });
-    },
-    onSuccess: (response: any) => {
-      // Update image URL with the GoHighLevel media URL
-      const imageUrl = response.url || response.fileUrl || response.data?.url;
-      setFormData(prev => ({ ...prev, imageUrl }));
-      toast({
-        title: "Image Uploaded",
-        description: "Your listing image has been uploaded to GoHighLevel successfully!",
-      });
-    },
-    onError: (error) => {
-      console.error('Image upload error:', error);
-      toast({
-        title: "Upload Failed",
-        description: "Failed to upload image to GoHighLevel. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
+
 
   const features = directoryConfig?.features || {};
 
@@ -190,6 +169,9 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           directoryName,
           ghlProductId, // Link to GoHighLevel product if created
           ghlLocationId: ghlResult?.success ? ghlResult.locationId : undefined,
+          // Include image arrays from Railway backend uploads
+          imageUrls: images.map(img => img.url),
+          ghlMediaIds: images.map(img => img.mediaId),
           // Include SEO fields
           metaTitle: seoFields.metaTitle,
           metaDescription: seoFields.metaDescription,
@@ -327,43 +309,18 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     }
   };
 
-  // Image upload handlers
-  const handleImageDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
-    
-    if (imageFile) {
-      setImageFile(imageFile);
-      // Upload to GoHighLevel immediately
-      uploadImageMutation.mutate(imageFile);
+  // Set main image URL for backward compatibility when images are uploaded
+  const updateMainImageUrl = (newImages: typeof images) => {
+    if (newImages.length > 0) {
+      setFormData(prev => ({ ...prev, imageUrl: newImages[0].url }));
+    } else {
+      setFormData(prev => ({ ...prev, imageUrl: '' }));
     }
   };
 
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setImageFile(file);
-      // Upload to GoHighLevel immediately
-      uploadImageMutation.mutate(file);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
-
-  const removeImage = () => {
-    setImageFile(null);
-    setFormData(prev => ({ ...prev, imageUrl: '' }));
+  const handleImagesChange = (newImages: typeof images) => {
+    setImages(newImages);
+    updateMainImageUrl(newImages);
   };
 
   return (
@@ -399,23 +356,15 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Form fields matching wizard preview exactly */}
         <div className="space-y-4">
-          {/* 1. Listing Image Upload - First field */}
-          <div>
-            <Label className="text-sm font-medium text-gray-700 block text-left">Listing Image</Label>
-            <div className="mt-1 space-y-3">
-              {/* Image Upload Area */}
-              <div
-                onDrop={handleImageDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                className={`
-                  border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer
-                  ${isDragOver 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
-                  }
-                  ${uploadImageMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}
-                `}
+          {/* 1. Enhanced Image Upload - Multiple images with Railway backend integration */}
+          <ImageUploadManager
+            images={images}
+            onImagesChange={handleImagesChange}
+            maxImages={5}
+            allowMultiple={true}
+            label="Listing Images"
+            className="space-y-3"
+          />
               >
                 <input
                   type="file"
