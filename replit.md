@@ -196,16 +196,6 @@ const ghlResponse = await fetch('https://dir.engageautomations.com/api/ghl/produ
 
 ## Recent Changes
 
-- June 19, 2025: Complete Product Creator Interface Deployed
-  - Deployed functional HTML-based product creator with drag-and-drop image upload
-  - Integrated direct Railway backend calls for GoHighLevel product creation
-  - Added real-time status updates and activity logging
-  - Implemented multi-image upload with preview functionality
-  - Created working development server accessible on port 5000
-  - Form validates and creates products directly in GoHighLevel accounts
-  - Installation ID 'install_1750252333303' handles automatic token management
-  - Two-stage upload: images to GHL media library → product creation with media references
-
 - June 18, 2025: Railway OAuth Architecture Implementation
   - Railway backend at dir.engageautomations.com owns complete OAuth token lifecycle
   - Installation install_1750252333303 handles automatic token refresh 5 minutes before expiry

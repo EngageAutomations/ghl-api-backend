@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { useToast } from '../hooks/use-toast';
-import { apiRequest } from '../lib/queryClient';
-import RichTextEditor from './RichTextEditor';
-import { ImageUploadManager } from './ImageUploadManager';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import RichTextEditor from '@/components/RichTextEditor';
 import { Plus, Upload, X, Package } from 'lucide-react';
-import { Badge } from './ui/badge';
+import { Badge } from '@/components/ui/badge';
 
 interface CreateListingFormProps {
   directoryName: string;
@@ -53,14 +52,8 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [images, setImages] = useState<Array<{url: string; mediaId: string; filename: string; size: number}>>(
-    editingListing?.imageUrls ? editingListing.imageUrls.map((url: string, index: number) => ({
-      url,
-      mediaId: editingListing.ghlMediaIds?.[index] || '',
-      filename: `image-${index + 1}`,
-      size: 0
-    })) : []
-  );
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
 
   // Auto-fill SEO fields when title or description changes
@@ -84,7 +77,35 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     });
   };
 
-
+  // Upload image to GoHighLevel media API
+  const uploadImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      return apiRequest('/api/ghl/media/upload', {
+        method: 'POST',
+        data: formData
+      });
+    },
+    onSuccess: (response: any) => {
+      // Update image URL with the GoHighLevel media URL
+      const imageUrl = response.url || response.fileUrl || response.data?.url;
+      setFormData(prev => ({ ...prev, imageUrl }));
+      toast({
+        title: "Image Uploaded",
+        description: "Your listing image has been uploaded to GoHighLevel successfully!",
+      });
+    },
+    onError: (error) => {
+      console.error('Image upload error:', error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload image to GoHighLevel. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
 
   const features = directoryConfig?.features || {};
 
@@ -169,9 +190,6 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
           directoryName,
           ghlProductId, // Link to GoHighLevel product if created
           ghlLocationId: ghlResult?.success ? ghlResult.locationId : undefined,
-          // Include image arrays from Railway backend uploads
-          imageUrls: images.map(img => img.url),
-          ghlMediaIds: images.map(img => img.mediaId),
           // Include SEO fields
           metaTitle: seoFields.metaTitle,
           metaDescription: seoFields.metaDescription,
@@ -309,18 +327,43 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
     }
   };
 
-  // Set main image URL for backward compatibility when images are uploaded
-  const updateMainImageUrl = (newImages: typeof images) => {
-    if (newImages.length > 0) {
-      setFormData(prev => ({ ...prev, imageUrl: newImages[0].url }));
-    } else {
-      setFormData(prev => ({ ...prev, imageUrl: '' }));
+  // Image upload handlers
+  const handleImageDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    
+    if (imageFile) {
+      setImageFile(imageFile);
+      // Upload to GoHighLevel immediately
+      uploadImageMutation.mutate(imageFile);
     }
   };
 
-  const handleImagesChange = (newImages: typeof images) => {
-    setImages(newImages);
-    updateMainImageUrl(newImages);
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setImageFile(file);
+      // Upload to GoHighLevel immediately
+      uploadImageMutation.mutate(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setFormData(prev => ({ ...prev, imageUrl: '' }));
   };
 
   return (
@@ -356,50 +399,102 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Form fields matching wizard preview exactly */}
         <div className="space-y-4">
-          {/* 1. Enhanced Image Upload - Multiple images with Railway backend integration */}
-          <ImageUploadManager
-            images={images}
-            onImagesChange={handleImagesChange}
-            maxImages={5}
-            allowMultiple={true}
-            label="Listing Images"
-            className="space-y-3"
-          />
-
-          {/* 2. Title field */}
+          {/* 1. Listing Image Upload - First field */}
           <div>
-            <Label htmlFor="title" className="text-sm font-medium text-gray-700 block text-left">
-              Listing Title *
-            </Label>
+            <Label className="text-sm font-medium text-gray-700 block text-left">Listing Image</Label>
+            <div className="mt-1 space-y-3">
+              {/* Image Upload Area */}
+              <div
+                onDrop={handleImageDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                className={`
+                  border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer
+                  ${isDragOver 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
+                  }
+                  ${uploadImageMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileChange}
+                  className="hidden"
+                  id="image-upload"
+                  disabled={uploadImageMutation.isPending}
+                />
+                <label htmlFor="image-upload" className={`cursor-pointer ${uploadImageMutation.isPending ? 'cursor-not-allowed' : ''}`}>
+                  {uploadImageMutation.isPending ? (
+                    <div className="flex flex-col items-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-3"></div>
+                      <p className="text-sm font-medium text-blue-600">
+                        Uploading to GoHighLevel...
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                      <p className="text-base font-medium text-gray-700 mb-1">
+                        {isDragOver ? 'Drop image here' : 'Upload listing image'}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Drag and drop or click to browse
+                      </p>
+                    </>
+                  )}
+                </label>
+              </div>
+              
+              {/* Upload Status and Preview */}
+              {formData.imageUrl && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-start space-x-4">
+                    <img 
+                      src={formData.imageUrl} 
+                      alt="Listing image preview" 
+                      className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-green-800">Image uploaded successfully</p>
+                          <p className="text-xs text-green-600">Stored in GoHighLevel media library</p>
+                          {imageFile && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {imageFile.name} ({(imageFile.size / 1024).toFixed(1)}KB)
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={removeImage}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 2. Listing Title - Always show */}
+          <div>
+            <Label htmlFor="title" className="text-sm font-medium text-gray-700 block text-left">Listing Title *</Label>
             <Input
               id="title"
               type="text"
               value={formData.title}
-              onChange={(e) => {
-                setFormData(prev => ({ ...prev, title: e.target.value }));
-                autoFillSEO('title', e.target.value);
-              }}
+              onChange={(e) => handleInputChange('title', e.target.value)}
               required
               placeholder="Enter listing title"
               className="mt-1"
-            />
-          </div>
-
-          {/* 3. Description field */}
-          <div>
-            <Label htmlFor="description" className="text-sm font-medium text-gray-700 block text-left">
-              Description *
-            </Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => {
-                setFormData(prev => ({ ...prev, description: e.target.value }));
-                autoFillSEO('description', e.target.value);
-              }}
-              required
-              placeholder="Enter listing description"
-              className="mt-1 min-h-[100px]"
             />
           </div>
 
