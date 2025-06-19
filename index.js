@@ -504,9 +504,62 @@ app.post('/api/ghl/media/upload', async (req, res) => {
   }
 });
 
-// Serve frontend for all other routes
+// Serve production frontend
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Serve frontend for all other routes (SPA routing)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  // First try to serve from existing dist directory
+  const indexPath = path.join(__dirname, 'dist', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    // Fallback to client directory for development
+    const clientIndexPath = path.join(__dirname, 'client', 'index.html');
+    if (fs.existsSync(clientIndexPath)) {
+      res.sendFile(clientIndexPath);
+    } else {
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>GoHighLevel OAuth Backend</title>
+          <style>
+            body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+            .status { background: #e8f5e8; border: 1px solid #4caf50; padding: 15px; border-radius: 5px; }
+            .endpoint { background: #f5f5f5; padding: 10px; margin: 5px 0; border-radius: 3px; font-family: monospace; }
+          </style>
+        </head>
+        <body>
+          <div class="status">
+            <h1>🚀 GoHighLevel OAuth Backend</h1>
+            <p>Production backend is running successfully!</p>
+            <p><strong>Status:</strong> Healthy</p>
+            <p><strong>Port:</strong> ${PORT}</p>
+          </div>
+          
+          <h2>Available Endpoints</h2>
+          
+          <h3>OAuth & Authentication</h3>
+          <div class="endpoint">GET /oauth/callback - OAuth callback handler</div>
+          <div class="endpoint">GET /api/oauth/status?installation_id=... - Installation status</div>
+          
+          <h3>GoHighLevel API Proxy</h3>
+          <div class="endpoint">GET /api/ghl/test-connection?installation_id=... - Test API connection</div>
+          <div class="endpoint">GET /api/ghl/products?installation_id=... - List products</div>
+          <div class="endpoint">POST /api/ghl/products/create - Create product</div>
+          <div class="endpoint">POST /api/ghl/contacts/create - Create contact</div>
+          <div class="endpoint">POST /api/ghl/media/upload?installation_id=... - Upload media</div>
+          
+          <h3>System</h3>
+          <div class="endpoint">GET /health - System health check</div>
+          
+          <p><em>All API endpoints require proper authentication and installation_id parameters.</em></p>
+        </body>
+        </html>
+      `);
+    }
+  }
 });
 
 // Initialize with seed token if provided
