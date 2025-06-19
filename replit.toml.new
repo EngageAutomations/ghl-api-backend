@@ -1,6 +1,6 @@
 [deployment]
 deploymentTarget = "autoscale"
-run = ["node", "index.js"]
+run = ["node", "start.js"]
 publicVisible = true
 
 [[ports]]

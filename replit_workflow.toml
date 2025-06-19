@@ -1,17 +1,8 @@
 [workflows.Project]
 name = "Project"
-mode = "parallel"
 author = "agent"
 
 [[workflows.Project.tasks]]
-task = "workflow.run"
-args = "Start application"
-
-[workflows."Start application"]
-name = "Start application"
-author = "agent"
-
-[[workflows."Start application".tasks]]
 task = "shell.exec"
 args = "node start.js"
 waitForPort = 5000
