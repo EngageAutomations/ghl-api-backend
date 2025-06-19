@@ -1,51 +1,49 @@
-export interface User {
-  id: string;
+import { auth, MockUser } from "./firebase";
+import { apiRequest } from "./queryClient";
+
+// Simple email/password login
+export const signInWithEmail = async (email: string, password: string) => {
+  try {
+    const result = await auth.signInWithEmailAndPassword(email, password);
+    return result.user;
+  } catch (error) {
+    console.error("Error signing in:", error);
+    throw error;
+  }
+};
+
+// Sign out
+export const signOutUser = async () => {
+  try {
+    await auth.signOut();
+  } catch (error) {
+    console.error("Error signing out:", error);
+    throw error;
+  }
+};
+
+// Register user in our backend
+export const registerUser = async (userData: {
   username: string;
+  password: string;
   displayName?: string;
-}
-
-export const getCurrentUser = async (): Promise<User | null> => {
-  try {
-    const response = await fetch('/api/auth/me', {
-      credentials: 'include',
-    });
-    
-    if (response.ok) {
-      return await response.json();
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('Failed to get current user:', error);
-    return null;
-  }
+  email?: string;
+}) => {
+  const response = await apiRequest("/api/auth/register", {
+    method: "POST",
+    data: userData
+  });
+  return response.json();
 };
 
-export const login = async (username: string, password: string): Promise<boolean> => {
-  try {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({ username, password }),
-    });
-    
-    return response.ok;
-  } catch (error) {
-    console.error('Login failed:', error);
-    return false;
-  }
-};
-
-export const logout = async (): Promise<void> => {
-  try {
-    await fetch('/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
-    });
-  } catch (error) {
-    console.error('Logout failed:', error);
-  }
+// Login user in our backend
+export const loginUser = async (credentials: {
+  username: string;
+  password: string;
+}) => {
+  const response = await apiRequest("/api/auth/login", {
+    method: "POST",
+    data: credentials
+  });
+  return response.json();
 };

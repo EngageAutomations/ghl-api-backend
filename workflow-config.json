@@ -1,6 +1,0 @@
-{
-  "name": "GoHighLevel Marketplace",
-  "command": "node run-dev.js",
-  "port": 5000,
-  "description": "GoHighLevel Marketplace Application with Railway OAuth Integration"
-}

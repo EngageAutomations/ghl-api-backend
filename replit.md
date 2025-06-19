@@ -13,13 +13,11 @@ This is a full-stack web application that provides comprehensive directory and c
 - **UI Framework**: Tailwind CSS with shadcn/ui components
 - **Animations**: Framer Motion for enhanced user experience
 
-### Backend Architecture (Railway Integration)
-- **Primary Frontend**: React TypeScript application with local data management
-- **GoHighLevel Integration**: Railway backend at dir.engageautomations.com handles OAuth token lifecycle
-- **Token Management**: Railway installation (install_1750252333303) owns complete token refresh cycle
-- **API Flow**: Form submissions → Railway backend → GoHighLevel API → product creation
-- **Authentication**: No local OAuth secrets required - Railway manages complete token lifecycle
-- **Reliability**: Automatic token refresh 5 minutes before expiry prevents API failures
+### Backend Architecture
+- **Server Framework**: Express.js Node.js server
+- **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
+- **API Design**: RESTful API with comprehensive CRUD operations
+- **Authentication**: Session-based authentication with OAuth capabilities
 
 ### Database Architecture
 - **Relationship Model**: Many-to-many relationships between collections and products
@@ -60,15 +58,7 @@ This is a full-stack web application that provides comprehensive directory and c
 5. **Code Generation**: Custom integration code is generated for embedding
 6. **External Sync**: Data synchronizes with GoHighLevel when configured
 
-### GoHighLevel Integration Data Flow
-1. **Form Submission**: User creates listing through CreateListingForm component
-2. **Railway API Call**: Form calls https://dir.engageautomations.com/api/ghl/products/create
-3. **Token Validation**: Railway backend checks token freshness and refreshes if needed
-4. **GoHighLevel API**: Railway makes authenticated request to GHL products endpoint
-5. **Product Creation**: GoHighLevel creates product in user's account
-6. **Local Storage**: Listing saved locally with GoHighLevel location ID for tracking
-
-### Local API Data Flow
+### API Data Flow
 1. **Client Requests**: Frontend makes API calls through TanStack Query
 2. **Authentication Check**: Middleware validates user sessions
 3. **Database Operations**: Drizzle ORM handles type-safe database interactions
@@ -94,8 +84,7 @@ This is a full-stack web application that provides comprehensive directory and c
 - **ESLint/Prettier**: Code quality tools
 
 ### External Integrations
-- **GoHighLevel API**: OAuth authentication and data synchronization via Railway backend
-- **Railway Backend**: External OAuth token management at dir.engageautomations.com
+- **GoHighLevel API**: OAuth authentication and data synchronization
 - **Google Drive API**: File storage and management (configured)
 - **OpenAI API**: AI-powered features (optional)
 
@@ -116,103 +105,6 @@ This is a full-stack web application that provides comprehensive directory and c
 - **Development**: Local `.env` file with development credentials
 - **Production**: Environment variables managed through Replit secrets
 - **Feature Flags**: Environment-based feature toggling
-
-## Railway OAuth Integration
-
-### Architecture Overview
-The system uses a Railway-hosted backend service to completely manage GoHighLevel OAuth token lifecycle, eliminating the need for local token handling and ensuring reliable API access.
-
-### Implementation Details
-- **Railway Backend URL**: `https://dir.engageautomations.com`
-- **Installation ID**: `install_1750252333303`
-- **Primary Endpoint**: `/api/ghl/products/create`
-- **Token Refresh**: Automatic refresh 5 minutes before expiry
-- **No Local Secrets**: Railway manages all OAuth credentials
-
-### Integration Flow
-1. **Product Creation Request**: CreateListingForm component submits product data
-2. **Railway Processing**: Backend validates token freshness and refreshes if needed
-3. **GoHighLevel API Call**: Railway makes authenticated request to create product
-4. **Response Handling**: Success/error responses returned to frontend
-5. **Local Persistence**: Listing stored with GoHighLevel location ID for tracking
-
-### Key Benefits
-- **Zero Token Management**: No local OAuth credential handling required
-- **Automatic Refresh**: Prevents API failures from expired tokens
-- **Scalable Architecture**: Railway handles multiple concurrent requests
-- **Separation of Concerns**: Frontend focuses on UI, Railway handles authentication
-- **Reliability**: Scheduled token refresh ensures continuous API access
-
-### Error Handling
-- Railway backend returns detailed error messages for debugging
-- Frontend displays user-friendly messages for common failures
-- Token refresh failures are handled transparently by Railway
-- Network issues gracefully degrade with retry mechanisms
-
-### Development Workflow
-1. **Local Development**: Frontend connects directly to Railway production backend
-2. **Testing**: Real GoHighLevel products created during development
-3. **No Local OAuth Setup**: Skip complex local OAuth configuration
-4. **Immediate Integration**: Railway backend ready for immediate use
-
-### Code Implementation Example
-```typescript
-// CreateListingForm.tsx - Railway API Integration
-const ghlResponse = await fetch('https://dir.engageautomations.com/api/ghl/products/create', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    installationId: 'install_1750252333303',
-    productData: {
-      name: formData.title,
-      description: formData.description,
-      productType: 'DIGITAL',
-      price: parseFloat(formData.price) || 100
-    }
-  })
-});
-```
-
-### Troubleshooting Guide
-
-**Common Issues:**
-- **Network Timeouts**: Railway backend may take 5-10 seconds for token refresh
-- **Product Creation Failures**: Check GoHighLevel account permissions
-- **Missing Location ID**: Ensure Railway installation has proper location access
-
-**Debug Steps:**
-1. Verify Railway backend is accessible at dir.engageautomations.com
-2. Check browser network tab for detailed error responses
-3. Confirm installationId 'install_1750252333303' is active
-4. Test with minimal product data to isolate issues
-
-**Success Indicators:**
-- HTTP 200 response from Railway backend
-- Product visible in GoHighLevel account
-- Local listing saved with ghlLocationId populated
-- Toast notification confirms successful creation
-
-## Recent Changes
-
-- June 19, 2025: Server Configuration & Workflow Setup
-  - Fixed server startup issues caused by using unsupported npm run commands
-  - Created proper Express server (start.js) to serve static files from dist folder
-  - Updated replit.toml deployment configuration to use node start.js
-  - Established proper workflow configuration for continuous server operation
-  - Application build exists in dist folder and ready to serve
-  - Server configured on port 5000 with health check endpoint
-
-- June 18, 2025: Railway OAuth Architecture Implementation
-  - Railway backend at dir.engageautomations.com owns complete OAuth token lifecycle
-  - Installation install_1750252333303 handles automatic token refresh 5 minutes before expiry
-  - Form submissions call Railway /api/ghl/products/create endpoint with installationId
-  - Railway backend manages: OAuth callbacks, token refresh timers, ensureFreshToken guards
-  - Products created successfully in GoHighLevel with automatic token management
-  - System uses Railway's scheduled refresh and on-demand token validation
-  - Local project focuses on frontend interface, Railway handles all OAuth complexity
-  - Complete authentication flow: user OAuth → Railway installation → automatic token refresh
 
 ## Changelog
 
