@@ -1,4 +1,7 @@
-run = "node server-final.js"
+run = "node stable-server.js"
+
+[env]
+PORT = "3000"
 
 [deployment]
 deploymentTarget = "autoscale"
