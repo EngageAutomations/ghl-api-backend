@@ -1,8 +1,8 @@
-[workflows.Project]
-name = "Project"
+[workflows.dev]
+name = "dev"
 author = "agent"
 
-[[workflows.Project.tasks]]
+[[workflows.dev.tasks]]
 task = "shell.exec"
-args = "node start.js"
+args = "node index.js"
 waitForPort = 5000
