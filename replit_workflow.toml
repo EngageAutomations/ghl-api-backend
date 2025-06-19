@@ -1,0 +1,8 @@
+[workflows.app]
+name = "Start application"
+author = "agent"
+
+[[workflows.app.tasks]]
+task = "shell.exec"
+args = "node run-dev.js"
+waitForPort = 5000
