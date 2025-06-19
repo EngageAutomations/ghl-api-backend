@@ -1,33 +1,41 @@
-#!/usr/bin/env node
-
-const { spawn } = require('child_process');
+const express = require('express');
 const path = require('path');
 
-console.log('Starting GoHighLevel Marketplace Application...');
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Start the development server
-const devProcess = spawn('npm', ['run', 'dev'], {
-  stdio: 'inherit',
-  cwd: process.cwd()
+// Middleware for parsing JSON
+app.use(express.json());
+
+// Serve static files from dist directory
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    pid: process.pid,
+    port: PORT
+  });
 });
 
-devProcess.on('error', (error) => {
-  console.error('Failed to start development server:', error);
-  process.exit(1);
+// API health check
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'GoHighLevel Directory System Running',
+    timestamp: new Date().toISOString(),
+    features: ['directories', 'collections', 'listings', 'ghl-integration']
+  });
 });
 
-devProcess.on('close', (code) => {
-  console.log(`Development server exited with code ${code}`);
-  process.exit(code);
+// SPA fallback - serve index.html for all routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-// Handle process termination
-process.on('SIGINT', () => {
-  console.log('\nShutting down...');
-  devProcess.kill('SIGINT');
-});
-
-process.on('SIGTERM', () => {
-  console.log('\nShutting down...');
-  devProcess.kill('SIGTERM');
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/health`);
+  console.log(`Application: http://localhost:${PORT}`);
 });
