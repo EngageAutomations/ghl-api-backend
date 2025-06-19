@@ -1,4 +1,4 @@
-run = "node index.js"
+run = "node preview-server.js"
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -6,5 +6,5 @@ run = ["node", "index.js"]
 publicVisible = true
 
 [[ports]]
-localPort = 5000
+localPort = 3000
 externalPort = 80
