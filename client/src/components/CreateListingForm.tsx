@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import RichTextEditor from '@/components/RichTextEditor';
-import { ImageUploadManager } from '@/components/ImageUploadManager';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
+import { useToast } from '../hooks/use-toast';
+import { apiRequest } from '../lib/queryClient';
+import RichTextEditor from './RichTextEditor';
+import { ImageUploadManager } from './ImageUploadManager';
 import { Plus, Upload, X, Package } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from './ui/badge';
 
 interface CreateListingFormProps {
   directoryName: string;

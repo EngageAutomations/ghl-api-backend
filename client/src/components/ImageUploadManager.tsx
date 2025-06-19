@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from './ui/button';
+import { Card, CardContent } from './ui/card';
+import { useToast } from '../hooks/use-toast';
 import { Upload, X, Image, Loader2, AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 
 interface UploadedImage {
   url: string;
