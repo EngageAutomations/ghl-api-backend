@@ -365,85 +365,41 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
             label="Listing Images"
             className="space-y-3"
           />
-              >
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageFileChange}
-                  className="hidden"
-                  id="image-upload"
-                  disabled={uploadImageMutation.isPending}
-                />
-                <label htmlFor="image-upload" className={`cursor-pointer ${uploadImageMutation.isPending ? 'cursor-not-allowed' : ''}`}>
-                  {uploadImageMutation.isPending ? (
-                    <div className="flex flex-col items-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-3"></div>
-                      <p className="text-sm font-medium text-blue-600">
-                        Uploading to GoHighLevel...
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
-                      <p className="text-base font-medium text-gray-700 mb-1">
-                        {isDragOver ? 'Drop image here' : 'Upload listing image'}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Drag and drop or click to browse
-                      </p>
-                    </>
-                  )}
-                </label>
-              </div>
-              
-              {/* Upload Status and Preview */}
-              {formData.imageUrl && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-start space-x-4">
-                    <img 
-                      src={formData.imageUrl} 
-                      alt="Listing image preview" 
-                      className="w-20 h-20 object-cover rounded-lg border border-gray-200"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-green-800">Image uploaded successfully</p>
-                          <p className="text-xs text-green-600">Stored in GoHighLevel media library</p>
-                          {imageFile && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              {imageFile.name} ({(imageFile.size / 1024).toFixed(1)}KB)
-                            </p>
-                          )}
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={removeImage}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* 2. Listing Title - Always show */}
+          {/* 2. Title field */}
           <div>
-            <Label htmlFor="title" className="text-sm font-medium text-gray-700 block text-left">Listing Title *</Label>
+            <Label htmlFor="title" className="text-sm font-medium text-gray-700 block text-left">
+              Listing Title *
+            </Label>
             <Input
               id="title"
               type="text"
               value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
+              onChange={(e) => {
+                setFormData(prev => ({ ...prev, title: e.target.value }));
+                autoFillSEO('title', e.target.value);
+              }}
               required
               placeholder="Enter listing title"
               className="mt-1"
+            />
+          </div>
+
+          {/* 3. Description field */}
+          <div>
+            <Label htmlFor="description" className="text-sm font-medium text-gray-700 block text-left">
+              Description *
+            </Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => {
+                setFormData(prev => ({ ...prev, description: e.target.value }));
+                autoFillSEO('description', e.target.value);
+              }}
+              required
+              placeholder="Enter listing description"
+              className="mt-1 min-h-[100px]"
             />
           </div>
 
