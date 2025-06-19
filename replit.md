@@ -1,23 +1,23 @@
-# GoHighLevel Directory & Collections Management System
+# GoHighLevel OAuth Proxy Backend
 
 ## Overview
 
-This is a full-stack web application that provides comprehensive directory and collections management capabilities designed for GoHighLevel marketplace integration. The system enables users to create directories, manage product listings, and organize them into collections with automated synchronization capabilities.
+This is a streamlined Node.js Express backend that proxies GoHighLevel APIs with automatic OAuth token refresh. The system provides a lightweight interface for frontend applications to interact with GoHighLevel services without handling complex authentication flows. All OAuth tokens are managed automatically with proactive refresh scheduling.
 
 ## System Architecture
 
-### Frontend Architecture
-- **Technology Stack**: React TypeScript with Vite for development
-- **Routing**: Wouter for lightweight client-side routing
-- **State Management**: TanStack Query for server state management and caching
-- **UI Framework**: Tailwind CSS with shadcn/ui components
-- **Animations**: Framer Motion for enhanced user experience
+### Core Backend (index.js)
+- **Single File Architecture**: Streamlined Express.js server in one file
+- **OAuth Management**: Automatic token refresh with proactive scheduling
+- **In-Memory Storage**: Installation data stored in memory with Map structures
+- **Token Lifecycle**: Refresh tokens 5 minutes before expiry automatically
+- **API Proxy**: Routes all GoHighLevel API calls with fresh authentication
 
-### Backend Architecture
-- **Server Framework**: Express.js Node.js server
-- **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
-- **API Design**: RESTful API with comprehensive CRUD operations
-- **Authentication**: Session-based authentication with OAuth capabilities
+### Frontend Integration
+- **React Frontend**: Existing React application with Vite build system
+- **API Communication**: Frontend calls local backend endpoints
+- **Authentication Flow**: OAuth handled entirely by backend
+- **Error Handling**: Graceful fallbacks when GoHighLevel integration fails
 
 ### Database Architecture
 - **Relationship Model**: Many-to-many relationships between collections and products
