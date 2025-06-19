@@ -4,13 +4,13 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 })
 
-export async function apiRequest(url: string, options: RequestInit = {}) {
-  const response = await fetch(url, {
+export async function apiRequest(endpoint: string, options: RequestInit = {}) {
+  const response = await fetch(endpoint, {
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -19,7 +19,7 @@ export async function apiRequest(url: string, options: RequestInit = {}) {
   })
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
+    throw new Error(`API request failed: ${response.status}`)
   }
 
   return response.json()
