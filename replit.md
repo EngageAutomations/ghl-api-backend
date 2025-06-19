@@ -196,6 +196,16 @@ const ghlResponse = await fetch('https://dir.engageautomations.com/api/ghl/produ
 
 ## Recent Changes
 
+- June 19, 2025: Enhanced Image Upload System Implementation
+  - Created ImageUploadManager component with drag-and-drop functionality
+  - Added support for multiple image uploads through Railway backend integration
+  - Updated database schema with imageUrls and ghlMediaIds JSONB arrays
+  - Integrated Railway backend media upload endpoint with automatic token refresh
+  - Enhanced CreateListingForm to use new multi-image upload system
+  - Two-stage upload process: local preview → Railway backend → GoHighLevel media library
+  - Maintains backward compatibility with single imageUrl field
+  - Image data automatically included in listing creation submissions
+
 - June 18, 2025: Railway OAuth Architecture Implementation
   - Railway backend at dir.engageautomations.com owns complete OAuth token lifecycle
   - Installation install_1750252333303 handles automatic token refresh 5 minutes before expiry
