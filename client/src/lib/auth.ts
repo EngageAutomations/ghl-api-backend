@@ -49,3 +49,6 @@ export const logout = async (): Promise<void> => {
     console.error('Logout failed:', error);
   }
 };
+
+// Alias for compatibility
+export const signOutUser = logout;

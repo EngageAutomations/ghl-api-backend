@@ -1,4 +1,4 @@
-run = "node web-server.js"
+run = "node dev-server.js"
 
 [env]
 PORT = "3000"
