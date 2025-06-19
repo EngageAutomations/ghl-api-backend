@@ -4,5 +4,5 @@ author = "agent"
 
 [[workflows.dev.tasks]]
 task = "shell.exec"
-args = "cd client && npx vite --host 0.0.0.0 --port 5000"
-waitForPort = 5000
+args = "node index.js"
+waitForPort = 3000

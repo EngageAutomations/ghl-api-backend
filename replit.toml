@@ -1,3 +1,5 @@
+run = "node index.js"
+
 [deployment]
 deploymentTarget = "autoscale"
 run = ["node", "index.js"]
