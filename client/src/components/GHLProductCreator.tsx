@@ -6,10 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertCircle, Loader2, Package, ExternalLink } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { CheckCircle, AlertCircle, Loader2, Package, ExternalLink, Image, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { MediaUpload } from "@/components/MediaUpload";
 
 interface GHLProductCreatorProps {
   isOpen: boolean;
@@ -26,6 +28,8 @@ interface ProductFormData {
   category?: string;
   location?: string;
   createLocalListing: boolean;
+  imageUrls: string[];
+  ghlMediaIds: string[];
 }
 
 export function GHLProductCreator({ isOpen, onClose, directoryName, onSuccess }: GHLProductCreatorProps) {
@@ -36,7 +40,9 @@ export function GHLProductCreator({ isOpen, onClose, directoryName, onSuccess }:
     price: '',
     category: '',
     location: '',
-    createLocalListing: true
+    createLocalListing: true,
+    imageUrls: [],
+    ghlMediaIds: []
   });
   
   const [result, setResult] = useState<any>(null);
@@ -152,7 +158,10 @@ export function GHLProductCreator({ isOpen, onClose, directoryName, onSuccess }:
       downloadUrl: '',
       // Link to GoHighLevel product
       ghlProductId: ghlProductData.productId,
-      ghlLocationId: ghlProductData.locationId
+      ghlLocationId: ghlProductData.locationId,
+      // Railway v1.2.1 media integration
+      imageUrls: formData.imageUrls,
+      ghlMediaIds: formData.ghlMediaIds
     };
 
     createLocalListingMutation.mutate(listingData);
@@ -180,9 +189,19 @@ export function GHLProductCreator({ isOpen, onClose, directoryName, onSuccess }:
       price: '',
       category: '',
       location: '',
-      createLocalListing: true
+      createLocalListing: true,
+      imageUrls: [],
+      ghlMediaIds: []
     });
     setResult(null);
+  };
+
+  const handleMediaUpload = (url: string, mediaId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      imageUrls: [...prev.imageUrls, url],
+      ghlMediaIds: [...prev.ghlMediaIds, mediaId]
+    }));
   };
 
   const isLoading = createGHLProductMutation.isPending || createLocalListingMutation.isPending;
@@ -272,6 +291,50 @@ export function GHLProductCreator({ isOpen, onClose, directoryName, onSuccess }:
                 />
               </div>
             </div>
+
+            {/* Media Upload Section - Railway v1.2.1 */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center">
+                <Upload className="h-4 w-4 mr-2" />
+                Product Images
+              </Label>
+              <p className="text-xs text-gray-500 mb-3">
+                Upload images to GoHighLevel Media Library for your product
+              </p>
+              <MediaUpload
+                onUploadSuccess={handleMediaUpload}
+                maxFiles={5}
+                installationId="install_1750191250983"
+                disabled={createGHLProductMutation.isPending}
+              />
+              
+              {formData.imageUrls.length > 0 && (
+                <div className="mt-3">
+                  <Label className="text-xs text-gray-600">
+                    Uploaded Images ({formData.imageUrls.length})
+                  </Label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {formData.imageUrls.map((url, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={url}
+                          alt={`Product image ${index + 1}`}
+                          className="w-16 h-16 object-cover rounded border"
+                        />
+                        <Badge 
+                          variant="secondary" 
+                          className="absolute -top-1 -right-1 text-xs px-1 py-0 h-4"
+                        >
+                          {index + 1}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <Separator />
 
             <div className="flex items-center space-x-2">
               <input
