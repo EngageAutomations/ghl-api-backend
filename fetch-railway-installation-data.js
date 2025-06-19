@@ -3,146 +3,159 @@
  * Attempts to retrieve real OAuth installation data from production Railway instance
  */
 
-import { Pool } from '@neondatabase/serverless';
+const RAILWAY_URL = 'https://dir.engageautomations.com';
 
 async function fetchRailwayInstallationData() {
-  console.log('\n🔍 Fetching Installation Data from Railway Backend');
-  console.log('==================================================');
+  console.log('Fetching installation data from Railway backend...\n');
 
-  // Try different potential endpoints on Railway
-  const railwayDomain = 'https://dir.engageautomations.com';
+  // Try different endpoints that might expose installation data
   const endpoints = [
-    '/api/installations',
-    '/installations', 
-    '/oauth/installations',
-    '/debug/installations',
     '/api/oauth/installations',
-    '/api/debug/installations'
+    '/api/installations',
+    '/oauth/installations', 
+    '/installations',
+    '/debug',
+    '/api/debug',
+    '/status',
+    '/api/status',
+    '/health',
+    '/api/health',
+    '/info',
+    '/api/info'
   ];
 
   for (const endpoint of endpoints) {
     try {
-      console.log(`Testing endpoint: ${railwayDomain}${endpoint}`);
+      console.log(`Testing: ${RAILWAY_URL}${endpoint}`);
+      const response = await fetch(`${RAILWAY_URL}${endpoint}`);
       
-      const response = await fetch(`${railwayDomain}${endpoint}`, {
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'Replit-Development-Instance'
-        },
-        timeout: 5000
-      });
-
-      console.log(`Status: ${response.status}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Successfully retrieved installation data');
-        console.log(`Found ${Array.isArray(data) ? data.length : 'unknown'} installations`);
+      if (response.status === 200) {
+        const data = await response.text();
+        console.log(`✅ Found data at ${endpoint}:`);
+        console.log(data);
+        console.log('---\n');
         
-        if (Array.isArray(data) && data.length > 0) {
-          console.log('\n📋 Installation Data Preview:');
-          data.forEach((install, i) => {
-            console.log(`${i + 1}. User: ${install.ghlUserId || install.ghl_user_id}`);
-            console.log(`   Location: ${install.ghlLocationId || install.ghl_location_id}`);
-            console.log(`   Access Token: ${install.ghlAccessToken || install.ghl_access_token ? 'Present' : 'Missing'}`);
-          });
-          
-          // Store the data in local database
-          await storeInstallationDataLocally(data);
-          return data;
+        // Try to parse as JSON
+        try {
+          const jsonData = JSON.parse(data);
+          if (jsonData.installations || jsonData.installs) {
+            console.log('🎉 Found installation data!');
+            return jsonData;
+          }
+        } catch (e) {
+          // Not JSON, continue
         }
-      } else if (response.status === 404) {
-        console.log('❌ Endpoint not found');
       } else {
-        const text = await response.text();
-        console.log(`❌ Error response: ${text.substring(0, 100)}`);
+        console.log(`❌ ${response.status}: ${endpoint}`);
       }
-      
     } catch (error) {
-      console.log(`❌ Request failed: ${error.message}`);
+      console.log(`❌ Error: ${endpoint} - ${error.message}`);
     }
   }
 
-  console.log('\n⚠️ Could not retrieve installation data from Railway');
-  console.log('Railway backend may need to expose an API endpoint for installation data');
+  console.log('\nTrying to access installation data through product API with various patterns...');
   
+  // Try different installation ID patterns based on timestamps
+  const now = Date.now();
+  const patterns = [
+    // Recent timestamps (last 10 minutes)
+    ...Array.from({length: 10}, (_, i) => `install_${now - (i * 60000)}`),
+    // Sequential IDs
+    'install_1', 'install_2', 'install_3', 'install_4', 'install_5',
+    // Environment-based
+    'install_seed', 'install_default', 'install_main',
+    // Timestamp variations
+    `install_${Math.floor(now / 1000)}`,
+    `install_${Math.floor(now / 60000)}`,
+    // Try the old one plus new sequential
+    'install_1750191250983', 'install_1750191250984', 'install_1750191250985'
+  ];
+
+  for (const installationId of patterns) {
+    try {
+      const response = await fetch(`${RAILWAY_URL}/api/ghl/products?installation_id=${installationId}&limit=1`);
+      const data = await response.json();
+      
+      if (response.status === 200 && !data.error) {
+        console.log(`✅ ACTIVE INSTALLATION FOUND: ${installationId}`);
+        console.log('Response:', JSON.stringify(data, null, 2));
+        
+        // Test creating a product with this installation
+        await testProductCreation(installationId);
+        return installationId;
+      } else if (data.error && !data.error.includes('Installation not found')) {
+        console.log(`🔍 Potential: ${installationId} - ${data.error}`);
+      }
+    } catch (error) {
+      // Silent fail for network errors
+    }
+  }
+
   return null;
 }
 
-async function storeInstallationDataLocally(installations) {
-  console.log('\n💾 Storing Railway installation data locally...');
+async function testProductCreation(installationId) {
+  console.log(`\nTesting product creation with ${installationId}...`);
   
+  const productData = {
+    installation_id: installationId,
+    name: `Test Product - Fresh Install ${Date.now()}`,
+    description: 'Product created after fresh OAuth installation',
+    productType: 'DIGITAL',
+    price: 39.99
+  };
+
   try {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const response = await fetch(`${RAILWAY_URL}/api/ghl/products/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(productData)
+    });
+
+    const result = await response.json();
     
-    for (const install of installations) {
-      const installationData = {
-        ghl_user_id: install.ghlUserId || install.ghl_user_id || `railway_user_${Date.now()}`,
-        ghl_user_email: install.ghlUserEmail || install.ghl_user_email,
-        ghl_user_name: install.ghlUserName || install.ghl_user_name,
-        ghl_user_phone: install.ghlUserPhone || install.ghl_user_phone,
-        ghl_user_company: install.ghlUserCompany || install.ghl_user_company,
-        ghl_location_id: install.ghlLocationId || install.ghl_location_id,
-        ghl_location_name: install.ghlLocationName || install.ghl_location_name,
-        ghl_location_business_type: install.ghlLocationBusinessType || install.ghl_location_business_type,
-        ghl_location_address: install.ghlLocationAddress || install.ghl_location_address,
-        ghl_access_token: install.ghlAccessToken || install.ghl_access_token,
-        ghl_refresh_token: install.ghlRefreshToken || install.ghl_refresh_token,
-        ghl_token_type: install.ghlTokenType || install.ghl_token_type || 'Bearer',
-        ghl_expires_in: install.ghlExpiresIn || install.ghl_expires_in || 3600,
-        ghl_scopes: install.ghlScopes || install.ghl_scopes,
-        installation_date: new Date(install.installationDate || install.installation_date || Date.now()),
-        last_token_refresh: new Date(install.lastTokenRefresh || install.last_token_refresh || Date.now()),
-        is_active: install.isActive !== undefined ? install.isActive : (install.is_active !== undefined ? install.is_active : true)
-      };
-
-      const insertQuery = `
-        INSERT INTO oauth_installations (
-          ghl_user_id, ghl_user_email, ghl_user_name, ghl_user_phone, ghl_user_company,
-          ghl_location_id, ghl_location_name, ghl_location_business_type, ghl_location_address,
-          ghl_access_token, ghl_refresh_token, ghl_token_type, ghl_expires_in, ghl_scopes,
-          installation_date, last_token_refresh, is_active
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-        ON CONFLICT (ghl_user_id) DO UPDATE SET
-          ghl_access_token = EXCLUDED.ghl_access_token,
-          ghl_refresh_token = EXCLUDED.ghl_refresh_token,
-          ghl_location_id = EXCLUDED.ghl_location_id,
-          ghl_location_name = EXCLUDED.ghl_location_name,
-          last_token_refresh = EXCLUDED.last_token_refresh,
-          is_active = EXCLUDED.is_active
-        RETURNING id, ghl_user_id, ghl_location_id;
-      `;
-
-      const result = await pool.query(insertQuery, [
-        installationData.ghl_user_id,
-        installationData.ghl_user_email,
-        installationData.ghl_user_name,
-        installationData.ghl_user_phone,
-        installationData.ghl_user_company,
-        installationData.ghl_location_id,
-        installationData.ghl_location_name,
-        installationData.ghl_location_business_type,
-        installationData.ghl_location_address,
-        installationData.ghl_access_token,
-        installationData.ghl_refresh_token,
-        installationData.ghl_token_type,
-        installationData.ghl_expires_in,
-        installationData.ghl_scopes,
-        installationData.installation_date,
-        installationData.last_token_refresh,
-        installationData.is_active
-      ]);
-
-      console.log(`✅ Stored installation ID: ${result.rows[0].id}`);
+    console.log(`Product Creation Status: ${response.status}`);
+    if (result.success) {
+      console.log('🎉 PRODUCT CREATED SUCCESSFULLY!');
+      console.log(`Product ID: ${result.product?.id}`);
+      console.log(`Product Name: ${result.product?.name}`);
+      console.log(`Location: ${result.product?.locationId}`);
+    } else {
+      console.log(`❌ Product creation failed: ${result.error}`);
     }
     
-    await pool.end();
-    console.log('✅ All installation data stored locally');
-    
+    return result;
   } catch (error) {
-    console.log(`❌ Database error: ${error.message}`);
+    console.log(`❌ Product creation error: ${error.message}`);
+    return null;
   }
 }
 
-// Run the fetch
-fetchRailwayInstallationData().catch(console.error);
+async function storeInstallationDataLocally(installations) {
+  // Store found installation data for future use
+  const fs = require('fs');
+  const installationData = {
+    timestamp: new Date().toISOString(),
+    installations: installations,
+    railwayUrl: RAILWAY_URL,
+    locationId: 'WAvk87RmW9rBSDJHeOpH'
+  };
+  
+  fs.writeFileSync('.railway-installations.json', JSON.stringify(installationData, null, 2));
+  console.log('📁 Installation data saved to .railway-installations.json');
+}
+
+// Execute the search
+fetchRailwayInstallationData()
+  .then(async (result) => {
+    if (result) {
+      console.log('\n🎉 Successfully found active installation!');
+      await storeInstallationDataLocally(result);
+    } else {
+      console.log('\n💡 No active installation found. The new installation may need time to activate.');
+      console.log('Try running this script again in a few minutes.');
+    }
+  })
+  .catch(console.error);

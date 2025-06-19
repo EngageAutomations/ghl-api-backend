@@ -6,92 +6,97 @@
 const RAILWAY_URL = 'https://dir.engageautomations.com';
 
 async function findActiveInstallation() {
-  console.log('=== FINDING ACTIVE RAILWAY INSTALLATION ===');
+  console.log('🔍 Searching for active Railway installation...\n');
+
+  // Generate potential installation IDs based on current timestamp
+  const now = Date.now();
+  const recentTimestamps = [];
   
-  // Try different approaches to find the active installation
-  const methods = [
-    // Method 1: Try with empty installation_id to get error details
-    async () => {
-      const response = await fetch(`${RAILWAY_URL}/api/ghl/products`);
-      const text = await response.text();
-      console.log('Empty request response:', text);
-      return null;
-    },
+  // Check installations from the last hour
+  for (let i = 0; i < 60; i++) {
+    const timestamp = now - (i * 60000); // Go back i minutes
+    recentTimestamps.push(Math.floor(timestamp / 1000) * 1000); // Round to seconds
+  }
+
+  console.log('Testing recent installation IDs...');
+  
+  for (const timestamp of recentTimestamps.slice(0, 10)) { // Test first 10
+    const installationId = `install_${timestamp}`;
     
-    // Method 2: Try common installation ID patterns
-    async () => {
-      const patterns = [
-        'install_1750191250983',
-        'install_1',
-        'install_2',
-        'default',
-        'main',
-        '1'
-      ];
+    try {
+      const response = await fetch(`${RAILWAY_URL}/api/ghl/products?installation_id=${installationId}`);
+      const data = await response.json();
       
-      for (const id of patterns) {
-        try {
-          const response = await fetch(`${RAILWAY_URL}/api/ghl/products?installation_id=${id}&limit=1`);
-          const data = await response.json();
-          
-          if (data.success) {
-            console.log(`✅ Found working installation: ${id}`);
-            return { installationId: id, data };
-          } else {
-            console.log(`❌ Installation ${id}: ${data.error}`);
-          }
-        } catch (error) {
-          console.log(`❌ Installation ${id}: ${error.message}`);
-        }
+      if (response.status === 200 && data.success !== false) {
+        console.log(`✅ FOUND ACTIVE INSTALLATION: ${installationId}`);
+        console.log(`Status: ${response.status}`);
+        console.log(`Response: ${JSON.stringify(data, null, 2)}`);
+        return installationId;
+      } else if (data.error !== 'Installation not found: ' + installationId) {
+        console.log(`🔍 Potential match: ${installationId} - ${data.error}`);
       }
-      return null;
-    },
-    
-    // Method 3: Try to access root level endpoints that might show installation info
-    async () => {
-      try {
-        const response = await fetch(`${RAILWAY_URL}/api`);
-        const text = await response.text();
-        console.log('API root response length:', text.length);
-        
-        // Look for installation references in response
-        if (text.includes('install_')) {
-          const matches = text.match(/install_[\w\d]+/g);
-          if (matches) {
-            console.log('Found installation references:', matches);
-            return matches[0];
-          }
-        }
-        return null;
-      } catch (error) {
-        console.log('API root check failed:', error.message);
-        return null;
-      }
-    }
-  ];
-  
-  for (let i = 0; i < methods.length; i++) {
-    console.log(`\n--- Method ${i + 1} ---`);
-    const result = await methods[i]();
-    if (result) {
-      return result;
+    } catch (error) {
+      // Silent fail for network errors
     }
   }
-  
+
+  // Also test sequential installation IDs
+  console.log('\nTesting sequential installation IDs...');
+  for (let i = 1; i <= 10; i++) {
+    const installationId = `install_${Date.now() - (i * 1000)}`;
+    
+    try {
+      const response = await fetch(`${RAILWAY_URL}/api/ghl/test-connection?installation_id=${installationId}`);
+      const data = await response.json();
+      
+      if (response.status === 200 && data.success) {
+        console.log(`✅ FOUND ACTIVE INSTALLATION: ${installationId}`);
+        console.log(`Connection: ${data.message}`);
+        return installationId;
+      }
+    } catch (error) {
+      // Silent fail
+    }
+  }
+
+  // Test current time-based IDs
+  console.log('\nTesting current timestamp-based IDs...');
+  const currentTimestamp = Date.now();
+  const variations = [
+    `install_${currentTimestamp}`,
+    `install_${Math.floor(currentTimestamp / 1000)}`,
+    `install_${Math.floor(currentTimestamp / 60000)}`, // minute precision
+    `install_2`, // sequential
+    `install_3`,
+    `install_latest`,
+    `install_new`
+  ];
+
+  for (const installationId of variations) {
+    try {
+      const response = await fetch(`${RAILWAY_URL}/api/ghl/products?installation_id=${installationId}`);
+      const data = await response.json();
+      
+      console.log(`Testing ${installationId}: ${response.status} - ${data.error || 'Success'}`);
+      
+      if (response.status === 200 && data.success !== false) {
+        console.log(`✅ FOUND ACTIVE INSTALLATION: ${installationId}`);
+        return installationId;
+      }
+    } catch (error) {
+      console.log(`Testing ${installationId}: Network error`);
+    }
+  }
+
+  console.log('\n❌ No active installation found');
   return null;
 }
 
 // Run the search
-findActiveInstallation()
-  .then(result => {
-    if (result) {
-      console.log('\n✅ SUCCESS: Found active installation');
-      console.log('Result:', result);
-    } else {
-      console.log('\n❌ No active installation found');
-      console.log('Railway backend shows 1 installation but ID is not accessible via API');
-    }
-  })
-  .catch(error => {
-    console.error('Error finding installation:', error.message);
-  });
+findActiveInstallation().then(installationId => {
+  if (installationId) {
+    console.log(`\n🎉 Use this installation ID: ${installationId}`);
+  } else {
+    console.log('\n💡 The new installation may need a few minutes to activate');
+  }
+}).catch(console.error);

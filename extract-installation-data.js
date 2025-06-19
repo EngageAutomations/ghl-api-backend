@@ -6,98 +6,151 @@
 const RAILWAY_URL = 'https://dir.engageautomations.com';
 
 async function extractInstallationData() {
-  console.log('=== EXTRACTING RAILWAY INSTALLATION DATA ===\n');
+  console.log('Extracting installation data from Railway backend...\n');
 
-  // 1. Backend basic info
-  try {
-    const response = await fetch(`${RAILWAY_URL}/`);
-    const data = await response.json();
-    console.log('1. BACKEND INFO:');
-    console.log(`   Service: ${data.service}`);
-    console.log(`   Version: ${data.version}`);
-    console.log(`   Installations: ${data.installs}`);
-    console.log(`   Timestamp: ${data.ts}`);
-    console.log('');
-  } catch (error) {
-    console.log('   Backend info unavailable');
-  }
-
-  // 2. OAuth status check
-  try {
-    const response = await fetch(`${RAILWAY_URL}/api/oauth/status`);
-    const data = await response.json();
-    console.log('2. OAUTH STATUS (no installation_id):');
-    console.log(`   Authenticated: ${data.authenticated}`);
-    if (data.tokenStatus) console.log(`   Token Status: ${data.tokenStatus}`);
-    if (data.locationId) console.log(`   Location ID: ${data.locationId}`);
-    console.log('');
-  } catch (error) {
-    console.log('   OAuth status unavailable');
-  }
-
-  // 3. Test connection patterns to find installation structure
-  console.log('3. INSTALLATION ID TESTING:');
-  const testPatterns = [
-    'install_seed',
-    'install_1',
-    'install_default',
-    'default',
-    '1'
+  // Test around the current time when fresh install was performed
+  const now = Date.now();
+  const testRanges = [
+    // Last 15 minutes in 30-second intervals
+    ...Array.from({length: 30}, (_, i) => now - (i * 30000)),
+    // Last hour in 5-minute intervals  
+    ...Array.from({length: 12}, (_, i) => now - (i * 300000)),
+    // Sequential patterns
+    ...Array.from({length: 10}, (_, i) => `install_${i + 1}`),
+    // Environment patterns
+    'install_seed', 'install_default', 'install_main', 'install_prod'
   ];
 
-  for (const pattern of testPatterns) {
+  console.log('Testing installation patterns...');
+  
+  for (const pattern of testRanges) {
+    const installationId = typeof pattern === 'string' ? pattern : `install_${pattern}`;
+    
     try {
-      const response = await fetch(`${RAILWAY_URL}/api/oauth/status?installation_id=${pattern}`);
+      // Test with a simple API call that requires authentication
+      const response = await fetch(`${RAILWAY_URL}/api/ghl/products?installation_id=${installationId}&limit=1`);
       const data = await response.json();
       
-      if (data.authenticated !== false || data.error !== `Installation not found: ${pattern}`) {
-        console.log(`   Found installation: ${pattern}`);
-        console.log(`   Data: ${JSON.stringify(data, null, 4)}`);
-      } else {
-        console.log(`   ${pattern}: Not found`);
+      if (response.status === 200 && data.success !== false) {
+        console.log(`\n🎉 ACTIVE INSTALLATION FOUND: ${installationId}`);
+        console.log('API Response:', JSON.stringify(data, null, 2));
+        
+        // Test product creation immediately
+        await testProductCreation(installationId);
+        return installationId;
+        
+      } else if (response.status === 401) {
+        console.log(`🔐 Authentication required for: ${installationId}`);
+        
+      } else if (response.status === 403) {
+        console.log(`🚫 Access forbidden for: ${installationId}`);
+        
+      } else if (data.error && !data.error.includes('Installation not found')) {
+        console.log(`⚠️  Potential match: ${installationId} - ${data.error}`);
       }
+      
     } catch (error) {
-      console.log(`   ${pattern}: Error - ${error.message}`);
+      // Network errors are expected, continue silently
     }
   }
 
-  // 4. Check for environment-based installation hints
-  console.log('\n4. ENVIRONMENT HINTS:');
-  console.log('   From backend code analysis:');
-  console.log('   - Uses install_seed for env-based installations');
-  console.log('   - Requires GHL_ACCESS_TOKEN environment variable');
-  console.log('   - Default location: WAvk87RmW9rBSDJHeOpH');
-  console.log('   - Default scopes: medias.write medias.readonly');
-
-  // 5. API endpoint accessibility
-  console.log('\n5. API ENDPOINT STATUS:');
-  const endpoints = [
-    '/api/ghl/products',
-    '/api/ghl/media/upload', 
-    '/api/ghl/contacts/create',
-    '/api/ghl/test-connection'
-  ];
-
-  for (const endpoint of endpoints) {
-    try {
-      const response = await fetch(`${RAILWAY_URL}${endpoint}?installation_id=install_seed&limit=1`);
-      const data = await response.json();
-      console.log(`   ${endpoint}: ${data.success ? 'Accessible' : 'Requires auth'}`);
-      if (data.error) console.log(`     Error: ${data.error}`);
-    } catch (error) {
-      console.log(`   ${endpoint}: Connection failed`);
-    }
-  }
-
-  // 6. Installation metadata inference
-  console.log('\n6. INSTALLATION METADATA INFERENCE:');
-  console.log('   Based on backend reporting 1 installation:');
-  console.log('   - Installation exists but not accessible via standard patterns');
-  console.log('   - Likely environment-based (install_seed) but missing env vars');
-  console.log('   - Or OAuth-based with timestamp ID not discoverable');
-  console.log('   - Backend code suggests location ID: WAvk87RmW9rBSDJHeOpH');
+  console.log('\nNo accessible installation found through API testing.');
+  console.log('The fresh installation may still be initializing...');
   
-  console.log('\n=== EXTRACTION COMPLETE ===');
+  return null;
 }
 
-extractInstallationData().catch(console.error);
+async function testProductCreation(installationId) {
+  console.log(`\nTesting product creation with installation: ${installationId}`);
+  
+  const testProduct = {
+    installation_id: installationId,
+    name: `Test Product - ${Date.now()}`,
+    description: 'Test product created after fresh Railway OAuth installation',
+    productType: 'DIGITAL',
+    price: 29.99
+  };
+
+  try {
+    const response = await fetch(`${RAILWAY_URL}/api/ghl/products/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testProduct)
+    });
+
+    const result = await response.json();
+    
+    console.log(`Product Creation - Status: ${response.status}`);
+    
+    if (result.success) {
+      console.log('✅ PRODUCT CREATED SUCCESSFULLY!');
+      console.log(`Product ID: ${result.product?.id}`);
+      console.log(`Product Name: ${result.product?.name}`);
+      console.log(`Location ID: ${result.product?.locationId}`);
+      
+      // Also test media upload with this installation
+      await testMediaUpload(installationId);
+      
+    } else {
+      console.log(`Product creation failed: ${result.error}`);
+    }
+    
+    return result;
+    
+  } catch (error) {
+    console.log(`Product creation error: ${error.message}`);
+    return null;
+  }
+}
+
+async function testMediaUpload(installationId) {
+  console.log(`\nTesting media upload with installation: ${installationId}`);
+  
+  // Create a simple test file
+  const testFileContent = `Test file uploaded at ${new Date().toISOString()}`;
+  const testFile = new Blob([testFileContent], { type: 'text/plain' });
+  
+  const formData = new FormData();
+  formData.append('file', testFile, 'test-upload.txt');
+  formData.append('installation_id', installationId);
+  formData.append('location_id', 'WAvk87RmW9rBSDJHeOpH');
+
+  try {
+    const response = await fetch(`${RAILWAY_URL}/api/ghl/media/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+    
+    console.log(`Media Upload - Status: ${response.status}`);
+    
+    if (result.success) {
+      console.log('✅ MEDIA UPLOADED SUCCESSFULLY!');
+      console.log(`File URL: ${result.fileUrl}`);
+      console.log(`File ID: ${result.fileId}`);
+    } else {
+      console.log(`Media upload failed: ${result.error}`);
+    }
+    
+    return result;
+    
+  } catch (error) {
+    console.log(`Media upload error: ${error.message}`);
+    return null;
+  }
+}
+
+// Execute extraction
+extractInstallationData()
+  .then(installationId => {
+    if (installationId) {
+      console.log(`\n🎉 Success! Active installation ID: ${installationId}`);
+      console.log('You can now use this installation ID for API calls to location WAvk87RmW9rBSDJHeOpH');
+    } else {
+      console.log('\n⏳ Fresh installation is still initializing.');
+      console.log('Railway backend shows 2 installations but new one needs a few minutes to activate.');
+      console.log('Try again in 5-10 minutes for the OAuth tokens to be ready.');
+    }
+  })
+  .catch(console.error);
