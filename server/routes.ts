@@ -12,7 +12,8 @@ import {
   insertListingAddonSchema,
   insertFormConfigurationSchema,
   insertCollectionSchema,
-  insertCollectionItemSchema
+  insertCollectionItemSchema,
+  insertWizardFormTemplateSchema
 } from "@shared/schema";
 // import { generateBulletPoints } from "./ai-summarizer";
 import { googleDriveService } from "./google-drive";
@@ -448,6 +449,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Form configuration fetch error:", error);
       res.status(500).json({ success: false, error: "Failed to fetch form configuration" });
+    }
+  });
+
+  // Wizard Form Template API Routes
+  app.post("/api/wizard-templates", async (req, res) => {
+    try {
+      const templateData = insertWizardFormTemplateSchema.parse(req.body);
+      const template = await storage.createWizardFormTemplate(templateData);
+      res.json({ success: true, template });
+    } catch (error: any) {
+      console.error("Create wizard template error:", error);
+      res.status(400).json({ success: false, error: error.message || "Failed to create wizard template" });
+    }
+  });
+
+  app.get("/api/wizard-templates/:directoryName", async (req, res) => {
+    try {
+      const { directoryName } = req.params;
+      const template = await storage.getWizardFormTemplateByDirectory(directoryName);
+      
+      if (!template) {
+        return res.status(404).json({ success: false, error: "Template not found" });
+      }
+      
+      res.json({ success: true, template });
+    } catch (error: any) {
+      console.error("Get wizard template error:", error);
+      res.status(500).json({ success: false, error: error.message || "Failed to fetch wizard template" });
+    }
+  });
+
+  app.put("/api/wizard-templates/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const template = await storage.updateWizardFormTemplate(parseInt(id), updates);
+      res.json({ success: true, template });
+    } catch (error: any) {
+      console.error("Update wizard template error:", error);
+      res.status(400).json({ success: false, error: error.message || "Failed to update wizard template" });
     }
   });
 

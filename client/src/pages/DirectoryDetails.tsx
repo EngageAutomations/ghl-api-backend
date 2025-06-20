@@ -727,7 +727,6 @@ export default function DirectoryDetails() {
           <div className="p-6 pt-2">
             <DirectoryFormRenderer
               directoryName={directoryName!}
-              directoryConfig={directory?.config}
               onSuccess={() => {
                 queryClient.invalidateQueries({ queryKey: ['/api/listings', directoryName] });
                 setShowGHLProductCreator(false);
