@@ -716,15 +716,15 @@ export default function DirectoryDetails() {
         </DialogContent>
       </Dialog>
 
-      {/* Directory Form Renderer Dialog */}
+      {/* Directory Form Renderer Dialog - Full Size for Wizard Form */}
       <Dialog open={showGHLProductCreator} onOpenChange={setShowGHLProductCreator}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-0">
+          <DialogHeader className="p-6 pb-0">
             <DialogTitle>
               Create New Product
             </DialogTitle>
           </DialogHeader>
-          <div className="max-h-[75vh] overflow-y-auto pr-2">
+          <div className="p-6 pt-2">
             <DirectoryFormRenderer
               directoryName={directoryName!}
               directoryConfig={directory?.config}

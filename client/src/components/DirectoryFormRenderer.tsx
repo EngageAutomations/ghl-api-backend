@@ -295,9 +295,9 @@ export default function DirectoryFormRenderer({
 
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <Card className="bg-white/80 backdrop-blur-sm border border-blue-200">
-        <CardContent className="p-8">
+    <div className="w-full">
+      <Card className="bg-white border border-blue-200 shadow-sm">
+        <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             
             {/* Product Name Field - Single Column */}
