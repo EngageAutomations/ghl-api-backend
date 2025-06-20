@@ -16,7 +16,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { CreateListingForm } from '@/components/CreateListingForm';
 import { ListingViewEdit } from '@/components/ListingViewEdit';
 import CreateCollectionForm from '@/components/CreateCollectionForm';
-import { GHLProductCreator } from '@/components/GHLProductCreator';
+import DirectoryFormRenderer from '@/components/DirectoryFormRenderer';
 
 type ViewMode = 'grid' | 'list';
 type FilterOption = 'all' | 'active' | 'draft';
