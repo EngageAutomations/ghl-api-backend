@@ -403,3 +403,38 @@ export const insertCollectionItemSchema = createInsertSchema(collectionItems).om
 
 export type InsertCollectionItem = z.infer<typeof insertCollectionItemSchema>;
 export type CollectionItem = typeof collectionItems.$inferSelect;
+
+// Location Enhancement Configuration schema - Maps enhancements to specific locations
+export const locationEnhancements = pgTable("location_enhancements", {
+  id: serial("id").primaryKey(),
+  ghlLocationId: text("ghl_location_id").notNull(),
+  directoryName: text("directory_name").notNull(),
+  userId: integer("user_id").notNull(),
+  
+  // Enhancement toggles
+  metadataBarEnabled: boolean("metadata_bar_enabled").default(false),
+  googleMapsEnabled: boolean("google_maps_enabled").default(false),
+  expandedDescriptionEnabled: boolean("expanded_description_enabled").default(false),
+  
+  // Enhancement configurations
+  metadataFields: jsonb("metadata_fields").default([]), // Array of metadata field configs
+  mapsConfig: jsonb("maps_config").default({}), // Maps widget configuration
+  descriptionConfig: jsonb("description_config").default({}), // Description display config
+  
+  // Display settings
+  enhancementTheme: text("enhancement_theme").default("default"), // theme variant
+  layoutPosition: text("layout_position").default("sidebar"), // where enhancements appear
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertLocationEnhancementSchema = createInsertSchema(locationEnhancements).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertLocationEnhancement = z.infer<typeof insertLocationEnhancementSchema>;
+export type LocationEnhancement = typeof locationEnhancements.$inferSelect;

@@ -11,7 +11,8 @@ import {
   googleDriveCredentials, GoogleDriveCredentials, InsertGoogleDriveCredentials,
   collections, Collection, InsertCollection,
   collectionItems, CollectionItem, InsertCollectionItem,
-  wizardFormTemplates, WizardFormTemplate, InsertWizardFormTemplate
+  wizardFormTemplates, WizardFormTemplate, InsertWizardFormTemplate,
+  locationEnhancements, LocationEnhancement, InsertLocationEnhancement
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
