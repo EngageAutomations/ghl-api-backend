@@ -13,7 +13,8 @@ import {
   insertFormConfigurationSchema,
   insertCollectionSchema,
   insertCollectionItemSchema,
-  insertWizardFormTemplateSchema
+  insertWizardFormTemplateSchema,
+  insertLocationEnhancementSchema
 } from "@shared/schema";
 // import { generateBulletPoints } from "./ai-summarizer";
 import { googleDriveService } from "./google-drive";
@@ -1207,6 +1208,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("AI summarization error:", error);
       res.status(500).json({ error: "Failed to generate summary" });
+    }
+  });
+
+  // Location Enhancement routes
+  app.post('/api/location-enhancements', async (req, res) => {
+    try {
+      const enhancementData = insertLocationEnhancementSchema.parse(req.body);
+      const enhancement = await storage.createLocationEnhancement(enhancementData);
+      res.json(enhancement);
+    } catch (error) {
+      console.error('Error creating location enhancement:', error);
+      res.status(400).json({ error: 'Failed to create location enhancement' });
+    }
+  });
+
+  app.get('/api/location-enhancements/:ghlLocationId/:directoryName', async (req, res) => {
+    try {
+      const { ghlLocationId, directoryName } = req.params;
+      const enhancement = await storage.getLocationEnhancement(ghlLocationId, directoryName);
+      if (!enhancement) {
+        return res.status(404).json({ error: 'Location enhancement not found' });
+      }
+      res.json(enhancement);
+    } catch (error) {
+      console.error('Error fetching location enhancement:', error);
+      res.status(500).json({ error: 'Failed to fetch location enhancement' });
+    }
+  });
+
+  app.get('/api/location-enhancements/user/:userId', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const enhancements = await storage.getLocationEnhancementsByUser(userId);
+      res.json(enhancements);
+    } catch (error) {
+      console.error('Error fetching user location enhancements:', error);
+      res.status(500).json({ error: 'Failed to fetch location enhancements' });
+    }
+  });
+
+  app.put('/api/location-enhancements/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertLocationEnhancementSchema.partial().parse(req.body);
+      const enhancement = await storage.updateLocationEnhancement(id, updates);
+      if (!enhancement) {
+        return res.status(404).json({ error: 'Location enhancement not found' });
+      }
+      res.json(enhancement);
+    } catch (error) {
+      console.error('Error updating location enhancement:', error);
+      res.status(400).json({ error: 'Failed to update location enhancement' });
+    }
+  });
+
+  app.delete('/api/location-enhancements/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteLocationEnhancement(id);
+      if (!success) {
+        return res.status(404).json({ error: 'Location enhancement not found' });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting location enhancement:', error);
+      res.status(500).json({ error: 'Failed to delete location enhancement' });
     }
   });
 
