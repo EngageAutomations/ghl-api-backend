@@ -104,6 +104,13 @@ export interface IStorage {
   createWizardFormTemplate(template: InsertWizardFormTemplate): Promise<WizardFormTemplate>;
   getWizardFormTemplateByDirectory(directoryName: string): Promise<WizardFormTemplate | undefined>;
   updateWizardFormTemplate(id: number, updates: Partial<InsertWizardFormTemplate>): Promise<WizardFormTemplate | undefined>;
+
+  // Location Enhancement methods
+  createLocationEnhancement(enhancement: InsertLocationEnhancement): Promise<LocationEnhancement>;
+  getLocationEnhancement(ghlLocationId: string, directoryName: string): Promise<LocationEnhancement | undefined>;
+  updateLocationEnhancement(id: number, updates: Partial<InsertLocationEnhancement>): Promise<LocationEnhancement | undefined>;
+  getLocationEnhancementsByUser(userId: number): Promise<LocationEnhancement[]>;
+  deleteLocationEnhancement(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -117,6 +124,7 @@ export class MemStorage implements IStorage {
   private collections: Map<number, Collection>;
   private collectionItems: Map<number, CollectionItem>;
   private wizardFormTemplates: Map<number, WizardFormTemplate>;
+  private locationEnhancements: Map<number, LocationEnhancement>;
   
   currentUserId: number;
   currentConfigId: number;
@@ -128,6 +136,7 @@ export class MemStorage implements IStorage {
   currentCollectionId: number;
   currentWizardTemplateId: number;
   currentCollectionItemId: number;
+  currentLocationEnhancementId: number;
 
   constructor() {
     this.users = new Map();
@@ -140,6 +149,7 @@ export class MemStorage implements IStorage {
     this.collections = new Map();
     this.collectionItems = new Map();
     this.wizardFormTemplates = new Map();
+    this.locationEnhancements = new Map();
     
     this.currentUserId = 1;
     this.currentConfigId = 1;
@@ -150,6 +160,7 @@ export class MemStorage implements IStorage {
     this.currentGoogleDriveCredentialsId = 1;
     this.currentCollectionId = 1;
     this.currentCollectionItemId = 1;
+    this.currentLocationEnhancementId = 1;
   }
 
   // User methods
@@ -578,6 +589,54 @@ export class MemStorage implements IStorage {
     
     this.wizardFormTemplates.set(id, updatedTemplate);
     return updatedTemplate;
+  }
+
+  // Location Enhancement methods
+  async createLocationEnhancement(enhancement: InsertLocationEnhancement): Promise<LocationEnhancement> {
+    const newEnhancement: LocationEnhancement = {
+      id: this.currentLocationEnhancementId++,
+      ...enhancement,
+      isActive: enhancement.isActive ?? true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.locationEnhancements.set(newEnhancement.id, newEnhancement);
+    return newEnhancement;
+  }
+
+  async getLocationEnhancement(ghlLocationId: string, directoryName: string): Promise<LocationEnhancement | undefined> {
+    return Array.from(this.locationEnhancements.values())
+      .find(enhancement => 
+        enhancement.ghlLocationId === ghlLocationId && 
+        enhancement.directoryName === directoryName &&
+        enhancement.isActive
+      );
+  }
+
+  async updateLocationEnhancement(id: number, updates: Partial<InsertLocationEnhancement>): Promise<LocationEnhancement | undefined> {
+    const existingEnhancement = this.locationEnhancements.get(id);
+    if (!existingEnhancement) {
+      return undefined;
+    }
+    
+    const updatedEnhancement: LocationEnhancement = {
+      ...existingEnhancement,
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.locationEnhancements.set(id, updatedEnhancement);
+    return updatedEnhancement;
+  }
+
+  async getLocationEnhancementsByUser(userId: number): Promise<LocationEnhancement[]> {
+    return Array.from(this.locationEnhancements.values())
+      .filter(enhancement => enhancement.userId === userId && enhancement.isActive);
+  }
+
+  async deleteLocationEnhancement(id: number): Promise<boolean> {
+    return this.locationEnhancements.delete(id);
   }
 
   // Get all methods for AI agent
