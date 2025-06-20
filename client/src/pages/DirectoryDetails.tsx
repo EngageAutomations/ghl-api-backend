@@ -17,8 +17,6 @@ import { CreateListingForm } from '@/components/CreateListingForm';
 import { ListingViewEdit } from '@/components/ListingViewEdit';
 import CreateCollectionForm from '@/components/CreateCollectionForm';
 import { GHLProductCreator } from '@/components/GHLProductCreator';
-import { DirectoryFormRenderer } from '@/components/DirectoryFormRenderer';
-import { generateFormHTML, generateFormCSS } from '@/lib/dynamic-form-generator';
 
 type ViewMode = 'grid' | 'list';
 type FilterOption = 'all' | 'active' | 'draft';
@@ -26,8 +24,7 @@ type SortOption = 'newest' | 'oldest' | 'title' | 'price';
 type ContentView = 'collections' | 'products';
 
 export default function DirectoryDetails() {
-  const params = useParams();
-  const directoryName = params['directoryName'] as string;
+  const { directoryName } = useParams();
   const [location, setLocation] = useLocation();
   const [contentView, setContentView] = useState<ContentView>('collections');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -42,7 +39,6 @@ export default function DirectoryDetails() {
   const [showCollectionForm, setShowCollectionForm] = useState(false);
   const [editingCollection, setEditingCollection] = useState<any | null>(null);
   const [showGHLProductCreator, setShowGHLProductCreator] = useState(false);
-  const [showDirectoryForm, setShowDirectoryForm] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -316,23 +312,13 @@ export default function DirectoryDetails() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {contentView === 'collections' ? (
-              <Button
-                onClick={() => setShowCollectionForm(true)}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                New Collection
-              </Button>
-            ) : (
-              <Button
-                onClick={() => setShowDirectoryForm(true)}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Create GHL Product
-              </Button>
-            )}
+            <Button
+              onClick={() => contentView === 'collections' ? setShowCollectionForm(true) : setShowGHLProductCreator(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              {contentView === 'collections' ? 'New Collection' : 'Create GHL Product'}
+            </Button>
           </div>
         </div>
 
@@ -739,26 +725,6 @@ export default function DirectoryDetails() {
           setShowGHLProductCreator(false);
         }}
       />
-
-      {/* Directory Form Dialog */}
-      <Dialog open={showDirectoryForm} onOpenChange={setShowDirectoryForm}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              Create GHL Product - {directory?.directoryName}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[75vh] overflow-y-auto pr-2">
-            {directory?.config && (
-              <DirectoryFormRenderer 
-                config={directory.config}
-                onClose={() => setShowDirectoryForm(false)}
-                directoryName={directoryName}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Prominent Back to Directories Button - Fixed Position */}
       <div className="fixed bottom-6 z-50" style={{ left: 'max(1.5rem, calc(50% - 768px / 2 + 1.5rem - 50px))' }}>
