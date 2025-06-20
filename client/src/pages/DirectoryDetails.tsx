@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'wouter';
+import { useRoute, useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Filter, Grid3X3, List, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, Archive, Package } from 'lucide-react';
 import { format } from 'date-fns';
@@ -24,7 +24,8 @@ type SortOption = 'newest' | 'oldest' | 'title' | 'price';
 type ContentView = 'collections' | 'products';
 
 export default function DirectoryDetails() {
-  const { directoryName } = useParams();
+  const [match, params] = useRoute('/directories/:directoryName');
+  const directoryName = params?.directoryName;
   const [location, setLocation] = useLocation();
   const [contentView, setContentView] = useState<ContentView>('collections');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -715,16 +716,27 @@ export default function DirectoryDetails() {
         </DialogContent>
       </Dialog>
 
-      {/* GHL Product Creator Dialog */}
-      <GHLProductCreator 
-        isOpen={showGHLProductCreator}
-        onClose={() => setShowGHLProductCreator(false)}
-        directoryName={directoryName!}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['/api/listings', directoryName] });
-          setShowGHLProductCreator(false);
-        }}
-      />
+      {/* Directory Form Renderer Dialog */}
+      <Dialog open={showGHLProductCreator} onOpenChange={setShowGHLProductCreator}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Create New Product
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[75vh] overflow-y-auto pr-2">
+            <DirectoryFormRenderer
+              directoryName={directoryName!}
+              directoryConfig={directory?.config}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ['/api/listings', directoryName] });
+                setShowGHLProductCreator(false);
+              }}
+              onCancel={() => setShowGHLProductCreator(false)}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Prominent Back to Directories Button - Fixed Position */}
       <div className="fixed bottom-6 z-50" style={{ left: 'max(1.5rem, calc(50% - 768px / 2 + 1.5rem - 50px))' }}>

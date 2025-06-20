@@ -124,8 +124,8 @@ export default function DirectoryFormRenderer({
       
       const data = await response.json();
 
-      if (response.bulletPoints && response.bulletPoints.length > 0) {
-        const bulletText = response.bulletPoints.map((point: string) => `• ${point}`).join('\n');
+      if (data.bulletPoints && data.bulletPoints.length > 0) {
+        const bulletText = data.bulletPoints.map((point: string) => `• ${point}`).join('\n');
         handleInputChange('description', bulletText);
         
         toast({
@@ -201,7 +201,7 @@ export default function DirectoryFormRenderer({
 
       await apiRequest(`/api/listings`, {
         method: 'POST',
-        body: JSON.stringify(listingData)
+        data: listingData
       });
 
       toast({
