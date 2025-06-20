@@ -1855,10 +1855,11 @@ input[class*="qty"],
                             />
                             <label
                               htmlFor="icon-upload"
-                              className="w-16 h-10 border border-gray-300 rounded flex items-center justify-center bg-white text-xs text-gray-400 cursor-pointer hover:border-gray-400 transition-colors"
+                              className="w-16 h-10 border border-gray-300 rounded flex items-center justify-center bg-white text-xs text-gray-400 cursor-pointer hover:border-gray-400 transition-colors relative group"
                               id="metadata-icon-preview"
                             >
-                              📞
+                              <span className="group-hover:opacity-50 transition-opacity">📞</span>
+                              <Upload className="w-3 h-3 absolute opacity-0 group-hover:opacity-100 transition-opacity text-gray-600" />
                             </label>
                           </div>
                         </div>
