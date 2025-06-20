@@ -1217,6 +1217,32 @@ export class DatabaseStorage implements IStorage {
     return item || undefined;
   }
 
+  // Wizard Form Template methods for DatabaseStorage
+  async createWizardFormTemplate(template: InsertWizardFormTemplate): Promise<WizardFormTemplate> {
+    const [newTemplate] = await db
+      .insert(wizardFormTemplates)
+      .values(template)
+      .returning();
+    return newTemplate;
+  }
+
+  async getWizardFormTemplateByDirectory(directoryName: string): Promise<WizardFormTemplate | undefined> {
+    const [template] = await db
+      .select()
+      .from(wizardFormTemplates)
+      .where(eq(wizardFormTemplates.directoryName, directoryName));
+    return template || undefined;
+  }
+
+  async updateWizardFormTemplate(id: number, updates: Partial<InsertWizardFormTemplate>): Promise<WizardFormTemplate | undefined> {
+    const [template] = await db
+      .update(wizardFormTemplates)
+      .set(updates)
+      .where(eq(wizardFormTemplates.id, id))
+      .returning();
+    return template || undefined;
+  }
+
   // OAuth methods implementation
   async getUserById(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
