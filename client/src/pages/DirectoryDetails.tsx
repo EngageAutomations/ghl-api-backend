@@ -27,7 +27,7 @@ type ContentView = 'collections' | 'products';
 
 export default function DirectoryDetails() {
   const params = useParams();
-  const directoryName = params.directoryName as string;
+  const directoryName = params['directoryName'] as string;
   const [location, setLocation] = useLocation();
   const [contentView, setContentView] = useState<ContentView>('collections');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -316,19 +316,33 @@ export default function DirectoryDetails() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              onClick={() => {
-                if (contentView === 'collections') {
-                  setShowCollectionForm(true);
-                } else {
-                  setShowDirectoryForm(true);
-                }
-              }}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              {contentView === 'collections' ? 'New Collection' : 'Show Directory Form'}
-            </Button>
+            {contentView === 'collections' ? (
+              <Button
+                onClick={() => setShowCollectionForm(true)}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                New Collection
+              </Button>
+            ) : (
+              <>
+                <Button
+                  onClick={() => setShowDirectoryForm(true)}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Show Directory Form
+                </Button>
+                <Button
+                  onClick={() => setShowGHLProductCreator(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create GHL Product
+                </Button>
+              </>
+            )}
           </div>
         </div>
 

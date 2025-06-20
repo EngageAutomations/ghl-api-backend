@@ -161,6 +161,16 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 19, 2025: Directory Form Display Implementation - COMPLETED
+  - Added DirectoryFormRenderer component to display wizard-generated forms
+  - Updated DirectoryDetails page with "Show Directory Form" button in products view
+  - Form renderer displays live preview of generated form based on directory configuration
+  - Shows form configuration details (features enabled/disabled, button type, field name)
+  - Displays integration code (CSS header code and JavaScript footer code)
+  - Provides copy functionality for full form code
+  - Maintains separation between collections and products views with appropriate buttons
+  - Form generation uses dynamic-form-generator lib with proper field mapping
+
 - June 19, 2025: Railway Backend Integration Analysis and Compatibility Update - COMPLETED
   - Analyzed actual Railway backend structure (version 1.4.0) running at dir.engageautomations.com
   - Railway backend is healthy with 1 installation but requires fresh OAuth flow for API access
