@@ -325,23 +325,13 @@ export default function DirectoryDetails() {
                 New Collection
               </Button>
             ) : (
-              <>
-                <Button
-                  onClick={() => setShowDirectoryForm(true)}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Show Directory Form
-                </Button>
-                <Button
-                  onClick={() => setShowGHLProductCreator(true)}
-                  className="flex items-center gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Create GHL Product
-                </Button>
-              </>
+              <Button
+                onClick={() => setShowDirectoryForm(true)}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Create GHL Product
+              </Button>
             )}
           </div>
         </div>
@@ -755,7 +745,7 @@ export default function DirectoryDetails() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Directory Form - {directory?.directoryName}
+              Create GHL Product - {directory?.directoryName}
             </DialogTitle>
           </DialogHeader>
           <div className="max-h-[75vh] overflow-y-auto pr-2">
@@ -763,6 +753,7 @@ export default function DirectoryDetails() {
               <DirectoryFormRenderer 
                 config={directory.config}
                 onClose={() => setShowDirectoryForm(false)}
+                directoryName={directoryName}
               />
             )}
           </div>

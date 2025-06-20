@@ -1,22 +1,30 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { generateFormHTML, generateFormCSS } from '@/lib/dynamic-form-generator';
-import { X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { generateFormFields } from '@/lib/dynamic-form-generator';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { X, Plus } from 'lucide-react';
 
 interface DirectoryFormRendererProps {
   config: any;
   onClose: () => void;
+  directoryName: string;
 }
 
-export function DirectoryFormRenderer({ config, onClose }: DirectoryFormRendererProps) {
-  const [formHTML, setFormHTML] = useState('');
-  const [formCSS, setFormCSS] = useState('');
+export function DirectoryFormRenderer({ config, onClose, directoryName }: DirectoryFormRendererProps) {
+  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [formFields, setFormFields] = useState<any[]>([]);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Generate the form based on directory configuration
+    // Generate form fields based on directory configuration
     if (config) {
       try {
-        // Transform the config to match the expected format
         const formConfig = {
           customFieldName: config.form?.fieldName || 'listing',
           showDescription: config.features?.showDescription || false,
@@ -28,26 +36,138 @@ export function DirectoryFormRenderer({ config, onClose }: DirectoryFormRenderer
           buttonType: config.button?.type || 'popup'
         };
 
-        const html = generateFormHTML(formConfig);
-        const css = generateFormCSS();
-        
-        setFormHTML(html);
-        setFormCSS(css);
+        const fields = generateFormFields(formConfig);
+        setFormFields(fields);
+
+        // Initialize form data with empty values
+        const initialData: Record<string, string> = {};
+        fields.forEach(field => {
+          initialData[field.name] = '';
+        });
+        setFormData(initialData);
       } catch (error) {
-        console.error('Error generating form:', error);
-        setFormHTML('<p>Error generating form. Please check the directory configuration.</p>');
+        console.error('Error generating form fields:', error);
+        toast({
+          title: "Error",
+          description: "Failed to generate form fields",
+          variant: "destructive"
+        });
       }
     }
-  }, [config]);
+  }, [config, toast]);
+
+  // Create listing mutation
+  const createListingMutation = useMutation({
+    mutationFn: async (listingData: any) => {
+      return apiRequest('/api/listings', {
+        method: 'POST',
+        data: listingData
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Product created successfully"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/listings', directoryName] });
+      onClose();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create product",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleInputChange = (fieldName: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: value
+    }));
+
+    // Auto-generate slug from name
+    if (fieldName === 'name') {
+      const slug = value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      
+      setFormData(prev => ({
+        ...prev,
+        url_slug: slug,
+        [config.form?.fieldName || 'listing']: slug
+      }));
+
+      // Auto-fill SEO title if empty
+      if (!formData.seo_title) {
+        setFormData(prev => ({
+          ...prev,
+          seo_title: value
+        }));
+      }
+    }
+
+    // Auto-copy description to SEO description
+    if (fieldName === 'description' && !formData.seo_description) {
+      setFormData(prev => ({
+        ...prev,
+        seo_description: value
+      }));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    const requiredFields = formFields.filter(field => field.required);
+    const missingFields = requiredFields.filter(field => !formData[field.name]?.trim());
+
+    if (missingFields.length > 0) {
+      toast({
+        title: "Required Fields Missing",
+        description: `Please fill in: ${missingFields.map(f => f.label).join(', ')}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Prepare listing data
+    const listingData = {
+      directoryName,
+      title: formData.name,
+      description: formData.description,
+      price: formData.price || null,
+      imageUrl: formData.image || null,
+      location: formData.address || null,
+      category: 'Product',
+      isActive: true,
+      slug: formData.url_slug,
+      seoTitle: formData.seo_title,
+      seoDescription: formData.seo_description,
+      metadata: {}
+    };
+
+    // Add metadata fields
+    formFields.forEach(field => {
+      if (field.name.startsWith('metadata_') && formData[field.name]) {
+        listingData.metadata[field.label] = formData[field.name];
+      }
+    });
+
+    createListingMutation.mutate(listingData);
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header with close button */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">Generated Directory Form</h3>
+          <h3 className="text-lg font-medium">Create New Product</h3>
           <p className="text-sm text-gray-600">
-            This is the form that will be displayed when users click the directory button
+            Fill out the form to create a new product for {directoryName}
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>
@@ -55,105 +175,66 @@ export function DirectoryFormRenderer({ config, onClose }: DirectoryFormRenderer
         </Button>
       </div>
 
-      {/* Configuration Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="font-medium text-blue-900 mb-2">Form Configuration</h4>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-blue-700">Description:</span>{' '}
-            <span className="text-blue-900">
-              {config.features?.showDescription ? 'Enabled' : 'Disabled'}
-            </span>
-          </div>
-          <div>
-            <span className="text-blue-700">Metadata:</span>{' '}
-            <span className="text-blue-900">
-              {config.features?.showMetadata ? 'Enabled' : 'Disabled'}
-            </span>
-          </div>
-          <div>
-            <span className="text-blue-700">Maps:</span>{' '}
-            <span className="text-blue-900">
-              {config.features?.showMaps ? 'Enabled' : 'Disabled'}
-            </span>
-          </div>
-          <div>
-            <span className="text-blue-700">Price:</span>{' '}
-            <span className="text-blue-900">
-              {config.features?.showPrice ? 'Enabled' : 'Disabled'}
-            </span>
-          </div>
-          <div>
-            <span className="text-blue-700">Button Type:</span>{' '}
-            <span className="text-blue-900">
-              {config.button?.type || 'popup'}
-            </span>
-          </div>
-          <div>
-            <span className="text-blue-700">Field Name:</span>{' '}
-            <span className="text-blue-900">
-              {config.form?.fieldName || 'listing'}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Form Preview */}
-      <div className="border rounded-lg overflow-hidden">
-        <div className="bg-gray-50 px-4 py-2 border-b">
-          <h4 className="font-medium text-gray-900">Form Preview</h4>
-        </div>
-        
-        {/* Render the generated form */}
-        <div className="p-6 bg-white">
-          <style dangerouslySetInnerHTML={{ __html: formCSS }} />
-          <div 
-            dangerouslySetInnerHTML={{ __html: formHTML }}
-            className="directory-form-container"
-          />
-        </div>
-      </div>
-
-      {/* Integration Code */}
-      <div className="space-y-4">
-        <h4 className="font-medium text-gray-900">Integration Code</h4>
-        
-        {/* CSS Code */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">CSS (Header Code)</label>
-          <div className="bg-gray-50 border rounded p-3">
-            <pre className="text-xs text-gray-800 whitespace-pre-wrap overflow-x-auto">
-              {config.generatedCode?.headerCode || '/* No CSS code generated */'}
-            </pre>
-          </div>
+      {/* Interactive Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {formFields
+            .filter(field => field.type !== 'hidden')
+            .map((field) => (
+              <div key={field.name} className={field.type === 'textarea' ? 'md:col-span-2' : ''}>
+                <Label htmlFor={field.name}>
+                  {field.label}
+                  {field.required && <span className="text-red-500 ml-1">*</span>}
+                </Label>
+                
+                {field.type === 'textarea' ? (
+                  <Textarea
+                    id={field.name}
+                    value={formData[field.name] || ''}
+                    onChange={(e) => handleInputChange(field.name, e.target.value)}
+                    placeholder={field.placeholder}
+                    className="mt-1"
+                    rows={3}
+                  />
+                ) : (
+                  <Input
+                    id={field.name}
+                    type={field.type === 'url' ? 'url' : 'text'}
+                    value={formData[field.name] || ''}
+                    onChange={(e) => handleInputChange(field.name, e.target.value)}
+                    placeholder={field.placeholder}
+                    className="mt-1"
+                  />
+                )}
+                
+                {field.description && (
+                  <p className="text-xs text-gray-500 mt-1">{field.description}</p>
+                )}
+              </div>
+            ))}
         </div>
 
-        {/* JavaScript Code */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">JavaScript (Footer Code)</label>
-          <div className="bg-gray-50 border rounded p-3">
-            <pre className="text-xs text-gray-800 whitespace-pre-wrap overflow-x-auto">
-              {config.generatedCode?.footerCode || '/* No JavaScript code generated */'}
-            </pre>
-          </div>
+        {/* Form Actions */}
+        <div className="flex items-center gap-3 pt-6 border-t">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={createListingMutation.isPending}
+            className="flex items-center gap-2"
+          >
+            {createListingMutation.isPending ? (
+              <>Creating...</>
+            ) : (
+              <>
+                <Plus className="h-4 w-4" />
+                Create Product
+              </>
+            )}
+          </Button>
         </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex items-center gap-3 pt-4 border-t">
-        <Button variant="outline" onClick={onClose}>
-          Close
-        </Button>
-        <Button 
-          onClick={() => {
-            // Copy integration code to clipboard
-            const fullCode = `${config.generatedCode?.headerCode || ''}\n\n${formHTML}\n\n${config.generatedCode?.footerCode || ''}`;
-            navigator.clipboard.writeText(fullCode);
-          }}
-        >
-          Copy Full Code
-        </Button>
-      </div>
+      </form>
     </div>
   );
 }
