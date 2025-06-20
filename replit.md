@@ -169,8 +169,8 @@ The application follows a modern full-stack architecture with clear separation b
   - Features: drag-and-drop image upload to GoHighLevel, AI bullet point generation, auto-generated SEO fields
   - Single-column layout with proper spacing, wizard-style card design, and Railway backend integration
   - Form validation requires product name, description, and uploaded image before submission
-  - Enhanced metadata icon field in ConfigWizardSlideshow: converted static emoji to clickable image upload
-  - Users can now upload custom icons for metadata fields with immediate preview functionality
+  - Enhanced metadata icon field in ConfigWizardSlideshow: replaced static emoji with centered upload icon
+  - Users can now upload custom icons for metadata fields with clean upload interface and immediate preview
 
 - June 19, 2025: Railway Backend Integration Analysis and Compatibility Update - COMPLETED
   - Analyzed actual Railway backend structure (version 1.4.0) running at dir.engageautomations.com
