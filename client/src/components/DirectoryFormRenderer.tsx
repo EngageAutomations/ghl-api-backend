@@ -35,8 +35,26 @@ export function DirectoryFormRenderer({ config, onClose, directoryName }: Direct
           formEmbedUrl: config.form?.embedCode || '',
           buttonType: config.button?.type || 'popup'
         };
+        
+        console.log('Directory config:', config);
+        console.log('Form config:', formConfig);
 
         const fields = generateFormFields(formConfig);
+        console.log('Generated form fields:', fields); // Debug log
+        
+        // Ensure image field is always present
+        const hasImageField = fields.some(field => field.name === 'image');
+        if (!hasImageField) {
+          fields.splice(2, 0, {
+            name: 'image',
+            label: 'Product Image',
+            type: 'url',
+            required: true,
+            placeholder: 'https://example.com/image.jpg or Google Drive URL',
+            description: 'Upload your image to Google Drive or provide a direct URL'
+          });
+        }
+        
         setFormFields(fields);
 
         // Initialize form data with empty values
@@ -177,6 +195,15 @@ export function DirectoryFormRenderer({ config, onClose, directoryName }: Direct
 
       {/* Interactive Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Debug info */}
+        <div className="text-xs text-gray-500 mb-2">
+          Total fields: {formFields.length}, Visible fields: {formFields.filter(field => field.type !== 'hidden').length}
+          <br/>
+          Field names: {formFields.map(f => f.name).join(', ')}
+          <br/>
+          Visible field names: {formFields.filter(field => field.type !== 'hidden').map(f => f.name).join(', ')}
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {formFields
             .filter(field => field.type !== 'hidden')
