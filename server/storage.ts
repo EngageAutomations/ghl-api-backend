@@ -10,7 +10,8 @@ import {
   formFields, FormField, InsertFormField,
   googleDriveCredentials, GoogleDriveCredentials, InsertGoogleDriveCredentials,
   collections, Collection, InsertCollection,
-  collectionItems, CollectionItem, InsertCollectionItem
+  collectionItems, CollectionItem, InsertCollectionItem,
+  wizardFormTemplates, WizardFormTemplate, InsertWizardFormTemplate
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -97,6 +98,11 @@ export interface IStorage {
   addListingToCollection(collectionId: number, listingId: number): Promise<CollectionItem>;
   removeListingFromCollection(collectionId: number, listingId: number): Promise<boolean>;
   updateCollectionItem(id: number, item: Partial<InsertCollectionItem>): Promise<CollectionItem | undefined>;
+
+  // Wizard Form Template methods
+  createWizardFormTemplate(template: InsertWizardFormTemplate): Promise<WizardFormTemplate>;
+  getWizardFormTemplateByDirectory(directoryName: string): Promise<WizardFormTemplate | undefined>;
+  updateWizardFormTemplate(id: number, updates: Partial<InsertWizardFormTemplate>): Promise<WizardFormTemplate | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -109,6 +115,7 @@ export class MemStorage implements IStorage {
   private googleDriveCredentials: Map<number, GoogleDriveCredentials>;
   private collections: Map<number, Collection>;
   private collectionItems: Map<number, CollectionItem>;
+  private wizardFormTemplates: Map<number, WizardFormTemplate>;
   
   currentUserId: number;
   currentConfigId: number;
@@ -118,6 +125,7 @@ export class MemStorage implements IStorage {
   currentFormConfigId: number;
   currentGoogleDriveCredentialsId: number;
   currentCollectionId: number;
+  currentWizardTemplateId: number;
   currentCollectionItemId: number;
 
   constructor() {
@@ -130,6 +138,7 @@ export class MemStorage implements IStorage {
     this.googleDriveCredentials = new Map();
     this.collections = new Map();
     this.collectionItems = new Map();
+    this.wizardFormTemplates = new Map();
     
     this.currentUserId = 1;
     this.currentConfigId = 1;
@@ -534,6 +543,40 @@ export class MemStorage implements IStorage {
       return true;
     }
     return false;
+  }
+
+  // Wizard Form Template methods
+  async createWizardFormTemplate(template: InsertWizardFormTemplate): Promise<WizardFormTemplate> {
+    const newTemplate: WizardFormTemplate = {
+      id: this.currentWizardTemplateId++,
+      ...template,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.wizardFormTemplates.set(newTemplate.id, newTemplate);
+    return newTemplate;
+  }
+
+  async getWizardFormTemplateByDirectory(directoryName: string): Promise<WizardFormTemplate | undefined> {
+    return Array.from(this.wizardFormTemplates.values())
+      .find(template => template.directoryName === directoryName);
+  }
+
+  async updateWizardFormTemplate(id: number, updates: Partial<InsertWizardFormTemplate>): Promise<WizardFormTemplate | undefined> {
+    const existingTemplate = this.wizardFormTemplates.get(id);
+    if (!existingTemplate) {
+      return undefined;
+    }
+    
+    const updatedTemplate: WizardFormTemplate = {
+      ...existingTemplate,
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.wizardFormTemplates.set(id, updatedTemplate);
+    return updatedTemplate;
   }
 
   // Get all methods for AI agent
