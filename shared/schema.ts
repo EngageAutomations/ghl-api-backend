@@ -199,6 +199,38 @@ export const insertFormFieldSchema = createInsertSchema(formFields).omit({
 export type InsertFormField = z.infer<typeof insertFormFieldSchema>;
 export type FormField = typeof formFields.$inferSelect;
 
+// Wizard Form Templates - Save wizard configurations for directories
+export const wizardFormTemplates = pgTable("wizard_form_templates", {
+  id: serial("id").primaryKey(),
+  directoryName: text("directory_name").notNull(),
+  templateName: text("template_name").notNull(),
+  
+  // Wizard configuration
+  wizardConfig: jsonb("wizard_config").notNull(), // Complete wizard state
+  formFields: jsonb("form_fields").notNull(), // Generated form field configuration
+  integrationConfig: jsonb("integration_config").notNull(), // Button, popup, embed settings
+  
+  // Generated codes
+  headerCode: text("header_code"),
+  footerCode: text("footer_code"),
+  cssCode: text("css_code"),
+  
+  // Metadata
+  createdBy: integer("created_by").references(() => users.id),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertWizardFormTemplateSchema = createInsertSchema(wizardFormTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertWizardFormTemplate = z.infer<typeof insertWizardFormTemplateSchema>;
+export type WizardFormTemplate = typeof wizardFormTemplates.$inferSelect;
+
 // Designer configuration schema
 export const designerConfigs = pgTable("designer_configs", {
   id: serial("id").primaryKey(),

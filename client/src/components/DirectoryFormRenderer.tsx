@@ -3,16 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, Sparkles, Check, X, Upload, Image } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, Sparkles, Check, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateFormFields, type DirectoryConfig, type FormField } from '@/lib/dynamic-form-generator';
 import { apiRequest } from '@/lib/queryClient';
 
 interface DirectoryFormRendererProps {
   directoryName: string;
-  directoryConfig?: DirectoryConfig;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
