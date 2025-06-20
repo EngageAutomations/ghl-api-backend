@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Sparkles, Check, X } from 'lucide-react';
+import { Loader2, Sparkles, Check, X, Upload, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateFormFields, type DirectoryConfig, type FormField } from '@/lib/dynamic-form-generator';
 import { apiRequest } from '@/lib/queryClient';
@@ -28,6 +28,12 @@ export default function DirectoryFormRenderer({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingBullets, setIsGeneratingBullets] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  
+  // Image upload states - matching wizard implementation
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
 
   // Use directory config or default configuration
   const config: DirectoryConfig = directoryConfig || {
@@ -97,6 +103,70 @@ export default function DirectoryFormRenderer({
         delete newErrors[fieldName];
         return newErrors;
       });
+    }
+  };
+
+  // Image upload handlers - matching wizard implementation
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const files = e.dataTransfer.files;
+    if (files.length > 0 && files[0].type.startsWith('image/')) {
+      handleImageUpload(files[0]);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleImageUpload(e.target.files[0]);
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setImageFile(file);
+    setIsUploadingImage(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('/api/railway/media/upload', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success && result.fileUrl) {
+        setUploadedImageUrl(result.fileUrl);
+        handleInputChange('image', result.fileUrl);
+        
+        toast({
+          title: "Image Uploaded",
+          description: "Your image has been uploaded to GoHighLevel",
+        });
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -222,136 +292,202 @@ export default function DirectoryFormRenderer({
     }
   };
 
-  const renderFormField = (field: FormField) => {
-    if (field.type === 'hidden') return null;
 
-    const hasError = validationErrors[field.name];
-    const value = formData[field.name] || '';
 
-    return (
-      <div key={field.name} className="space-y-2">
-        <Label htmlFor={field.name} className="text-sm font-medium">
-          {field.label}
-          {field.required && <span className="text-red-500 ml-1">*</span>}
-        </Label>
-        
-        {field.type === 'textarea' ? (
-          <div className="space-y-2">
-            <Textarea
-              id={field.name}
-              value={value}
-              onChange={(e) => handleInputChange(field.name, e.target.value)}
-              placeholder={field.placeholder}
-              className={hasError ? 'border-red-500' : ''}
-              rows={field.name === 'expanded_description' ? 6 : 4}
-            />
+  return (
+    <div className="w-full max-w-2xl mx-auto">
+      <Card className="bg-white/80 backdrop-blur-sm border border-blue-200">
+        <CardContent className="p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
             
-            {/* AI Bullet Point Generator for description field */}
-            {field.name === 'description' && (
+            {/* Product Name Field - Single Column */}
+            <div className="space-y-3">
+              <Label htmlFor="product-name" className="text-left block text-lg font-medium text-gray-700">
+                Product/Service Name
+              </Label>
+              <Input
+                id="product-name"
+                placeholder="My Awesome Product"
+                value={formData.name || ''}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                className="text-lg p-4 h-auto"
+              />
+              <p className="text-sm text-gray-600 text-left">
+                This will be displayed as the main title in the directory
+              </p>
+            </div>
+
+            {/* Image Upload Field - Drag and Drop */}
+            <div className="space-y-3">
+              <Label className="text-left block text-lg font-medium text-gray-700">Product Image</Label>
+              <div className="space-y-2">
+                <div
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  className={`
+                    border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer
+                    ${isDragOver 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
+                    }
+                    ${isUploadingImage ? 'opacity-50 cursor-not-allowed' : ''}
+                  `}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="image-upload"
+                    disabled={isUploadingImage}
+                  />
+                  <label htmlFor="image-upload" className={`cursor-pointer ${isUploadingImage ? 'cursor-not-allowed' : ''}`}>
+                    {isUploadingImage ? (
+                      <div className="flex flex-col items-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-2" />
+                        <p className="text-sm font-medium text-blue-600">
+                          Uploading to GoHighLevel...
+                        </p>
+                      </div>
+                    ) : uploadedImageUrl ? (
+                      <div className="flex flex-col items-center">
+                        <Check className="h-8 w-8 text-green-500 mb-2" />
+                        <p className="text-sm font-medium text-green-600">
+                          Image uploaded successfully
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {imageFile?.name}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm font-medium text-gray-700">
+                          {isDragOver ? 'Drop image here' : 'Upload image to GoHighLevel'}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Drag and drop or click to browse
+                        </p>
+                      </>
+                    )}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Description Field */}
+            <div className="space-y-3">
+              <Label htmlFor="description" className="text-left block text-lg font-medium text-gray-700">
+                Product Description
+              </Label>
+              <Textarea
+                id="description"
+                placeholder="Describe your product or service..."
+                value={formData.description || ''}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                className="text-lg p-4 min-h-[120px]"
+                rows={5}
+              />
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-gray-600 text-left">
+                  Provide a detailed description of your product or service
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={generateBulletPoints}
+                  disabled={isGeneratingBullets || !formData.description?.trim()}
+                  className="flex items-center gap-2"
+                >
+                  {isGeneratingBullets ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  {isGeneratingBullets ? 'Generating...' : 'AI Bullet Points'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Price Field */}
+            {config.showPrice && (
+              <div className="space-y-3">
+                <Label htmlFor="price" className="text-left block text-lg font-medium text-gray-700">
+                  Price
+                </Label>
+                <Input
+                  id="price"
+                  placeholder="$99.99"
+                  value={formData.price || ''}
+                  onChange={(e) => handleInputChange('price', e.target.value)}
+                  className="text-lg p-4 h-auto"
+                />
+                <p className="text-sm text-gray-600 text-left">
+                  Enter the price for your product or service
+                </p>
+              </div>
+            )}
+
+            {/* SEO Title */}
+            <div className="space-y-3">
+              <Label htmlFor="seo-title" className="text-left block text-lg font-medium text-gray-700">
+                SEO Title
+              </Label>
+              <Input
+                id="seo-title"
+                placeholder="SEO-optimized title for search engines"
+                value={formData.seo_title || ''}
+                onChange={(e) => handleInputChange('seo_title', e.target.value)}
+                className="text-lg p-4 h-auto"
+              />
+              <p className="text-sm text-gray-600 text-left">
+                Auto-fills from product name, customize for search optimization
+              </p>
+            </div>
+
+            {/* SEO Description */}
+            <div className="space-y-3">
+              <Label htmlFor="seo-description" className="text-left block text-lg font-medium text-gray-700">
+                SEO Description
+              </Label>
+              <Textarea
+                id="seo-description"
+                placeholder="Brief description for search engines (150-160 characters)"
+                value={formData.seo_description || ''}
+                onChange={(e) => handleInputChange('seo_description', e.target.value)}
+                className="text-lg p-4 min-h-[80px]"
+                rows={3}
+              />
+              <p className="text-sm text-gray-600 text-left">
+                Auto-fills from basic description, optimize for search results
+              </p>
+            </div>
+
+            {/* Form Actions */}
+            <div className="flex items-center justify-center gap-4 pt-6">
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                onClick={generateBulletPoints}
-                disabled={isGeneratingBullets || !value.trim()}
-                className="flex items-center gap-2"
+                onClick={onCancel}
+                disabled={isSubmitting}
+                className="px-8"
               >
-                {isGeneratingBullets ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-                {isGeneratingBullets ? 'Generating...' : 'Generate Bullet Points with AI'}
+                Cancel
               </Button>
-            )}
-          </div>
-        ) : (
-          <Input
-            id={field.name}
-            type={field.type}
-            value={value}
-            onChange={(e) => handleInputChange(field.name, e.target.value)}
-            placeholder={field.placeholder}
-            className={hasError ? 'border-red-500' : ''}
-          />
-        )}
-        
-        {field.description && (
-          <p className="text-xs text-gray-500">{field.description}</p>
-        )}
-        
-        {hasError && (
-          <p className="text-xs text-red-500 flex items-center gap-1">
-            <X className="h-3 w-3" />
-            {hasError}
-          </p>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <Card className="w-full max-w-4xl">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-xl">Create New Product</CardTitle>
-            <p className="text-sm text-gray-600 mt-1">
-              Add a new product to the <Badge variant="secondary">{directoryName}</Badge> directory
-            </p>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <Check className="h-3 w-3 text-green-500" />
-            Wizard Form System
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Required Fields Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-              Required Information
-            </h3>
-            {formFields
-              .filter(field => field.required && field.type !== 'hidden')
-              .map(renderFormField)}
-          </div>
-
-          {/* Optional Fields Section */}
-          {formFields.some(field => !field.required && field.type !== 'hidden') && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                Optional Information
-              </h3>
-              {formFields
-                .filter(field => !field.required && field.type !== 'hidden')
-                .map(renderFormField)}
+              <Button
+                type="submit"
+                disabled={isSubmitting || !formData.name || !formData.description || !uploadedImageUrl}
+                className="flex items-center gap-2 px-8"
+              >
+                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isSubmitting ? 'Creating Product...' : 'Create Product'}
+              </Button>
             </div>
-          )}
-
-          {/* Form Actions */}
-          <div className="flex items-center justify-end gap-3 pt-6 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex items-center gap-2"
-            >
-              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isSubmitting ? 'Creating Product...' : 'Create Product'}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
