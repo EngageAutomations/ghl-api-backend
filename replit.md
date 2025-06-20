@@ -161,7 +161,7 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
-- June 19, 2025: Wizard Form Integration in Directory Product Creation - COMPLETED
+- June 19, 2025: Wizard Form Integration and Icon Upload Enhancement - COMPLETED
   - Created DirectoryFormRenderer component with exact wizard single-column layout
   - Implemented prominent drag-and-drop image upload area matching wizard design
   - Replaced GHLProductCreator with wizard-proven form generation from /lib/dynamic-form-generator.ts
@@ -169,6 +169,8 @@ The application follows a modern full-stack architecture with clear separation b
   - Features: drag-and-drop image upload to GoHighLevel, AI bullet point generation, auto-generated SEO fields
   - Single-column layout with proper spacing, wizard-style card design, and Railway backend integration
   - Form validation requires product name, description, and uploaded image before submission
+  - Enhanced metadata icon field in ConfigWizardSlideshow: converted static emoji to clickable image upload
+  - Users can now upload custom icons for metadata fields with immediate preview functionality
 
 - June 19, 2025: Railway Backend Integration Analysis and Compatibility Update - COMPLETED
   - Analyzed actual Railway backend structure (version 1.4.0) running at dir.engageautomations.com

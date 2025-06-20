@@ -1830,8 +1830,36 @@ input[class*="qty"],
                       <div className="flex items-end gap-2">
                         <div className="w-16">
                           <Label className="text-xs text-gray-600">Icon</Label>
-                          <div className="w-16 h-10 border border-gray-300 rounded flex items-center justify-center bg-white text-xs text-gray-400">
-                            📞
+                          <div className="relative">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onload = (event) => {
+                                    const iconElement = document.getElementById('metadata-icon-preview');
+                                    if (iconElement && event.target?.result) {
+                                      iconElement.style.backgroundImage = `url(${event.target.result})`;
+                                      iconElement.style.backgroundSize = 'cover';
+                                      iconElement.style.backgroundPosition = 'center';
+                                      iconElement.textContent = '';
+                                    }
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                              className="hidden"
+                              id="icon-upload"
+                            />
+                            <label
+                              htmlFor="icon-upload"
+                              className="w-16 h-10 border border-gray-300 rounded flex items-center justify-center bg-white text-xs text-gray-400 cursor-pointer hover:border-gray-400 transition-colors"
+                              id="metadata-icon-preview"
+                            >
+                              📞
+                            </label>
                           </div>
                         </div>
                         <div className="flex-1">
