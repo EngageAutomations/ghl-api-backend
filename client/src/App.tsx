@@ -331,6 +331,15 @@ function Router() {
         <OAuthError />
       </Route>
       
+      {/* Location Enhancement Settings */}
+      <Route path="/location-enhancements">
+        <ProtectedRoute>
+          <AppLayout>
+            <LocationEnhancementSettings />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
       {/* 404 route - catch all unmatched routes */}
       <Route>
         <NotFound />
@@ -343,10 +352,37 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <ErrorBoundary
+          fallbackRender={({ error, resetErrorBoundary }) => (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+              <div className="max-w-md mx-auto text-center">
+                <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
+                <p className="text-gray-600 mb-6">
+                  We encountered an unexpected error. Please try refreshing the page.
+                </p>
+                <div className="space-x-3">
+                  <button
+                    onClick={resetErrorBoundary}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Try Again
+                  </button>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                  >
+                    Refresh Page
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        >
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </ErrorBoundary>
       </AuthProvider>
     </QueryClientProvider>
   );

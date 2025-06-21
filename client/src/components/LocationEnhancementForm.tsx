@@ -14,6 +14,10 @@ import { useToast } from '@/hooks/use-toast';
 import { validateLocationId, validateDirectoryName, ValidationErrors } from '@/utils/validators';
 import { useLocationEnhancements } from '@/hooks/useLocationEnhancements';
 import { useDebouncedCallback } from 'use-debounce';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { ErrorDisplay } from '@/components/ui/error-display';
+import { BulkOperationProcessor } from '@/lib/bulk-operations';
+import { ConflictResolver, ConflictData, MergeStrategy } from '@/lib/conflict-resolution';
 
 const enhancementSchema = z.object({
   ghlLocationId: z.string().min(1, 'Location ID is required').refine(validateLocationId, ValidationErrors.INVALID_LOCATION_ID),
@@ -60,8 +64,12 @@ export const LocationEnhancementForm: React.FC<LocationEnhancementFormProps> = (
   const [locationAccess, setLocationAccess] = useState<{ [key: string]: boolean }>({});
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [bulkProgress, setBulkProgress] = useState<{ completed: number; total: number; percentage: number } | null>(null);
 
   const { createEnhancement, updateEnhancement } = useLocationEnhancements();
+  const { errors, handleError, dismissError } = useErrorHandler();
 
   const form = useForm<EnhancementFormData>({
     resolver: zodResolver(enhancementSchema),
@@ -179,36 +187,71 @@ export const LocationEnhancementForm: React.FC<LocationEnhancementFormProps> = (
 
   const handleSubmit = async (data: EnhancementFormData) => {
     try {
-      if (initialData?.ghlLocationId) {
-        await updateEnhancement.mutateAsync({
-          ghlLocationId: data.ghlLocationId,
-          directoryName: data.directoryName,
-          updates: { enhancementConfig: data.enhancementConfig }
-        });
-        toast({
-          title: 'Success',
-          description: 'Location enhancement updated successfully'
-        });
-      } else {
-        await createEnhancement.mutateAsync({
-          ghlLocationId: data.ghlLocationId,
-          directoryName: data.directoryName,
+      if (bulkMode && selectedLocations.length > 0) {
+        // Handle bulk operations
+        const progressTracker = BulkOperationProcessor.createProgressTracker(setBulkProgress);
+        
+        const bulkOperation = BulkOperationProcessor.createLocationEnhancementBulkOperation(
+          selectedLocations,
+          data.directoryName,
           userId,
-          enhancementConfig: data.enhancementConfig,
-          isActive: true
-        });
-        toast({
-          title: 'Success',
-          description: 'Location enhancement created successfully'
-        });
+          data.enhancementConfig,
+          progressTracker
+        );
+
+        const result = await BulkOperationProcessor.process(bulkOperation);
+        
+        setBulkProgress(null);
+        
+        if (result.failed.length > 0) {
+          const errorMessage = `${result.succeeded.length} locations updated successfully. ${result.failed.length} failed.`;
+          toast({
+            title: 'Partial Success',
+            description: errorMessage,
+            variant: 'default'
+          });
+        } else {
+          toast({
+            title: 'Success',
+            description: `All ${result.succeeded.length} locations updated successfully`
+          });
+        }
+      } else {
+        // Handle single location
+        if (initialData?.ghlLocationId) {
+          await updateEnhancement.mutateAsync({
+            ghlLocationId: data.ghlLocationId,
+            directoryName: data.directoryName,
+            updates: { enhancementConfig: data.enhancementConfig }
+          });
+          toast({
+            title: 'Success',
+            description: 'Location enhancement updated successfully'
+          });
+        } else {
+          await createEnhancement.mutateAsync({
+            ghlLocationId: data.ghlLocationId,
+            directoryName: data.directoryName,
+            userId,
+            enhancementConfig: data.enhancementConfig,
+            isActive: true
+          });
+          toast({
+            title: 'Success',
+            description: 'Location enhancement created successfully'
+          });
+        }
       }
       onSuccess?.();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to save location enhancement. Please try again.',
-        variant: 'destructive'
+    } catch (error: any) {
+      const appError = handleError(error, { 
+        operation: bulkMode ? 'bulk_create' : 'single_create',
+        userId,
+        directoryName: data.directoryName 
       });
+      
+      // Don't show toast as error handler already handles it
+      console.error('Enhancement save failed:', appError);
     }
   };
 
@@ -222,6 +265,27 @@ export const LocationEnhancementForm: React.FC<LocationEnhancementFormProps> = (
         <CardDescription>
           Configure directory enhancements for specific GoHighLevel locations
         </CardDescription>
+        
+        {/* Error Display */}
+        {errors.map(error => (
+          <ErrorDisplay
+            key={error.id}
+            error={error}
+            onDismiss={() => dismissError(error.id)}
+            showDetails={true}
+          />
+        ))}
+        
+        {/* Bulk Mode Toggle */}
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="bulk-mode"
+            checked={bulkMode}
+            onCheckedChange={setBulkMode}
+            data-testid="bulk-mode-toggle"
+          />
+          <Label htmlFor="bulk-mode">Bulk Mode (Multiple Locations)</Label>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
