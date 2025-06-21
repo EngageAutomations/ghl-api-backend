@@ -40,27 +40,69 @@ export default function DirectoryFormRenderer({
   const [isDragOver, setIsDragOver] = useState(false);
   
   // Load wizard template to match exact form layout
-  const { data: wizardTemplate, isLoading: isLoadingTemplate } = useWizardFormTemplate(directoryName);
+  const { data: wizardTemplate, isLoading: isLoadingTemplate, error: templateError } = useWizardFormTemplate(directoryName);
   const [formFields, setFormFields] = useState<any[]>([]);
 
   // Generate form fields from wizard template
   useEffect(() => {
     if (wizardTemplate) {
-      const config: DirectoryConfig = {
-        customFieldName: wizardTemplate.integrationConfig?.fieldName || 'listing',
-        showDescription: wizardTemplate.wizardConfig?.showDescription || false,
-        showMetadata: wizardTemplate.wizardConfig?.showMetadata || false,
-        showMaps: wizardTemplate.wizardConfig?.showMaps || false,
-        showPrice: wizardTemplate.wizardConfig?.showPrice || false,
-        metadataFields: wizardTemplate.formFields?.filter(f => f.name.startsWith('metadata_')).map(f => f.label) || [],
-        formEmbedUrl: wizardTemplate.integrationConfig?.embedCode || '',
-        buttonType: wizardTemplate.integrationConfig?.buttonType as 'popup' | 'redirect' | 'download' || 'popup'
-      };
+      console.log('Loading wizard template:', wizardTemplate);
       
-      const fields = generateFormFields(config);
-      setFormFields(fields);
+      // Use template form fields directly
+      setFormFields(wizardTemplate.formFields || []);
+      
+      // Initialize form data with proper defaults
+      const initialData: Record<string, any> = {};
+      wizardTemplate.formFields?.forEach(field => {
+        initialData[field.name] = formData[field.name] || '';
+      });
+      setFormData(prev => ({ ...prev, ...initialData }));
+    } else {
+      console.log('No wizard template found, using default fields');
+      // Fallback form fields if no template
+      const defaultFields = [
+        { name: 'name', label: 'Product/Service Name', type: 'text', required: true, placeholder: 'Enter the name of your product or service' },
+        { name: 'description', label: 'Product Description', type: 'textarea', required: true, placeholder: 'Describe your product or service...' },
+        { name: 'image', label: 'Product Image', type: 'url', required: true, placeholder: 'Upload image', description: 'Upload to GoHighLevel Media Library' },
+        { name: 'price', label: 'Price', type: 'text', required: false, placeholder: '$99.99' },
+        { name: 'seo_title', label: 'SEO Title', type: 'text', required: true, placeholder: 'SEO-optimized title' },
+        { name: 'seo_description', label: 'SEO Description', type: 'textarea', required: true, placeholder: 'Brief description for search engines' }
+      ];
+      setFormFields(defaultFields);
     }
   }, [wizardTemplate]);
+
+  // Show loading state while template loads
+  if (isLoadingTemplate) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <Card>
+          <CardContent className="p-8">
+            <div className="flex items-center justify-center space-x-2">
+              <Loader2 className="w-6 h-6 animate-spin" />
+              <span>Loading wizard configuration...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Debug wizard template loading
+  useEffect(() => {
+    if (templateError) {
+      console.error('Template loading error:', templateError);
+    }
+  }, [templateError]);
+
+  const config: DirectoryConfig = {
+    customFieldName: wizardTemplate?.integrationConfig?.fieldName || 'listing',
+    showDescription: wizardTemplate?.wizardConfig?.showDescription || false,
+    showMetadata: wizardTemplate?.wizardConfig?.showMetadata || false,
+    showMaps: wizardTemplate?.wizardConfig?.showMaps || false,
+    showPrice: wizardTemplate?.wizardConfig?.showPrice || false,
+    metadataFields: []
+  };
 
   // Auto-generate SEO fields when name or description changes
   useEffect(() => {
@@ -83,21 +125,23 @@ export default function DirectoryFormRenderer({
   }, [formData.description]);
 
   // Handle form field changes
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
   // Handle image upload
-  const handleImageUpload = async (file: File) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
     
     setIsUploadingImage(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const uploadData = new FormData();
+      uploadData.append('file', file);
       
       const response = await apiRequest('/api/railway/media/upload', {
         method: 'POST',

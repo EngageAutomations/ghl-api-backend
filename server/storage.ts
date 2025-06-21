@@ -571,8 +571,48 @@ export class MemStorage implements IStorage {
   }
 
   async getWizardFormTemplateByDirectory(directoryName: string): Promise<WizardFormTemplate | undefined> {
-    return Array.from(this.wizardFormTemplates.values())
+    const template = Array.from(this.wizardFormTemplates.values())
       .find(template => template.directoryName === directoryName);
+    
+    if (!template) {
+      // Return a default template if none exists to ensure form always renders
+      return {
+        id: Date.now(),
+        directoryName,
+        templateName: `${directoryName}_default`,
+        wizardConfig: {
+          showDescription: true,
+          showMetadata: true,
+          showMaps: true,
+          showPrice: true,
+          showQuantitySelector: false,
+          integrationMethod: 'popup',
+          buttonText: 'Get Info',
+          buttonColor: '#3b82f6',
+          directoryName
+        },
+        formFields: [
+          { name: 'name', label: 'Product/Service Name', type: 'text', required: true, placeholder: 'Enter the name of your product or service', description: 'This will be displayed as the main title in the directory' },
+          { name: 'description', label: 'Product Description', type: 'textarea', required: true, placeholder: 'Describe your product or service...', description: 'Provide a detailed description of your product or service' },
+          { name: 'image', label: 'Product Image', type: 'url', required: true, placeholder: 'Upload image', description: 'Upload to GoHighLevel Media Library' },
+          { name: 'price', label: 'Price', type: 'text', required: false, placeholder: '$99.99', description: 'Enter the price for your product or service' },
+          { name: 'expanded_description', label: 'Detailed Description', type: 'textarea', required: false, placeholder: 'Provide detailed information...', description: 'Enhanced content for detailed listings' },
+          { name: 'address', label: 'Business Address', type: 'text', required: false, placeholder: '123 Main St, City, State 12345', description: 'Full address for Google Maps integration' },
+          { name: 'seo_title', label: 'SEO Title', type: 'text', required: true, placeholder: 'SEO-optimized title for search engines', description: 'Auto-fills from product name, customize for search optimization' },
+          { name: 'seo_description', label: 'SEO Description', type: 'textarea', required: true, placeholder: 'Brief description for search engines (150-160 characters)', description: 'Auto-fills from basic description, optimize for search results' }
+        ],
+        integrationConfig: {
+          buttonType: 'popup' as const,
+          buttonText: 'Get Info',
+          buttonColor: '#3b82f6',
+          fieldName: 'listing'
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
+    
+    return template;
   }
 
   async updateWizardFormTemplate(id: number, updates: Partial<InsertWizardFormTemplate>): Promise<WizardFormTemplate | undefined> {
