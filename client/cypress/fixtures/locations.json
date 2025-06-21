@@ -1,0 +1,23 @@
+{
+  "locations": [
+    {
+      "id": "WAvk87RmW9rBSDJHeOpH",
+      "name": "Acme Construction LLC",
+      "address": "123 Main St, Denver, CO"
+    },
+    {
+      "id": "ABC123XYZ789DEF456GH",
+      "name": "Acme Plumbing Services", 
+      "address": "456 Oak Ave, Boulder, CO"
+    },
+    {
+      "id": "XYZ789ABC123DEF456JK",
+      "name": "Prime Contractors Inc",
+      "address": "789 Pine Rd, Aurora, CO"
+    }
+  ],
+  "total": 3,
+  "page": 1,
+  "limit": 50,
+  "hasMore": false
+}
