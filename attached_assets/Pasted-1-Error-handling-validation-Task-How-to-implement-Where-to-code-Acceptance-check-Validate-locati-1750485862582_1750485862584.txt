@@ -1,0 +1,76 @@
+1 · Error-handling & validation
+Task	How to implement	Where to code	Acceptance check
+Validate locationId syntax	Regex ^[A-Za-z0-9]{20,24}$ before any proxy call	client/src/utils/validators.ts and server middleware validateLocationParam	Submitting engage_123 shows inline “Invalid location ID” and request never hits server
+Directory name rules	Disallow spaces & special chars: /^[a-z0-9-]{3,30}$/	Same validators module	Invalid name keeps the Save button disabled
+Loading + error states	Add isLoading & error flags to React component; show <Spinner/> or <Alert/>	components/LocationEnhancementForm.tsx	Spinner appears on POST; if backend 400s, alert banner shows message
+Error boundaries	Wrap routes in React.ErrorBoundary or use @sentry/react	App.tsx	Intentional throw in child renders fallback UI, app doesn’t white-screen
+
+2 · User-experience upgrades
+Feature	Implementation sketch	Acceptance check
+Location lookup	Call GET /api/support/locations?query=Acme (proxy reads GHL /locations/search) and populate an autocomplete dropdown	Type “Acm” → suggestions list appears
+Permission test	After user picks a location, call GET /api/ghl/locations/:id/ping (proxy hits /locations/:id) and show ✅ or ❌	Selecting a location you don’t own returns ❌ immediately
+Bulk config	Multi-select list + “Apply enhancement” that POSTs [{locationId, directoryName}] array	Choose 5 locations, click Save, toast shows “5 updated”
+
+3 · Data-persistence & concurrency
+Requirement	Library / technique	Code touch-points
+Auto-save	Debounced useEffect every 3 s → PUT /api/location-enhancements/:id	React form hook
+Optimistic update	Update local react-query cache first, roll back on 409	Use react-query onMutate + onError
+Conflict resolution	Server returns { conflict: true, theirs, yours } on version mismatch; client modal with “merge & override” buttons	server/routes/locationEnhancements.ts, components/ConflictModal.tsx
+Backup / restore	Nightly cron dumps enhancements table to S3; /api/location-enhancements/restore/<ts> endpoint	Railway + node-cron
+
+4 · Testing strategy
+bash
+Copy
+Edit
+# happy path
+curl -X POST https://dir.engageautomations.com/api/location-enhancements \
+  -H "Authorization: Bearer $JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"ghlLocationId":"WAvk87RmW9rBSDJHeOpH","directoryName":"contractors","userId":1}'
+
+# invalid location
+curl ... -d '{"ghlLocationId":"bad_id","directoryName":"contractors"}'  # → 400
+UI smoke – Cypress test fills form, waits for spinner, asserts toast “Saved”.
+
+Mock data – Use MSW in Storybook, return 401/409 cases and ensure alerts render.
+
+5 · Security hardening
+Concern	Fix
+Ownership	Proxy route pulls token for locationId; if JWT’s sub ≠ installation’s userId, return 403
+RBAC	Add role claim in JWT (admin, csr, merchant); check in middleware
+Input sanitization	Use validator.escape() on strings before DB insert
+Audit trail	POST /api/audit from every create/update with { userId, action, before, after }; store in audit_logs table
+
+6 · Performance & scaling
+Redis cache – locationEnhancements:{locationId} TTL 300 s; fall back to DB on miss.
+
+Optimistic UI – react-query mutation optimistic update.
+
+Debounce – lodash.debounce(saveFn, 500) on text inputs.
+
+DB indexes –
+
+sql
+Copy
+Edit
+CREATE INDEX idx_location_dir ON enhancements(ghlLocationId, directoryName);
+Pagination – GET /api/support/locations?page=2&limit=50 for CSR list view.
+
+File-level to-do list
+server/middleware/validateLocationParam.js
+
+server/routes/locationEnhancements.js
+
+server/routes/support.js (search & ping helpers)
+
+client/src/utils/validators.ts
+
+client/src/hooks/useLocationEnhancements.ts
+
+client/src/components/LocationEnhancementForm.tsx
+
+client/src/components/ConflictModal.tsx
+
+client/cypress/e2e/enhancement.cy.ts
+
+Implement these hooks, routes, and tests, and you’ll meet all the core-integration, UX, security, and performance bullets your agent flagged.
