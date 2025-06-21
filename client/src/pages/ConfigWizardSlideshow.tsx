@@ -143,20 +143,22 @@ export default function ConfigWizardSlideshow() {
         // Continue even if template save fails
       }
 
-      return response;
+      const result = await response.json();
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/directories'] });
       toast({
         title: "Directory Created",
-        description: "Your directory configuration has been saved successfully!",
+        description: `Directory "${data.directoryName}" has been created successfully!`,
       });
       setLocation('/directories');
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Directory creation failed:", error);
       toast({
         title: "Error",
-        description: "Failed to create directory. Please try again.",
+        description: error?.message || "Failed to create directory. Please try again.",
         variant: "destructive",
       });
     }
