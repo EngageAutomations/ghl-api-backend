@@ -1365,6 +1365,57 @@ export class DatabaseStorage implements IStorage {
     const [config] = await db.select().from(designerConfigs).where(eq(designerConfigs.directoryName, directoryName));
     return config || undefined;
   }
+
+  // Location Enhancement methods for DatabaseStorage
+  async createLocationEnhancement(enhancement: InsertLocationEnhancement): Promise<LocationEnhancement> {
+    const [newEnhancement] = await db
+      .insert(locationEnhancements)
+      .values(enhancement)
+      .returning();
+    return newEnhancement;
+  }
+
+  async getLocationEnhancement(ghlLocationId: string, directoryName: string): Promise<LocationEnhancement | undefined> {
+    const [enhancement] = await db
+      .select()
+      .from(locationEnhancements)
+      .where(
+        and(
+          eq(locationEnhancements.ghlLocationId, ghlLocationId),
+          eq(locationEnhancements.directoryName, directoryName),
+          eq(locationEnhancements.isActive, true)
+        )
+      );
+    return enhancement || undefined;
+  }
+
+  async updateLocationEnhancement(id: number, updates: Partial<InsertLocationEnhancement>): Promise<LocationEnhancement | undefined> {
+    const [updatedEnhancement] = await db
+      .update(locationEnhancements)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(locationEnhancements.id, id))
+      .returning();
+    return updatedEnhancement || undefined;
+  }
+
+  async getLocationEnhancementsByUser(userId: number): Promise<LocationEnhancement[]> {
+    return await db
+      .select()
+      .from(locationEnhancements)
+      .where(
+        and(
+          eq(locationEnhancements.userId, userId),
+          eq(locationEnhancements.isActive, true)
+        )
+      );
+  }
+
+  async deleteLocationEnhancement(id: number): Promise<boolean> {
+    const result = await db
+      .delete(locationEnhancements)
+      .where(eq(locationEnhancements.id, id));
+    return (result.rowCount || 0) > 0;
+  }
 }
 
 // Switch to MockStorage for development to ensure data saving works
