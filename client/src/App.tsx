@@ -28,6 +28,8 @@ import GoogleDriveSetup from "@/pages/GoogleDriveSetup";
 import APIManagement from "@/pages/APIManagement";
 import InstallationRequired from "@/pages/InstallationRequired";
 import MarketplaceLanding from "@/pages/MarketplaceLanding";
+import { LocationEnhancementSettings } from "@/pages/LocationEnhancementSettings";
+import { ErrorBoundary } from "react-error-boundary";
 import AppLayout from "@/components/layout/AppLayout";
 import CreateListing from "@/components/listings/CreateListing";
 import EditListing from "@/components/listings/EditListing";

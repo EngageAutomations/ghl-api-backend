@@ -28,6 +28,7 @@ import { ghlProductCreator } from "./ghl-product-creator";
 import { getCurrentUser, logoutUser } from "./current-user";
 import { recoverSession, checkEmbeddedSession } from "./session-recovery";
 import jwt from "jsonwebtoken";
+import { validateLocationEnhancementBody } from "./middleware/validateLocationParam.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -1211,15 +1212,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Location Enhancement routes
-  app.post('/api/location-enhancements', async (req, res) => {
+  // Location Enhancement routes with enhanced validation and conflict resolution
+  app.post('/api/location-enhancements', validateLocationEnhancementBody, async (req, res) => {
     try {
-      const enhancementData = insertLocationEnhancementSchema.parse(req.body);
-      const enhancement = await storage.createLocationEnhancement(enhancementData);
-      res.json(enhancement);
+      const { ghlLocationId, directoryName, userId, enhancementConfig } = req.body;
+      
+      // Check for existing enhancement to handle conflicts
+      const existing = await storage.getLocationEnhancement(ghlLocationId, directoryName);
+      
+      if (existing) {
+        // Version conflict detection
+        const clientVersion = req.headers['if-match'];
+        const serverVersion = existing.updatedAt?.getTime().toString();
+        
+        if (clientVersion && clientVersion !== serverVersion) {
+          return res.status(409).json({
+            conflict: true,
+            theirs: {
+              enhancementConfig: existing.enhancementConfig,
+              updatedAt: existing.updatedAt,
+              updatedBy: 'Another User'
+            },
+            yours: {
+              enhancementConfig,
+              lastModified: new Date().toISOString()
+            }
+          });
+        }
+        
+        // Update existing
+        const updated = await storage.updateLocationEnhancement(existing.id, {
+          enhancementConfig,
+          updatedAt: new Date()
+        });
+        console.log(`AUDIT: User ${userId} updated location enhancement for ${ghlLocationId}/${directoryName}`);
+        return res.json(updated);
+      }
+
+      const enhancement = await storage.createLocationEnhancement({
+        ghlLocationId,
+        directoryName,
+        userId,
+        enhancementConfig,
+        isActive: true
+      });
+
+      console.log(`AUDIT: User ${userId} created location enhancement for ${ghlLocationId}/${directoryName}`);
+      res.status(201).json(enhancement);
     } catch (error) {
       console.error('Error creating location enhancement:', error);
-      res.status(400).json({ error: 'Failed to create location enhancement' });
+      res.status(500).json({ error: 'Failed to create location enhancement' });
     }
   });
 
@@ -1270,10 +1312,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!success) {
         return res.status(404).json({ error: 'Location enhancement not found' });
       }
+      
+      console.log(`AUDIT: Location enhancement ${id} deleted`);
       res.json({ success: true });
     } catch (error) {
       console.error('Error deleting location enhancement:', error);
       res.status(500).json({ error: 'Failed to delete location enhancement' });
+    }
+  });
+
+  // Support routes for location search and validation
+  app.get('/api/support/locations', async (req, res) => {
+    try {
+      const { query, page = 1, limit = 50 } = req.query;
+      
+      // Mock location data for development - replace with actual GHL API call
+      const mockLocations = [
+        { id: 'WAvk87RmW9rBSDJHeOpH', name: 'Acme Construction LLC', address: '123 Main St, Denver, CO' },
+        { id: 'ABC123XYZ789DEF456GH', name: 'Acme Plumbing Services', address: '456 Oak Ave, Boulder, CO' },
+        { id: 'XYZ789ABC123DEF456JK', name: 'Prime Contractors Inc', address: '789 Pine Rd, Aurora, CO' },
+        { id: 'DEF456GHI789JKL012MN', name: 'Elite Home Builders', address: '321 Elm St, Lakewood, CO' },
+        { id: 'GHI789JKL012MNO345PQ', name: 'Mountain View Roofing', address: '654 Cedar Ln, Fort Collins, CO' }
+      ];
+
+      let filteredLocations = mockLocations;
+      
+      if (query) {
+        const searchTerm = query.toString().toLowerCase();
+        filteredLocations = mockLocations.filter(location => 
+          location.name.toLowerCase().includes(searchTerm) ||
+          location.address.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      // Pagination
+      const startIndex = (parseInt(page.toString()) - 1) * parseInt(limit.toString());
+      const endIndex = startIndex + parseInt(limit.toString());
+      const paginatedLocations = filteredLocations.slice(startIndex, endIndex);
+
+      res.json({
+        locations: paginatedLocations,
+        total: filteredLocations.length,
+        page: parseInt(page.toString()),
+        limit: parseInt(limit.toString()),
+        hasMore: endIndex < filteredLocations.length
+      });
+    } catch (error) {
+      console.error('Error searching locations:', error);
+      res.status(500).json({ error: 'Failed to search locations' });
+    }
+  });
+
+  app.get('/api/support/locations/:locationId/ping', async (req, res) => {
+    try {
+      const { locationId } = req.params;
+      
+      // Validate location ID format
+      const locationIdRegex = /^[A-Za-z0-9]{20,24}$/;
+      if (!locationIdRegex.test(locationId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid location ID format',
+          code: 'INVALID_LOCATION_ID'
+        });
+      }
+      
+      // Mock permission check - replace with actual GHL API call
+      const hasAccess = locationId.startsWith('W') || locationId.includes('ABC');
+      
+      res.json({
+        success: hasAccess,
+        locationId,
+        hasAccess,
+        message: hasAccess ? 'Location access confirmed' : 'You do not have access to this location'
+      });
+    } catch (error) {
+      console.error('Error checking location access:', error);
+      res.status(500).json({ error: 'Failed to verify location access' });
+    }
+  });
+
+  app.post('/api/support/locations/bulk-enhance', async (req, res) => {
+    try {
+      const { locationIds, directoryName, userId, enhancementConfig } = req.body;
+
+      if (!Array.isArray(locationIds) || locationIds.length === 0) {
+        return res.status(400).json({ error: 'Location IDs array is required' });
+      }
+
+      if (!directoryName || !userId || !enhancementConfig) {
+        return res.status(400).json({ error: 'Directory name, user ID, and enhancement config are required' });
+      }
+
+      const results = [];
+      const errors = [];
+
+      for (const locationId of locationIds) {
+        try {
+          const existing = await storage.getLocationEnhancement(locationId, directoryName);
+          
+          if (existing) {
+            const updated = await storage.updateLocationEnhancement(existing.id, {
+              enhancementConfig,
+              updatedAt: new Date()
+            });
+            results.push({ locationId, action: 'updated', enhancement: updated });
+          } else {
+            const created = await storage.createLocationEnhancement({
+              ghlLocationId: locationId,
+              directoryName,
+              userId,
+              enhancementConfig,
+              isActive: true
+            });
+            results.push({ locationId, action: 'created', enhancement: created });
+          }
+        } catch (error) {
+          errors.push({ locationId, error: error.message });
+        }
+      }
+
+      console.log(`AUDIT: Bulk update - ${results.length} enhancements processed for user ${userId}`);
+
+      res.json({
+        success: true,
+        updated: results.length,
+        errors: errors.length,
+        results,
+        errors
+      });
+    } catch (error) {
+      console.error('Error bulk updating enhancements:', error);
+      res.status(500).json({ error: 'Failed to bulk update location enhancements' });
     }
   });
 
