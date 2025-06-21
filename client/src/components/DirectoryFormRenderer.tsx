@@ -49,8 +49,18 @@ export default function DirectoryFormRenderer({
       console.log('Loading wizard template:', wizardTemplate);
       console.log('Form fields from template:', wizardTemplate.formFields?.length);
       
-      // Use template form fields directly
-      const templateFields = wizardTemplate.formFields || [];
+      // Use template form fields directly - ensure we have the comprehensive list
+      const templateFields = wizardTemplate.formFields || [
+        { name: 'name', label: 'Product/Service Name', type: 'text', required: true, placeholder: 'Enter the name of your product or service' },
+        { name: 'description', label: 'Product Description', type: 'textarea', required: true, placeholder: 'Describe your product or service...' },
+        { name: 'image', label: 'Product Image', type: 'url', required: true, placeholder: 'Upload image', description: 'Upload to GoHighLevel Media Library' },
+        { name: 'price', label: 'Price', type: 'text', required: false, placeholder: '$99.99' },
+        { name: 'expanded_description', label: 'Detailed Description', type: 'textarea', required: false, placeholder: 'Provide detailed information...' },
+        { name: 'address', label: 'Business Address', type: 'text', required: false, placeholder: '123 Main St, City, State 12345' },
+        { name: 'seo_title', label: 'SEO Title', type: 'text', required: true, placeholder: 'SEO-optimized title' },
+        { name: 'seo_description', label: 'SEO Description', type: 'textarea', required: true, placeholder: 'Brief description for search engines' }
+      ];
+      
       setFormFields(templateFields);
       
       // Initialize form data with proper defaults for all fields
@@ -60,7 +70,7 @@ export default function DirectoryFormRenderer({
       });
       setFormData(prev => ({ ...prev, ...initialData }));
       
-      console.log('Initialized form with fields:', templateFields.map(f => f.name));
+      console.log('Initialized comprehensive form with fields:', templateFields.map(f => f.name));
     }
   }, [wizardTemplate]);
 
