@@ -488,11 +488,6 @@ export default function DirectoryFormRenderer({
                   Cancel
                 </Button>
               )}
-                  >
-                    Cancel
-                  </Button>
-                )}
-              </div>
             </form>
           </div>
         </CardContent>
