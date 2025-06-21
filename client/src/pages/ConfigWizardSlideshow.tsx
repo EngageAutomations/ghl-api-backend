@@ -127,9 +127,9 @@ export default function ConfigWizardSlideshow() {
           embedCode: wizardFormData.embedCode || '',
           fieldName: wizardFormData.fieldName || 'listing'
         },
-        headerCode: generateCodeOutput().headerCode,
-        footerCode: generateCodeOutput().footerCode,
-        cssCode: generateCodeOutput().headerCode
+        headerCode: generateCodeForSelection().headerCode,
+        footerCode: generateCodeForSelection().footerCode,
+        cssCode: generateCodeForSelection().headerCode
       };
 
       try {
