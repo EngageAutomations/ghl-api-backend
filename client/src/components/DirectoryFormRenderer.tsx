@@ -85,16 +85,14 @@ export default function DirectoryFormRenderer({
     if (templateError) {
       console.error('Template loading error:', templateError);
     }
-  }, [templateError]);
-
-  const config: DirectoryConfig = {
-    customFieldName: wizardTemplate?.integrationConfig?.fieldName || 'listing',
-    showDescription: wizardTemplate?.wizardConfig?.showDescription || false,
-    showMetadata: wizardTemplate?.wizardConfig?.showMetadata || false,
-    showMaps: wizardTemplate?.wizardConfig?.showMaps || false,
-    showPrice: wizardTemplate?.wizardConfig?.showPrice || false,
-    metadataFields: []
-  };
+    if (wizardTemplate) {
+      console.log('DirectoryFormRenderer received template:', {
+        directoryName: wizardTemplate.directoryName,
+        formFieldsCount: wizardTemplate.formFields?.length,
+        formFields: wizardTemplate.formFields?.map(f => f.name)
+      });
+    }
+  }, [templateError, wizardTemplate]);
 
   // Auto-generate SEO fields when name or description changes
   useEffect(() => {

@@ -42,8 +42,11 @@ export function useWizardFormTemplate(directoryName: string) {
   return useQuery({
     queryKey: ['/api/wizard-templates', directoryName],
     queryFn: async () => {
-      const response = await apiRequest(`/api/wizard-templates/${directoryName}`);
-      return response as WizardFormTemplate;
+      console.log(`Fetching wizard template for: ${directoryName}`);
+      const response = await fetch(`/api/wizard-templates/${encodeURIComponent(directoryName)}`);
+      const data = await response.json();
+      console.log('Template API response:', data);
+      return data as WizardFormTemplate;
     },
     enabled: !!directoryName,
     staleTime: 5 * 60 * 1000, // 5 minutes
