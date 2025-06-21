@@ -47,28 +47,20 @@ export default function DirectoryFormRenderer({
   useEffect(() => {
     if (wizardTemplate) {
       console.log('Loading wizard template:', wizardTemplate);
+      console.log('Form fields from template:', wizardTemplate.formFields?.length);
       
       // Use template form fields directly
-      setFormFields(wizardTemplate.formFields || []);
+      const templateFields = wizardTemplate.formFields || [];
+      setFormFields(templateFields);
       
-      // Initialize form data with proper defaults
+      // Initialize form data with proper defaults for all fields
       const initialData: Record<string, any> = {};
-      wizardTemplate.formFields?.forEach(field => {
+      templateFields.forEach(field => {
         initialData[field.name] = formData[field.name] || '';
       });
       setFormData(prev => ({ ...prev, ...initialData }));
-    } else {
-      console.log('No wizard template found, using default fields');
-      // Fallback form fields if no template
-      const defaultFields = [
-        { name: 'name', label: 'Product/Service Name', type: 'text', required: true, placeholder: 'Enter the name of your product or service' },
-        { name: 'description', label: 'Product Description', type: 'textarea', required: true, placeholder: 'Describe your product or service...' },
-        { name: 'image', label: 'Product Image', type: 'url', required: true, placeholder: 'Upload image', description: 'Upload to GoHighLevel Media Library' },
-        { name: 'price', label: 'Price', type: 'text', required: false, placeholder: '$99.99' },
-        { name: 'seo_title', label: 'SEO Title', type: 'text', required: true, placeholder: 'SEO-optimized title' },
-        { name: 'seo_description', label: 'SEO Description', type: 'textarea', required: true, placeholder: 'Brief description for search engines' }
-      ];
-      setFormFields(defaultFields);
+      
+      console.log('Initialized form with fields:', templateFields.map(f => f.name));
     }
   }, [wizardTemplate]);
 
@@ -484,6 +476,15 @@ export default function DirectoryFormRenderer({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Debug info */}
+              {formFields.length === 0 && (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    Loading form configuration... Expected fields: name, description, image, price, expanded_description, address, seo_title, seo_description
+                  </p>
+                </div>
+              )}
+              
               {/* Render form fields based on wizard template */}
               {formFields.map(field => renderFormField(field))}
 
