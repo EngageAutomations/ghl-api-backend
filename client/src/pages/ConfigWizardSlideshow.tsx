@@ -649,7 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  // Handle wizard completion
+  // Handle wizard completion - save template for exact form matching
   const handleCompleteWizard = async () => {
     if (!directoryName.trim()) {
       toast({

@@ -1212,6 +1212,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Wizard form template routes - enhanced for exact form matching
+  app.post('/api/wizard-templates', async (req, res) => {
+    try {
+      const templateData = insertWizardFormTemplateSchema.parse(req.body);
+      
+      // Save the exact wizard configuration for form rendering
+      const enhancedTemplate = {
+        ...templateData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      const template = await storage.createWizardFormTemplate(enhancedTemplate);
+      
+      console.log(`AUDIT: Wizard template created for directory ${templateData.directoryName}`);
+      res.json(template);
+    } catch (error) {
+      console.error('Error creating wizard form template:', error);
+      res.status(400).json({ error: 'Failed to create wizard form template' });
+    }
+  });
+
+  app.get('/api/wizard-templates/:directoryName', async (req, res) => {
+    try {
+      const { directoryName } = req.params;
+      const template = await storage.getWizardFormTemplateByDirectory(directoryName);
+      
+      if (!template) {
+        // Return a default template if none exists
+        const defaultTemplate = {
+          directoryName,
+          templateName: `${directoryName}_default`,
+          wizardConfig: {
+            showDescription: true,
+            showMetadata: false,
+            showMaps: false,
+            showPrice: true,
+            showQuantitySelector: false,
+            integrationMethod: 'popup',
+            buttonText: 'Get Info',
+            buttonColor: '#3b82f6',
+            directoryName
+          },
+          formFields: [
+            { name: 'name', label: 'Product/Service Name', type: 'text', required: true },
+            { name: 'description', label: 'Product Description', type: 'textarea', required: true },
+            { name: 'image', label: 'Product Image', type: 'url', required: true },
+            { name: 'price', label: 'Price', type: 'text', required: false },
+            { name: 'seo_title', label: 'SEO Title', type: 'text', required: true },
+            { name: 'seo_description', label: 'SEO Description', type: 'textarea', required: true }
+          ],
+          integrationConfig: {
+            buttonType: 'popup',
+            buttonText: 'Get Info',
+            buttonColor: '#3b82f6',
+            fieldName: 'listing'
+          }
+        };
+        return res.json(defaultTemplate);
+      }
+      
+      res.json(template);
+    } catch (error) {
+      console.error('Error fetching wizard form template:', error);
+      res.status(500).json({ error: 'Failed to fetch wizard form template' });
+    }
+  });
+  
+  app.put('/api/wizard-templates/:directoryName', async (req, res) => {
+    try {
+      const { directoryName } = req.params;
+      const updates = insertWizardFormTemplateSchema.partial().parse(req.body);
+      
+      const existing = await storage.getWizardFormTemplateByDirectory(directoryName);
+      if (!existing) {
+        return res.status(404).json({ error: 'Wizard form template not found' });
+      }
+      
+      const updatedTemplate = await storage.updateWizardFormTemplate(existing.id, {
+        ...updates,
+        updatedAt: new Date()
+      });
+      
+      console.log(`AUDIT: Wizard template updated for directory ${directoryName}`);
+      res.json(updatedTemplate);
+    } catch (error) {
+      console.error('Error updating wizard form template:', error);
+      res.status(500).json({ error: 'Failed to update wizard form template' });
+    }
+  });
+
   // Location Enhancement routes with enhanced validation and conflict resolution
   app.post('/api/location-enhancements', validateLocationEnhancementBody, async (req, res) => {
     try {
