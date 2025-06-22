@@ -170,6 +170,8 @@ The application follows a modern full-stack architecture with clear separation b
   - Rich text editor displays with formatting toolbar (headers, bold, italic, lists, links, images, alignment)
   - DirectoryDetails.tsx "Create GHL Product" button now shows rich text editor instead of regular textarea
   - Detailed description field repositioned to appear directly after product description in both form and preview
+  - Price field moved to appear under product title for better user flow
+  - Product creation form field labels updated: "Product/Service Name" changed to "Title"
   - Eliminated React module import errors and resolved component loading issues
 
 - June 22, 2025: User-Defined Metadata Bar Implementation - COMPLETED

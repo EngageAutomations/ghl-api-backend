@@ -23,7 +23,7 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
   const fields: FormField[] = [
     {
       name: 'name',
-      label: 'Product/Service Name',
+      label: 'Title',
       type: 'text',
       required: true,
       placeholder: 'Enter the name of your product or service',
