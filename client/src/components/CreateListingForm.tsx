@@ -89,7 +89,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
       
       if (isEditing) {
         // Update existing listing
-        const slug = formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const slug = formData.slug || `${formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString().slice(-6)}`;
         const listingData = { ...formData, slug, directoryName };
         
         await apiRequest(`/api/listings/id/${editingListing.id}`, {
@@ -100,7 +100,7 @@ export function CreateListingForm({ directoryName, directoryConfig, onSuccess, o
         listingId = editingListing.id;
       } else {
         // Create new listing
-        const slug = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const slug = `${formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString().slice(-6)}`;
         const listingData = { ...formData, slug, directoryName };
 
         const response = await apiRequest('/api/listings', {

@@ -282,7 +282,7 @@ export default function DirectoryFormRenderer({
         seoTitle: formData.seo_title,
         seoDescription: formData.seo_description,
         bulletPoints,
-        slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        slug: `${formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString().slice(-6)}`,
         isActive: true,
         // Store wizard configuration reference for future edits
         wizardConfigurationId: wizardTemplate?.id,
