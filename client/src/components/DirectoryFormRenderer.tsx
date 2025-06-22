@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Sparkles, Check, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -448,6 +449,27 @@ export default function DirectoryFormRenderer({
               placeholder={field.placeholder}
               className={`min-h-[200px] ${fieldError ? 'border-red-500' : ''}`}
             />
+          </div>
+        ) : field.type === 'icon_upload' ? (
+          // This case is handled in the metadata pair grouping above
+          null
+        ) : field.type === 'select' ? (
+          <div className="space-y-2">
+            <Select
+              value={formData[field.name] || ''}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, [field.name]: value }))}
+            >
+              <SelectTrigger className={`w-full ${fieldError ? 'border-red-500' : ''}`}>
+                <SelectValue placeholder={field.placeholder} />
+              </SelectTrigger>
+              <SelectContent>
+                {field.options?.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         ) : (
           <Input

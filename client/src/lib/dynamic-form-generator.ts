@@ -16,6 +16,7 @@ export interface FormField {
   required: boolean;
   placeholder?: string;
   description?: string;
+  options?: string[];
 }
 
 export function generateFormFields(config: DirectoryConfig): FormField[] {
@@ -80,19 +81,51 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
     });
   }
 
-  // Add metadata fields
-  if (config.showMetadata && config.metadataFields.length > 0) {
-    config.metadataFields.forEach((fieldName, index) => {
+  // Add metadata bar fields (icon + text pairs)
+  if (config.showMetadata) {
+    // Start with default field, then allow up to 8 total
+    const metadataCount = Math.max(1, Math.min(config.metadataFields.length || 1, 8));
+    for (let i = 0; i < metadataCount; i++) {
       fields.push({
-        name: `metadata_${fieldName.toLowerCase().replace(/\s+/g, '_')}`,
-        label: fieldName,
-        type: 'text',
-        required: false,
-        placeholder: `Enter ${fieldName.toLowerCase()}`,
-        description: `Additional ${fieldName.toLowerCase()} information`
+        name: `metadata_icon_${i}`,
+        label: i === 0 ? 'Icon' : `Icon ${i + 1}`,
+        type: 'icon_upload',
+        required: i === 0,
+        placeholder: 'Upload icon',
+        description: 'Upload icon for metadata display'
       });
-    });
+      fields.push({
+        name: `metadata_text_${i}`,
+        label: i === 0 ? 'Display Text' : `Display Text ${i + 1}`,
+        type: 'text',
+        required: i === 0,
+        placeholder: i === 0 ? '(555) 123-4567' : 'Enter display text',
+        description: 'Text to display next to icon'
+      });
+    }
   }
+
+  // Add font selection field
+  fields.push({
+    name: 'text_font',
+    label: 'Text Font',
+    type: 'select',
+    required: false,
+    placeholder: 'Select font family',
+    description: 'Choose font for text display',
+    options: [
+      'Arial',
+      'Helvetica',
+      'Georgia',
+      'Times New Roman',
+      'Verdana',
+      'Trebuchet MS',
+      'Impact',
+      'Comic Sans MS',
+      'Palatino',
+      'Garamond'
+    ]
+  });
 
   // Always add SEO fields
   fields.push(
