@@ -43,6 +43,7 @@ export default function DirectoryFormRenderer({
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [formFields, setFormFields] = useState<any[]>([]);
+  const [metadataFieldCount, setMetadataFieldCount] = useState(1);
   
   // Load wizard template to match exact form layout - always call this hook
   const { data: wizardTemplate, isLoading: isLoadingTemplate, error: templateError } = useWizardFormTemplate(directoryName);
@@ -317,20 +318,17 @@ export default function DirectoryFormRenderer({
     }
   };
 
+  // Add more metadata fields dynamically
+  const addMetadataField = () => {
+    if (metadataFieldCount < 8) {
+      setMetadataFieldCount(prev => prev + 1);
+    }
+  };
+
   // Render metadata fields in pairs
   const renderMetadataFields = () => {
-    const metadataFields = formFields.filter(field => field.name.startsWith('metadata_'));
-    const metadataPairs = [];
-    
-    for (let i = 0; i < metadataFields.length; i += 2) {
-      const iconField = metadataFields[i];
-      const textField = metadataFields[i + 1];
-      if (iconField && textField && iconField.name.includes('icon') && textField.name.includes('text')) {
-        metadataPairs.push({ iconField, textField });
-      }
-    }
-    
-    if (metadataPairs.length === 0) return null;
+    const hasMetadata = formFields.some(field => field.name.startsWith('metadata_'));
+    if (!hasMetadata) return null;
     
     return (
       <div className="space-y-4">
@@ -338,10 +336,13 @@ export default function DirectoryFormRenderer({
           Metadata Bar Fields
           <div className="text-xs text-gray-500 mt-1">Add up to 8 icon + text pairs (Default: 1 field)</div>
         </div>
-        {metadataPairs.map((pair, index) => {
-          const { iconField, textField } = pair;
-          const iconError = errors[iconField.name];
-          const textError = errors[textField.name];
+        
+        {/* Render metadata field pairs based on count */}
+        {Array.from({ length: metadataFieldCount }, (_, index) => {
+          const iconFieldName = `metadata_icon_${index}`;
+          const textFieldName = `metadata_text_${index}`;
+          const iconError = errors[iconFieldName];
+          const textError = errors[textFieldName];
           
           return (
             <div key={`metadata-pair-${index}`} className="grid grid-cols-[auto_1fr] gap-4 items-start">
@@ -356,7 +357,7 @@ export default function DirectoryFormRenderer({
                       if (e.target.files?.[0]) {
                         const file = e.target.files[0];
                         const url = URL.createObjectURL(file);
-                        setFormData(prev => ({ ...prev, [iconField.name]: url }));
+                        setFormData(prev => ({ ...prev, [iconFieldName]: url }));
                       }
                     }}
                     className="hidden"
@@ -367,9 +368,9 @@ export default function DirectoryFormRenderer({
                     onClick={() => document.getElementById(`icon-upload-${index}`)?.click()}
                     className="w-12 h-12 border-2 border-gray-300 rounded-md flex items-center justify-center bg-white hover:border-gray-400 hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                   >
-                    {formData[iconField.name] ? (
+                    {formData[iconFieldName] ? (
                       <img 
-                        src={formData[iconField.name]}
+                        src={formData[iconFieldName]}
                         alt="Uploaded icon"
                         className="w-10 h-10 object-cover rounded"
                       />
@@ -385,9 +386,9 @@ export default function DirectoryFormRenderer({
               <div className="space-y-1">
                 <Label className="text-sm font-medium text-gray-600">Display Text</Label>
                 <Input
-                  placeholder={textField.placeholder}
-                  value={formData[textField.name] || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, [textField.name]: e.target.value }))}
+                  placeholder="Enter display text"
+                  value={formData[textFieldName] || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, [textFieldName]: e.target.value }))}
                   className={`w-full ${textError ? 'border-red-500' : ''}`}
                 />
                 {textError && <p className="text-xs text-red-600">{textError}</p>}
@@ -395,6 +396,18 @@ export default function DirectoryFormRenderer({
             </div>
           );
         })}
+        
+        {/* Add Additional Field Button */}
+        {metadataFieldCount < 8 && (
+          <button
+            type="button"
+            onClick={addMetadataField}
+            className="flex items-center justify-center w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
+          >
+            <span className="text-lg mr-2">+</span>
+            Add Additional Field (up to 8 total)
+          </button>
+        )}
       </div>
     );
   };

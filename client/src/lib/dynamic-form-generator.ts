@@ -81,28 +81,25 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
     });
   }
 
-  // Add metadata bar fields (icon + text pairs)
+  // Add metadata bar fields (icon + text pairs) - Start with 1, allow up to 8
   if (config.showMetadata) {
-    // Start with default field, then allow up to 8 total
-    const metadataCount = Math.max(1, Math.min(config.metadataFields.length || 1, 8));
-    for (let i = 0; i < metadataCount; i++) {
-      fields.push({
-        name: `metadata_icon_${i}`,
-        label: i === 0 ? 'Icon' : `Icon ${i + 1}`,
-        type: 'icon_upload',
-        required: i === 0,
-        placeholder: 'Upload icon',
-        description: 'Upload icon for metadata display'
-      });
-      fields.push({
-        name: `metadata_text_${i}`,
-        label: i === 0 ? 'Display Text' : `Display Text ${i + 1}`,
-        type: 'text',
-        required: i === 0,
-        placeholder: i === 0 ? '(555) 123-4567' : 'Enter display text',
-        description: 'Text to display next to icon'
-      });
-    }
+    // Always start with just 1 metadata field pair
+    fields.push({
+      name: `metadata_icon_0`,
+      label: 'Icon',
+      type: 'icon_upload',
+      required: true,
+      placeholder: 'Upload icon',
+      description: 'Upload icon for metadata display'
+    });
+    fields.push({
+      name: `metadata_text_0`,
+      label: 'Display Text',
+      type: 'text',
+      required: true,
+      placeholder: 'Enter display text',
+      description: 'Text to display next to icon'
+    });
   }
 
   // Add font selection field
