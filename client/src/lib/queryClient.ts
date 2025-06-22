@@ -33,7 +33,7 @@ export async function apiRequest(
   const baseURL = import.meta.env.DEV ? '' : 'https://dir.engageautomations.com';
   const fullUrl = url.startsWith('/') ? `${baseURL}${url}` : url;
   try {
-    const res = await fetch(url, {
+    const res = await fetch(fullUrl, {
       method,
       headers: data ? { "Content-Type": "application/json" } : {},
       body: data ? JSON.stringify(data) : undefined,

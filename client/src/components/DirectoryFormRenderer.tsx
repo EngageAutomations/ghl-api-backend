@@ -5,12 +5,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Sparkles, Check, Upload, Image as ImageIcon, X } from 'lucide-react';
+import { Loader2, Sparkles, Check, Upload, Image as ImageIcon, X, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useWizardFormTemplate } from '@/hooks/useWizardFormTemplate';
 import { generateFormFields, DirectoryConfig } from '@/lib/dynamic-form-generator';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { useUploadImages } from '@/hooks/useUploadImages';
+import { useCreateProduct } from '@/hooks/useCreateProduct';
 
 interface DirectoryFormRendererProps {
   directoryName: string;
@@ -28,6 +30,13 @@ export default function DirectoryFormRenderer({
   // Initialize all hooks at the top level to avoid conditional hook calls
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingBulletPoints, setIsGeneratingBulletPoints] = useState(false);
+  const [phase, setPhase] = useState<'idle'|'upload'|'create'|'gallery'|'done'|'error'>('idle');
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  
+  // Railway backend integration hooks
+  const locationId = 'WAvk87RmW9rBSDJHeOpH'; // Default location ID
+  const uploadImagesMutation = useUploadImages(locationId);
+  const createProductMutation = useCreateProduct(locationId);
   const [formData, setFormData] = useState<Record<string, any>>({
     name: '',
     description: '',
@@ -137,6 +146,27 @@ export default function DirectoryFormRenderer({
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
+  };
+
+  // Handle image upload for both file input and drag/drop
+  const handleImageUpload = (file: File | Event) => {
+    let actualFile: File;
+    
+    if (file instanceof File) {
+      actualFile = file;
+    } else {
+      const input = file.target as HTMLInputElement;
+      if (input.files && input.files[0]) {
+        actualFile = input.files[0];
+      } else {
+        return;
+      }
+    }
+    
+    // Store both files and preview URLs
+    setImageFiles(prev => [...prev, actualFile]);
+    const imageUrl = URL.createObjectURL(actualFile);
+    setUploadedImages(prev => [...prev, imageUrl]);
   };
 
   // Handle image upload
@@ -269,6 +299,7 @@ export default function DirectoryFormRenderer({
     }
 
     setIsLoading(true);
+    setPhase('upload');
     try {
       const listingData = {
         directoryName, // Associate with source directory
@@ -430,10 +461,53 @@ export default function DirectoryFormRenderer({
             description: "Your product has been saved successfully with all enhancements!",
           });
         }
+
+        // Step 2: Create GoHighLevel product with uploaded images
+        if (finalImageUrls.length > 0) {
+          try {
+            console.log('Creating GoHighLevel product with images...');
+            
+            const ghlProductData = {
+              name: formData.name,
+              description: formData.description,
+              price: formData.price,
+              productType: 'DIGITAL'
+            };
+
+            const ghlProduct = await createProductMutation.mutateAsync({
+              formValues: ghlProductData,
+              imageUrls: finalImageUrls
+            });
+
+            console.log('GoHighLevel product created:', ghlProduct);
+            setPhase('done');
+            
+            toast({
+              title: "Product Created in GoHighLevel",
+              description: "Your product has been created successfully in your GHL account with all enhancements!",
+            });
+          } catch (ghlError) {
+            console.error('GHL product creation failed:', ghlError);
+            setPhase('error');
+            toast({
+              title: "Product Saved Locally",
+              description: "Product saved locally but GoHighLevel sync failed. You can retry sync later.",
+              variant: "default",
+            });
+          }
+        } else {
+          setPhase('done');
+          toast({
+            title: "Product Created Locally",
+            description: "Your product has been saved successfully with all enhancements!",
+          });
+        }
         
         onSuccess?.();
       }
     } catch (error: any) {
+      console.error('Form submission error:', error);
+      setPhase('error');
       toast({
         title: "Creation Failed",
         description: error.message || "Failed to create product",
