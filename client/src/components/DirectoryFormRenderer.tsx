@@ -144,6 +144,11 @@ export default function DirectoryFormRenderer({
     if (!file) return;
     
     setIsUploadingImage(true);
+    
+    // Create local preview URL immediately for better UX
+    const previewUrl = URL.createObjectURL(file);
+    setUploadedImages(prev => [...prev, previewUrl]);
+    
     try {
       const uploadData = new FormData();
       uploadData.append('file', file);
@@ -153,26 +158,30 @@ export default function DirectoryFormRenderer({
         body: uploadData,
       });
       
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-      
       const result = await response.json();
       
-      if (result.url) {
-        setUploadedImages(prev => [...prev, result.url]);
+      if (result.success && result.url) {
+        // Replace preview URL with actual uploaded URL
+        setUploadedImages(prev => 
+          prev.map(url => url === previewUrl ? result.url : url)
+        );
         toast({
           title: "Image Uploaded",
           description: "Image uploaded to GoHighLevel Media Library successfully!",
         });
+      } else {
+        // Keep preview URL since upload failed
+        toast({
+          title: "Preview Added",
+          description: "Image preview ready (GoHighLevel upload requires OAuth)",
+          variant: "default",
+        });
       }
     } catch (error: any) {
-      // For development, create local preview URL as fallback
-      const previewUrl = URL.createObjectURL(file);
-      setUploadedImages(prev => [...prev, previewUrl]);
+      // Keep preview URL since upload failed
       toast({
-        title: "Preview Added",
-        description: "Image preview added (upload to GoHighLevel pending)",
+        title: "Preview Added", 
+        description: "Image preview ready (GoHighLevel upload requires OAuth)",
         variant: "default",
       });
     } finally {
@@ -509,17 +518,40 @@ export default function DirectoryFormRenderer({
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {uploadedImages.map((url, index) => (
                   <div key={index} className="relative group">
-                    <img 
-                      src={url} 
-                      alt={`Product image ${index + 1}`}
-                      className="w-full h-20 object-cover rounded-lg border border-gray-200"
-                    />
+                    <div className="w-full h-20 bg-gray-100 rounded-lg border border-gray-200 overflow-hidden">
+                      <img 
+                        src={url} 
+                        alt={`Product image ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.log('Image load error for:', url);
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          if (target.parentElement) {
+                            target.parentElement.innerHTML = `
+                              <div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                                </svg>
+                              </div>
+                            `;
+                          }
+                        }}
+                        onLoad={() => console.log('Image loaded successfully:', url)}
+                      />
+                    </div>
                     <Button
                       type="button"
                       variant="destructive"
                       size="sm"
                       className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => setUploadedImages(prev => prev.filter((_, i) => i !== index))}
+                      onClick={() => {
+                        // Clean up object URL to prevent memory leaks
+                        if (url.startsWith('blob:')) {
+                          URL.revokeObjectURL(url);
+                        }
+                        setUploadedImages(prev => prev.filter((_, i) => i !== index));
+                      }}
                     >
                       <X className="h-3 w-3" />
                     </Button>
