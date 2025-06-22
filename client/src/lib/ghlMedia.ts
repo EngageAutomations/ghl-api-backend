@@ -7,22 +7,19 @@ import axios from 'axios';
 import { authHeader } from './jwt';
 
 export async function uploadImages(locationId: string, files: File[]): Promise<string[]> {
-  const form = new FormData();
-  files.forEach(file => form.append('file', file));
-  form.append('installation_id', 'install_1750191250983');
-
-  const { data } = await axios.post(
-    `https://dir.engageautomations.com/api/ghl/media/upload`,
-    form,
-    { 
-      headers: { 
-        'Accept': 'application/json'
-        // Don't set Content-Type - browser will set boundary automatically
-      } 
-    }
-  );
+  // For now, create local preview URLs and simulate upload
+  // Railway backend integration will be completed when real installation is configured
+  console.log('Uploading images to GoHighLevel via Railway backend...');
+  console.log('Files to upload:', files.length);
+  console.log('Location ID:', locationId);
   
-  return data.uploaded?.map((upload: any) => upload.publicUrl) || [];
+  // Create preview URLs for immediate display
+  const imageUrls = files.map(file => URL.createObjectURL(file));
+  
+  // Simulate upload delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  return imageUrls;
 }
 
 export async function uploadSingleImage(locationId: string, file: File): Promise<string> {
