@@ -11,7 +11,6 @@ import { apiRequest } from '@/lib/queryClient';
 import { useWizardFormTemplate } from '@/hooks/useWizardFormTemplate';
 import { generateFormFields, DirectoryConfig } from '@/lib/dynamic-form-generator';
 import { RichTextEditor } from '@/components/RichTextEditor';
-import { ProductCreateModal } from '@/components/ProductCreateModal';
 
 interface DirectoryFormRendererProps {
   directoryName: string;
@@ -40,7 +39,6 @@ export default function DirectoryFormRenderer({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [bulletPoints, setBulletPoints] = useState<string[]>([]);
-  const [showEnhancedModal, setShowEnhancedModal] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -789,60 +787,21 @@ export default function DirectoryFormRenderer({
                 </div>
               )}
 
-              {/* Enhanced Product Creation Option */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6 space-y-4">
-                <div className="text-center">
-                  <h3 className="font-semibold text-gray-900 mb-2">Enhanced Product Creation</h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Create products directly in GoHighLevel with advanced features:
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-4">
-                    <div className="flex items-center">
-                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></div>
-                      Multi-image upload
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></div>
-                      Real-time progress
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></div>
-                      Rich text formatting
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></div>
-                      Direct GHL integration
-                    </div>
-                  </div>
-                  <Button 
-                    type="button"
-                    onClick={() => setShowEnhancedModal(true)}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                  >
-                    Create with Enhanced Features
-                  </Button>
-                </div>
-              </div>
-
-              {/* Legacy Submit Button */}
-              <div className="text-center text-gray-500">
-                <p className="text-sm mb-3">or use the basic form</p>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  variant="outline"
-                  className="w-full"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating Product...
-                    </>
-                  ) : (
-                    'Create Product (Basic)'
-                  )}
-                </Button>
-              </div>
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating Product...
+                  </>
+                ) : (
+                  'Create Product'
+                )}
+              </Button>
 
               {onCancel && (
                 <Button
@@ -859,23 +818,5 @@ export default function DirectoryFormRenderer({
         </CardContent>
       </Card>
     </div>
-
-      {/* Enhanced Product Creation Modal */}
-      {showEnhancedModal && (
-        <ProductCreateModal
-          locationId="test_location"
-          directoryName={directoryName}
-          onClose={() => setShowEnhancedModal(false)}
-          onSuccess={() => {
-            setShowEnhancedModal(false);
-            onSuccess?.();
-            toast({
-              title: "Product Created",
-              description: "Product created successfully with enhanced features"
-            });
-          }}
-        />
-      )}
-    </>
   );
 }
