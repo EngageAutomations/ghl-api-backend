@@ -1228,12 +1228,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Wizard template saved for directory: ${directoryName}`);
       res.json(template);
-      };
-      
-      const template = await storage.createWizardFormTemplate(enhancedTemplate);
-      
-      console.log(`AUDIT: Wizard template created for directory ${templateData.directoryName}`);
-      res.json(template);
     } catch (error) {
       console.error('Error creating wizard form template:', error);
       res.status(400).json({ error: 'Failed to create wizard form template' });
