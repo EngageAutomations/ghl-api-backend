@@ -11,7 +11,9 @@ import {
   FormField, InsertFormField,
   GoogleDriveCredentials, InsertGoogleDriveCredentials,
   Collection, InsertCollection,
-  CollectionItem, InsertCollectionItem
+  CollectionItem, InsertCollectionItem,
+  WizardFormTemplate, InsertWizardFormTemplate,
+  LocationEnhancement, InsertLocationEnhancement
 } from "@shared/schema";
 
 /**
@@ -31,6 +33,8 @@ export class MockStorage implements IStorage {
   private formFields: Map<number, FormField> = new Map();
   private googleDriveCredentials: Map<number, GoogleDriveCredentials> = new Map();
   private oauthInstallations: Map<string, OAuthInstallation> = new Map();
+  private wizardFormTemplates: Map<number, WizardFormTemplate> = new Map();
+  private locationEnhancements: Map<number, LocationEnhancement> = new Map();
   
   private nextUserId = 2;
   private nextFormConfigId = 1;
@@ -44,6 +48,8 @@ export class MockStorage implements IStorage {
   private nextFormFieldId = 1;
   private nextGoogleDriveCredentialsId = 1;
   private nextOAuthInstallationId = 1;
+  private nextWizardTemplateId = 1;
+  private nextLocationEnhancementId = 1;
 
   constructor() {
     // Initialize with default user
@@ -435,4 +441,112 @@ export class MockStorage implements IStorage {
   async createGoogleDriveCredentials(credentials: InsertGoogleDriveCredentials): Promise<GoogleDriveCredentials> { throw new Error("Not implemented"); }
   async updateGoogleDriveCredentials(userId: number, credentials: Partial<InsertGoogleDriveCredentials>): Promise<GoogleDriveCredentials | undefined> { return undefined; }
   async deactivateGoogleDriveCredentials(userId: number): Promise<boolean> { return false; }
+
+  // OAuth Installation methods
+  async createOAuthInstallation(installation: InsertOAuthInstallation): Promise<OAuthInstallation> {
+    const newInstallation: OAuthInstallation = {
+      id: this.nextOAuthInstallationId++,
+      ghlUserId: installation.ghlUserId,
+      ghlCompanyId: installation.ghlCompanyId,
+      ghlLocationId: installation.ghlLocationId,
+      ghlLocationName: installation.ghlLocationName,
+      accessToken: installation.accessToken,
+      refreshToken: installation.refreshToken,
+      tokenExpiry: installation.tokenExpiry,
+      scopes: installation.scopes,
+      isActive: installation.isActive ?? true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    this.oauthInstallations.set(newInstallation.ghlUserId, newInstallation);
+    return newInstallation;
+  }
+
+  async getOAuthInstallation(ghlUserId: string): Promise<OAuthInstallation | undefined> {
+    return this.oauthInstallations.get(ghlUserId);
+  }
+
+  async getLatestOAuthInstallation(): Promise<OAuthInstallation | undefined> {
+    const installations = Array.from(this.oauthInstallations.values());
+    return installations.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+  }
+
+  async getAllOAuthInstallations(): Promise<OAuthInstallation[]> {
+    return Array.from(this.oauthInstallations.values());
+  }
+
+  // Wizard Form Template methods
+  async createWizardFormTemplate(template: InsertWizardFormTemplate): Promise<WizardFormTemplate> {
+    const newTemplate: WizardFormTemplate = {
+      id: this.nextWizardTemplateId++,
+      directoryName: template.directoryName,
+      wizardConfiguration: template.wizardConfiguration,
+      formFields: template.formFields,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    this.wizardFormTemplates.set(newTemplate.id, newTemplate);
+    console.log(`[MOCK STORAGE] Created wizard template for directory: ${newTemplate.directoryName}`);
+    return newTemplate;
+  }
+
+  async getWizardFormTemplateByDirectory(directoryName: string): Promise<WizardFormTemplate | undefined> {
+    return Array.from(this.wizardFormTemplates.values())
+      .find(template => template.directoryName === directoryName);
+  }
+
+  async updateWizardFormTemplate(id: number, updates: Partial<InsertWizardFormTemplate>): Promise<WizardFormTemplate | undefined> {
+    const existing = this.wizardFormTemplates.get(id);
+    if (!existing) return undefined;
+    
+    const updated = { ...existing, ...updates, updatedAt: new Date() };
+    this.wizardFormTemplates.set(id, updated);
+    return updated;
+  }
+
+  // Location Enhancement methods
+  async createLocationEnhancement(enhancement: InsertLocationEnhancement): Promise<LocationEnhancement> {
+    const newEnhancement: LocationEnhancement = {
+      id: this.nextLocationEnhancementId++,
+      userId: enhancement.userId,
+      ghlLocationId: enhancement.ghlLocationId,
+      directoryName: enhancement.directoryName,
+      enhancementData: enhancement.enhancementData,
+      isActive: enhancement.isActive ?? true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    this.locationEnhancements.set(newEnhancement.id, newEnhancement);
+    return newEnhancement;
+  }
+
+  async getLocationEnhancement(ghlLocationId: string, directoryName: string): Promise<LocationEnhancement | undefined> {
+    return Array.from(this.locationEnhancements.values())
+      .find(enhancement => 
+        enhancement.ghlLocationId === ghlLocationId && 
+        enhancement.directoryName === directoryName &&
+        enhancement.isActive
+      );
+  }
+
+  async updateLocationEnhancement(id: number, updates: Partial<InsertLocationEnhancement>): Promise<LocationEnhancement | undefined> {
+    const existing = this.locationEnhancements.get(id);
+    if (!existing) return undefined;
+    
+    const updated = { ...existing, ...updates, updatedAt: new Date() };
+    this.locationEnhancements.set(id, updated);
+    return updated;
+  }
+
+  async getLocationEnhancementsByUser(userId: number): Promise<LocationEnhancement[]> {
+    return Array.from(this.locationEnhancements.values())
+      .filter(enhancement => enhancement.userId === userId && enhancement.isActive);
+  }
+
+  async deleteLocationEnhancement(id: number): Promise<boolean> {
+    return this.locationEnhancements.delete(id);
+  }
 }
