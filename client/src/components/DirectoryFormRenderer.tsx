@@ -341,6 +341,28 @@ export default function DirectoryFormRenderer({
           <div className="text-xs text-gray-500 mt-1">Add up to 8 icon + text pairs (Default: 1 field)</div>
         </div>
         
+        {/* Font Selection Field - Under title, above metadata rows */}
+        {fontField && (
+          <div className="space-y-2">
+            <Select
+              value={formData['metadata_text_font'] || ''}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, 'metadata_text_font': value }))}
+            >
+              <SelectTrigger className={`w-full ${fontError ? 'border-red-500' : ''}`}>
+                <SelectValue placeholder={fontField.placeholder} />
+              </SelectTrigger>
+              <SelectContent>
+                {fontField.options?.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {fontError && <p className="text-xs text-red-600">{fontError}</p>}
+          </div>
+        )}
+        
         {/* Render metadata field pairs based on count */}
         {Array.from({ length: metadataFieldCount }, (_, index) => {
           const iconFieldName = `metadata_icon_${index}`;
@@ -401,32 +423,6 @@ export default function DirectoryFormRenderer({
           );
         })}
         
-        {/* Font Selection Field */}
-        {fontField && (
-          <div className="space-y-2 pt-4 border-t border-gray-200">
-            <Label className="text-sm font-medium text-gray-700">{fontField.label}</Label>
-            <Select
-              value={formData['metadata_text_font'] || ''}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, 'metadata_text_font': value }))}
-            >
-              <SelectTrigger className={`w-full ${fontError ? 'border-red-500' : ''}`}>
-                <SelectValue placeholder={fontField.placeholder} />
-              </SelectTrigger>
-              <SelectContent>
-                {fontField.options?.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {fontError && <p className="text-xs text-red-600">{fontError}</p>}
-            {fontField.description && (
-              <p className="text-xs text-gray-500">{fontField.description}</p>
-            )}
-          </div>
-        )}
-
         {/* Add Additional Field Button */}
         {metadataFieldCount < 8 && (
           <button

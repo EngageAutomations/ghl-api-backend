@@ -183,6 +183,7 @@ The application follows a modern full-stack architecture with clear separation b
   - Updated Maps field label to "Map Embed Address (Google)" for clarity
   - Form starts with 1 metadata row, users can add up to 8 total with "Add Additional Field" button
   - All metadata text fields consistently show "Enter display text" placeholder
+  - Font dropdown positioned under metadata title, above first row, with field label removed for clean design
 
 - June 22, 2025: Streamlined Wizard Configuration System - COMPLETED
   - Implemented efficient approach: save wizard config as JSON and reuse generateFormFields() function
