@@ -301,9 +301,83 @@ export default function DirectoryFormRenderer({
       });
 
       if (response) {
+        const responseData = await response.json();
+        const listingId = responseData.id;
+
+        if (!listingId) {
+          throw new Error('Failed to get listing ID from response');
+        }
+
+        // Create expanded description addon if rich text content exists
+        if (formData.expanded_description && formData.expanded_description.trim()) {
+          await apiRequest('/api/listing-addons', {
+            method: 'POST',
+            data: {
+              listingId,
+              type: 'expanded_description',
+              title: 'Detailed Description',
+              content: formData.expanded_description,
+              enabled: true,
+              displayOrder: 1,
+            }
+          });
+        }
+
+        // Create metadata bar addon if metadata fields exist
+        const metadataFields = Object.keys(formData)
+          .filter(key => key.startsWith('metadata_'))
+          .reduce((acc, key) => {
+            if (key.includes('_icon_') || key.includes('_text_')) {
+              const index = key.match(/_(\d+)$/)?.[1];
+              if (index !== undefined) {
+                if (!acc[index]) acc[index] = {};
+                if (key.includes('_icon_')) acc[index].icon = formData[key];
+                if (key.includes('_text_')) acc[index].text = formData[key];
+              }
+            }
+            return acc;
+          }, {} as Record<string, {icon?: string, text?: string}>);
+
+        const metadataArray = Object.values(metadataFields).filter(field => field.icon || field.text);
+        
+        if (metadataArray.length > 0) {
+          await apiRequest('/api/listing-addons', {
+            method: 'POST',
+            data: {
+              listingId,
+              type: 'metadata_bar',
+              title: 'Metadata Information',
+              content: JSON.stringify({
+                fields: metadataArray,
+                font: formData.metadata_text_font || 'Arial'
+              }),
+              enabled: true,
+              displayOrder: 2,
+            }
+          });
+        }
+
+        // Create Google Maps addon if address exists
+        if (formData.address && formData.address.trim()) {
+          await apiRequest('/api/listing-addons', {
+            method: 'POST',
+            data: {
+              listingId,
+              type: 'map',
+              title: 'Location Map',
+              content: JSON.stringify({
+                address: formData.address,
+                embedType: 'google_maps'
+              }),
+              enabled: true,
+              displayOrder: 3,
+            }
+          });
+        }
+
         toast({
           title: "Product Created",
-          description: "Your product has been created successfully!",
+          description: "Your product has been created successfully with all enhancements!",
         });
         onSuccess?.();
       }
