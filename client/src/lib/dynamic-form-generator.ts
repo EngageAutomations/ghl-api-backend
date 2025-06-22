@@ -100,29 +100,29 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
       placeholder: 'Enter display text',
       description: 'Text to display next to icon'
     });
+    
+    // Add font selection field within metadata section
+    fields.push({
+      name: 'metadata_text_font',
+      label: 'Text Font',
+      type: 'select',
+      required: false,
+      placeholder: 'Select font family',
+      description: 'Choose font for text display',
+      options: [
+        'Arial',
+        'Helvetica',
+        'Georgia',
+        'Times New Roman',
+        'Verdana',
+        'Trebuchet MS',
+        'Impact',
+        'Comic Sans MS',
+        'Palatino',
+        'Garamond'
+      ]
+    });
   }
-
-  // Add font selection field
-  fields.push({
-    name: 'text_font',
-    label: 'Text Font',
-    type: 'select',
-    required: false,
-    placeholder: 'Select font family',
-    description: 'Choose font for text display',
-    options: [
-      'Arial',
-      'Helvetica',
-      'Georgia',
-      'Times New Roman',
-      'Verdana',
-      'Trebuchet MS',
-      'Impact',
-      'Comic Sans MS',
-      'Palatino',
-      'Garamond'
-    ]
-  });
 
   // Always add SEO fields
   fields.push(
