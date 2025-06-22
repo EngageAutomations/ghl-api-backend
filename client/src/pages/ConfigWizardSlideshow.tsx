@@ -95,21 +95,24 @@ export default function ConfigWizardSlideshow() {
         data: directoryData
       });
 
-      // Save wizard template for exact form matching
+      // Save wizard configuration as JSON (simplified approach)
+      const wizardConfiguration = {
+        directoryName: directoryName.trim(),
+        showDescription,
+        showMetadata,
+        showMaps,
+        showPrice,
+        metadataFields: showMetadata ? ['phone', 'hours', 'location'] : [],
+        fieldName: wizardFormData.fieldName || 'listing',
+        embedCode: wizardFormData.embedCode || '',
+        buttonType: integrationMethod,
+        buttonText: wizardFormData.buttonText || 'Get Info',
+        buttonColor: wizardFormData.buttonColor || '#3b82f6'
+      };
+
       const wizardTemplateData = {
         directoryName: directoryName.trim(),
-        templateName: `${directoryName.trim()}_wizard_template`,
-        wizardConfig: {
-          showDescription,
-          showMetadata,
-          showMaps,
-          showPrice,
-          showQuantitySelector: false,
-          integrationMethod,
-          buttonText: wizardFormData.buttonText || 'Get Info',
-          buttonColor: wizardFormData.buttonColor || '#3b82f6',
-          directoryName: directoryName.trim()
-        },
+        wizardConfiguration,
         formFields: [
           { name: 'name', label: 'Product/Service Name', type: 'text', required: true, placeholder: 'Enter the name of your product or service', description: 'This will be displayed as the main title in the directory' },
           { name: 'description', label: 'Product Description', type: 'textarea', required: true, placeholder: 'Describe your product or service...', description: 'Provide a detailed description of your product or service' },

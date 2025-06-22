@@ -476,19 +476,18 @@ export class MockStorage implements IStorage {
     return Array.from(this.oauthInstallations.values());
   }
 
-  // Wizard Form Template methods
+  // Wizard Form Template methods - stores JSON config for generateFormFields()
   async createWizardFormTemplate(template: InsertWizardFormTemplate): Promise<WizardFormTemplate> {
     const newTemplate: WizardFormTemplate = {
       id: this.nextWizardTemplateId++,
       directoryName: template.directoryName,
-      wizardConfiguration: template.wizardConfiguration,
-      formFields: template.formFields,
+      wizardConfiguration: template.wizardConfiguration, // JSON config to pass to generateFormFields()
       createdAt: new Date(),
       updatedAt: new Date(),
     };
     
     this.wizardFormTemplates.set(newTemplate.id, newTemplate);
-    console.log(`[MOCK STORAGE] Created wizard template for directory: ${newTemplate.directoryName}`);
+    console.log(`[MOCK STORAGE] Saved wizard config JSON for directory: ${newTemplate.directoryName}`);
     return newTemplate;
   }
 

@@ -45,33 +45,42 @@ export default function DirectoryFormRenderer({
   // Load wizard template to match exact form layout - always call this hook
   const { data: wizardTemplate, isLoading: isLoadingTemplate, error: templateError } = useWizardFormTemplate(directoryName);
 
-  // Generate form fields from wizard template or use defaults
+  // Generate form fields using wizard's saved configuration and same logic
   useEffect(() => {
-    // Always set form fields, either from template or defaults
-    const defaultFields = [
-      { name: 'name', label: 'Product/Service Name', type: 'text', required: true, placeholder: 'Enter the name of your product or service' },
-      { name: 'description', label: 'Product Description', type: 'textarea', required: true, placeholder: 'Describe your product or service...' },
-      { name: 'image', label: 'Product Image', type: 'url', required: true, placeholder: 'Upload image', description: 'Upload to GoHighLevel Media Library' },
-      { name: 'price', label: 'Price', type: 'text', required: false, placeholder: '$99.99' },
-      { name: 'expanded_description', label: 'Detailed Description', type: 'textarea', required: false, placeholder: 'Provide detailed information...' },
-      { name: 'address', label: 'Business Address', type: 'text', required: false, placeholder: '123 Main St, City, State 12345' },
-      { name: 'seo_title', label: 'SEO Title', type: 'text', required: true, placeholder: 'SEO-optimized title' },
-      { name: 'seo_description', label: 'SEO Description', type: 'textarea', required: true, placeholder: 'Brief description for search engines' }
-    ];
-    
-    const templateFields = wizardTemplate?.formFields || defaultFields;
-    console.log('Loading form fields:', templateFields.length, 'fields');
-    
-    setFormFields(templateFields);
-    
-    // Initialize form data with proper defaults for all fields
-    const initialData: Record<string, any> = {};
-    templateFields.forEach(field => {
-      initialData[field.name] = formData[field.name] || '';
-    });
-    setFormData(prev => ({ ...prev, ...initialData }));
-    
-    console.log('Initialized comprehensive form with fields:', templateFields.map(f => f.name));
+    if (wizardTemplate?.wizardConfiguration) {
+      // Reuse the exact same generateFormFields function from wizard
+      const wizardConfig: DirectoryConfig = {
+        customFieldName: wizardTemplate.wizardConfiguration.fieldName || 'listing',
+        showDescription: wizardTemplate.wizardConfiguration.showDescription || false,
+        showMetadata: wizardTemplate.wizardConfiguration.showMetadata || false,
+        showMaps: wizardTemplate.wizardConfiguration.showMaps || false,
+        showPrice: wizardTemplate.wizardConfiguration.showPrice || false,
+        metadataFields: wizardTemplate.wizardConfiguration.metadataFields || [],
+        formEmbedUrl: wizardTemplate.wizardConfiguration.embedCode || '',
+        buttonType: wizardTemplate.wizardConfiguration.buttonType || 'popup'
+      };
+      
+      // Use the exact same form generation logic as the wizard
+      const generatedFields = generateFormFields(wizardConfig);
+      setFormFields(generatedFields);
+      console.log('Reusing wizard form generation logic - fields:', generatedFields.map(f => f.name));
+    } else {
+      // Fallback to basic configuration if no wizard template exists
+      const defaultConfig: DirectoryConfig = {
+        customFieldName: 'listing',
+        showDescription: true,
+        showMetadata: false,
+        showMaps: false,
+        showPrice: true,
+        metadataFields: [],
+        formEmbedUrl: '',
+        buttonType: 'popup'
+      };
+      
+      const generatedFields = generateFormFields(defaultConfig);
+      setFormFields(generatedFields);
+      console.log('Using default form configuration - fields:', generatedFields.map(f => f.name));
+    }
   }, [wizardTemplate]);
 
   // Show loading state while template loads - but don't block rendering
@@ -252,7 +261,7 @@ export default function DirectoryFormRenderer({
     setIsLoading(true);
     try {
       const listingData = {
-        directoryName,
+        directoryName, // Associate with source directory
         title: formData.name,
         description: formData.description,
         expandedDescription: formData.expanded_description || '',
@@ -265,6 +274,8 @@ export default function DirectoryFormRenderer({
         bulletPoints,
         slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         isActive: true,
+        // Store wizard configuration reference for future edits
+        wizardConfigurationId: wizardTemplate?.id,
         // Include metadata fields
         ...Object.keys(formData).reduce((acc, key) => {
           if (key.startsWith('metadata_')) {
