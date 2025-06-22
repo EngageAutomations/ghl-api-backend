@@ -15,10 +15,25 @@ export interface ProductData {
 }
 
 export async function createProduct(locationId: string, productData: ProductData) {
+  // Use the actual installation ID from Railway backend
+  const installationId = 'install_1750191250983'; // Real installation ID
+  const payload = {
+    installation_id: installationId,
+    name: productData.name,
+    description: productData.description,
+    productType: productData.productType || 'DIGITAL',
+    price: productData.price
+  };
+  
   const { data } = await axios.post(
-    `/api/products`,
-    { ...productData, locationId },
-    { headers: authHeader() }
+    `https://dir.engageautomations.com/api/ghl/products/create`,
+    payload,
+    { 
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      } 
+    }
   );
   return data;
 }
