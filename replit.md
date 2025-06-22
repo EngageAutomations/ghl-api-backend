@@ -185,7 +185,7 @@ The application follows a modern full-stack architecture with clear separation b
   - All metadata text fields consistently show "Enter display text" placeholder
   - Font dropdown positioned under metadata title, above first row, with field label removed for clean design
   - Font options display in their respective typefaces for visual preview and better user experience
-  - Product image field converted to multi-image upload with gallery display and individual image management
+  - Product image field converted to multi-image upload with immediate preview and gallery display, matching metadata icon behavior
 
 - June 22, 2025: Streamlined Wizard Configuration System - COMPLETED
   - Implemented efficient approach: save wizard config as JSON and reuse generateFormFields() function

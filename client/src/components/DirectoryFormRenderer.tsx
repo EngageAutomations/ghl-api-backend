@@ -468,7 +468,13 @@ export default function DirectoryFormRenderer({
                 multiple
                 onChange={(e) => {
                   if (e.target.files) {
-                    Array.from(e.target.files).forEach(file => handleImageUpload(file));
+                    Array.from(e.target.files).forEach(file => {
+                      // Show image immediately like metadata icons
+                      const url = URL.createObjectURL(file);
+                      setUploadedImages(prev => [...prev, url]);
+                      // Also upload to GoHighLevel
+                      handleImageUpload(file);
+                    });
                   }
                 }}
                 className="hidden"
