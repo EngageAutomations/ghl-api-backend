@@ -113,24 +113,6 @@ export default function ConfigWizardSlideshow() {
       const wizardTemplateData = {
         directoryName: directoryName.trim(),
         wizardConfiguration
-          { name: 'description', label: 'Product Description', type: 'textarea', required: true, placeholder: 'Describe your product or service...', description: 'Provide a detailed description of your product or service' },
-          { name: 'image', label: 'Product Image', type: 'url', required: true, placeholder: 'Upload image', description: 'Upload to GoHighLevel Media Library' },
-          ...(showPrice ? [{ name: 'price', label: 'Price', type: 'text', required: false, placeholder: '$99.99', description: 'Enter the price for your product or service' }] : []),
-          ...(showDescription ? [{ name: 'expanded_description', label: 'Detailed Description', type: 'textarea', required: false, placeholder: 'Provide detailed information...', description: 'Enhanced content for detailed listings' }] : []),
-          ...(showMaps ? [{ name: 'address', label: 'Business Address', type: 'text', required: false, placeholder: '123 Main St, City, State 12345', description: 'Full address for Google Maps integration' }] : []),
-          { name: 'seo_title', label: 'SEO Title', type: 'text', required: true, placeholder: 'SEO-optimized title for search engines', description: 'Auto-fills from product name, customize for search optimization' },
-          { name: 'seo_description', label: 'SEO Description', type: 'textarea', required: true, placeholder: 'Brief description for search engines (150-160 characters)', description: 'Auto-fills from basic description, optimize for search results' }
-        ],
-        integrationConfig: {
-          buttonType: integrationMethod as 'popup' | 'redirect' | 'download',
-          buttonText: wizardFormData.buttonText || 'Get Info',
-          buttonColor: wizardFormData.buttonColor || '#3b82f6',
-          embedCode: wizardFormData.embedCode || '',
-          fieldName: wizardFormData.fieldName || 'listing'
-        },
-        headerCode: generateCodeForSelection().headerCode,
-        footerCode: generateCodeForSelection().footerCode,
-        cssCode: generateCodeForSelection().headerCode
       };
 
       try {

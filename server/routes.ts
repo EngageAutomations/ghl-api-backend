@@ -1213,16 +1213,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Wizard form template routes - enhanced for exact form matching
+  // Simplified wizard template creation for JSON config approach
   app.post('/api/wizard-templates', async (req, res) => {
     try {
-      const templateData = insertWizardFormTemplateSchema.parse(req.body);
+      console.log('Creating wizard template:', req.body);
       
-      // Save the exact wizard configuration for form rendering
-      const enhancedTemplate = {
-        ...templateData,
-        createdAt: new Date(),
-        updatedAt: new Date()
+      const { directoryName, wizardConfiguration } = req.body;
+      if (!directoryName || !wizardConfiguration) {
+        return res.status(400).json({ error: 'directoryName and wizardConfiguration required' });
+      }
+      
+      const templateData = { directoryName, wizardConfiguration };
+      const template = await storage.createWizardFormTemplate(templateData);
+      
+      console.log(`Wizard template saved for directory: ${directoryName}`);
+      res.json(template);
       };
       
       const template = await storage.createWizardFormTemplate(enhancedTemplate);
