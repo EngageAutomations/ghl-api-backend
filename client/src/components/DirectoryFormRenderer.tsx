@@ -317,9 +317,91 @@ export default function DirectoryFormRenderer({
     }
   };
 
+  // Render metadata fields in pairs
+  const renderMetadataFields = () => {
+    const metadataFields = formFields.filter(field => field.name.startsWith('metadata_'));
+    const metadataPairs = [];
+    
+    for (let i = 0; i < metadataFields.length; i += 2) {
+      const iconField = metadataFields[i];
+      const textField = metadataFields[i + 1];
+      if (iconField && textField && iconField.name.includes('icon') && textField.name.includes('text')) {
+        metadataPairs.push({ iconField, textField });
+      }
+    }
+    
+    if (metadataPairs.length === 0) return null;
+    
+    return (
+      <div className="space-y-4">
+        <div className="text-sm font-medium text-gray-700">
+          Metadata Bar Fields
+          <div className="text-xs text-gray-500 mt-1">Add up to 8 icon + text pairs (Default: 1 field)</div>
+        </div>
+        {metadataPairs.map((pair, index) => {
+          const { iconField, textField } = pair;
+          const iconError = errors[iconField.name];
+          const textError = errors[textField.name];
+          
+          return (
+            <div key={`metadata-pair-${index}`} className="grid grid-cols-[auto_1fr] gap-4 items-start">
+              {/* Icon Upload - Clickable Button */}
+              <div className="space-y-1">
+                <Label className="text-sm font-medium text-gray-600">Icon</Label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        const file = e.target.files[0];
+                        const url = URL.createObjectURL(file);
+                        setFormData(prev => ({ ...prev, [iconField.name]: url }));
+                      }
+                    }}
+                    className="hidden"
+                    id={`icon-upload-${index}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById(`icon-upload-${index}`)?.click()}
+                    className="w-12 h-12 border-2 border-gray-300 rounded-md flex items-center justify-center bg-white hover:border-gray-400 hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                  >
+                    {formData[iconField.name] ? (
+                      <img 
+                        src={formData[iconField.name]}
+                        alt="Uploaded icon"
+                        className="w-10 h-10 object-cover rounded"
+                      />
+                    ) : (
+                      <Upload className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+                {iconError && <p className="text-xs text-red-600">{iconError}</p>}
+              </div>
+              
+              {/* Display Text */}
+              <div className="space-y-1">
+                <Label className="text-sm font-medium text-gray-600">Display Text</Label>
+                <Input
+                  placeholder={textField.placeholder}
+                  value={formData[textField.name] || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, [textField.name]: e.target.value }))}
+                  className={`w-full ${textError ? 'border-red-500' : ''}`}
+                />
+                {textError && <p className="text-xs text-red-600">{textError}</p>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   // Render form field based on wizard template
   const renderFormField = (field: any) => {
-    if (field.type === 'hidden') return null;
+    if (field.type === 'hidden' || field.name.startsWith('metadata_')) return null;
     
     const fieldError = errors[field.name];
     const isRequired = field.required;
@@ -521,6 +603,9 @@ export default function DirectoryFormRenderer({
               
               {/* Render form fields based on wizard template */}
               {formFields.map(field => renderFormField(field))}
+              
+              {/* Render metadata fields in pairs */}
+              {renderMetadataFields()}
 
               {/* AI Bullet Points Display */}
               {bulletPoints.length > 0 && (
