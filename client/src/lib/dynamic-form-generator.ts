@@ -36,16 +36,30 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
       required: true,
       placeholder: 'Describe your product or service...',
       description: 'Provide a detailed description of your product or service'
-    },
-    {
-      name: 'image',
-      label: 'Product Image',
-      type: 'url',
-      required: true,
-      placeholder: 'Upload image',
-      description: 'Upload to GoHighLevel Media Library'
     }
   ];
+
+  // Add detailed description right after product description
+  if (config.showDescription) {
+    fields.push({
+      name: 'expanded_description',
+      label: 'Detailed Description',
+      type: 'richtext',
+      required: false,
+      placeholder: 'Provide detailed information...',
+      description: 'Enhanced content for detailed listings'
+    });
+  }
+
+  // Add image after description fields
+  fields.push({
+    name: 'image',
+    label: 'Product Image',
+    type: 'url',
+    required: true,
+    placeholder: 'Upload image',
+    description: 'Upload to GoHighLevel Media Library'
+  });
 
   // Add conditional fields based on config
   if (config.showPrice) {
@@ -56,17 +70,6 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
       required: false,
       placeholder: '$99.99',
       description: 'Enter the price for your product or service'
-    });
-  }
-
-  if (config.showDescription) {
-    fields.push({
-      name: 'expanded_description',
-      label: 'Detailed Description',
-      type: 'richtext',
-      required: false,
-      placeholder: 'Provide detailed information...',
-      description: 'Enhanced content for detailed listings'
     });
   }
 
