@@ -458,54 +458,72 @@ export default function DirectoryFormRenderer({
         </Label>
         
         {field.name === 'image' ? (
-          // Minimal image upload field
-          <div className="space-y-2">
-            {isUploadingImage ? (
-              <div className="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg bg-gray-50">
-                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                <span className="text-sm text-blue-600">Uploading...</span>
-              </div>
-            ) : uploadedImages.length > 0 ? (
-              <div className="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg bg-green-50">
-                <img 
-                  src={uploadedImages[0]} 
-                  alt="Uploaded image"
-                  className="w-10 h-10 object-cover rounded"
-                />
-                <div className="flex-grow">
-                  <div className="flex items-center space-x-2">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span className="text-sm text-green-600">Image uploaded</span>
+          // Multi-image upload field
+          <div className="space-y-3">
+            {/* Upload Button */}
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  if (e.target.files) {
+                    Array.from(e.target.files).forEach(file => handleImageUpload(file));
+                  }
+                }}
+                className="hidden"
+                id="image-upload"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => document.getElementById('image-upload')?.click()}
+                className="w-full"
+                disabled={isUploadingImage}
+              >
+                {isUploadingImage ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Add Images
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Image Gallery */}
+            {uploadedImages.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {uploadedImages.map((url, index) => (
+                  <div key={index} className="relative group">
+                    <img 
+                      src={url} 
+                      alt={`Product image ${index + 1}`}
+                      className="w-full h-20 object-cover rounded-lg border border-gray-200"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => setUploadedImages(prev => prev.filter((_, i) => i !== index))}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
                   </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setUploadedImages([])}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                ))}
               </div>
-            ) : (
-              <div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => document.getElementById('image-upload')?.click()}
-                  className="w-full"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Choose Image
-                </Button>
+            )}
+
+            {/* Upload Status */}
+            {uploadedImages.length > 0 && !isUploadingImage && (
+              <div className="flex items-center space-x-2 text-sm text-green-600">
+                <Check className="h-4 w-4" />
+                <span>{uploadedImages.length} image{uploadedImages.length !== 1 ? 's' : ''} uploaded</span>
               </div>
             )}
           </div>
