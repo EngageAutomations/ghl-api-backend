@@ -391,7 +391,7 @@ export default function DirectoryFormRenderer({
               id={field.name}
               placeholder={field.placeholder}
               value={formData[field.name] || ''}
-              onChange={(e) => handleInputChange(field.name, e.target.value)}
+              onChange={(e) => setFormData(prev => ({ ...prev, [field.name]: e.target.value }))}
               rows={4}
               className={`w-full ${fieldError ? 'border-red-500' : ''}`}
             />
@@ -424,7 +424,7 @@ export default function DirectoryFormRenderer({
             type={field.type}
             placeholder={field.placeholder}
             value={formData[field.name] || ''}
-            onChange={(e) => handleInputChange(field.name, e.target.value)}
+            onChange={(e) => setFormData(prev => ({ ...prev, [field.name]: e.target.value }))}
             className={`w-full ${fieldError ? 'border-red-500' : ''}`}
           />
         )}
@@ -439,20 +439,7 @@ export default function DirectoryFormRenderer({
     );
   };
 
-  if (isLoadingTemplate) {
-    return (
-      <div className="max-w-2xl mx-auto p-6">
-        <Card className="border-2 shadow-lg">
-          <CardContent className="p-8">
-            <div className="flex items-center justify-center space-x-2">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-              <span className="text-blue-600">Loading wizard template...</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Don't block rendering while loading template - show form with defaults instead
 
   return (
     <div className="max-w-2xl mx-auto p-6">

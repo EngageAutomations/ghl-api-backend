@@ -161,6 +161,7 @@ export class MemStorage implements IStorage {
     this.currentCollectionId = 1;
     this.currentCollectionItemId = 1;
     this.currentLocationEnhancementId = 1;
+    this.currentWizardTemplateId = 1;
   }
 
   // User methods
@@ -1490,6 +1491,30 @@ export class DatabaseStorage implements IStorage {
       .delete(locationEnhancements)
       .where(eq(locationEnhancements.id, id));
     return (result.rowCount || 0) > 0;
+  }
+
+  // Wizard Form Template methods
+  async createWizardFormTemplate(template: InsertWizardFormTemplate): Promise<WizardFormTemplate> {
+    const [wizardTemplate] = await db
+      .insert(wizardFormTemplates)
+      .values(template)
+      .returning();
+    return wizardTemplate;
+  }
+
+  async getWizardFormTemplateByDirectory(directoryName: string): Promise<WizardFormTemplate | undefined> {
+    const [template] = await db.select().from(wizardFormTemplates)
+      .where(eq(wizardFormTemplates.directoryName, directoryName));
+    return template || undefined;
+  }
+
+  async updateWizardFormTemplate(id: number, updates: Partial<InsertWizardFormTemplate>): Promise<WizardFormTemplate | undefined> {
+    const [template] = await db
+      .update(wizardFormTemplates)
+      .set(updates)
+      .where(eq(wizardFormTemplates.id, id))
+      .returning();
+    return template || undefined;
   }
 }
 
