@@ -28,16 +28,30 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
       required: true,
       placeholder: 'Enter the name of your product or service',
       description: 'This will be displayed as the main title in the directory'
-    },
-    {
-      name: 'description',
-      label: 'Product Description',
-      type: 'textarea',
-      required: true,
-      placeholder: 'Describe your product or service...',
-      description: 'Provide a detailed description of your product or service'
     }
   ];
+
+  // Add price right after product name if enabled
+  if (config.showPrice) {
+    fields.push({
+      name: 'price',
+      label: 'Price',
+      type: 'text',
+      required: false,
+      placeholder: '$99.99',
+      description: 'Enter the price for your product or service'
+    });
+  }
+
+  // Add description fields
+  fields.push({
+    name: 'description',
+    label: 'Product Description',
+    type: 'textarea',
+    required: true,
+    placeholder: 'Describe your product or service...',
+    description: 'Provide a detailed description of your product or service'
+  });
 
   // Add detailed description right after product description
   if (config.showDescription) {
@@ -60,18 +74,6 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
     placeholder: 'Upload image',
     description: 'Upload to GoHighLevel Media Library'
   });
-
-  // Add conditional fields based on config
-  if (config.showPrice) {
-    fields.push({
-      name: 'price',
-      label: 'Price',
-      type: 'text',
-      required: false,
-      placeholder: '$99.99',
-      description: 'Enter the price for your product or service'
-    });
-  }
 
   if (config.showMaps) {
     fields.push({
