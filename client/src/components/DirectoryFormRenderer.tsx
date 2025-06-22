@@ -316,6 +316,17 @@ export default function DirectoryFormRenderer({
     const fieldError = errors[field.name];
     const isRequired = field.required;
     
+    // Debug field types - especially expanded_description
+    if (field.name === 'expanded_description') {
+      console.log('Field details for expanded_description:', {
+        name: field.name,
+        type: field.type,
+        label: field.label,
+        willUseRichText: field.type === 'richtext'
+      });
+      });
+    }
+    
     return (
       <div key={field.name} className="space-y-2">
         <Label htmlFor={field.name} className="text-sm font-medium text-gray-700">
