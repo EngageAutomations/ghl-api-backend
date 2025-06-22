@@ -28,6 +28,10 @@ export async function apiRequest(
   const data = options?.data;
   
   console.log(`Making ${method} request to ${url}`, data);
+  
+  // Use relative URLs for Vite proxy in development
+  const baseURL = import.meta.env.DEV ? '' : 'https://dir.engageautomations.com';
+  const fullUrl = url.startsWith('/') ? `${baseURL}${url}` : url;
   try {
     const res = await fetch(url, {
       method,

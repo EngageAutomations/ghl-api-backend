@@ -1,0 +1,103 @@
+Below is a triage + fix guide you can hand to your Replit devs whenever the in-browser Preview pane flashes “connection refused” after adding new API code.
+
+1 · Why the Preview dies
+Root cause	What you see	Typical slip-up
+Process exit – Node throws, Replit kills the only HTTP process	Preview 404 / “connection refused” and the Repl shows exited with code 1	Import typo or an await at top-level that rejects
+Port mismatch – Back-end now starts on 5000 but Replit reverse proxy still points to PORT env (usually 3000)	Preview tries GET / → “connection refused”	Added app.listen(5000) instead of process.env.PORT
+Dual processes – Front-end dev server on 5173, back-end on 3000; preview only exposes one	Front loads, but API XHR to http://localhost:3000 fails	Started Vite separately with npm run dev inside the same Repl
+Wrong baseURL – Axios now points to http://localhost:3000 (inside the browser!)	Network tab: (failed) net::ERR_CONNECTION_REFUSED	Hard-coded localhost in new API helper
+CORS vs. proxy – Call actually reaches Railway but browser blocks it	Network tab: status (blocked:CORS) ( not connection refused)	Forgot to add the .repl.co origin to CORS whitelist
+
+If the Preview shows “connection refused” and the Repl Console logs “Server ready on 3000”, it’s almost always Wrong baseURL or Dual processes.
+
+2 · Canonical dev setup (one HTTP process)
+bash
+Copy
+Edit
+• Railway-proxy calls → https://dir.engageautomations.com
+• Browser fetch path  → /api/ghl/...
+• Vite proxy          → rewrites /api to dir.engageautomations.com
+• Express dev server  → not needed in Replit; only Vite on 5173
+vite.config.ts
+ts
+Copy
+Edit
+export default defineConfig({
+  server: {
+    host: '0.0.0.0',      // needed for Replit
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'https://dir.engageautomations.com',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
+});
+axios helper
+ts
+Copy
+Edit
+const api = axios.create({
+  baseURL: import.meta.env.DEV
+           ? '/api'                               // dev → Vite proxy
+           : 'https://dir.engageautomations.com', // prod
+});
+Now the Preview pane only has to expose one port (5173); Vite proxies API calls to Railway, and no “connection refused” will appear unless the proxy itself is down.
+
+3 · If you really need a Node back-end running in Replit too
+Bind to the Replit port var:
+
+js
+Copy
+Edit
+const port = process.env.PORT || 3000;
+app.listen(port, '0.0.0.0');
+Combine Vite + API in the same process with vite-node or concurrently, or just use Express static + proxy middleware so you still expose one HTTP listener.
+
+Make Axios hit '' or /api (same origin); the preview will then proxy to that same Node listener.
+
+Failing to do (1) is the #1 reason you see “connection refused” right after a code change.
+
+4 · CORS checklist (Railway side)
+Add the wildcard for typical Replit previews:
+
+js
+Copy
+Edit
+const allowed = [
+  'https://listings.engageautomations.com',
+  /\.repl\.co$/,
+  /\.replit\.dev$/,
+];
+app.use(cors({
+  origin: (o, cb) => {
+    if (!o || allowed.some(r => r.test ? r.test(o) : r === o)) return cb(null, true);
+    cb(new Error('Not allowed'), false);
+  },
+  credentials: true,
+}));
+If the console says “CORS error” it was never a connection-refused; fix the whitelist, not the port.
+
+5 · Quick debug script
+bash
+Copy
+Edit
+# Inside the Repl shell
+curl -I https://dir.engageautomations.com/health
+curl -I http://0.0.0.0:$PORT/        # should reply in dev if Node serves
+If the first curl fails → Railway is down.
+
+If the second fails → your Node process isn’t bound to $PORT.
+
+TL;DR guideline for any new API work
+Never hard-code localhost in browser code. Use /api and Vite proxy.
+
+Always listen on process.env.PORT in any Node server you start inside Replit.
+
+Expose one HTTP listener per Repl; combine tools or proxy internally.
+
+Add the *.repl.co origin to CORS on Railway.
+
+Do those four and your Preview pane will stay green no matter how many new API endpoints you bolt on.

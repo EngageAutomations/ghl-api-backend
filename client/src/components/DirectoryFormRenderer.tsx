@@ -393,17 +393,18 @@ export default function DirectoryFormRenderer({
         // Create actual GoHighLevel product via Railway backend
         try {
           console.log('Creating GoHighLevel product via Railway backend...');
+          
+          // Use the default location ID from Railway backend
+          const locationId = 'WAvk87RmW9rBSDJHeOpH';
+          
           const ghlProductData = {
             name: formData.name,
             description: formData.description,
-            images: uploadedImages,
             price: formData.price,
-            productType: 'DIGITAL',
-            locationId: 'auto', // Railway backend will use stored location ID
-            installationId: 'auto' // Railway backend will use primary installation
+            productType: 'DIGITAL'
           };
 
-          const ghlResponse = await apiRequest('/api/ghl/create-product', {
+          const ghlResponse = await apiRequest(`/api/ghl/locations/${locationId}/products`, {
             method: 'POST',
             data: ghlProductData
           });
