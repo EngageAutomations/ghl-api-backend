@@ -169,35 +169,15 @@ export default function DirectoryFormRenderer({
     setUploadedImages(prev => [...prev, imageUrl]);
   };
 
-  // Handle image upload
-  const handleImageUpload = async (file: File) => {
-    if (!file) return;
-    
-    setIsUploadingImage(true);
-    try {
-      const uploadData = new FormData();
-      uploadData.append('file', file);
-      
-      const response = await apiRequest('/api/railway/media/upload', {
-        method: 'POST',
-        data: formData,
-      });
-      
-      if (response.url) {
-        setUploadedImages(prev => [...prev, response.url]);
-        toast({
-          title: "Image Uploaded",
-          description: "Image uploaded to GoHighLevel Media Library successfully!",
-        });
-      }
-    } catch (error: any) {
-      toast({
-        title: "Upload Failed",
-        description: error.message || "Failed to upload image",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploadingImage(false);
+  // Handle image upload for preview (files will be uploaded during form submission)
+  const handleImageUploadPreview = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      // Store both files and preview URLs
+      setImageFiles(prev => [...prev, ...fileArray]);
+      const imageUrls = fileArray.map(file => URL.createObjectURL(file));
+      setUploadedImages(prev => [...prev, ...imageUrls]);
     }
   };
 
@@ -873,17 +853,20 @@ export default function DirectoryFormRenderer({
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
               >
+                {isLoading && <Loader2 className="animate-spin" size={16} />}
+                {phase === 'done' && <CheckCircle size={16} className="text-green-500" />}
                 {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating Product...
-                  </>
-                ) : (
-                  'Create Product'
-                )}
+                  phase === 'upload' ? 'Uploading Images...' :
+                  phase === 'create' ? 'Creating Product...' :
+                  phase === 'gallery' ? 'Adding Gallery...' : 'Processing...'
+                ) : 'Create GHL Product'}
               </Button>
+              
+              {phase === 'error' && (
+                <p className="text-red-600 mt-2 text-sm">Failed—please retry or check your connection</p>
+              )}
 
               {onCancel && (
                 <Button
