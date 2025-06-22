@@ -859,5 +859,19 @@ export default function DirectoryFormRenderer({
         </CardContent>
       </Card>
     </div>
+
+      {/* Enhanced Product Creation Modal */}
+      {showEnhancedModal && (
+        <ProductCreateModal
+          locationId="WAvk87RmW9rBSDJHeOpH"
+          directoryName={directoryName}
+          onClose={() => setShowEnhancedModal(false)}
+          onSuccess={() => {
+            setShowEnhancedModal(false);
+            onSuccess?.();
+          }}
+        />
+      )}
+    </>
   );
 }
