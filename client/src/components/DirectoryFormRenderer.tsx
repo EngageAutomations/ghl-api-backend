@@ -22,6 +22,8 @@ export default function DirectoryFormRenderer({
   onCancel 
 }: DirectoryFormRendererProps) {
   const { toast } = useToast();
+  
+  // Initialize all hooks at the top level to avoid conditional hook calls
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingBulletPoints, setIsGeneratingBulletPoints] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({
@@ -38,57 +40,42 @@ export default function DirectoryFormRenderer({
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-  
-  // Load wizard template to match exact form layout
-  const { data: wizardTemplate, isLoading: isLoadingTemplate, error: templateError } = useWizardFormTemplate(directoryName);
   const [formFields, setFormFields] = useState<any[]>([]);
+  
+  // Load wizard template to match exact form layout - always call this hook
+  const { data: wizardTemplate, isLoading: isLoadingTemplate, error: templateError } = useWizardFormTemplate(directoryName);
 
-  // Generate form fields from wizard template
+  // Generate form fields from wizard template or use defaults
   useEffect(() => {
-    if (wizardTemplate) {
-      console.log('Loading wizard template:', wizardTemplate);
-      console.log('Form fields from template:', wizardTemplate.formFields?.length);
-      
-      // Use template form fields directly - ensure we have the comprehensive list
-      const templateFields = wizardTemplate.formFields || [
-        { name: 'name', label: 'Product/Service Name', type: 'text', required: true, placeholder: 'Enter the name of your product or service' },
-        { name: 'description', label: 'Product Description', type: 'textarea', required: true, placeholder: 'Describe your product or service...' },
-        { name: 'image', label: 'Product Image', type: 'url', required: true, placeholder: 'Upload image', description: 'Upload to GoHighLevel Media Library' },
-        { name: 'price', label: 'Price', type: 'text', required: false, placeholder: '$99.99' },
-        { name: 'expanded_description', label: 'Detailed Description', type: 'textarea', required: false, placeholder: 'Provide detailed information...' },
-        { name: 'address', label: 'Business Address', type: 'text', required: false, placeholder: '123 Main St, City, State 12345' },
-        { name: 'seo_title', label: 'SEO Title', type: 'text', required: true, placeholder: 'SEO-optimized title' },
-        { name: 'seo_description', label: 'SEO Description', type: 'textarea', required: true, placeholder: 'Brief description for search engines' }
-      ];
-      
-      setFormFields(templateFields);
-      
-      // Initialize form data with proper defaults for all fields
-      const initialData: Record<string, any> = {};
-      templateFields.forEach(field => {
-        initialData[field.name] = formData[field.name] || '';
-      });
-      setFormData(prev => ({ ...prev, ...initialData }));
-      
-      console.log('Initialized comprehensive form with fields:', templateFields.map(f => f.name));
-    }
+    // Always set form fields, either from template or defaults
+    const defaultFields = [
+      { name: 'name', label: 'Product/Service Name', type: 'text', required: true, placeholder: 'Enter the name of your product or service' },
+      { name: 'description', label: 'Product Description', type: 'textarea', required: true, placeholder: 'Describe your product or service...' },
+      { name: 'image', label: 'Product Image', type: 'url', required: true, placeholder: 'Upload image', description: 'Upload to GoHighLevel Media Library' },
+      { name: 'price', label: 'Price', type: 'text', required: false, placeholder: '$99.99' },
+      { name: 'expanded_description', label: 'Detailed Description', type: 'textarea', required: false, placeholder: 'Provide detailed information...' },
+      { name: 'address', label: 'Business Address', type: 'text', required: false, placeholder: '123 Main St, City, State 12345' },
+      { name: 'seo_title', label: 'SEO Title', type: 'text', required: true, placeholder: 'SEO-optimized title' },
+      { name: 'seo_description', label: 'SEO Description', type: 'textarea', required: true, placeholder: 'Brief description for search engines' }
+    ];
+    
+    const templateFields = wizardTemplate?.formFields || defaultFields;
+    console.log('Loading form fields:', templateFields.length, 'fields');
+    
+    setFormFields(templateFields);
+    
+    // Initialize form data with proper defaults for all fields
+    const initialData: Record<string, any> = {};
+    templateFields.forEach(field => {
+      initialData[field.name] = formData[field.name] || '';
+    });
+    setFormData(prev => ({ ...prev, ...initialData }));
+    
+    console.log('Initialized comprehensive form with fields:', templateFields.map(f => f.name));
   }, [wizardTemplate]);
 
-  // Show loading state while template loads
-  if (isLoadingTemplate) {
-    return (
-      <div className="max-w-2xl mx-auto p-6">
-        <Card>
-          <CardContent className="p-8">
-            <div className="flex items-center justify-center space-x-2">
-              <Loader2 className="w-6 h-6 animate-spin" />
-              <span>Loading wizard configuration...</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Show loading state while template loads - but don't block rendering
+  const showLoadingOverlay = isLoadingTemplate && formFields.length === 0;
 
   // Debug wizard template loading
   useEffect(() => {
@@ -134,8 +121,7 @@ export default function DirectoryFormRenderer({
   };
 
   // Handle image upload
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleImageUpload = async (file: File) => {
     if (!file) return;
     
     setIsUploadingImage(true);

@@ -679,6 +679,41 @@ export class MemStorage implements IStorage {
     return this.locationEnhancements.delete(id);
   }
 
+  // Wizard Form Template methods
+  async createWizardFormTemplate(template: InsertWizardFormTemplate): Promise<WizardFormTemplate> {
+    const id = this.currentWizardTemplateId++;
+    const now = new Date();
+    const wizardTemplate: WizardFormTemplate = {
+      ...template,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.wizardFormTemplates.set(id, wizardTemplate);
+    return wizardTemplate;
+  }
+
+  async getWizardFormTemplateByDirectory(directoryName: string): Promise<WizardFormTemplate | undefined> {
+    return Array.from(this.wizardFormTemplates.values())
+      .find(template => template.directoryName === directoryName);
+  }
+
+  async updateWizardFormTemplate(id: number, updates: Partial<InsertWizardFormTemplate>): Promise<WizardFormTemplate | undefined> {
+    const existingTemplate = this.wizardFormTemplates.get(id);
+    if (!existingTemplate) {
+      return undefined;
+    }
+    
+    const updatedTemplate: WizardFormTemplate = {
+      ...existingTemplate,
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.wizardFormTemplates.set(id, updatedTemplate);
+    return updatedTemplate;
+  }
+
   // Get all methods for AI agent
   async getAllUsers(): Promise<User[]> {
     return Array.from(this.users.values());
