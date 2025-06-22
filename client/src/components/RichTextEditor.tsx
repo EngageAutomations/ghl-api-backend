@@ -10,7 +10,7 @@ interface RichTextEditorProps {
   disabled?: boolean;
 }
 
-export default function RichTextEditor({ 
+export function RichTextEditor({ 
   value = '', 
   onChange, 
   placeholder = 'Enter rich text content...', 

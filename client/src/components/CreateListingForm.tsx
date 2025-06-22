@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import RichTextEditor from '@/components/RichTextEditor';
+import { RichTextEditor } from '@/components/RichTextEditor';
 import { Plus, Upload, X } from 'lucide-react';
 
 interface CreateListingFormProps {

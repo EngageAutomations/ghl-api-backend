@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
 import { Switch } from '@/components/ui/switch';
-import RichTextEditor from '@/components/RichTextEditor';
+import { RichTextEditor } from '@/components/RichTextEditor';
 import { ChevronLeft, ChevronRight, Rocket, Settings, FileText, Download, FolderOpen, Building2, Upload, ExternalLink, Code, MousePointer, DownloadIcon, Layout, MapPin, AlignLeft, DollarSign, ShoppingBag, ShoppingCart, Hash, Copy, Monitor, Zap, Plus } from 'lucide-react';
 import { CheckCircle } from 'lucide-react';
 
