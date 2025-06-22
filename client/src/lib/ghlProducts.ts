@@ -5,13 +5,14 @@ import axios from 'axios';
 import { authHeader } from './jwt';
 
 export const createProduct = async (locationId: string, body: any) => {
-  // Generate JWT token for authentication
-  const { data: authData } = await axios.post('/api/auth/jwt');
+  // Use Railway backend directly with installation ID
+  const RAILWAY_BASE = 'https://dir.engageautomations.com';
+  const INSTALLATION_ID = 'install_1750191250983';
   
   const { data } = await axios.post(
-    `/api/ghl/locations/${locationId}/products`, 
-    body, 
-    { headers: { 'Authorization': `Bearer ${authData.token}` } }
+    `${RAILWAY_BASE}/api/products`, 
+    { ...body, locationId, installationId: INSTALLATION_ID }, 
+    { headers: { 'Content-Type': 'application/json', 'x-installation-id': INSTALLATION_ID } }
   );
   return data;
 };
