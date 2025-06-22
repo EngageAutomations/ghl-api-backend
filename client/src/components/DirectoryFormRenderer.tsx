@@ -458,62 +458,38 @@ export default function DirectoryFormRenderer({
         </Label>
         
         {field.name === 'image' ? (
-          // Special image upload field
-          <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              isDragOver 
-                ? 'border-blue-500 bg-blue-50' 
-                : fieldError 
-                ? 'border-red-500 bg-red-50' 
-                : 'border-gray-300 hover:border-gray-400'
-            }`}
-          >
+          // Minimal image upload field
+          <div className="space-y-2">
             {isUploadingImage ? (
-              <div className="flex items-center justify-center space-x-2">
-                <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                <span className="text-blue-600">Uploading to GoHighLevel...</span>
+              <div className="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg bg-gray-50">
+                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                <span className="text-sm text-blue-600">Uploading...</span>
               </div>
             ) : uploadedImages.length > 0 ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-center space-x-2 text-green-600">
-                  <Check className="h-5 w-5" />
-                  <span>Image uploaded successfully!</span>
+              <div className="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg bg-green-50">
+                <img 
+                  src={uploadedImages[0]} 
+                  alt="Uploaded image"
+                  className="w-10 h-10 object-cover rounded"
+                />
+                <div className="flex-grow">
+                  <div className="flex items-center space-x-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span className="text-sm text-green-600">Image uploaded</span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {uploadedImages.map((url, index) => (
-                    <div key={index} className="relative">
-                      <img 
-                        src={url} 
-                        alt={`Upload ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg border"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                        onClick={() => setUploadedImages(prev => prev.filter((_, i) => i !== index))}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setUploadedImages([])}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
             ) : (
-              <div className="space-y-4">
-                <ImageIcon className="h-12 w-12 text-gray-400 mx-auto" />
-                <div>
-                  <p className="text-lg font-medium text-gray-700">
-                    Drop your image here or click to browse
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Upload to GoHighLevel Media Library
-                  </p>
-                </div>
+              <div>
                 <input
                   type="file"
                   accept="image/*"
@@ -525,9 +501,10 @@ export default function DirectoryFormRenderer({
                   type="button"
                   variant="outline"
                   onClick={() => document.getElementById('image-upload')?.click()}
+                  className="w-full"
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  Choose File
+                  Choose Image
                 </Button>
               </div>
             )}
