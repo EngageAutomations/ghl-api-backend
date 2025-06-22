@@ -1519,4 +1519,4 @@ export class DatabaseStorage implements IStorage {
 }
 
 // Switch to MockStorage for development to ensure data saving works
-export const storage = new MockStorage();
+export const storage = new DatabaseStorage();
