@@ -455,44 +455,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Wizard Form Template API Routes
-  app.post("/api/wizard-templates", async (req, res) => {
-    try {
-      const templateData = insertWizardFormTemplateSchema.parse(req.body);
-      const template = await storage.createWizardFormTemplate(templateData);
-      res.json({ success: true, template });
-    } catch (error: any) {
-      console.error("Create wizard template error:", error);
-      res.status(400).json({ success: false, error: error.message || "Failed to create wizard template" });
-    }
-  });
+
 
   app.get("/api/wizard-templates/:directoryName", async (req, res) => {
     try {
       const { directoryName } = req.params;
+      console.log(`Fetching wizard template for directory: ${directoryName}`);
+      
       const template = await storage.getWizardFormTemplateByDirectory(directoryName);
       
       if (!template) {
-        return res.status(404).json({ success: false, error: "Template not found" });
+        console.log(`No template found for ${directoryName}, returning default`);
+        // Return default configuration for generateFormFields()
+        const defaultConfig = {
+          directoryName,
+          wizardConfiguration: {
+            showDescription: true,
+            showMetadata: false,
+            showMaps: false,
+            showPrice: true,
+            metadataFields: [],
+            fieldName: 'listing',
+            embedCode: '',
+            buttonType: 'popup',
+            buttonText: 'Get Info',
+            buttonColor: '#3b82f6'
+          }
+        };
+        return res.json(defaultConfig);
       }
       
-      res.json({ success: true, template });
+      console.log(`Found template for ${directoryName}:`, template);
+      res.json(template);
     } catch (error: any) {
       console.error("Get wizard template error:", error);
-      res.status(500).json({ success: false, error: error.message || "Failed to fetch wizard template" });
+      res.status(500).json({ error: error.message || "Failed to fetch wizard template" });
     }
   });
 
-  app.put("/api/wizard-templates/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const updates = req.body;
-      const template = await storage.updateWizardFormTemplate(parseInt(id), updates);
-      res.json({ success: true, template });
-    } catch (error: any) {
-      console.error("Update wizard template error:", error);
-      res.status(400).json({ success: false, error: error.message || "Failed to update wizard template" });
-    }
-  });
+
 
   // Real Form Submission Routes
   app.post("/api/form-submit/:locationId/:directoryName", handleFormSubmission);
@@ -1280,28 +1281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put('/api/wizard-templates/:directoryName', async (req, res) => {
-    try {
-      const { directoryName } = req.params;
-      const updates = insertWizardFormTemplateSchema.partial().parse(req.body);
-      
-      const existing = await storage.getWizardFormTemplateByDirectory(directoryName);
-      if (!existing) {
-        return res.status(404).json({ error: 'Wizard form template not found' });
-      }
-      
-      const updatedTemplate = await storage.updateWizardFormTemplate(existing.id, {
-        ...updates,
-        updatedAt: new Date()
-      });
-      
-      console.log(`AUDIT: Wizard template updated for directory ${directoryName}`);
-      res.json(updatedTemplate);
-    } catch (error) {
-      console.error('Error updating wizard form template:', error);
-      res.status(500).json({ error: 'Failed to update wizard form template' });
-    }
-  });
+
 
   // Location Enhancement routes with enhanced validation and conflict resolution
   app.post('/api/location-enhancements', validateLocationEnhancementBody, async (req, res) => {

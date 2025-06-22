@@ -112,9 +112,7 @@ export default function ConfigWizardSlideshow() {
 
       const wizardTemplateData = {
         directoryName: directoryName.trim(),
-        wizardConfiguration,
-        formFields: [
-          { name: 'name', label: 'Product/Service Name', type: 'text', required: true, placeholder: 'Enter the name of your product or service', description: 'This will be displayed as the main title in the directory' },
+        wizardConfiguration
           { name: 'description', label: 'Product Description', type: 'textarea', required: true, placeholder: 'Describe your product or service...', description: 'Provide a detailed description of your product or service' },
           { name: 'image', label: 'Product Image', type: 'url', required: true, placeholder: 'Upload image', description: 'Upload to GoHighLevel Media Library' },
           ...(showPrice ? [{ name: 'price', label: 'Price', type: 'text', required: false, placeholder: '$99.99', description: 'Enter the price for your product or service' }] : []),
