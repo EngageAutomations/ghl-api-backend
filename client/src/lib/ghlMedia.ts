@@ -14,14 +14,9 @@ export async function uploadImages(locationId: string, files: File[]): Promise<s
   form.append('locationId', locationId);
 
   const { data } = await axios.post(
-    `${RAILWAY_BASE}/api/media/upload`,
-    form,
-    { 
-      headers: { 
-        'x-installation-id': INSTALLATION_ID
-        // Don't set Content-Type, let browser set it with boundary for multipart
-      } 
-    }
+    `${RAILWAY_BASE}/api/ghl/${INSTALLATION_ID}/media`,
+    form
+    // Don't set headers for multipart, let browser handle
   );
   
   return data.uploaded?.map((u: any) => u.publicUrl) || [];   // [url,…]

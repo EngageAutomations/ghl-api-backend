@@ -10,9 +10,9 @@ export const createProduct = async (locationId: string, body: any) => {
   const INSTALLATION_ID = 'install_1750191250983';
   
   const { data } = await axios.post(
-    `${RAILWAY_BASE}/api/products`, 
-    { ...body, locationId, installationId: INSTALLATION_ID }, 
-    { headers: { 'Content-Type': 'application/json', 'x-installation-id': INSTALLATION_ID } }
+    `${RAILWAY_BASE}/api/ghl/${INSTALLATION_ID}/products`, 
+    { ...body, locationId }, 
+    { headers: { 'Content-Type': 'application/json' } }
   );
   return data;
 };
