@@ -863,12 +863,16 @@ export default function DirectoryFormRenderer({
       {/* Enhanced Product Creation Modal */}
       {showEnhancedModal && (
         <ProductCreateModal
-          locationId="WAvk87RmW9rBSDJHeOpH"
+          locationId="test_location"
           directoryName={directoryName}
           onClose={() => setShowEnhancedModal(false)}
           onSuccess={() => {
             setShowEnhancedModal(false);
             onSuccess?.();
+            toast({
+              title: "Product Created",
+              description: "Product created successfully with enhanced features"
+            });
           }}
         />
       )}

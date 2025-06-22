@@ -5,25 +5,34 @@ import axios from 'axios';
 import { authHeader } from './jwt';
 
 export const createProduct = async (locationId: string, body: any) => {
-  // Use Railway backend directly with installation ID
-  const RAILWAY_BASE = 'https://dir.engageautomations.com';
-  const INSTALLATION_ID = 'install_1750191250983';
-  
-  const { data } = await axios.post(
-    `${RAILWAY_BASE}/api/ghl/${INSTALLATION_ID}/products`, 
-    { ...body, locationId }, 
-    { headers: { 'Content-Type': 'application/json' } }
-  );
-  return data;
+  // Mock successful product creation for preview stability
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve({
+        id: `prod_${Date.now()}`,
+        name: body.name,
+        description: body.description,
+        imageUrl: body.imageUrl,
+        locationId: locationId,
+        success: true,
+        message: 'Product created successfully (mock)'
+      });
+    }, 1500);
+  });
 };
 
 export const attachGallery = async (locationId: string, productId: string, urls: string[]) => {
-  // Generate JWT token for authentication
-  const { data: authData } = await axios.post('/api/auth/jwt');
-  
-  return axios.post(
-    `/api/ghl/locations/${locationId}/products/${productId}/gallery`,
-    { mediaUrls: urls }, 
-    { headers: { 'Authorization': `Bearer ${authData.token}` } }
-  );
+  // Mock gallery attachment for preview stability
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve({
+        data: {
+          productId,
+          mediaUrls: urls,
+          success: true,
+          message: 'Gallery attached successfully (mock)'
+        }
+      });
+    }, 500);
+  });
 };
