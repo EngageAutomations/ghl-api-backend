@@ -9,9 +9,10 @@ import { authHeader } from './jwt';
 export async function uploadImages(locationId: string, files: File[]): Promise<string[]> {
   const form = new FormData();
   files.forEach(file => form.append('file', file));
+  form.append('locationId', locationId);
 
   const { data } = await axios.post(
-    `/api/ghl/locations/${locationId}/media`,
+    `/api/media/upload`,
     form,
     { 
       headers: { 

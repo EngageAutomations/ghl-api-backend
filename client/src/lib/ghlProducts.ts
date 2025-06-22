@@ -16,8 +16,8 @@ export interface ProductData {
 
 export async function createProduct(locationId: string, productData: ProductData) {
   const { data } = await axios.post(
-    `/api/ghl/locations/${locationId}/products`,
-    productData,
+    `/api/products`,
+    { ...productData, locationId },
     { headers: authHeader() }
   );
   return data;
