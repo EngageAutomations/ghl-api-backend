@@ -278,7 +278,7 @@ export default function DirectoryFormRenderer({
         price: formData.price || '',
         address: formData.address || '',
         imageUrl: uploadedImages[0] || '',
-        images: uploadedImages,
+        images: finalImageUrls.length > 0 ? finalImageUrls : uploadedImages,
         seoTitle: formData.seo_title,
         seoDescription: formData.seo_description,
         bulletPoints,
@@ -390,37 +390,44 @@ export default function DirectoryFormRenderer({
           }
         }
 
-        // Create actual GoHighLevel product via Railway backend
-        try {
-          console.log('Creating GoHighLevel product via Railway backend...');
-          
-          // Use the default location ID from Railway backend
-          const locationId = 'WAvk87RmW9rBSDJHeOpH';
-          
-          const ghlProductData = {
-            name: formData.name,
-            description: formData.description,
-            price: formData.price,
-            productType: 'DIGITAL'
-          };
+        // Step 2: Create GoHighLevel product with uploaded images
+        if (finalImageUrls.length > 0) {
+          try {
+            console.log('Creating GoHighLevel product with images...');
+            
+            const ghlProductData = {
+              name: formData.name,
+              description: formData.description,
+              price: formData.price,
+              productType: 'DIGITAL'
+            };
 
-          const ghlResponse = await apiRequest(`/api/ghl/locations/${locationId}/products`, {
-            method: 'POST',
-            data: ghlProductData
-          });
+            const ghlProduct = await createProductMutation.mutateAsync({
+              formValues: ghlProductData,
+              imageUrls: finalImageUrls
+            });
 
-          console.log('GoHighLevel product created:', ghlResponse);
-          
+            console.log('GoHighLevel product created:', ghlProduct);
+            setPhase('done');
+            
+            toast({
+              title: "Product Created in GoHighLevel",
+              description: "Your product has been created successfully in your GHL account with all enhancements!",
+            });
+          } catch (ghlError) {
+            console.error('GHL product creation failed:', ghlError);
+            setPhase('error');
+            toast({
+              title: "Product Saved Locally",
+              description: "Product saved locally but GoHighLevel sync failed. You can retry sync later.",
+              variant: "default",
+            });
+          }
+        } else {
+          setPhase('done');
           toast({
-            title: "Product Created in GoHighLevel",
-            description: "Your product has been created successfully in your GHL account with all enhancements!",
-          });
-        } catch (ghlError) {
-          console.error('GHL product creation failed:', ghlError);
-          toast({
-            title: "Product Saved Locally",
-            description: "Product saved locally but GoHighLevel sync failed. You can retry sync later.",
-            variant: "default",
+            title: "Product Created Locally",
+            description: "Your product has been saved successfully with all enhancements!",
           });
         }
         
