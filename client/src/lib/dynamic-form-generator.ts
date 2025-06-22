@@ -73,7 +73,7 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
   if (config.showMaps) {
     fields.push({
       name: 'address',
-      label: 'Business Address',
+      label: 'Map Embed Address (Google)',
       type: 'text',
       required: false,
       placeholder: '123 Main St, City, State 12345',

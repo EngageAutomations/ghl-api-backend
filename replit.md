@@ -180,6 +180,9 @@ The application follows a modern full-stack architecture with clear separation b
   - Added proper validation, error handling, and accessibility features (hover/focus states)
   - Form generation creates up to 8 icon + text pairs that render as rows with icons over text on webpage
   - Perfect visual match to wizard design with clean, professional button interface
+  - Updated Maps field label to "Map Embed Address (Google)" for clarity
+  - Form starts with 1 metadata row, users can add up to 8 total with "Add Additional Field" button
+  - All metadata text fields consistently show "Enter display text" placeholder
 
 - June 22, 2025: Streamlined Wizard Configuration System - COMPLETED
   - Implemented efficient approach: save wizard config as JSON and reuse generateFormFields() function
