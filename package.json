@@ -67,7 +67,7 @@
     "googleapis": "^149.0.0",
     "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.2",
-    "lucide-react": "^0.453.0",
+    "lucide-react": "^0.367.0",
     "memorystore": "^1.6.7",
     "next-themes": "^0.4.6",
     "node-fetch": "^3.3.2",

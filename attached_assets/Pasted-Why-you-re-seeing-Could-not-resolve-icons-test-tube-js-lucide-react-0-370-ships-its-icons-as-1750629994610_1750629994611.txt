@@ -1,0 +1,66 @@
+Why you’re seeing “Could not resolve './icons/test-tube.js'”
+lucide-react ≥ 0.370 ships its icons as individual ES-module files inside
+dist/esm/icons.
+Because the package’s exports field hides those files, esbuild/Vite can’t reach
+them unless you give it an alias.
+When the main bundle re-exports every icon, Vite tries to follow
+./icons/test-tube.js, ./icons/test-tubes.js, etc. → fails → build aborts.
+
+⚡ Fix in two lines (Vite alias)
+Add this to the resolve.alias block of your vite.config.ts:
+
+ts
+Copy
+Edit
+import { fileURLToPath, URL } from 'url';
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      // tell Vite where the real icon ESM files live
+      'lucide-react/icons': fileURLToPath(
+        new URL('./node_modules/lucide-react/dist/esm/icons', import.meta.url)
+      ),
+      // (optional) make bare imports tree-shake too
+      'lucide-react': fileURLToPath(
+        new URL('./node_modules/lucide-react/dist/esm', import.meta.url)
+      ),
+    },
+  },
+});
+Restart the Repl (⌘⇧P → “Restart”) or just hit ⟲ Run.
+
+TypeScript helper (optional but nice)
+Create src/lucide.d.ts:
+
+ts
+Copy
+Edit
+declare module 'lucide-react/icons/*' {
+  import { FC } from 'react';
+  import { LucideProps } from 'lucide-react';
+  const Icon: FC<LucideProps>;
+  export default Icon;
+}
+Now “import Loader2 from 'lucide-react/icons/loader-2'” gets proper typing.
+
+Alternative quick-and-dirty fixes (pick one, not all)
+Option	Command	Trade-offs
+Pin an older working version	npm i lucide-react@0.367	Locks you out of new icons
+Upgrade everything	npm i -D vite@latest esbuild@latest	Works but heavier diff
+Drop lucide-react	Switch to react-icons or heroicons	No alias needed
+
+The alias route keeps the latest Lucide, smallest diff, and zero runtime cost.
+
+After the alias: what if Preview still shows connection refused?
+Re-install: rm -rf node_modules && npm i
+
+Clear Vite cache: rm -rf node_modules/.vite
+
+Be sure only one dev server is bound to $PORT (5173 if you use Vite).
+
+Never hard-code localhost in Axios; use /api + Vite proxy as outlined earlier.
+
+Follow those steps and both the Lucide build errors and the Preview
+“connection refused” will disappear.
