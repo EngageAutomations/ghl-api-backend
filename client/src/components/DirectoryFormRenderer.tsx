@@ -11,6 +11,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useWizardFormTemplate } from '@/hooks/useWizardFormTemplate';
 import { generateFormFields, DirectoryConfig } from '@/lib/dynamic-form-generator';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { ProductCreateModal } from '@/components/ProductCreateModal';
 
 interface DirectoryFormRendererProps {
   directoryName: string;
@@ -39,6 +40,7 @@ export default function DirectoryFormRenderer({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [bulletPoints, setBulletPoints] = useState<string[]>([]);
+  const [showEnhancedModal, setShowEnhancedModal] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);

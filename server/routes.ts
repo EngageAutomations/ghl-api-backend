@@ -737,10 +737,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/listing-addons", async (req, res) => {
     try {
       console.log("Creating addon with data:", req.body);
+      
+      // Validate required fields
+      if (!req.body.listingId || !req.body.type) {
+        return res.status(400).json({ 
+          message: "Missing required fields: listingId and type are required" 
+        });
+      }
+      
       const addonData = insertListingAddonSchema.parse(req.body);
       console.log("Parsed addon data:", addonData);
+      
       const addon = await storage.createListingAddon(addonData);
       console.log("Created addon:", addon);
+      
       res.status(201).json(addon);
     } catch (error) {
       console.error("Error creating listing addon:", error);
@@ -748,7 +758,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error message:", error.message);
         console.error("Error stack:", error.stack);
       }
-      res.status(500).json({ message: "Failed to create listing addon" });
+      
+      // Return more specific error information
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          message: "Invalid addon data format",
+          details: error.issues || error.message
+        });
+      }
+      
+      res.status(500).json({ 
+        message: "Failed to create listing addon",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
   
