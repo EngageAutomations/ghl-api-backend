@@ -2809,6 +2809,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Railway Multi-API Product Creation Routes
+  // Upload images to GoHighLevel via Railway proxy
+  app.post("/api/ghl/locations/:locationId/media", async (req, res) => {
+    try {
+      const { locationId } = req.params;
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+        return res.status(401).json({ error: 'JWT token required' });
+      }
+
+      // Forward multipart form data to Railway backend
+      const railwayResponse = await fetch(`https://dir.engageautomations.com/api/ghl/media/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': req.headers['content-type'] || '',
+        },
+        body: req.body
+      });
+
+      const data = await railwayResponse.json();
+      
+      if (!railwayResponse.ok) {
+        return res.status(railwayResponse.status).json(data);
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('Railway media upload error:', error);
+      res.status(500).json({ error: 'Media upload failed' });
+    }
+  });
+
+  // Create product in GoHighLevel via Railway proxy
+  app.post("/api/ghl/locations/:locationId/products", async (req, res) => {
+    try {
+      const { locationId } = req.params;
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+        return res.status(401).json({ error: 'JWT token required' });
+      }
+
+      const railwayResponse = await fetch(`https://dir.engageautomations.com/api/ghl/products`, {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...req.body,
+          locationId,
+          installationId: 'install_1750191250983'
+        })
+      });
+
+      const data = await railwayResponse.json();
+      
+      if (!railwayResponse.ok) {
+        return res.status(railwayResponse.status).json(data);
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('Railway product creation error:', error);
+      res.status(500).json({ error: 'Product creation failed' });
+    }
+  });
+
+  // Attach gallery to product in GoHighLevel via Railway proxy
+  app.post("/api/ghl/locations/:locationId/products/:productId/gallery", async (req, res) => {
+    try {
+      const { locationId, productId } = req.params;
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+        return res.status(401).json({ error: 'JWT token required' });
+      }
+
+      const railwayResponse = await fetch(`https://dir.engageautomations.com/api/ghl/products/${productId}/gallery`, {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...req.body,
+          locationId,
+          installationId: 'install_1750191250983'
+        })
+      });
+
+      const data = await railwayResponse.json();
+      
+      if (!railwayResponse.ok) {
+        return res.status(railwayResponse.status).json(data);
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('Railway gallery attachment error:', error);
+      res.status(500).json({ error: 'Gallery attachment failed' });
+    }
+  });
+
   app.get("/api/railway/test-connection", async (req, res) => {
     try {
       const { railwayIntegration } = await import('./railway-integration.js');

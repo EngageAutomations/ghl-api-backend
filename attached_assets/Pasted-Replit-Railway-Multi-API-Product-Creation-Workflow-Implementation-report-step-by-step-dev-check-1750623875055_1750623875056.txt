@@ -1,0 +1,192 @@
+Replit → Railway Multi-API Product-Creation Workflow
+(Implementation report & step-by-step dev checklist)
+
+0. Prerequisites & current stack
+Item	Status
+Railway proxy with location-centric routes and JWT gatekeeper	Ready
+Multi-file upload proxy route (POST /api/ghl/locations/:locationId/media)	Ready
+Product create proxy route (POST /api/ghl/locations/:locationId/products)	Ready
+Gallery attach proxy route (POST /api/ghl/locations/:locationId/products/:id/gallery)	Ready
+Front-end confirmation modal after success	Already in UI
+JWT fetched once per session and stored in sessionStorage.jwt	Done
+
+All code paths below assume those pieces are live.
+
+1. Front-end changes (Replit workspace)
+1.1 Files to touch
+bash
+Copy
+Edit
+client/src/
+├── components/
+│   └── ProductCreateModal.tsx   (was DirectoryFormRenderer.tsx)
+├── hooks/
+│   ├── useUploadImages.ts
+│   └── useCreateProduct.ts
+└── lib/
+    ├── ghlMedia.ts
+    └── ghlProducts.ts
+1.2 Axios helpers
+ts
+Copy
+Edit
+// lib/ghlMedia.ts
+import axios from 'axios';
+import { authHeader } from './jwt';
+
+export async function uploadImages(locationId: string, files: File[]) {
+  const form = new FormData();
+  files.forEach(f => form.append('file', f));          // key MUST be 'file'
+
+  const { data } = await axios.post(
+    `/api/ghl/locations/${locationId}/media`,
+    form,
+    { headers: { ...authHeader(), /* boundary added automatically */ } }
+  );
+  return data.uploaded.map((u: any) => u.publicUrl);   // [url,…]
+}
+ts
+Copy
+Edit
+// lib/ghlProducts.ts
+import axios from 'axios';
+import { authHeader } from './jwt';
+
+export const createProduct   = (locId: string, body: any) =>
+  axios.post(`/api/ghl/locations/${locId}/products`, body, { headers: { ...authHeader() } })
+       .then(r => r.data);
+
+export const attachGallery   = (locId: string, productId: string, urls: string[]) =>
+  axios.post(`/api/ghl/locations/${locId}/products/${productId}/gallery`,
+             { mediaUrls: urls }, { headers: { ...authHeader() } });
+1.3 React hooks
+ts
+Copy
+Edit
+// hooks/useUploadImages.ts
+import { useMutation } from '@tanstack/react-query';
+import { uploadImages } from '@/lib/ghlMedia';
+
+export const useUploadImages = (locationId: string) =>
+  useMutation((files: File[]) => uploadImages(locationId, files));
+ts
+Copy
+Edit
+// hooks/useCreateProduct.ts
+import { useMutation } from '@tanstack/react-query';
+import { createProduct, attachGallery } from '@/lib/ghlProducts';
+
+export const useCreateProduct = (locationId: string) =>
+  useMutation(async ({ formValues, urls }: { formValues: any; urls: string[] }) => {
+    const [thumb, ...gallery] = urls;
+    const product = await createProduct(locationId, { ...formValues, imageUrl: thumb });
+    if (gallery.length) await attachGallery(locationId, product.id, gallery);
+    return product;
+  });
+1.4 UI component (loading icon beside Submit)
+tsx
+Copy
+Edit
+// components/ProductCreateModal.tsx
+import { useState } from 'react';
+import { useUploadImages }  from '@/hooks/useUploadImages';
+import { useCreateProduct } from '@/hooks/useCreateProduct';
+import { CheckCircle, Loader2 } from 'lucide-react';
+
+export function ProductCreateModal({ locationId, onClose }) {
+  const [files, setFiles] = useState<File[]>([]);
+  const [formValues, setFormValues] = useState<any>({});
+  const [phase, setPhase] = useState<'idle'|'upload'|'create'|'gallery'|'done'|'error'>('idle');
+
+  const uploadMut  = useUploadImages(locationId);
+  const createMut  = useCreateProduct(locationId);
+
+  const handleSubmit = async () => {
+    setPhase('upload');
+    try {
+      const urls = await uploadMut.mutateAsync(files);
+      setPhase('create');
+      await createMut.mutateAsync({ formValues, urls });
+      setPhase('done');                        // triggers confirmation modal already in UI
+    } catch (e) {
+      setPhase('error');
+    }
+  };
+
+  const spinning = phase === 'upload' || phase === 'create' || phase === 'gallery';
+
+  return (
+    <div className="modal-body">
+      {/* …form fields that update files[] & formValues… */}
+
+      <button onClick={handleSubmit} disabled={spinning} className="btn-primary flex items-center gap-2">
+        {spinning && <Loader2 className="animate-spin" size={16} />}
+        {phase === 'done' && <CheckCircle size={16} className="text-green-500" />}
+        Submit
+      </button>
+
+      {phase === 'error' && <p className="text-red-600 mt-2">Failed—please retry</p>}
+    </div>
+  );
+}
+Behavior
+
+The purple “Submit” button now shows a spinner icon while uploads/creates run.
+
+Modal does not close; existing confirmation pop-up fires when phase === 'done'.
+
+2. Backend call-flow summary (Railway proxy)
+Step	Route (client → Railway)	Auth header	Body	Railway action
+1	POST /api/ghl/locations/:locationId/media	Bearer <JWT>	multipart file=@bytes (≤10 images)	Loop files → medias/upload-file
+2	POST /api/ghl/locations/:locationId/products	same	JSON with imageUrl (thumb) + product fields	Forward to products/
+3	POST /api/ghl/locations/:locationId/products/:id/gallery (only if more URLs)	same	{ "mediaUrls": [url2,url3,…] }	Forward to products/:id/gallery
+
+All three routes already exist in the proxy; no token ever leaves the server.
+
+3. Edge-case handling
+Case	UX / Code
+File > 25 MB or wrong MIME	Client blocks selection & shows toast
+Upload success but product 400	Show error banner, keep images cached locally so user can retry without re-upload
+Gallery call fails	Confirmation modal notes “Product created, gallery pending retry”; provide “Retry gallery” button calling attachGallery again
+Network offline	Form validation still allowed; files & formValues are queued with localforage; background worker retries when navigator.onLine
+
+4. QA checklist
+5 images, happy path – Spinner shows, confirmation appears, gallery displays all 5.
+
+1 image – Step 3 is skipped; still green success.
+
+Bad JPEG – Selection rejected, submit disabled until valid.
+
+JWT missing – Proxy returns 401, UI shows red banner.
+
+Slow upload (throttle network) – Spinner persists; after success, confirmation fires, spinner removed.
+
+5. Package.json diff (if not yet applied)
+diff
+Copy
+Edit
+ "dependencies": {
+   …
++  "jsonwebtoken": "^9.0.2",
++  "react-query": "^5.0.0",
+   …
+ },
+ "devDependencies": {
++  "nodemon": "^3.1.0"
+ }
+Deliverables for the Replit agent
+Code edits per file list in §1.2–1.4.
+
+npm install new deps.
+
+Manual QA using checklist §4.
+
+Commit & push; Railway auto-deploy will pick up proxy changes if any.
+
+Implementing exactly this flow gives you:
+
+A single UI action with clear visual feedback (spinner → check-mark).
+
+Atomic backend state—product always created before gallery attach.
+
+Zero token exposure; every call stays inside the existing Railway proxy.
