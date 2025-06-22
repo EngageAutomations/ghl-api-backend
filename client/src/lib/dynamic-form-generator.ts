@@ -62,7 +62,7 @@ export function generateFormFields(config: DirectoryConfig): FormField[] {
     fields.push({
       name: 'expanded_description',
       label: 'Detailed Description',
-      type: 'textarea',
+      type: 'richtext',
       required: false,
       placeholder: 'Provide detailed information...',
       description: 'Enhanced content for detailed listings'

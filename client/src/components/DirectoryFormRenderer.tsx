@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useWizardFormTemplate } from '@/hooks/useWizardFormTemplate';
 import { generateFormFields, DirectoryConfig } from '@/lib/dynamic-form-generator';
+import { RichTextEditor } from '@/components/RichTextEditor';
 
 interface DirectoryFormRendererProps {
   directoryName: string;
@@ -428,6 +429,15 @@ export default function DirectoryFormRenderer({
                 )}
               </Button>
             )}
+          </div>
+        ) : field.type === 'richtext' ? (
+          <div className="space-y-2">
+            <RichTextEditor
+              value={formData[field.name] || ''}
+              onChange={(value) => setFormData(prev => ({ ...prev, [field.name]: value }))}
+              placeholder={field.placeholder}
+              className={`min-h-[200px] ${fieldError ? 'border-red-500' : ''}`}
+            />
           </div>
         ) : (
           <Input
