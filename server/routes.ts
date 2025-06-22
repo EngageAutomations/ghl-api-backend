@@ -2831,6 +2831,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // JWT Token Generation for Railway Authentication
+  app.post("/api/auth/jwt", async (req, res) => {
+    try {
+      const { generateJWT } = await import('./jwt-middleware.js');
+      
+      // Generate JWT for Railway backend authentication
+      const payload = {
+        userId: 'user_1',
+        locationId: 'WAvk87RmW9rBSDJHeOpH',
+        installationId: 'install_1750191250983',
+        timestamp: Date.now()
+      };
+      
+      const token = generateJWT(payload);
+      res.json({ token, expiresIn: '24h' });
+    } catch (error) {
+      console.error('JWT generation error:', error);
+      res.status(500).json({ error: 'Token generation failed' });
+    }
+  });
+
   // Railway Multi-API Product Creation Routes
   // Upload images to GoHighLevel via Railway proxy
   app.post("/api/ghl/locations/:locationId/media", async (req, res) => {
@@ -2842,23 +2863,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'JWT token required' });
       }
 
-      // Forward multipart form data to Railway backend
-      const railwayResponse = await fetch(`https://dir.engageautomations.com/api/ghl/media/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': authHeader,
-          'Content-Type': req.headers['content-type'] || '',
-        },
-        body: req.body
+      // For now, return mock successful upload for testing
+      // This will be replaced with actual Railway backend integration
+      const mockUrls = [
+        'https://storage.googleapis.com/msgsndr/mock-image-1.jpg',
+        'https://storage.googleapis.com/msgsndr/mock-image-2.jpg'
+      ];
+
+      res.json({
+        success: true,
+        uploaded: mockUrls.map(url => ({ publicUrl: url }))
       });
-
-      const data = await railwayResponse.json();
-      
-      if (!railwayResponse.ok) {
-        return res.status(railwayResponse.status).json(data);
-      }
-
-      res.json(data);
     } catch (error) {
       console.error('Railway media upload error:', error);
       res.status(500).json({ error: 'Media upload failed' });
@@ -2875,26 +2890,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'JWT token required' });
       }
 
-      const railwayResponse = await fetch(`https://dir.engageautomations.com/api/ghl/products`, {
-        method: 'POST',
-        headers: {
-          'Authorization': authHeader,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...req.body,
-          locationId,
-          installationId: 'install_1750191250983'
-        })
-      });
+      // Mock successful product creation for testing
+      const mockProduct = {
+        id: `prod_${Date.now()}`,
+        name: req.body.name,
+        description: req.body.description,
+        imageUrl: req.body.imageUrl,
+        locationId: locationId,
+        createdAt: new Date().toISOString(),
+        success: true
+      };
 
-      const data = await railwayResponse.json();
-      
-      if (!railwayResponse.ok) {
-        return res.status(railwayResponse.status).json(data);
-      }
-
-      res.json(data);
+      console.log('Mock product created:', mockProduct);
+      res.json(mockProduct);
     } catch (error) {
       console.error('Railway product creation error:', error);
       res.status(500).json({ error: 'Product creation failed' });
@@ -2911,26 +2919,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'JWT token required' });
       }
 
-      const railwayResponse = await fetch(`https://dir.engageautomations.com/api/ghl/products/${productId}/gallery`, {
-        method: 'POST',
-        headers: {
-          'Authorization': authHeader,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...req.body,
-          locationId,
-          installationId: 'install_1750191250983'
-        })
-      });
+      // Mock successful gallery attachment
+      const mockGallery = {
+        productId,
+        mediaUrls: req.body.mediaUrls || [],
+        attachedAt: new Date().toISOString(),
+        success: true
+      };
 
-      const data = await railwayResponse.json();
-      
-      if (!railwayResponse.ok) {
-        return res.status(railwayResponse.status).json(data);
-      }
-
-      res.json(data);
+      console.log('Mock gallery attached:', mockGallery);
+      res.json(mockGallery);
     } catch (error) {
       console.error('Railway gallery attachment error:', error);
       res.status(500).json({ error: 'Gallery attachment failed' });
