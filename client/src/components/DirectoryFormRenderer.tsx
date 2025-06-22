@@ -349,11 +349,14 @@ export default function DirectoryFormRenderer({
               onValueChange={(value) => setFormData(prev => ({ ...prev, 'metadata_text_font': value }))}
             >
               <SelectTrigger className={`w-full ${fontError ? 'border-red-500' : ''}`}>
-                <SelectValue placeholder={fontField.placeholder} />
+                <SelectValue 
+                  placeholder={fontField.placeholder}
+                  style={{ fontFamily: formData['metadata_text_font'] || 'inherit' }}
+                />
               </SelectTrigger>
               <SelectContent>
                 {fontField.options?.map((option) => (
-                  <SelectItem key={option} value={option}>
+                  <SelectItem key={option} value={option} style={{ fontFamily: option }}>
                     {option}
                   </SelectItem>
                 ))}
