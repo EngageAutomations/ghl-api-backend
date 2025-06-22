@@ -375,10 +375,39 @@ export default function DirectoryFormRenderer({
           });
         }
 
-        toast({
-          title: "Product Created",
-          description: "Your product has been created successfully with all enhancements!",
-        });
+        // Create actual GoHighLevel product via Railway backend
+        try {
+          console.log('Creating GoHighLevel product via Railway backend...');
+          const ghlProductData = {
+            name: formData.name,
+            description: formData.description,
+            images: uploadedImages,
+            price: formData.price,
+            productType: 'DIGITAL',
+            locationId: 'auto', // Railway backend will use stored location ID
+            installationId: 'auto' // Railway backend will use primary installation
+          };
+
+          const ghlResponse = await apiRequest('/api/ghl/create-product', {
+            method: 'POST',
+            data: ghlProductData
+          });
+
+          console.log('GoHighLevel product created:', ghlResponse);
+          
+          toast({
+            title: "Product Created in GoHighLevel",
+            description: "Your product has been created successfully in your GHL account with all enhancements!",
+          });
+        } catch (ghlError) {
+          console.error('GHL product creation failed:', ghlError);
+          toast({
+            title: "Product Saved Locally",
+            description: "Product saved locally but GoHighLevel sync failed. You can retry sync later.",
+            variant: "default",
+          });
+        }
+        
         onSuccess?.();
       }
     } catch (error: any) {
