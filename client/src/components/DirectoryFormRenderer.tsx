@@ -52,10 +52,10 @@ export default function DirectoryFormRenderer({
       // Reuse the exact same generateFormFields function from wizard
       const wizardConfig: DirectoryConfig = {
         customFieldName: wizardTemplate.wizardConfiguration.fieldName || 'listing',
-        showDescription: wizardTemplate.wizardConfiguration.showDescription || false,
-        showMetadata: wizardTemplate.wizardConfiguration.showMetadata || false,
-        showMaps: wizardTemplate.wizardConfiguration.showMaps || false,
-        showPrice: wizardTemplate.wizardConfiguration.showPrice || false,
+        showDescription: wizardTemplate.wizardConfiguration.showDescription ?? false,
+        showMetadata: wizardTemplate.wizardConfiguration.showMetadata ?? false,
+        showMaps: wizardTemplate.wizardConfiguration.showMaps ?? false,
+        showPrice: wizardTemplate.wizardConfiguration.showPrice ?? false,
         metadataFields: wizardTemplate.wizardConfiguration.metadataFields || [],
         formEmbedUrl: wizardTemplate.wizardConfiguration.embedCode || '',
         buttonType: wizardTemplate.wizardConfiguration.buttonType || 'popup'
@@ -65,6 +65,13 @@ export default function DirectoryFormRenderer({
       const generatedFields = generateFormFields(wizardConfig);
       setFormFields(generatedFields);
       console.log('Reusing wizard form generation logic - fields:', generatedFields.map(f => f.name));
+      console.log('Wizard config applied:', {
+        showDescription: wizardConfig.showDescription,
+        showMetadata: wizardConfig.showMetadata,
+        showMaps: wizardConfig.showMaps,
+        showPrice: wizardConfig.showPrice,
+        metadataFields: wizardConfig.metadataFields
+      });
     } else {
       // Fallback to basic configuration if no wizard template exists
       const defaultConfig: DirectoryConfig = {

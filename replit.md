@@ -171,6 +171,14 @@ The application follows a modern full-stack architecture with clear separation b
   - DirectoryDetails.tsx "Create GHL Product" button now shows rich text editor instead of regular textarea
   - Eliminated React module import errors and resolved component loading issues
 
+- June 22, 2025: Metadata Bar and Maps Toggle Fix - COMPLETED
+  - Fixed critical configuration loading issue where metadata bar and maps weren't showing when toggles enabled
+  - Changed logical OR operator (||) to nullish coalescing operator (??) in DirectoryFormRenderer
+  - Wizard configuration now properly loads with boolean values preserved (showMaps, showMetadata)
+  - Maps toggle correctly adds "Business Address" field for Google Maps integration
+  - Metadata toggle correctly adds metadata fields (phone, hours, location) for metadata bar display
+  - Form fields now match wizard configuration exactly when toggles are enabled
+
 - June 22, 2025: Streamlined Wizard Configuration System - COMPLETED
   - Implemented efficient approach: save wizard config as JSON and reuse generateFormFields() function
   - Eliminated complex form duplication by using same logic from wizard in DirectoryFormRenderer
