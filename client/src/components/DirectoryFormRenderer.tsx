@@ -324,7 +324,6 @@ export default function DirectoryFormRenderer({
         label: field.label,
         willUseRichText: field.type === 'richtext'
       });
-      });
     }
     
     return (
