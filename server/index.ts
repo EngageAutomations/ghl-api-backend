@@ -1879,7 +1879,7 @@ app.use((req, res, next) => {
     await setupVite(app, server);
   }
 
-  // Use Cloud Run's PORT environment variable (default 8080) or fallback to 5000 for local dev
+  // Use Replit's PORT environment variable (default 5000) 
   const port = parseInt(process.env.PORT || '5000', 10);
   server.listen(port, "0.0.0.0", () => {
     console.log('='.repeat(50));
