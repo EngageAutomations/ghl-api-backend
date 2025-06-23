@@ -1,0 +1,104 @@
+Why the Preview still shows “connection refused” even though your logs end with “🚀 Server Running … Port 5000”
+Replit’s reverse-proxy will give up after ~4-5 failed probes.
+If your process hasn’t bound to $PORT (5000) quickly enough—usually within 3 seconds—the proxy drops the mapping and the Preview pane never re-attaches, even if the server finally comes up later.
+
+In your log stream:
+
+pgsql
+Copy
+Edit
+… forward 5000 → 80
+error proxying request … connection refused   ⟵ happens 8-10 times
+NODE_ENV=production node dist/index.js        ⟵ build finishes
+🚀 Server Running                               ⟵ now listening
+The listener appears after the proxy has already abandoned port 5000,
+so the browser keeps seeing “connection refused”.
+
+Two ways to fix it
+Approach	When to choose	How
+A. Bind immediately, then async-init	You need the Node back-end running in Preview	Start Express first, then run the long “GHL OAuth configured…” setup in the background.
+B. Let Vite dev server own $PORT	You only need the React front-end in Preview and can hit Railway for APIs	Run vite --port $PORT as the Replit command; keep Node backend for Railway only.
+
+Below is the code for Approach A because it keeps both static serving and API proxy in the same Repl.
+
+1 Bind first, initialise later
+js
+Copy
+Edit
+// index.ts or index.js
+const express = require('express');
+const app = express();
+
+const port = process.env.PORT || 5000;
+app.get('/health', (_, res) => res.send('OK'));   // quick probe
+
+// 1️⃣ LISTEN IMMEDIATELY
+app.listen(port, '0.0.0.0', () => {
+  console.log(`🟢 Express listening ${port} (bootstrapping...)`);
+});
+
+// 2️⃣ THEN do slow setup without blocking the event loop
+(async () => {
+  await heavyStartup();             // connect DB, fetch GHL metadata, etc.
+  console.log('✅ API routes registered successfully');
+})();
+Result: Replit proxy probes /health, gets 200 within 1 sec, keeps the port open; your longer GHL setup finishes in the background and API routes attach once ready.
+
+2 Heavy work you should move into heavyStartup
+fetchOAuthConfig()
+
+loadInstallationsFromDB()
+
+registerDynamicRoutes(app)
+Anything that might take more than a second.
+
+3 Ensure static files are served even before startup
+js
+Copy
+Edit
+app.use(express.static(path.join(__dirname, 'public'))); // or ./dist
+With that, the Preview will at least render your React bundle; calls to /api can return 503 until bootstrap is done, which you can handle with a “retry in 10 sec” toast.
+
+4 If you prefer Approach B (front-end only in Preview)
+.replit
+
+toml
+Copy
+Edit
+run = "npm run dev"
+package.json
+
+json
+Copy
+Edit
+"dev": "vite --host 0.0.0.0 --port $PORT"
+vite.config.ts
+
+ts
+Copy
+Edit
+server: {
+  proxy: {
+    '/api': {
+      target: 'https://dir.engageautomations.com',
+      changeOrigin: true,
+      secure: true,
+    }
+  }
+}
+Now the Preview pane shows the React app instantly, and every /api/... call goes straight to your Railway backend.
+
+Quick verification steps
+bash
+Copy
+Edit
+echo $PORT          # should echo 5000
+curl -I 127.0.0.1:$PORT/health   # should return HTTP 200 immediately
+If /health is up but the Preview still fails, open the “Webview” settings and re-rerun; the proxy occasionally needs a manual nudge after a port swap.
+
+Summary
+Replit kills the port mapping if your server isn’t listening in ~3 s.
+
+Bind to $PORT first, then finish heavy initialisation (Approach A), or run only the Vite dev server in the Repl and hit Railway for APIs (Approach B).
+
+Add a /health route so the proxy sees a quick 200 and keeps the Preview alive.
