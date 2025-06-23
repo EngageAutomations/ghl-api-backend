@@ -16,7 +16,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { CreateListingForm } from '@/components/CreateListingForm';
 import { ListingViewEdit } from '@/components/ListingViewEdit';
 import CreateCollectionForm from '@/components/CreateCollectionForm';
-import DirectoryFormRenderer from '@/components/DirectoryFormRenderer';
+import { ProductCreateModal } from '@/components/ProductCreateModal';
 
 type ViewMode = 'grid' | 'list';
 type FilterOption = 'all' | 'active' | 'draft';
@@ -39,7 +39,7 @@ export default function DirectoryDetails() {
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showCollectionForm, setShowCollectionForm] = useState(false);
   const [editingCollection, setEditingCollection] = useState<any | null>(null);
-  const [showGHLProductCreator, setShowGHLProductCreator] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();

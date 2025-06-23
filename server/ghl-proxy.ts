@@ -158,5 +158,49 @@ export function createGHLProxyRouter(): express.Router {
     }
   });
 
+  // POST /locations/:locationId/products/:id/gallery  
+  router.post('/locations/:locationId/products/:id/gallery', async (req, res) => {
+    const { locationId, id: productId } = req.params;
+    const credentials = byLocationId.get(locationId);
+    
+    if (!credentials || !credentials.accessToken) {
+      return res.status(404).json({ 
+        error: 'Unknown locationId',
+        message: 'OAuth installation required for this location'
+      });
+    }
+
+    try {
+      console.log('Attaching gallery to product:', productId);
+      
+      const response = await fetch(`https://services.leadconnectorhq.com/products/${productId}/gallery`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${credentials.accessToken}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Version': '2021-07-28'
+        },
+        body: JSON.stringify(req.body)
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Gallery attached successfully');
+        res.json(result);
+      } else {
+        const errorText = await response.text();
+        console.error('Gallery attachment failed:', response.status, errorText);
+        res.status(response.status).json({ 
+          error: 'Gallery attachment failed',
+          details: errorText 
+        });
+      }
+    } catch (error) {
+      console.error('Gallery attachment error:', error);
+      res.status(500).json({ error: 'Gallery attachment failed' });
+    }
+  });
+
   return router;
 }
