@@ -435,20 +435,13 @@ export default function DirectoryFormRenderer({
             const ghlResult = await createProduct.mutateAsync(ghlProductData);
             
             if (ghlResult.product) {
-              console.log('Product created:', ghlResult.product.id);
+              console.log('Product created via Railway proxy:', ghlResult.product.id);
               setPhase('done');
               
-              if (ghlResult.product.id.startsWith('local_')) {
-                toast({
-                  title: "Product Created Locally",
-                  description: `${ghlResult.product.name} saved locally. Provide valid GHL credentials to sync with GoHighLevel.`,
-                });
-              } else {
-                toast({
-                  title: "Product Created in GoHighLevel!",
-                  description: `${ghlResult.product.name} created with ${ghlResult.totalImages} images in your GHL account.`,
-                });
-              }
+              toast({
+                title: "Product Sent to GoHighLevel",
+                description: `${ghlResult.product.name} sent via Railway proxy. Check your GHL account if OAuth is configured.`,
+              });
             }
           } catch (error) {
             console.error('GoHighLevel product creation failed:', error);

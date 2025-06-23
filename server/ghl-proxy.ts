@@ -40,11 +40,11 @@ export function createJWTEndpoint(app: express.Express) {
   });
 }
 
-// Test credentials map (in production, this would be from database)
+// Credentials map using environment variables for real GoHighLevel access
 const byLocationId = new Map([
   ['WAvk87RmW9rBSDJHeOpH', {
-    accessToken: process.env.GHL_ACCESS_TOKEN || 'test_token',
-    refreshToken: process.env.GHL_REFRESH_TOKEN || 'test_refresh',
+    accessToken: process.env.GHL_ACCESS_TOKEN,
+    refreshToken: process.env.GHL_REFRESH_TOKEN,
     expiresAt: Date.now() + 8.64e7 // 24h from now
   }]
 ]);
@@ -59,9 +59,18 @@ export function createGHLProxyRouter(): express.Router {
   // POST /locations/:locationId/products
   router.post('/locations/:locationId/products', async (req, res) => {
     const credentials = byLocationId.get(req.params.locationId);
-    if (!credentials) return res.sendStatus(404);
+    
+    if (!credentials || !credentials.accessToken) {
+      console.error('No valid GoHighLevel credentials found for location:', req.params.locationId);
+      return res.status(401).json({ 
+        error: 'Missing GoHighLevel credentials',
+        message: 'Valid GHL_ACCESS_TOKEN required to create products in GoHighLevel'
+      });
+    }
 
     try {
+      console.log('Creating REAL product in GoHighLevel:', req.body.name);
+      
       const response = await fetch('https://services.leadconnectorhq.com/products/', {
         method: 'POST',
         headers: {
@@ -73,8 +82,18 @@ export function createGHLProxyRouter(): express.Router {
         body: JSON.stringify(req.body)
       });
       
-      const result = await response.text();
-      res.status(response.status).type('json').send(result);
+      if (response.ok) {
+        const result = await response.json();
+        console.log('SUCCESS: Real GoHighLevel product created:', result.product?.id);
+        res.json(result);
+      } else {
+        const errorText = await response.text();
+        console.error('GoHighLevel API error:', response.status, errorText);
+        res.status(response.status).json({ 
+          error: 'GoHighLevel API call failed',
+          details: errorText 
+        });
+      }
     } catch (error) {
       console.error('GHL API error:', error);
       res.status(500).json({ error: 'Failed to create product' });
