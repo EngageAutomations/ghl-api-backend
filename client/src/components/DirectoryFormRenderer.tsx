@@ -417,25 +417,37 @@ export default function DirectoryFormRenderer({
           description: `${formData.name} has been saved with ${imageFiles.length} images. Railway proxy ready for GoHighLevel sync.`,
         });
         
-        // Background attempt at GoHighLevel sync (non-blocking)
+        // Attempt real GoHighLevel product creation
         if (imageFiles.length > 0) {
           try {
+            setPhase('create');
+            console.log('Creating actual GoHighLevel product...');
+            
             const ghlProductData = {
               name: formData.name,
               description: formData.description,
               price: formData.price,
               productType: 'DIGITAL' as const,
               images: imageFiles,
-              locationId: 'WAvk87RmW9rBSDJHeOpH'
+              locationId: 'WAVk87RmW9rBSDJHeOpH'
             };
             
-            createProduct.mutateAsync(ghlProductData).then(() => {
-              console.log('Background GoHighLevel sync successful');
-            }).catch((error) => {
-              console.log('Background GoHighLevel sync failed (requires OAuth):', error.message);
-            });
+            const ghlResult = await createProduct.mutateAsync(ghlProductData);
+            
+            if (ghlResult.product) {
+              console.log('GoHighLevel product created successfully:', ghlResult.product.id);
+              toast({
+                title: "Product Created in GoHighLevel!",
+                description: `${ghlResult.product.name} was created with ${ghlResult.totalImages} images`,
+              });
+            }
           } catch (error) {
-            console.log('GoHighLevel sync skipped - requires valid OAuth credentials');
+            console.error('GoHighLevel product creation failed:', error);
+            toast({
+              title: "Local Save Successful",
+              description: "Product saved locally. GoHighLevel sync failed - check credentials.",
+              variant: "destructive",
+            });
           }
         }
         
