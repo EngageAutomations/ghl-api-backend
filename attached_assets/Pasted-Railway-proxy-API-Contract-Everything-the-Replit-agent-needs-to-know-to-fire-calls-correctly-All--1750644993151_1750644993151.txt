@@ -1,0 +1,133 @@
+Railway-proxy API Contract
+(Everything the Replit agent needs to know to fire calls correctly)
+
+All routes live under https://dir.engageautomations.com/api/ghl
+Every request must carry Authorization: Bearer <JWT-from-/api/auth/token>
+Never supply a GoHighLevel bearer token—Railway injects it after refreshing when needed.
+
+0. Authenticate once per session
+css
+Copy
+Edit
+POST /api/auth/token
+↳ Body: { "agent": "replit-dev" }
+← 200 { "jwt": "eyJhbGciOi..." }
+Store jwt in sessionStorage (browser) or an env var (Node script).
+
+1. Upload 1 – 10 images (optional)
+swift
+Copy
+Edit
+POST /api/ghl/locations/{locationId}/media
+Headers: Authorization + (generated) multipart boundary
+Body:   FormData  file=@image1.jpg
+                      file=@image2.png
+                      ...
+Success: 200 { "uploaded":[
+               { "publicUrl":"https://cdn.ghl/...", "id":"abc" },
+               ...
+             ] }
+Field key must be file for every image.
+
+Max size per image = 25 MB.
+
+Response array order matches upload order; use it to keep gallery order.
+
+2. Create the product (always)
+swift
+Copy
+Edit
+POST /api/ghl/locations/{locationId}/products
+Headers: Authorization, Content-Type: application/json
+Body: {
+  "name":        "Deluxe Hoodie",
+  "description": "80/20 cotton blend",
+  "productType": "PHYSICAL",          // or DIGITAL
+  "availabilityType": "AVAILABLE_NOW",
+  "price":       49.99,
+  "imageUrl":    "https://cdn.ghl/...thumb.jpg" // first URL from step 1
+}
+← 201 { ... full GHL product object ..., "id": "prod_123" }
+Return payload mirrors GoHighLevel’s native /products response.
+
+3. Attach remaining gallery images (if any)
+bash
+Copy
+Edit
+POST /api/ghl/locations/{locationId}/products/{productId}/gallery
+Headers: Authorization, Content-Type: application/json
+Body: { "mediaUrls": [
+          "https://cdn.ghl/...2.jpg",
+          "https://cdn.ghl/...3.jpg"
+       ] }
+← 200 { "success": true }
+Skip this call if you only uploaded one image.
+
+4. Read / update / delete (reference only)
+Purpose	Method & Path	Body / Notes
+List products	GET /locations/{locationId}/products?page=1&limit=50	—
+Update product	PUT /locations/{locationId}/products/{id}	JSON fields to change
+Delete product	DELETE /locations/{locationId}/products/{id}	—
+List media	GET /locations/{locationId}/media?page=1	good for CSR tool
+
+All use the same JWT header.
+
+5. Axios skeleton for every call
+ts
+Copy
+Edit
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'https://dir.engageautomations.com/api/ghl'
+});
+api.interceptors.request.use(cfg => {
+  cfg.headers.Authorization = `Bearer ${sessionStorage.getItem('jwt')}`;
+  return cfg;
+});
+Upload helper
+
+ts
+Copy
+Edit
+export async function uploadImages(locId: string, files: File[]) {
+  const form = new FormData();
+  files.forEach(f => form.append('file', f));
+  const { data } = await api.post(`/locations/${locId}/media`, form);
+  return data.uploaded.map((u: any) => u.publicUrl);
+}
+6. Error semantics
+Status	Meaning from Railway	Replit action
+400	Payload bad or file too big	Surface the message returned in error.details
+401	JWT missing/expired or token refresh failed	Get a new JWT or ask user to re-install app
+404	locationId unknown	Validate ID before submit
+413	Image > 25 MB	Client-side size guard
+429	Rate-limited by Railway	Back-off & retry (exponential)
+5xx	GHL outage or proxy error	Queue payload locally for retry later
+
+Railway streams the original GHL JSON when possible; you can surface it directly.
+
+7. Timing guideline for the UI spinner
+Phase	Call(s)	When to flip isLoading
+upload	step 1	onUploadProgress 0 – 100 %
+create	step 2	set after upload resolves
+gallery	step 3	set only if extra images
+done	—	after last call resolves
+error	any failure	if any catch triggers
+
+Show the spinner icon next to the Submit button while isLoading
+is true; leave the modal open; use your existing confirmation popup
+after done.
+
+8. Recap – what Replit must send
+JWT header – from /api/auth/token.
+
+locationId in the URL path – never in the JSON body.
+
+Valid payload – JSON for product, FormData for images.
+
+Nothing else – Railway handles token refresh, scopes, and forwarding.
+
+Follow these rules and every call will reach GoHighLevel through the proxy,
+auto-refresh the token when needed, and return native GHL JSON—without your
+front-end ever seeing (or breaking on) access-token logic.

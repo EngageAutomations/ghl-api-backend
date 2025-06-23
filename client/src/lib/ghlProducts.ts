@@ -1,65 +1,14 @@
 /**
  * GoHighLevel Products API - Railway Backend Integration
- * Handles product creation and gallery management through authenticated Railway proxy
+ * Implements Railway proxy API contract
  */
 
-import axios from 'axios';
-import { authHeader } from './jwt';
+export { createProduct, attachGallery, createProductWithImages } from './railwayAPI';
 
 export interface ProductData {
   name: string;
   description?: string;
   price?: string;
-  productType?: string;
+  productType?: 'PHYSICAL' | 'DIGITAL';
   imageUrl?: string;
-}
-
-export async function createProduct(locationId: string, productData: ProductData) {
-  // Use Railway backend's actual product creation endpoint
-  const { data } = await axios.post(
-    `/api/ghl/products`,
-    {
-      ...productData,
-      locationId,
-      installation_id: 'install_seed' // Railway backend uses this format
-    },
-    { 
-      headers: { 
-        'Authorization': `Bearer ${sessionStorage.getItem('jwt') || 'replit-session'}`,
-        'Content-Type': 'application/json'
-      } 
-    }
-  );
-  return data;
-}
-
-export async function attachGallery(locationId: string, productId: string, mediaUrls: string[]) {
-  const { data } = await axios.post(
-    `/api/ghl/locations/${locationId}/products/${productId}/gallery`,
-    { mediaUrls },
-    { headers: authHeader() }
-  );
-  return data;
-}
-
-export async function createProductWithImages(
-  locationId: string, 
-  productData: ProductData, 
-  imageUrls: string[]
-) {
-  // Use first image as thumbnail
-  const [thumbnail, ...galleryUrls] = imageUrls;
-  
-  // Create product with thumbnail
-  const product = await createProduct(locationId, {
-    ...productData,
-    imageUrl: thumbnail
-  });
-  
-  // Attach remaining images to gallery if any
-  if (galleryUrls.length > 0) {
-    await attachGallery(locationId, product.id, galleryUrls);
-  }
-  
-  return product;
 }
