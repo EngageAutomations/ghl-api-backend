@@ -1817,6 +1817,13 @@ app.use((req, res, next) => {
     });
   });
 
+  // Add Railway proxy endpoints for GHL integration
+  console.log('Setting up Railway GHL proxy...');
+  createJWTEndpoint(app);
+  const ghlRouter = createGHLProxyRouter();
+  app.use('/api/ghl', ghlRouter);
+  console.log('✅ Railway GHL proxy configured');
+
   // CRITICAL: Register API routes AFTER the root route
   server = await registerRoutes(app);
   console.log("✅ API routes registered successfully");
