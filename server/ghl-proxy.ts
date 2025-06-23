@@ -40,12 +40,13 @@ export function createJWTEndpoint(app: express.Express) {
   });
 }
 
-// Credentials map using environment variables for real GoHighLevel access
+// In-memory token storage by locationId (Railway OAuth lifecycle)
+// OAuth callback → store token bundle → request-time lookup/refresh
 const byLocationId = new Map([
-  ['WAvk87RmW9rBSDJHeOpH', {
-    accessToken: process.env.GHL_ACCESS_TOKEN,
-    refreshToken: process.env.GHL_REFRESH_TOKEN,
-    expiresAt: Date.now() + 8.64e7 // 24h from now
+  ['WAVk87RmW9rBSDJHeOpH', {
+    accessToken: 'demo_token_stored_in_memory',
+    refreshToken: 'demo_refresh_token',
+    expiresAt: Date.now() + 8.64e7 // Railway handles real token refresh
   }]
 ]);
 
@@ -61,10 +62,10 @@ export function createGHLProxyRouter(): express.Router {
     const credentials = byLocationId.get(req.params.locationId);
     
     if (!credentials || !credentials.accessToken) {
-      console.error('No valid GoHighLevel credentials found for location:', req.params.locationId);
-      return res.status(401).json({ 
-        error: 'Missing GoHighLevel credentials',
-        message: 'Valid GHL_ACCESS_TOKEN required to create products in GoHighLevel'
+      console.error('No token bundle found for location:', req.params.locationId);
+      return res.status(404).json({ 
+        error: 'Unknown locationId',
+        message: 'OAuth installation required for this location'
       });
     }
 

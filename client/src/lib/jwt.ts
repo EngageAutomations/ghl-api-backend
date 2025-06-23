@@ -1,35 +1,43 @@
-/**
- * JWT Authentication for Railway Backend
- * Manages session tokens for authenticated API calls
- */
+// JWT authentication utilities for Railway proxy
+let cachedJWT: string | null = null;
 
-export function getJWT(): string | null {
-  return sessionStorage.getItem('jwt');
+export async function getJWT(): Promise<string> {
+  // Check session storage first
+  const stored = sessionStorage.getItem('jwt');
+  if (stored && cachedJWT !== stored) {
+    cachedJWT = stored;
+    return stored;
+  }
+  
+  // Fetch new JWT if not cached
+  if (!cachedJWT) {
+    const response = await fetch('/api/auth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agent: 'replit-client' })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to get JWT token');
+    }
+    
+    const { jwt } = await response.json();
+    cachedJWT = jwt;
+    sessionStorage.setItem('jwt', jwt);
+  }
+  
+  return cachedJWT;
 }
 
-export function setJWT(token: string): void {
-  sessionStorage.setItem('jwt', token);
+export function authHeader() {
+  return cachedJWT ? { Authorization: `Bearer ${cachedJWT}` } : {};
 }
 
-export function clearJWT(): void {
-  sessionStorage.removeItem('jwt');
-}
-
-export function authHeader(): Record<string, string> {
-  // Railway backend uses JWT to identify the session
-  const token = getJWT();
-  return token ? { 'Authorization': `Bearer ${token}` } : { 'Authorization': 'Bearer replit-session' };
-}
-
-export function isAuthenticated(): boolean {
-  return !!getJWT();
-}
-
-// Initialize JWT on app load - Railway backend identifies sessions with JWT
-export function initializeAuth(): void {
-  if (!getJWT() && import.meta.env.DEV) {
-    // Set session identifier for Railway backend
-    setJWT('replit-session');
-    console.log('Replit session initialized for Railway backend');
+// Initialize JWT on app load
+export async function initializeAuth() {
+  try {
+    await getJWT();
+  } catch (error) {
+    console.error('Failed to initialize authentication:', error);
   }
 }

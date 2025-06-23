@@ -1,14 +1,20 @@
-/**
- * GoHighLevel Products API - Railway Backend Integration
- * Implements Railway proxy API contract
- */
+import axios from 'axios';
+import { authHeader } from './jwt';
 
-export { createProduct, attachGallery, createProductWithImages } from './railwayAPI';
+export const createProduct = async (locationId: string, productData: any) => {
+  const { data } = await axios.post(
+    `/api/ghl/locations/${locationId}/products`,
+    productData,
+    { headers: { ...authHeader() } }
+  );
+  return data.product || data;
+};
 
-export interface ProductData {
-  name: string;
-  description?: string;
-  price?: string;
-  productType?: 'PHYSICAL' | 'DIGITAL';
-  imageUrl?: string;
-}
+export const attachGallery = async (locationId: string, productId: string, urls: string[]) => {
+  const { data } = await axios.post(
+    `/api/ghl/locations/${locationId}/products/${productId}/gallery`,
+    { mediaUrls: urls },
+    { headers: { ...authHeader() } }
+  );
+  return data;
+};
