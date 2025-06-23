@@ -289,7 +289,7 @@ export default function DirectoryFormRenderer({
         price: formData.price || '',
         address: formData.address || '',
         imageUrl: uploadedImages[0] || '',
-        images: finalImageUrls.length > 0 ? finalImageUrls : uploadedImages,
+        images: uploadedImages,
         seoTitle: formData.seo_title,
         seoDescription: formData.seo_description,
         bulletPoints,
