@@ -435,11 +435,20 @@ export default function DirectoryFormRenderer({
             const ghlResult = await createProduct.mutateAsync(ghlProductData);
             
             if (ghlResult.product) {
-              console.log('GoHighLevel product created successfully:', ghlResult.product.id);
-              toast({
-                title: "Product Created in GoHighLevel!",
-                description: `${ghlResult.product.name} was created with ${ghlResult.totalImages} images`,
-              });
+              console.log('Product created:', ghlResult.product.id);
+              setPhase('done');
+              
+              if (ghlResult.product.id.startsWith('local_')) {
+                toast({
+                  title: "Product Created Locally",
+                  description: `${ghlResult.product.name} saved locally. Provide valid GHL credentials to sync with GoHighLevel.`,
+                });
+              } else {
+                toast({
+                  title: "Product Created in GoHighLevel!",
+                  description: `${ghlResult.product.name} created with ${ghlResult.totalImages} images in your GHL account.`,
+                });
+              }
             }
           } catch (error) {
             console.error('GoHighLevel product creation failed:', error);
