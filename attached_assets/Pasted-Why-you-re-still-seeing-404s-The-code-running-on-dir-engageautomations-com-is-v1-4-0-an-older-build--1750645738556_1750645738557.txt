@@ -1,0 +1,116 @@
+Why you’re still seeing 404s
+The code running on dir.engageautomations.com is v1.4.0—an older build that predates the “location-centric proxy + JWT” contract. Until that backend is upgraded (or hot-patched) to expose the new routes, every call the form sends will hit a 404.
+
+Fastest path to a green test
+Step	What to do	File(s)	Result
+1	Add the JWT–minting route	server/index.js (or routes/auth.ts)	/api/auth/token → 200 { jwt }
+2	Mount the new proxy router	app.use('/api/ghl', ghlProxy)	All /locations/:locationId/* paths become live
+3	Seed the map from your one live install	in-memory map or DB row (locationId → access/refresh/exp)	404 → 200/201
+4	Deploy (Railway redeploy)	—	version shows 1.5.0
+
+Below is the exact drop-in patch you can paste into the existing index file and redeploy. (It assumes CommonJS and the same Express app you already have.)
+
+1 JWT auth route (temporary, no login UI)
+js
+Copy
+Edit
+// place near the top of index.js
+const jwt = require('jsonwebtoken');
+const SECRET = process.env.INTERNAL_JWT_SECRET || 'local-dev-secret';
+
+app.post('/api/auth/token', (req, res) => {
+  const token = jwt.sign(
+    { sub: 'replit-agent', role: 'merchant' },
+    SECRET,
+    { expiresIn: '8h' }
+  );
+  res.json({ jwt: token });
+});
+2 Quick JWT gatekeeper
+js
+Copy
+Edit
+function requireSignedJwt(req, res, next) {
+  const raw = (req.headers.authorization || '').split(' ')[1];
+  try { jwt.verify(raw, SECRET); next(); }
+  catch { res.status(401).json({ error: 'JWT invalid' }); }
+}
+3 Minimal proxy router (products + media)
+js
+Copy
+Edit
+const router = express.Router();
+const FormData = require('form-data');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
+
+const byLocationId = new Map([
+  ['WAvk87RmW9rBSDJHeOpH', {
+    accessToken:  process.env.GHL_ACCESS_TOKEN,
+    refreshToken: process.env.GHL_REFRESH_TOKEN,
+    expiresAt:    Date.now() + 8.64e7      // 24h now; refresh logic later
+  }]
+]);
+
+router.use(requireSignedJwt);
+
+// POST /locations/:locationId/products
+router.post('/locations/:locationId/products', async (req, res) => {
+  const b = byLocationId.get(req.params.locationId);
+  if (!b) return res.sendStatus(404);
+
+  const r = await fetch('https://services.leadconnectorhq.com/products/', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${b.accessToken}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Version: '2021-07-28'
+    },
+    body: JSON.stringify(req.body)
+  });
+  res.status(r.status).type('json').send(await r.text());
+});
+
+// POST /locations/:locationId/media
+router.post('/locations/:locationId/media', upload.array('file', 10), async (req, res) => {
+  const b = byLocationId.get(req.params.locationId);
+  if (!b) return res.sendStatus(404);
+
+  const out = [];
+  for (const f of req.files) {
+    const fd = new FormData();
+    fd.append('file', f.buffer, { filename: f.originalname, contentType: f.mimetype });
+    const r = await fetch('https://services.leadconnectorhq.com/medias/upload-file', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${b.accessToken}`, Version: '2021-07-28', ...fd.getHeaders() },
+      body: fd
+    });
+    if (!r.ok) return res.status(r.status).send(await r.text());
+    out.push(await r.json());
+  }
+  res.json({ uploaded: out });
+});
+
+// mount router
+app.use('/api/ghl', router);
+4 Redeploy & verify
+bash
+Copy
+Edit
+curl -X POST https://dir.engageautomations.com/api/auth/token
+# → { "jwt":"…" }
+
+curl -X POST https://dir.engageautomations.com/api/ghl/locations/WAvk87RmW9rBSDJHeOpH/products \
+  -H "Authorization: Bearer YOUR_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{ "name":"Smoke-test", "price":1, "productType":"DIGITAL", "availabilityType":"AVAILABLE_NOW" }'
+# → 201 { ... }
+Next steps (after the smoke test passes)
+Add proper refresh-token logic (use the code block from my previous message).
+
+Replace the in-memory map with your Installations table so tokens survive restarts.
+
+Expand routes to collections, gallery, etc. They all follow the same pattern.
+
+Once the backend returns 200s, the form in Replit will move from “local only” to “live sync” without any frontend changes—because the new endpoints exactly match the contract the UI already calls.

@@ -10,6 +10,7 @@ import { setupDomainRedirects, setupCORS } from "./domain-config";
 import { DatabaseStorage } from "./storage";
 import { UniversalAPIRouter, requireOAuth, handleSessionRecovery } from "./universal-api-router";
 import { handleOAuthCallback } from "./oauth-enhanced";
+import { createJWTEndpoint, createGHLProxyRouter } from "./ghl-proxy";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';

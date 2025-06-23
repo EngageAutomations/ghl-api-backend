@@ -5,9 +5,9 @@
 
 import axios from 'axios';
 
-// Railway API client with JWT authentication
+// Railway API client with JWT authentication - use local development server for testing
 export const railwayAPI = axios.create({
-  baseURL: 'https://dir.engageautomations.com/api/ghl'
+  baseURL: '/api/ghl' // Use local proxy for development
 });
 
 // Add JWT token to all requests
