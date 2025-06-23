@@ -11,14 +11,20 @@ import FormData from 'form-data';
 const SECRET = process.env.INTERNAL_JWT_SECRET || 'local-dev-secret';
 const upload = multer({ storage: multer.memoryStorage() });
 
-// JWT gatekeeper middleware
-export function requireSignedJwt(req: express.Request, res: express.Response, next: express.NextFunction) {
-  const raw = (req.headers.authorization || '').split(' ')[1];
-  try { 
-    jwt.verify(raw, SECRET); 
-    next(); 
-  } catch { 
-    res.status(401).json({ error: 'JWT invalid' }); 
+// JWT authentication middleware
+export function authenticateJWT(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Missing JWT token' });
+  }
+  
+  try {
+    jwt.verify(token, SECRET);
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid JWT token' });
   }
 }
 

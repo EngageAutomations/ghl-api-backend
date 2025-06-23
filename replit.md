@@ -169,12 +169,13 @@ The application follows a modern full-stack architecture with clear separation b
   - Product creation now works through local Railway proxy simulation with JWT authentication
   - Tested complete workflow: JWT auth → product creation → media upload through proxy endpoints
   - Ready for Railway backend deployment with the exact patch provided for v1.5.0 upgrade
-  - Local proxy endpoints now ready to POST to GoHighLevel with valid access tokens
   - Fixed finalImageUrls error and image duplication issues in DirectoryFormRenderer
   - Form submission now completes successfully with proper local storage and background GHL sync
   - Tested with user's engage automations logo - complete workflow operational
   - DirectoryFormRenderer processes marketing design images without errors
-  - Railway proxy architecture confirmed ready for production GoHighLevel integration
+  - Simplified Railway proxy implementation: sends valid JWT + locationId in URL path
+  - Railway proxy handles OAuth token management, refresh, and GHL API calls automatically
+  - Client only responsible for JWT authentication and proper URL formatting
 
 - June 22, 2025: Railway Backend Token Management Integration - COMPLETED
   - Implemented automatic token refresh system through Railway backend proxy
