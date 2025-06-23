@@ -162,20 +162,17 @@ The application follows a modern full-stack architecture with clear separation b
 ## Recent Changes
 
 - June 23, 2025: Railway Multi-API Product Creation Workflow Implementation - COMPLETED
-  - Implemented location-centric Railway proxy with JWT gatekeeper following Railway specification
-  - Token lifecycle: OAuth callback → in-memory Map by locationId → request-time token lookup/refresh
-  - Security: GoHighLevel access tokens live only in server-side memory, never in process.env
-  - Multi-file upload proxy route: POST /api/ghl/locations/:locationId/media (up to 10 images)
-  - Product creation proxy route: POST /api/ghl/locations/:locationId/products
-  - Gallery attachment proxy route: POST /api/ghl/locations/:locationId/products/:id/gallery
+  - Token lifecycle correctly implemented: OAuth callback → in-memory Map by locationId → request-time token lookup/refresh
+  - Security model: GoHighLevel access tokens live only in server-side memory, never in process.env or build images
+  - API contract complete: POST /api/ghl/locations/:locationId/media, products, and gallery endpoints
   - JWT authentication enforced on all /api/ghl/* routes with requireSignedJwt middleware
-  - Replit responsibilities: Send valid JWT in Authorization header + locationId in URL path
-  - Railway responsibilities: JWT verification, token lookup/refresh, GoHighLevel API forwarding
-  - Implemented ProductCreateModal with loading states (upload → create → gallery → done)
-  - Added useUploadImages and useCreateProduct hooks with React Query mutations
-  - Complete workflow: File selection → multi-image upload → product creation → gallery attachment
-  - AI Robot Assistant Pro tested with proper spinner UI and confirmation modal
-  - Ready for Railway v1.5.0 deployment with complete API contract implementation
+  - Railway proxy pattern: Replit sends JWT + locationId, Railway handles all OAuth token management
+  - ProductCreateModal implemented with drag-and-drop multi-image upload (up to 10 files, 25MB each)
+  - React hooks: useUploadImages and useCreateProduct with proper error handling and loading states
+  - Fixed DirectoryDetails component by removing all legacy showGHLProductCreator references
+  - Complete workflow: JWT auth → multi-image upload → product creation → gallery attachment
+  - JWT authentication auto-initializes on app startup for seamless Railway proxy compatibility
+  - Ready for Railway v1.5.0 deployment with authentic GoHighLevel product creation capability
 
 - June 22, 2025: Railway Backend Token Management Integration - COMPLETED
   - Implemented automatic token refresh system through Railway backend proxy
