@@ -1,0 +1,122 @@
+How the Railway backend refreshes GoHighLevel tokens
+(and why Replit never has to think about it)
+
+1. What GHL hands you on OAuth callback
+json
+Copy
+Edit
+{
+  "access_token": "ya29.a0Af...",
+  "expires_in": 86400,          // 24 h
+  "refresh_token": "1//0g...",
+  "locationId": "WAvk87RmW9rBSDJHeOpH",
+  "installationId": "install_1750131573635"
+}
+The callback handler converts that to an in-memory bundle:
+
+ts
+Copy
+Edit
+byLocationId.set(locationId, {
+  accessToken:  'ya29.a0Af...',
+  refreshToken: '1//0g...',
+  expiresAt:    Date.now() + 86400_000,     // ms
+  installationId
+});
+If you persist to Postgres or Redis, the exact same JSON goes there.
+
+2. Auto-refresh workflow on every proxy request
+scss
+Copy
+Edit
+Replit  ──►  Railway proxy  ──►  checkToken()
+                               ├── if still valid →  forward to GHL
+                               └── if expired     →  refresh(), update map, forward
+ts
+Copy
+Edit
+async function checkToken(locationId: string) {
+  const b = byLocationId.get(locationId);
+  if (!b) throw new Error('unknown location');
+
+  // 60-sec buffer so we don't run out mid-call
+  if (b.expiresAt - Date.now() > 60_000) return b.accessToken;
+
+  // one refresh per location at a time
+  if (b.refreshing) return b.refreshing;      // promise already in flight
+
+  b.refreshing = refresh(b);                  // store promise to avoid thundering herd
+  return b.refreshing;
+}
+
+async function refresh(b: TokenBundle) {
+  const r = await fetch('https://services.leadconnectorhq.com/oauth/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      client_id:     process.env.GHL_CLIENT_ID,
+      client_secret: process.env.GHL_CLIENT_SECRET,
+      grant_type:    'refresh_token',
+      refresh_token: b.refreshToken
+    })
+  });
+  if (!r.ok) throw new Error('refresh failed');
+
+  const j = await r.json();
+  Object.assign(b, {
+    accessToken: j.access_token,
+    refreshToken: j.refresh_token ?? b.refreshToken,
+    expiresAt: Date.now() + j.expires_in * 1000
+  });
+  delete b.refreshing;
+  return b.accessToken;
+}
+Every proxy route begins with:
+
+ts
+Copy
+Edit
+const token = await checkToken(locationId);
+That’s it. Replit sees no difference whether the token was fresh or just rotated.
+
+3. Making calls from Replit (unchanged)
+ts
+Copy
+Edit
+const api = axios.create({
+  baseURL: 'https://dir.engageautomations.com/api/ghl',
+});
+api.interceptors.request.use(c => {
+  c.headers.Authorization = `Bearer ${sessionStorage.getItem('jwt')}`;
+  return c;
+});
+
+// example: create product
+await api.post(`/locations/${locationId}/products`, productBody);
+Your call never provides an access token.
+Railway injects the renewed bearer right before contacting GHL.
+
+4. What happens if refresh fails?
+4xx (invalid) – Railway marks the installation inactive, returns 401 to Replit, and logs the event.
+
+5xx / network – Railway retries once, then passes 502 up to Replit. Your UI shows “Try again later” and queues the action for retry.
+
+Concurrency – the refreshing promise ensures only one refresh is in flight per location, so 20 parallel product calls don’t trigger 20 refreshes.
+
+5. Checklist for keeping refresh healthy
+Set env vars in Railway → GHL_CLIENT_ID, GHL_CLIENT_SECRET.
+
+Store refresh_token every time the OAuth callback fires; it can change.
+
+Use a 60-second cushion (expiresAt - Date.now() > 60_000) so long-running uploads never stall.
+
+Log refresh events (console.info('refreshed', locationId))—helps diagnose burst failures.
+
+Rotate secrets – if you regenerate the client secret, refresh will break until you update the env var—watch the logs.
+
+TL;DR for the Replit agent
+Call the proxy exactly the same way every time.
+
+Railway decides if the token needs refreshing; Replit stays blissfully unaware.
+
+A failed call that returns 401/502 usually means the refresh logic couldn’t recover—surface a “Re-authenticate app” prompt to the merchant.

@@ -7,19 +7,24 @@ import axios from 'axios';
 import { authHeader } from './jwt';
 
 export async function uploadImages(locationId: string, files: File[]): Promise<string[]> {
-  // For now, create local preview URLs and simulate upload
-  // Railway backend integration will be completed when real installation is configured
-  console.log('Uploading images to GoHighLevel via Railway backend...');
-  console.log('Files to upload:', files.length);
-  console.log('Location ID:', locationId);
+  const form = new FormData();
+  files.forEach(file => form.append('file', file));
+  form.append('locationId', locationId);
+  form.append('installation_id', 'install_seed');
+
+  // Railway backend handles token refresh automatically
+  const { data } = await axios.post(
+    `/api/ghl/media`,
+    form,
+    { 
+      headers: { 
+        'Authorization': `Bearer ${sessionStorage.getItem('jwt') || 'replit-session'}`
+        // Don't set Content-Type - browser will set boundary automatically
+      } 
+    }
+  );
   
-  // Create preview URLs for immediate display
-  const imageUrls = files.map(file => URL.createObjectURL(file));
-  
-  // Simulate upload delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  return imageUrls;
+  return data.uploaded?.map((upload: any) => upload.publicUrl) || [];
 }
 
 export async function uploadSingleImage(locationId: string, file: File): Promise<string> {

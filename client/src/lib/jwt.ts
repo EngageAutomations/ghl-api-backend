@@ -16,21 +16,20 @@ export function clearJWT(): void {
 }
 
 export function authHeader(): Record<string, string> {
-  // For Railway backend, we don't need JWT in development
-  // The backend handles authentication through stored OAuth tokens
-  return {};
+  // Railway backend uses JWT to identify the session
+  const token = getJWT();
+  return token ? { 'Authorization': `Bearer ${token}` } : { 'Authorization': 'Bearer replit-session' };
 }
 
 export function isAuthenticated(): boolean {
   return !!getJWT();
 }
 
-// Initialize JWT on app load - this would be set during OAuth flow
+// Initialize JWT on app load - Railway backend identifies sessions with JWT
 export function initializeAuth(): void {
-  // For development, set a test JWT to enable Railway backend testing
   if (!getJWT() && import.meta.env.DEV) {
-    // Set a test JWT for development Railway backend integration
-    setJWT('test-railway-jwt-token');
-    console.log('Development JWT set for Railway backend testing');
+    // Set session identifier for Railway backend
+    setJWT('replit-session');
+    console.log('Replit session initialized for Railway backend');
   }
 }

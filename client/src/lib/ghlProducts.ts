@@ -15,24 +15,22 @@ export interface ProductData {
 }
 
 export async function createProduct(locationId: string, productData: ProductData) {
-  // For now, create product locally and show success message
-  // Railway backend integration will be completed when real installation is configured
-  console.log('Creating product with Railway backend integration...');
-  console.log('Product data:', productData);
-  console.log('Location ID:', locationId);
-  
-  // Simulate successful product creation
-  const simulatedProduct = {
-    id: `prod_${Date.now()}`,
-    name: productData.name,
-    description: productData.description,
-    price: productData.price,
-    productType: productData.productType || 'DIGITAL',
-    status: 'created',
-    timestamp: new Date().toISOString()
-  };
-  
-  return simulatedProduct;
+  // Use Railway backend's actual product creation endpoint
+  const { data } = await axios.post(
+    `/api/ghl/products`,
+    {
+      ...productData,
+      locationId,
+      installation_id: 'install_seed' // Railway backend uses this format
+    },
+    { 
+      headers: { 
+        'Authorization': `Bearer ${sessionStorage.getItem('jwt') || 'replit-session'}`,
+        'Content-Type': 'application/json'
+      } 
+    }
+  );
+  return data;
 }
 
 export async function attachGallery(locationId: string, productId: string, mediaUrls: string[]) {
