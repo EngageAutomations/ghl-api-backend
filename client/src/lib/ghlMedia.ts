@@ -3,9 +3,8 @@
  * Implements Railway proxy API contract
  */
 
-export { uploadImages, uploadSingleImage } from './railwayAPI';
+export { uploadImages } from './railwayAPI';
 
-// Legacy compatibility wrapper
 export async function uploadSingleImage(locationId: string, file: File): Promise<string> {
   const { uploadImages } = await import('./railwayAPI');
   const urls = await uploadImages(locationId, [file]);
