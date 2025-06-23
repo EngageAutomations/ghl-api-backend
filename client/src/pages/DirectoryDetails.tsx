@@ -314,7 +314,7 @@ export default function DirectoryDetails() {
           </div>
           <div className="flex items-center gap-3">
             <Button
-              onClick={() => contentView === 'collections' ? setShowCollectionForm(true) : setShowGHLProductCreator(true)}
+              onClick={() => contentView === 'collections' ? setShowCollectionForm(true) : setShowProductModal(true)}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
@@ -539,7 +539,7 @@ export default function DirectoryDetails() {
               }
             </p>
             {!searchQuery && filterBy === 'all' && (
-              <Button onClick={() => setShowGHLProductCreator(true)}>
+              <Button onClick={() => setShowProductModal(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create First Product
               </Button>
@@ -716,26 +716,13 @@ export default function DirectoryDetails() {
         </DialogContent>
       </Dialog>
 
-      {/* Directory Form Renderer Dialog - Full Size for Wizard Form */}
-      <Dialog open={showGHLProductCreator} onOpenChange={setShowGHLProductCreator}>
-        <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-0">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle>
-              Create New Product
-            </DialogTitle>
-          </DialogHeader>
-          <div className="p-6 pt-2">
-            <DirectoryFormRenderer
-              directoryName={directoryName!}
-              onSuccess={() => {
-                queryClient.invalidateQueries({ queryKey: ['/api/listings', directoryName] });
-                setShowGHLProductCreator(false);
-              }}
-              onCancel={() => setShowGHLProductCreator(false)}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Product Creation Modal */}
+      {showProductModal && (
+        <ProductCreateModal 
+          locationId="WAVk87RmW9rBSDJHeOpH"
+          onClose={() => setShowProductModal(false)}
+        />
+      )}
 
       {/* Prominent Back to Directories Button - Fixed Position */}
       <div className="fixed bottom-6 z-50" style={{ left: 'max(1.5rem, calc(50% - 768px / 2 + 1.5rem - 50px))' }}>
