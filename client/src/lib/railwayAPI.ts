@@ -1,11 +1,31 @@
-// Railway Proxy API Integration - Fixed Endpoints
+// Railway Proxy API Integration - Complete JWT + OAuth Flow
 import axios from 'axios';
 
 const RAILWAY_BASE = 'https://dir.engageautomations.com';
 
-// Get installation_id from URL params or storage
+// JWT token management
+let jwtToken: string | null = null;
+
+// Step 1: Get JWT token for Railway authentication
+async function getJWTToken(): Promise<string> {
+  if (jwtToken) return jwtToken;
+  
+  const response = await fetch(`${RAILWAY_BASE}/api/auth/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`JWT authentication failed: ${response.status}`);
+  }
+  
+  const data = await response.json();
+  jwtToken = data.token;
+  return jwtToken;
+}
+
+// Get installation_id from OAuth redirect or storage
 function getInstallationId(): string {
-  // Check URL params first (from OAuth redirect)
   const urlParams = new URLSearchParams(window.location.search);
   const installationId = urlParams.get('installation_id');
   
@@ -14,37 +34,41 @@ function getInstallationId(): string {
     return installationId;
   }
   
-  // Check stored installation_id
   const stored = sessionStorage.getItem('installation_id');
   if (stored) return stored;
   
-  // Fallback to latest if no specific ID
   return 'latest';
 }
 
-// Check OAuth status for installation
+// Step 2: Check OAuth status and get locationId
 export async function checkOAuthStatus(installationId: string) {
-  const response = await fetch(`${RAILWAY_BASE}/api/oauth/status?installation_id=${installationId}`);
-  if (response.ok) {
-    return await response.json(); // { authenticated, tokenStatus, locationId }
+  const jwt = await getJWTToken();
+  
+  const response = await fetch(`${RAILWAY_BASE}/api/oauth/status?installation_id=${installationId}`, {
+    headers: { 'Authorization': `Bearer ${jwt}` }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`OAuth status check failed: ${response.status}`);
   }
-  throw new Error('OAuth status check failed');
+  
+  return await response.json(); // { authenticated, tokenStatus, locationId }
 }
 
-// Get location ID from OAuth status
-async function getLocationId(): Promise<string> {
+// Get authenticated location ID
+async function getAuthenticatedLocationId(): Promise<{ locationId: string; needsReconnect: boolean }> {
   const installationId = getInstallationId();
   const status = await checkOAuthStatus(installationId);
   
   if (!status.authenticated) {
-    throw new Error('App not authenticated. Please reconnect the app in GoHighLevel.');
+    return { locationId: '', needsReconnect: true };
   }
   
   if (status.tokenStatus !== 'valid') {
-    throw new Error('Token expired. Please reconnect the app in GoHighLevel.');
+    return { locationId: '', needsReconnect: true };
   }
   
-  return status.locationId;
+  return { locationId: status.locationId, needsReconnect: false };
 }
 
 // Types for Railway API responses
@@ -62,16 +86,26 @@ export interface CreateProductBody {
   availabilityType?: 'AVAILABLE_NOW' | 'COMING_SOON';
 }
 
-// Upload media using correct location-centric endpoint
-export async function uploadMedia(locationId: string, files: File[]): Promise<GhlUpload[]> {
-  const realLocationId = await getLocationId();
+// Step 3a: Upload media (≤10 files) with JWT + locationId
+export async function uploadMedia(locationId: string, files: File[]): Promise<{ uploads: GhlUpload[]; needsReconnect: boolean }> {
+  const { locationId: authLocationId, needsReconnect } = await getAuthenticatedLocationId();
   
-  const uploadPromises = files.map(async (file) => {
+  if (needsReconnect) {
+    return { uploads: [], needsReconnect: true };
+  }
+  
+  const jwt = await getJWTToken();
+  
+  // Limit to 10 files as per Railway specification
+  const limitedFiles = files.slice(0, 10);
+  
+  const uploadPromises = limitedFiles.map(async (file) => {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await fetch(`${RAILWAY_BASE}/api/ghl/locations/${realLocationId}/media`, {
+    const response = await fetch(`${RAILWAY_BASE}/api/ghl/locations/${authLocationId}/media`, {
       method: 'POST',
+      headers: { 'Authorization': `Bearer ${jwt}` },
       body: formData
     });
     
@@ -86,16 +120,26 @@ export async function uploadMedia(locationId: string, files: File[]): Promise<Gh
     };
   });
   
-  return await Promise.all(uploadPromises);
+  const uploads = await Promise.all(uploadPromises);
+  return { uploads, needsReconnect: false };
 }
 
-// Create product using correct location-centric endpoint
-export async function createProduct(locationId: string, body: CreateProductBody) {
-  const realLocationId = await getLocationId();
+// Step 3b: Create product with image URLs and JWT + locationId
+export async function createProduct(locationId: string, body: CreateProductBody): Promise<{ product: any; needsReconnect: boolean }> {
+  const { locationId: authLocationId, needsReconnect } = await getAuthenticatedLocationId();
   
-  const response = await fetch(`${RAILWAY_BASE}/api/ghl/locations/${realLocationId}/products`, {
+  if (needsReconnect) {
+    return { product: null, needsReconnect: true };
+  }
+  
+  const jwt = await getJWTToken();
+  
+  const response = await fetch(`${RAILWAY_BASE}/api/ghl/locations/${authLocationId}/products`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
+    },
     body: JSON.stringify(body)
   });
   
@@ -104,5 +148,52 @@ export async function createProduct(locationId: string, body: CreateProductBody)
   }
   
   const result = await response.json();
-  return result.product || result;
+  return { product: result.product || result, needsReconnect: false };
+}
+
+// Complete workflow: JWT → OAuth check → media upload → product creation
+export async function createProductWithImages(
+  formData: CreateProductBody, 
+  imageFiles: File[]
+): Promise<{ success: boolean; product?: any; needsReconnect: boolean; error?: string }> {
+  try {
+    // Step 1: Ensure JWT token
+    await getJWTToken();
+    
+    // Step 2: Check OAuth status
+    const { needsReconnect } = await getAuthenticatedLocationId();
+    if (needsReconnect) {
+      return { success: false, needsReconnect: true };
+    }
+    
+    // Step 3a: Upload images (≤10 files)
+    let imageUrls: string[] = [];
+    if (imageFiles.length > 0) {
+      const { uploads, needsReconnect: uploadReconnect } = await uploadMedia('', imageFiles);
+      if (uploadReconnect) {
+        return { success: false, needsReconnect: true };
+      }
+      imageUrls = uploads.map(upload => upload.fileUrl).filter(Boolean);
+    }
+    
+    // Step 3b: Create product with uploaded image URLs
+    const productData = {
+      ...formData,
+      ...(imageUrls.length > 0 && { imageUrl: imageUrls[0], images: imageUrls })
+    };
+    
+    const { product, needsReconnect: productReconnect } = await createProduct('', productData);
+    if (productReconnect) {
+      return { success: false, needsReconnect: true };
+    }
+    
+    return { success: true, product, needsReconnect: false };
+    
+  } catch (error) {
+    return { 
+      success: false, 
+      needsReconnect: false, 
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
 }

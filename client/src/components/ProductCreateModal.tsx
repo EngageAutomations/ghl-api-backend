@@ -25,15 +25,25 @@ export function ProductCreateModal({ locationId, onClose }: ProductCreateModalPr
   const { toast } = useToast();
   const { createProductWithImages, isLoading } = useProductWorkflow(locationId);
   
+  const [authStatus, setAuthStatus] = useState<{ authenticated: boolean; needsReconnect: boolean }>({ 
+    authenticated: false, 
+    needsReconnect: false 
+  });
+
   // Check OAuth status on component mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const { checkOAuthStatus } = await import('@/lib/railwayAPI');
         const installationId = new URLSearchParams(window.location.search).get('installation_id') || 'latest';
-        await checkOAuthStatus(installationId);
+        const status = await checkOAuthStatus(installationId);
+        setAuthStatus({
+          authenticated: status.authenticated,
+          needsReconnect: !status.authenticated || status.tokenStatus !== 'valid'
+        });
       } catch (error) {
-        console.log('OAuth check:', error.message);
+        console.log('OAuth check failed:', error.message);
+        setAuthStatus({ authenticated: false, needsReconnect: true });
       }
     };
     checkAuth();
