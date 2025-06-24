@@ -194,6 +194,14 @@ function Router() {
       </Route>
 
       {/* Railway Backend Integration Test */}
+      <Route path="/product-demo">
+        <ProtectedRoute>
+          <AppLayout>
+            <ProductCreationDemo />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
       <Route path="/railway-test">
         <ProtectedRoute>
           <AppLayout>
