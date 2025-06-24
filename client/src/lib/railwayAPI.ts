@@ -1,31 +1,50 @@
-// Railway Proxy API Integration
-// Using correct location-centric endpoints
+// Railway Proxy API Integration - Fixed Endpoints
 import axios from 'axios';
 
 const RAILWAY_BASE = 'https://dir.engageautomations.com';
 
-// Discover working location ID for Railway proxy
-async function discoverLocationId(): Promise<string> {
-  // Try common location ID patterns
-  const patterns = ['WAVk87RmW9rBSDJHeOpH', 'install_1', 'location_1'];
+// Get installation_id from URL params or storage
+function getInstallationId(): string {
+  // Check URL params first (from OAuth redirect)
+  const urlParams = new URLSearchParams(window.location.search);
+  const installationId = urlParams.get('installation_id');
   
-  for (const locationId of patterns) {
-    try {
-      const response = await fetch(`${RAILWAY_BASE}/api/ghl/locations/${locationId}/products`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'test', price: 1, productType: 'DIGITAL' })
-      });
-      
-      if (response.status === 200) {
-        return locationId;
-      }
-    } catch (error) {
-      continue;
-    }
+  if (installationId) {
+    sessionStorage.setItem('installation_id', installationId);
+    return installationId;
   }
   
-  throw new Error('No working location ID found');
+  // Check stored installation_id
+  const stored = sessionStorage.getItem('installation_id');
+  if (stored) return stored;
+  
+  // Fallback to latest if no specific ID
+  return 'latest';
+}
+
+// Check OAuth status for installation
+async function checkOAuthStatus(installationId: string) {
+  const response = await fetch(`${RAILWAY_BASE}/api/oauth/status?installation_id=${installationId}`);
+  if (response.ok) {
+    return await response.json(); // { authenticated, tokenStatus, locationId }
+  }
+  throw new Error('OAuth status check failed');
+}
+
+// Get location ID from OAuth status
+async function getLocationId(): Promise<string> {
+  const installationId = getInstallationId();
+  const status = await checkOAuthStatus(installationId);
+  
+  if (!status.authenticated) {
+    throw new Error('App not authenticated. Please reconnect the app in GoHighLevel.');
+  }
+  
+  if (status.tokenStatus !== 'valid') {
+    throw new Error('Token expired. Please reconnect the app in GoHighLevel.');
+  }
+  
+  return status.locationId;
 }
 
 // Types for Railway API responses
@@ -43,14 +62,15 @@ export interface CreateProductBody {
   availabilityType?: 'AVAILABLE_NOW' | 'COMING_SOON';
 }
 
-// Upload media via Railway proxy
+// Upload media using correct location-centric endpoint
 export async function uploadMedia(locationId: string, files: File[]): Promise<GhlUpload[]> {
+  const realLocationId = await getLocationId();
+  
   const uploadPromises = files.map(async (file) => {
     const formData = new FormData();
-    formData.append('installation_id', getInstallationId());
     formData.append('file', file);
     
-    const response = await fetch(`${RAILWAY_BASE}/api/ghl/media/upload`, {
+    const response = await fetch(`${RAILWAY_BASE}/api/ghl/locations/${realLocationId}/media`, {
       method: 'POST',
       body: formData
     });
@@ -61,25 +81,22 @@ export async function uploadMedia(locationId: string, files: File[]): Promise<Gh
     
     const result = await response.json();
     return {
-      fileUrl: result.url || result.fileUrl,
-      fileId: result.id || result.fileId || file.name
+      fileUrl: result.uploaded?.[0]?.fileUrl || result.url,
+      fileId: result.uploaded?.[0]?.fileId || result.id || file.name
     };
   });
   
   return await Promise.all(uploadPromises);
 }
 
-// Create product via Railway proxy using legacy endpoint
+// Create product using correct location-centric endpoint
 export async function createProduct(locationId: string, body: CreateProductBody) {
-  const productData = {
-    installation_id: getInstallationId(),
-    ...body
-  };
+  const realLocationId = await getLocationId();
   
-  const response = await fetch(`${RAILWAY_BASE}/api/ghl/products/create`, {
+  const response = await fetch(`${RAILWAY_BASE}/api/ghl/locations/${realLocationId}/products`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(productData)
+    body: JSON.stringify(body)
   });
   
   if (!response.ok) {
