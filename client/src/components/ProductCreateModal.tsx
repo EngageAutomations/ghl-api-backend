@@ -23,8 +23,7 @@ export function ProductCreateModal({ locationId, onClose }: ProductCreateModalPr
   const [phase, setPhase] = useState<'idle' | 'upload' | 'create' | 'gallery' | 'done' | 'error'>('idle');
   
   const { toast } = useToast();
-  const uploadMut = useUploadImages(locationId);
-  const createMut = useCreateProduct(locationId);
+  const { createProductWithImages, isLoading } = useProductWorkflow(locationId);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -60,10 +59,10 @@ export function ProductCreateModal({ locationId, onClose }: ProductCreateModalPr
   };
 
   const handleSubmit = async () => {
-    if (!formValues.name || !formValues.description || files.length === 0) {
+    if (!formValues.name || !formValues.description) {
       toast({
         title: "Missing required fields",
-        description: "Please provide name, description, and at least one image",
+        description: "Please provide product name and description",
         variant: "destructive"
       });
       return;
@@ -71,10 +70,16 @@ export function ProductCreateModal({ locationId, onClose }: ProductCreateModalPr
 
     try {
       setPhase('upload');
-      const urls = await uploadMut.mutateAsync(files);
       
-      setPhase('create');
-      await createMut.mutateAsync({ formValues, urls });
+      const productData = {
+        name: formValues.name,
+        description: formValues.description,
+        price: parseFloat(formValues.price) || 0,
+        productType: formValues.productType as 'DIGITAL' | 'PHYSICAL',
+        availabilityType: 'AVAILABLE_NOW' as const
+      };
+      
+      const result = await createProductWithImages(productData, files);
       
       setPhase('done');
       toast({
