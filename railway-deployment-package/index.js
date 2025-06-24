@@ -1,193 +1,311 @@
+// Enhanced Railway Backend with Replit OAuth Bridge
+// Fetches OAuth credentials from Replit and handles marketplace installations
+
 const express = require('express');
-const axios = require('axios');
 const cors = require('cors');
+const fetch = require('node-fetch');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
-// Secure OAuth configuration using environment variables
-const CLIENT_ID = process.env.GHL_CLIENT_ID || process.env.CLIENT_ID;
-const CLIENT_SECRET = process.env.GHL_CLIENT_SECRET || process.env.CLIENT_SECRET;
-const REDIRECT_URI = process.env.GHL_REDIRECT_URI || process.env.REDIRECT_URI || 'https://dir.engageautomations.com/oauth/callback';
-const SCOPES = 'products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write';
-
-console.log('=== SECURE OAUTH BACKEND STARTING ===');
-console.log('Client ID:', CLIENT_ID ? '[SET]' : '[MISSING]');
-console.log('Client Secret:', CLIENT_SECRET ? '[SET]' : '[MISSING]');
-console.log('Redirect URI:', REDIRECT_URI);
-console.log('Environment:', process.env.NODE_ENV || 'development');
-
-// Validate required environment variables
-if (!CLIENT_ID || !CLIENT_SECRET) {
-  console.error('❌ MISSING REQUIRED ENVIRONMENT VARIABLES');
-  console.error('Required: GHL_CLIENT_ID and GHL_CLIENT_SECRET');
-  console.error('Available env vars:', Object.keys(process.env).filter(key => key.includes('GHL') || key.includes('CLIENT')));
-  process.exit(1);
-}
-
-app.use(express.json());
+// Middleware
 app.use(cors({
-  origin: ['https://dir.engageautomations.com', 'http://localhost:3000'],
+  origin: ['https://listings.engageautomations.com', 'https://replit.app'],
   credentials: true
 }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Health check with environment status
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    service: 'Secure OAuth Backend', 
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    credentials: {
-      clientId: !!CLIENT_ID,
-      clientSecret: !!CLIENT_SECRET,
-      redirectUri: !!REDIRECT_URI
-    },
-    version: '3.0'
-  });
-});
+// In-memory storage
+const installations = new Map();
+const tokensByLocation = new Map();
 
-// Environment check endpoint (secure - no actual values)
-app.get('/api/env-check', (req, res) => {
-  res.json({
-    hasClientId: !!CLIENT_ID,
-    hasClientSecret: !!CLIENT_SECRET,
-    hasRedirectUri: !!REDIRECT_URI,
-    nodeEnv: process.env.NODE_ENV || 'production',
-    envVarCount: Object.keys(process.env).length,
-    ghlVars: Object.keys(process.env).filter(key => key.includes('GHL')).length,
-    version: 'SECURE_ENV_VARS'
-  });
-});
+// Configuration from Replit
+let oauthConfig = null;
+let configLastFetched = 0;
+const CONFIG_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// OAuth URL generation
-app.get('/api/oauth/url', (req, res) => {
-  console.log('=== GENERATING OAUTH URL ===');
+// Replit bridge configuration
+const REPLIT_BRIDGE_URL = process.env.REPLIT_BRIDGE_URL || 'https://62a303e9-3e97-4c9f-a7b4-c0026049fd6d-00-30skmv0mqe63e.janeway.replit.dev';
+const BRIDGE_TOKEN = process.env.BRIDGE_TOKEN || 'replit-railway-bridge-2025';
+
+async function fetchOAuthConfigFromReplit() {
+  const now = Date.now();
   
-  if (!CLIENT_ID) {
-    return res.status(500).json({ 
-      success: false, 
-      error: 'Client ID not configured' 
-    });
-  }
-  
-  const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&client_id=${CLIENT_ID}&state=${state}&scope=${encodeURIComponent(SCOPES)}`;
-  
-  console.log('OAuth URL generated successfully');
-  
-  res.json({
-    success: true,
-    authUrl: authUrl,
-    state: state,
-    timestamp: Date.now()
-  });
-});
-
-// OAuth callback handler
-app.get('/api/oauth/callback', async (req, res) => {
-  console.log('=== OAUTH CALLBACK RECEIVED ===');
-  console.log('Query params:', req.query);
-
-  const { code, state, error } = req.query;
-
-  if (error) {
-    console.error('OAuth error from GoHighLevel:', error);
-    return res.redirect(`https://dir.engageautomations.com/oauth-error?error=${encodeURIComponent(error)}`);
-  }
-
-  if (!code) {
-    console.error('Missing authorization code');
-    return res.redirect(`https://dir.engageautomations.com/oauth-error?error=${encodeURIComponent('Missing authorization code')}`);
-  }
-
-  if (!CLIENT_SECRET) {
-    console.error('Missing client secret in environment');
-    return res.redirect(`https://dir.engageautomations.com/oauth-error?error=${encodeURIComponent('Server configuration error')}`);
+  // Return cached config if still valid
+  if (oauthConfig && (now - configLastFetched) < CONFIG_CACHE_DURATION) {
+    return oauthConfig;
   }
 
   try {
-    console.log('=== EXCHANGING CODE FOR TOKEN ===');
-    console.log('Authorization code:', code);
+    console.log('🔄 Fetching OAuth config from Replit bridge...');
+    
+    const response = await fetch(`${REPLIT_BRIDGE_URL}/api/oauth-config`, {
+      headers: {
+        'Authorization': `Bearer ${BRIDGE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
-    // Create properly formatted form data
-    const formData = new URLSearchParams();
-    formData.append('grant_type', 'authorization_code');
-    formData.append('client_id', CLIENT_ID);
-    formData.append('client_secret', CLIENT_SECRET);
-    formData.append('code', code);
-    formData.append('redirect_uri', REDIRECT_URI);
+    if (!response.ok) {
+      throw new Error(`Replit bridge responded with ${response.status}`);
+    }
 
-    console.log('Token request using environment variables');
+    const config = await response.json();
+    
+    console.log('✅ OAuth config received from Replit:', {
+      clientId: config.clientId ? '[LOADED]' : '[MISSING]',
+      timestamp: new Date(config.timestamp).toISOString()
+    });
 
-    // Exchange code for tokens
-    const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', formData.toString(), {
+    oauthConfig = config;
+    configLastFetched = now;
+    
+    return oauthConfig;
+    
+  } catch (error) {
+    console.error('❌ Failed to fetch OAuth config from Replit:', error.message);
+    
+    // Fallback to environment variables
+    return {
+      clientId: process.env.CLIENT_ID,
+      clientSecret: process.env.CLIENT_SECRET,
+      redirectUri: 'https://dir.engageautomations.com/api/oauth/callback',
+      fallback: true
+    };
+  }
+}
+
+// OAuth callback - enhanced with Replit bridge
+app.get('/api/oauth/callback', async (req, res) => {
+  console.log('🔄 OAuth callback received:', {
+    code: req.query.code ? '[PRESENT]' : '[MISSING]',
+    location_id: req.query.location_id,
+    user_id: req.query.user_id
+  });
+
+  const { code, location_id, user_id } = req.query;
+
+  if (!code) {
+    return res.status(400).send('Missing code');
+  }
+
+  try {
+    // Get OAuth config from Replit
+    const config = await fetchOAuthConfigFromReplit();
+    
+    if (!config.clientId || !config.clientSecret) {
+      console.error('❌ OAuth credentials not available from Replit');
+      return res.status(500).send('OAuth not configured');
+    }
+
+    console.log(`🔐 Using OAuth config from ${config.fallback ? 'fallback' : 'Replit bridge'}`);
+
+    // Exchange authorization code for access token
+    const tokenResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json'
       },
-      timeout: 10000
+      body: new URLSearchParams({
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
+        grant_type: 'authorization_code',
+        code: code,
+        redirect_uri: config.redirectUri
+      })
     });
 
-    console.log('✅ TOKEN EXCHANGE SUCCESSFUL');
-    console.log('Access token received:', response.data.access_token ? '[YES]' : '[NO]');
-    console.log('Refresh token received:', response.data.refresh_token ? '[YES]' : '[NO]');
-
-    // Get user info
-    let userInfo = null;
-    try {
-      const userResponse = await axios.get('https://services.leadconnectorhq.com/oauth/userinfo', {
-        headers: {
-          'Authorization': `Bearer ${response.data.access_token}`
-        },
-        timeout: 5000
-      });
-      userInfo = userResponse.data;
-      console.log('User info retrieved successfully');
-    } catch (userError) {
-      console.warn('Failed to get user info:', userError.message);
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error('❌ Token exchange failed:', tokenResponse.status, errorText);
+      return res.status(400).send('OAuth failed');
     }
 
-    // Success response
-    const params = new URLSearchParams({
-      success: 'true',
-      timestamp: Date.now().toString()
-    });
-    
-    if (userInfo?.locationId) params.append('locationId', userInfo.locationId);
-    if (userInfo?.companyId) params.append('companyId', userInfo.companyId);
-    if (state) params.append('state', String(state));
+    const tokenData = await tokenResponse.json();
+    console.log('✅ Token exchange successful');
 
-    const successUrl = `https://dir.engageautomations.com/oauth-success?${params.toString()}`;
-    console.log('✅ REDIRECTING TO SUCCESS:', successUrl);
+    // Get user information
+    const userResponse = await fetch('https://services.leadconnectorhq.com/oauth/userinfo', {
+      headers: {
+        'Authorization': `Bearer ${tokenData.access_token}`
+      }
+    });
+
+    if (!userResponse.ok) {
+      console.error('❌ Failed to get user info:', userResponse.status);
+      return res.status(400).send('Failed to get user info');
+    }
+
+    const userData = await userResponse.json();
+    console.log('👤 User data received:', {
+      id: userData.id,
+      email: userData.email,
+      name: userData.name
+    });
+
+    // Store installation
+    const installationId = `install_${Date.now()}`;
+    const installation = {
+      id: installationId,
+      user_id: user_id || userData.id,
+      location_id: location_id,
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      expires_at: Date.now() + (tokenData.expires_in * 1000),
+      created_at: new Date().toISOString(),
+      user_data: userData,
+      scopes: tokenData.scope
+    };
+
+    installations.set(installationId, installation);
     
-    return res.redirect(successUrl);
+    // Store token by location for quick access
+    if (location_id) {
+      tokensByLocation.set(location_id, {
+        installation_id: installationId,
+        access_token: tokenData.access_token,
+        refresh_token: tokenData.refresh_token,
+        expires_at: installation.expires_at
+      });
+    }
+
+    console.log('💾 Installation stored:', {
+      id: installationId,
+      location_id: location_id,
+      expires_at: new Date(installation.expires_at).toISOString()
+    });
+
+    // Sync installation back to Replit
+    try {
+      await fetch(`${REPLIT_BRIDGE_URL}/api/sync-installation`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${BRIDGE_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(installation)
+      });
+      console.log('🔄 Installation synced to Replit');
+    } catch (syncError) {
+      console.warn('⚠️ Failed to sync installation to Replit:', syncError.message);
+    }
+
+    // Redirect to success page with installation ID
+    res.redirect(`https://listings.engageautomations.com/?installation_id=${installationId}&location_id=${location_id}`);
 
   } catch (error) {
-    console.error('=== TOKEN EXCHANGE FAILED ===');
-    console.error('Error:', error.message);
-    
-    if (error.response) {
-      console.error('Status:', error.response.status);
-      console.error('Response data:', error.response.data);
-    }
-    
-    const errorMessage = error.response?.data?.error || error.message || 'Token exchange failed';
-    const errorUrl = `https://dir.engageautomations.com/oauth-error?error=${encodeURIComponent(errorMessage)}&details=${encodeURIComponent(error.response?.status || 'Unknown')}`;
-    
-    return res.redirect(errorUrl);
+    console.error('❌ OAuth callback error:', error);
+    res.status(500).send('OAuth processing failed');
   }
 });
 
-// Start server
+// OAuth status endpoint
+app.get('/api/oauth/status', (req, res) => {
+  const { installation_id } = req.query;
+  
+  if (!installation_id) {
+    return res.json({ authenticated: false, error: 'Missing installation_id' });
+  }
+
+  const installation = installations.get(installation_id);
+  if (!installation) {
+    return res.json({ authenticated: false, error: 'Installation not found' });
+  }
+
+  const isExpired = Date.now() > installation.expires_at;
+  
+  res.json({
+    authenticated: !isExpired,
+    installation_id: installation_id,
+    location_id: installation.location_id,
+    user_id: installation.user_id,
+    expires_at: installation.expires_at,
+    expired: isExpired,
+    scopes: installation.scopes
+  });
+});
+
+// Product management endpoints (using stored tokens)
+app.post('/api/ghl/locations/:locationId/products', async (req, res) => {
+  const { locationId } = req.params;
+  const productData = req.body;
+
+  try {
+    const tokenInfo = tokensByLocation.get(locationId);
+    if (!tokenInfo) {
+      return res.status(401).json({ error: 'No token found for location' });
+    }
+
+    if (Date.now() > tokenInfo.expires_at) {
+      return res.status(401).json({ error: 'Token expired' });
+    }
+
+    const response = await fetch('https://services.leadconnectorhq.com/products/', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${tokenInfo.access_token}`,
+        'Content-Type': 'application/json',
+        'Version': '2021-07-28'
+      },
+      body: JSON.stringify({
+        ...productData,
+        locationId: locationId
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return res.status(response.status).json({ error: errorText });
+    }
+
+    const result = await response.json();
+    console.log('✅ Product created via Railway-Replit bridge:', result._id);
+
+    res.json(result);
+
+  } catch (error) {
+    console.error('❌ Product creation error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Health check with bridge status
+app.get('/', async (req, res) => {
+  try {
+    // Test bridge connection
+    const bridgeResponse = await fetch(`${REPLIT_BRIDGE_URL}/api/bridge/health`, {
+      headers: { 'Authorization': `Bearer ${BRIDGE_TOKEN}` }
+    });
+    
+    const bridgeStatus = bridgeResponse.ok ? 'Connected' : 'Disconnected';
+    
+    res.json({
+      service: 'GHL proxy with Replit bridge',
+      version: '1.6.0-bridge',
+      installs: installations.size,
+      authenticated: tokensByLocation.size,
+      bridge_status: bridgeStatus,
+      replit_url: REPLIT_BRIDGE_URL,
+      ts: Date.now()
+    });
+  } catch (error) {
+    res.json({
+      service: 'GHL proxy with Replit bridge',
+      version: '1.6.0-bridge',
+      installs: installations.size,
+      authenticated: tokensByLocation.size,
+      bridge_status: 'Error',
+      bridge_error: error.message,
+      ts: Date.now()
+    });
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
-  console.log('=== SECURE OAUTH BACKEND STARTED ===');
-  console.log(`Port: ${PORT}`);
-  console.log(`Health: http://0.0.0.0:${PORT}/health`);
-  console.log(`OAuth URL: http://0.0.0.0:${PORT}/api/oauth/url`);
-  console.log(`OAuth Callback: http://0.0.0.0:${PORT}/api/oauth/callback`);
-  console.log('Using secure environment variables');
-  console.log('==========================================');
+  console.log(`🚀 Railway backend with Replit bridge running on port ${PORT}`);
+  console.log(`🌉 Bridge URL: ${REPLIT_BRIDGE_URL}`);
+  console.log('📋 Ready to fetch OAuth config from Replit and handle installations');
 });
 
 module.exports = app;

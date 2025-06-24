@@ -1,7 +1,7 @@
 {
-  "name": "oauth-backend",
-  "version": "2.0.0",
-  "description": "Fixed OAuth Backend for GoHighLevel Integration",
+  "name": "ghl-oauth-backend-with-bridge",
+  "version": "1.6.0",
+  "description": "GoHighLevel OAuth backend with Replit bridge integration",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "axios": "^1.6.7",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "node-fetch": "^2.7.0"
   },
   "engines": {
     "node": ">=18.0.0"
