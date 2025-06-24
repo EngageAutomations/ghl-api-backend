@@ -1,368 +1,507 @@
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Play, Copy, Download, Code2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  Play, 
+  Code, 
+  TestTube, 
+  Copy, 
+  Download, 
+  History,
+  AlertCircle,
+  CheckCircle,
+  Clock
+} from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-interface APIEndpoint {
-  path: string;
-  method: string;
-  description: string;
-  category: string;
-  requiresLocationId: boolean;
-  parameters?: {
-    path?: string[];
-    query?: string[];
-    body?: string[];
-  };
+interface TestResult {
+  success: boolean;
+  status: number;
+  statusText: string;
+  data?: any;
+  error?: string;
+  duration: number;
+  timestamp: string;
 }
 
-const API_ENDPOINTS: APIEndpoint[] = [
-  // Products
-  { path: '/products', method: 'GET', description: 'List Products', category: 'Products', requiresLocationId: true, parameters: { query: ['limit', 'offset', 'search'] } },
-  { path: '/products', method: 'POST', description: 'Create Product', category: 'Products', requiresLocationId: true, parameters: { body: ['name', 'description', 'productType'] } },
-  { path: '/products/:productId', method: 'GET', description: 'Get Product', category: 'Products', requiresLocationId: false, parameters: { path: ['productId'] } },
-  { path: '/products/:productId', method: 'PUT', description: 'Update Product', category: 'Products', requiresLocationId: false, parameters: { path: ['productId'], body: ['name', 'description'] } },
-  { path: '/products/:productId', method: 'DELETE', description: 'Delete Product', category: 'Products', requiresLocationId: false, parameters: { path: ['productId'] } },
-  
-  // Contacts
-  { path: '/contacts', method: 'GET', description: 'List Contacts', category: 'Contacts', requiresLocationId: true, parameters: { query: ['limit', 'offset', 'email'] } },
-  { path: '/contacts', method: 'POST', description: 'Create Contact', category: 'Contacts', requiresLocationId: true, parameters: { body: ['firstName', 'lastName', 'email', 'phone'] } },
-  { path: '/contacts/:contactId', method: 'GET', description: 'Get Contact', category: 'Contacts', requiresLocationId: true, parameters: { path: ['contactId'] } },
-  { path: '/contacts/:contactId', method: 'PUT', description: 'Update Contact', category: 'Contacts', requiresLocationId: true, parameters: { path: ['contactId'], body: ['firstName', 'lastName', 'email'] } },
-  { path: '/contacts/:contactId', method: 'DELETE', description: 'Delete Contact', category: 'Contacts', requiresLocationId: true, parameters: { path: ['contactId'] } },
-  
-  // Media
-  { path: '/media', method: 'GET', description: 'List Media Files', category: 'Media', requiresLocationId: true, parameters: { query: ['limit', 'offset', 'type'] } },
-  { path: '/media/upload', method: 'POST', description: 'Upload File', category: 'Media', requiresLocationId: true, parameters: { body: ['file', 'name'] } },
-  { path: '/media/:mediaId', method: 'DELETE', description: 'Delete Media', category: 'Media', requiresLocationId: true, parameters: { path: ['mediaId'] } },
-  
-  // Opportunities
-  { path: '/opportunities', method: 'GET', description: 'List Opportunities', category: 'Opportunities', requiresLocationId: true, parameters: { query: ['limit', 'offset', 'pipelineId'] } },
-  { path: '/opportunities', method: 'POST', description: 'Create Opportunity', category: 'Opportunities', requiresLocationId: true, parameters: { body: ['title', 'pipelineId', 'contactId'] } },
-  
-  // Workflows
-  { path: '/workflows', method: 'GET', description: 'List Workflows', category: 'Workflows', requiresLocationId: true },
-  { path: '/workflows/:workflowId/contacts/:contactId', method: 'POST', description: 'Add Contact to Workflow', category: 'Workflows', requiresLocationId: true, parameters: { path: ['workflowId', 'contactId'] } },
-  
-  // Forms
-  { path: '/forms', method: 'GET', description: 'List Forms', category: 'Forms', requiresLocationId: true },
-  { path: '/forms/:formId/submissions', method: 'GET', description: 'Get Form Submissions', category: 'Forms', requiresLocationId: true, parameters: { path: ['formId'], query: ['limit', 'offset'] } },
-  
-  // Locations
-  { path: '/locations', method: 'GET', description: 'List Locations', category: 'Locations', requiresLocationId: false },
-  { path: '/locations/:locationId', method: 'GET', description: 'Get Location', category: 'Locations', requiresLocationId: false, parameters: { path: ['locationId'] } }
-];
+interface TestHistory {
+  id: string;
+  method: string;
+  endpoint: string;
+  result: TestResult;
+}
 
 export default function APITestingInterface() {
-  const [selectedEndpoint, setSelectedEndpoint] = useState<APIEndpoint | null>(null);
-  const [pathParams, setPathParams] = useState<Record<string, string>>({});
-  const [queryParams, setQueryParams] = useState<Record<string, string>>({});
-  const [bodyParams, setBodyParams] = useState<string>('{}');
-  const [response, setResponse] = useState<any>(null);
-  const [responseTime, setResponseTime] = useState<number | null>(null);
+  const [method, setMethod] = useState('GET');
+  const [endpoint, setEndpoint] = useState('/api/ghl/');
+  const [headers, setHeaders] = useState('{}');
+  const [body, setBody] = useState('{}');
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<TestResult | null>(null);
+  const [history, setHistory] = useState<TestHistory[]>([]);
+  const [selectedPreset, setSelectedPreset] = useState('');
+
   const { toast } = useToast();
 
-  const testMutation = useMutation({
-    mutationFn: async ({ endpoint, path, query, body }: { 
-      endpoint: APIEndpoint; 
-      path: Record<string, string>; 
-      query: Record<string, string>; 
-      body: string 
-    }) => {
-      const startTime = Date.now();
-      
-      // Build URL with path parameters
-      let url = `/api/ghl${endpoint.path}`;
-      Object.entries(path).forEach(([key, value]) => {
-        url = url.replace(`:${key}`, value);
-      });
-      
-      // Add query parameters
-      const queryString = new URLSearchParams(query).toString();
-      if (queryString) {
-        url += `?${queryString}`;
-      }
-      
-      const options: RequestInit = {
-        method: endpoint.method,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      };
-      
-      if (endpoint.method !== 'GET' && body.trim()) {
-        options.body = body;
-      }
-      
-      const response = await fetch(url, options);
-      const endTime = Date.now();
-      setResponseTime(endTime - startTime);
-      
-      const data = await response.json();
-      
-      return {
-        status: response.status,
-        statusText: response.statusText,
-        data
-      };
+  const presets = [
+    {
+      id: 'get-contacts',
+      name: 'Get Contacts',
+      method: 'GET',
+      endpoint: '/api/ghl/contacts',
+      headers: '{}',
+      body: '{}'
     },
-    onSuccess: (result) => {
-      setResponse(result);
-      toast({
-        title: "API Test Complete",
-        description: `Request completed in ${responseTime}ms`
-      });
+    {
+      id: 'create-contact',
+      name: 'Create Contact',
+      method: 'POST',
+      endpoint: '/api/ghl/contacts',
+      headers: '{"Content-Type": "application/json"}',
+      body: '{\n  "firstName": "John",\n  "lastName": "Doe",\n  "email": "john.doe@example.com",\n  "phone": "+1234567890"\n}'
     },
-    onError: (error) => {
-      setResponse({
-        status: 500,
-        statusText: 'Error',
-        data: { error: error instanceof Error ? error.message : 'Unknown error' }
-      });
+    {
+      id: 'get-products',
+      name: 'Get Products',
+      method: 'GET',
+      endpoint: '/api/ghl/products',
+      headers: '{}',
+      body: '{}'
+    },
+    {
+      id: 'create-product',
+      name: 'Create Product',
+      method: 'POST',
+      endpoint: '/api/ghl/products',
+      headers: '{"Content-Type": "application/json"}',
+      body: '{\n  "name": "Test Product",\n  "description": "A test product",\n  "price": 29.99,\n  "currency": "USD",\n  "type": "DIGITAL"\n}'
+    },
+    {
+      id: 'get-opportunities',
+      name: 'Get Opportunities',
+      method: 'GET',
+      endpoint: '/api/ghl/opportunities',
+      headers: '{}',
+      body: '{}'
+    },
+    {
+      id: 'upload-media',
+      name: 'Upload Media',
+      method: 'POST',
+      endpoint: '/api/ghl/media/upload',
+      headers: '{}',
+      body: 'FormData (file upload)'
+    }
+  ];
+
+  const executeTest = async () => {
+    if (!endpoint) {
       toast({
-        title: "API Test Failed",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        title: "Error",
+        description: "Please enter an endpoint",
         variant: "destructive"
       });
+      return;
     }
-  });
 
-  const handleTest = () => {
-    if (!selectedEndpoint) return;
-    
-    testMutation.mutate({
-      endpoint: selectedEndpoint,
-      path: pathParams,
-      query: queryParams,
-      body: bodyParams
+    setIsLoading(true);
+    const startTime = Date.now();
+
+    try {
+      let parsedHeaders = {};
+      let parsedBody = null;
+
+      // Parse headers
+      try {
+        parsedHeaders = JSON.parse(headers);
+      } catch (e) {
+        throw new Error('Invalid JSON in headers');
+      }
+
+      // Parse body for non-GET requests
+      if (method !== 'GET' && body && body.trim() !== '{}') {
+        try {
+          parsedBody = JSON.parse(body);
+        } catch (e) {
+          throw new Error('Invalid JSON in body');
+        }
+      }
+
+      const options: RequestInit = {
+        method,
+        headers: parsedHeaders,
+      };
+
+      if (parsedBody && method !== 'GET') {
+        options.body = JSON.stringify(parsedBody);
+      }
+
+      const response = await fetch(endpoint, options);
+      const duration = Date.now() - startTime;
+      
+      let responseData;
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        responseData = await response.json();
+      } else {
+        responseData = await response.text();
+      }
+
+      const testResult: TestResult = {
+        success: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+        data: responseData,
+        duration,
+        timestamp: new Date().toISOString()
+      };
+
+      setResult(testResult);
+
+      // Add to history
+      const historyItem: TestHistory = {
+        id: Date.now().toString(),
+        method,
+        endpoint,
+        result: testResult
+      };
+      
+      setHistory(prev => [historyItem, ...prev.slice(0, 9)]); // Keep last 10 items
+
+      if (response.ok) {
+        toast({
+          title: "Test Successful",
+          description: `${method} ${endpoint} completed in ${duration}ms`
+        });
+      } else {
+        toast({
+          title: "Test Failed",
+          description: `${response.status} ${response.statusText}`,
+          variant: "destructive"
+        });
+      }
+
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      const testResult: TestResult = {
+        success: false,
+        status: 0,
+        statusText: 'Network Error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        duration,
+        timestamp: new Date().toISOString()
+      };
+
+      setResult(testResult);
+      
+      toast({
+        title: "Test Error",
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadPreset = (presetId: string) => {
+    const preset = presets.find(p => p.id === presetId);
+    if (preset) {
+      setMethod(preset.method);
+      setEndpoint(preset.endpoint);
+      setHeaders(preset.headers);
+      setBody(preset.body);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied",
+      description: "Content copied to clipboard"
     });
   };
 
-  const copyResponse = () => {
-    if (response) {
-      navigator.clipboard.writeText(JSON.stringify(response, null, 2));
-      toast({
-        title: "Copied to clipboard",
-        description: "Response has been copied to clipboard"
-      });
+  const formatJson = (obj: any) => {
+    try {
+      return JSON.stringify(obj, null, 2);
+    } catch {
+      return String(obj);
     }
   };
 
-  const downloadResponse = () => {
-    if (response) {
-      const blob = new Blob([JSON.stringify(response, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `api-response-${Date.now()}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
+  const getStatusColor = (status: number) => {
+    if (status >= 200 && status < 300) return 'text-green-600';
+    if (status >= 400 && status < 500) return 'text-yellow-600';
+    if (status >= 500) return 'text-red-600';
+    return 'text-gray-600';
   };
-
-  const categories = Array.from(new Set(API_ENDPOINTS.map(ep => ep.category)));
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">API Testing Interface</h2>
-        <p className="text-muted-foreground">
-          Test GoHighLevel API endpoints with real data and view responses
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">API Testing Interface</h2>
+          <p className="text-muted-foreground">
+            Test GoHighLevel API endpoints directly from the dashboard
+          </p>
+        </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left Panel - Request Configuration */}
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Select Endpoint</CardTitle>
-              <CardDescription>Choose an API endpoint to test</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Select onValueChange={(value) => {
-                const endpoint = API_ENDPOINTS.find(ep => `${ep.method} ${ep.path}` === value);
-                setSelectedEndpoint(endpoint || null);
-                setPathParams({});
-                setQueryParams({});
-                setBodyParams('{}');
-                setResponse(null);
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Request Configuration */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TestTube className="h-5 w-5" />
+              Request Configuration
+            </CardTitle>
+            <CardDescription>
+              Configure your API request parameters
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Preset Selector */}
+            <div>
+              <Label htmlFor="preset">Quick Presets</Label>
+              <Select value={selectedPreset} onValueChange={(value) => {
+                setSelectedPreset(value);
+                loadPreset(value);
               }}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select an endpoint to test" />
+                  <SelectValue placeholder="Select a preset..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map(category => (
-                    <div key={category}>
-                      <div className="px-2 py-1 text-sm font-medium text-muted-foreground">
-                        {category}
-                      </div>
-                      {API_ENDPOINTS.filter(ep => ep.category === category).map(endpoint => (
-                        <SelectItem key={`${endpoint.method} ${endpoint.path}`} value={`${endpoint.method} ${endpoint.path}`}>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">
-                              {endpoint.method}
-                            </Badge>
-                            <span>{endpoint.path}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </div>
+                  {presets.map((preset) => (
+                    <SelectItem key={preset.id} value={preset.id}>
+                      {preset.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
 
-              {selectedEndpoint && (
-                <div className="p-3 bg-muted rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="outline">{selectedEndpoint.method}</Badge>
-                    <code className="text-sm">{selectedEndpoint.path}</code>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{selectedEndpoint.description}</p>
-                  {selectedEndpoint.requiresLocationId && (
-                    <Badge variant="secondary" className="mt-2">
-                      Requires Location ID
-                    </Badge>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {selectedEndpoint && (
-            <Tabs defaultValue="path" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="path">Path Params</TabsTrigger>
-                <TabsTrigger value="query">Query Params</TabsTrigger>
-                <TabsTrigger value="body">Body</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="path">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Path Parameters</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {selectedEndpoint.parameters?.path?.map(param => (
-                      <div key={param}>
-                        <label className="text-sm font-medium">{param}</label>
-                        <Input
-                          value={pathParams[param] || ''}
-                          onChange={(e) => setPathParams(prev => ({ ...prev, [param]: e.target.value }))}
-                          placeholder={`Enter ${param}`}
-                        />
-                      </div>
-                    )) || <p className="text-muted-foreground">No path parameters required</p>}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="query">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Query Parameters</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {selectedEndpoint.parameters?.query?.map(param => (
-                      <div key={param}>
-                        <label className="text-sm font-medium">{param}</label>
-                        <Input
-                          value={queryParams[param] || ''}
-                          onChange={(e) => setQueryParams(prev => ({ ...prev, [param]: e.target.value }))}
-                          placeholder={`Enter ${param}`}
-                        />
-                      </div>
-                    )) || <p className="text-muted-foreground">No query parameters available</p>}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="body">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Request Body</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {selectedEndpoint.method !== 'GET' ? (
-                      <Textarea
-                        value={bodyParams}
-                        onChange={(e) => setBodyParams(e.target.value)}
-                        placeholder="Enter JSON request body"
-                        rows={8}
-                        className="font-mono"
-                      />
-                    ) : (
-                      <p className="text-muted-foreground">GET requests don't require a body</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          )}
-
-          <Button 
-            onClick={handleTest} 
-            disabled={!selectedEndpoint || testMutation.isPending}
-            className="w-full"
-            size="lg"
-          >
-            <Play className="h-4 w-4 mr-2" />
-            {testMutation.isPending ? 'Testing...' : 'Test API Endpoint'}
-          </Button>
-        </div>
-
-        {/* Right Panel - Response */}
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Response</CardTitle>
-                {response && (
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={copyResponse}>
-                      <Copy className="h-3 w-3 mr-1" />
-                      Copy
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={downloadResponse}>
-                      <Download className="h-3 w-3 mr-1" />
-                      Download
-                    </Button>
-                  </div>
-                )}
+            {/* Method and Endpoint */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+              <div>
+                <Label htmlFor="method">Method</Label>
+                <Select value={method} onValueChange={setMethod}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="GET">GET</SelectItem>
+                    <SelectItem value="POST">POST</SelectItem>
+                    <SelectItem value="PUT">PUT</SelectItem>
+                    <SelectItem value="DELETE">DELETE</SelectItem>
+                    <SelectItem value="PATCH">PATCH</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              {response && responseTime && (
-                <div className="flex items-center gap-4 text-sm">
-                  <Badge variant={response.status < 400 ? "default" : "destructive"}>
-                    {response.status} {response.statusText}
-                  </Badge>
-                  <span className="text-muted-foreground">{responseTime}ms</span>
-                </div>
-              )}
-            </CardHeader>
-            <CardContent>
-              {!response ? (
-                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                  <Code2 className="h-12 w-12 mb-4" />
-                  <p>Select an endpoint and click "Test" to see the response</p>
-                </div>
+              
+              <div className="md:col-span-3">
+                <Label htmlFor="endpoint">Endpoint</Label>
+                <Input
+                  id="endpoint"
+                  value={endpoint}
+                  onChange={(e) => setEndpoint(e.target.value)}
+                  placeholder="/api/ghl/contacts"
+                />
+              </div>
+            </div>
+
+            {/* Headers */}
+            <div>
+              <Label htmlFor="headers">Headers (JSON)</Label>
+              <Textarea
+                id="headers"
+                value={headers}
+                onChange={(e) => setHeaders(e.target.value)}
+                placeholder='{"Content-Type": "application/json"}'
+                rows={3}
+                className="font-mono text-sm"
+              />
+            </div>
+
+            {/* Body */}
+            {method !== 'GET' && (
+              <div>
+                <Label htmlFor="body">Request Body (JSON)</Label>
+                <Textarea
+                  id="body"
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder='{"key": "value"}'
+                  rows={6}
+                  className="font-mono text-sm"
+                />
+              </div>
+            )}
+
+            {/* Execute Button */}
+            <Button 
+              onClick={executeTest} 
+              disabled={isLoading}
+              className="w-full"
+              size="lg"
+            >
+              {isLoading ? (
+                <>
+                  <Clock className="h-4 w-4 mr-2 animate-spin" />
+                  Executing...
+                </>
               ) : (
-                <pre className="bg-muted p-4 rounded-lg overflow-auto max-h-96 text-xs">
-                  {JSON.stringify(response.data, null, 2)}
-                </pre>
+                <>
+                  <Play className="h-4 w-4 mr-2" />
+                  Execute Test
+                </>
               )}
-            </CardContent>
-          </Card>
-        </div>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Results */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Code className="h-5 w-5" />
+              Response
+            </CardTitle>
+            <CardDescription>
+              API response details and data
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {result ? (
+              <Tabs defaultValue="response" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="response">Response</TabsTrigger>
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="response" className="space-y-4">
+                  {/* Status */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {result.success ? (
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <AlertCircle className="h-5 w-5 text-red-600" />
+                      )}
+                      <span className={`font-mono font-semibold ${getStatusColor(result.status)}`}>
+                        {result.status} {result.statusText}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">
+                        {result.duration}ms
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(formatJson(result.data))}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Response Data */}
+                  <div className="border rounded-md">
+                    <pre className="p-4 text-sm overflow-auto max-h-96 bg-gray-50">
+                      {result.error ? result.error : formatJson(result.data)}
+                    </pre>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="details" className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Timestamp:</span>
+                      <span className="font-mono text-sm">
+                        {new Date(result.timestamp).toLocaleString()}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="font-medium">Duration:</span>
+                      <span className="font-mono text-sm">{result.duration}ms</span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="font-medium">Status:</span>
+                      <span className={`font-mono text-sm ${getStatusColor(result.status)}`}>
+                        {result.status} {result.statusText}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="font-medium">Success:</span>
+                      <span className={`font-mono text-sm ${result.success ? 'text-green-600' : 'text-red-600'}`}>
+                        {result.success ? 'true' : 'false'}
+                      </span>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <TestTube className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Execute a test to see results here</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Test History */}
+      {history.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Test History
+            </CardTitle>
+            <CardDescription>
+              Recent API test executions
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {history.map((item) => (
+                <div 
+                  key={item.id}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  onClick={() => setResult(item.result)}
+                >
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className="font-mono">
+                      {item.method}
+                    </Badge>
+                    <span className="font-mono text-sm">{item.endpoint}</span>
+                    <span className={`text-sm ${getStatusColor(item.result.status)}`}>
+                      {item.result.status}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>{item.result.duration}ms</span>
+                    <span>{new Date(item.result.timestamp).toLocaleTimeString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

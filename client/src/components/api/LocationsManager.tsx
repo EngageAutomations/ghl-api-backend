@@ -1,16 +1,13 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Search, RefreshCw, Edit, Globe } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { useToast } from '@/hooks/use-toast';
+import { Search, MapPin, Phone, Mail, Globe, Settings, Users } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-interface Location {
+interface LocationData {
   id: string;
   name: string;
   address?: string;
@@ -18,322 +15,325 @@ interface Location {
   state?: string;
   country?: string;
   postalCode?: string;
+  phone?: string;
+  email?: string;
   website?: string;
-  timeZone?: string;
+  timezone: string;
   isActive: boolean;
+  settings: {
+    businessHours?: Record<string, any>;
+    notifications?: boolean;
+    integrations?: string[];
+  };
+  contactCount: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function LocationsManager() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterCountry, setFilterCountry] = useState<string>('all');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
 
-  const form = useForm<Location>({
-    defaultValues: {
-      name: '',
-      address: '',
-      city: '',
-      state: '',
-      country: '',
-      postalCode: '',
-      website: ''
-    }
-  });
-
-  // Fetch locations
-  const { data: locations, isLoading, refetch } = useQuery({
-    queryKey: ['/api/ghl/locations'],
+  // Fetch locations from GoHighLevel API
+  const { data: locations, isLoading, error } = useQuery({
+    queryKey: ['/api/ghl/locations', { search: searchTerm, status: filterStatus, country: filterCountry, sortBy, sortOrder }],
     queryFn: async () => {
-      const response = await fetch('/api/ghl/locations');
-      if (!response.ok) throw new Error('Failed to fetch locations');
-      return response.json();
-    }
-  });
-
-  // Update location mutation
-  const updateMutation = useMutation({
-    mutationFn: async (data: { id: string; updates: Partial<Location> }) => {
-      const response = await fetch(`/api/ghl/locations/${data.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data.updates)
+      const params = new URLSearchParams({
+        ...(searchTerm && { search: searchTerm }),
+        ...(filterStatus !== 'all' && { status: filterStatus }),
+        ...(filterCountry !== 'all' && { country: filterCountry }),
+        ...(sortBy && { sortBy }),
+        ...(sortOrder && { sortOrder })
       });
-      if (!response.ok) throw new Error('Failed to update location');
+      
+      const response = await fetch(`/api/ghl/locations?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch locations');
+      }
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ghl/locations'] });
-      setIsEditOpen(false);
-      toast({
-        title: "Location updated",
-        description: "Location information has been successfully updated."
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Update failed",
-        description: error instanceof Error ? error.message : "Failed to update location",
-        variant: "destructive"
-      });
-    }
   });
 
-  const openEditDialog = (location: Location) => {
-    setSelectedLocation(location);
-    form.reset(location);
-    setIsEditOpen(true);
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
   };
 
-  const onSubmit = (data: Location) => {
-    if (!selectedLocation) return;
-    updateMutation.mutate({
-      id: selectedLocation.id,
-      updates: data
-    });
+  const getStatusColor = (isActive: boolean) => {
+    return isActive 
+      ? 'bg-green-100 text-green-800'
+      : 'bg-gray-100 text-gray-800';
   };
 
-  const filteredLocations = locations?.filter((location: Location) =>
-    location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    location.city?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const formatAddress = (location: LocationData) => {
+    const parts = [
+      location.address,
+      location.city,
+      location.state,
+      location.postalCode,
+      location.country
+    ].filter(Boolean);
+    
+    return parts.length > 0 ? parts.join(', ') : 'No address provided';
+  };
+
+  const filteredLocations = locations?.locations || [];
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-red-600">
+            <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <h3 className="font-semibold mb-2">Failed to load locations</h3>
+            <p className="text-sm">{error.message}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Calculate summary stats
+  const activeLocations = filteredLocations.filter((loc: LocationData) => loc.isActive);
+  const totalContacts = filteredLocations.reduce((sum: number, loc: LocationData) => sum + loc.contactCount, 0);
+  const countries = [...new Set(filteredLocations.map((loc: LocationData) => loc.country).filter(Boolean))];
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Location Management</h2>
+          <h2 className="text-2xl font-bold">Location Management</h2>
           <p className="text-muted-foreground">
-            Manage business locations and their information
+            Manage your GoHighLevel business locations
           </p>
         </div>
-        <Button onClick={() => refetch()} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search locations..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
-
-      {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent className="animate-pulse">
-                <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredLocations.map((location: Location) => (
-            <Card key={location.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    {location.name}
-                  </CardTitle>
-                  <Badge variant={location.isActive ? "default" : "secondary"}>
-                    {location.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-                <CardDescription>
-                  {location.city && location.state 
-                    ? `${location.city}, ${location.state}` 
-                    : location.address || "No address provided"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {location.address && (
-                    <div className="text-sm text-muted-foreground">
-                      📍 {location.address}
-                      {location.city && `, ${location.city}`}
-                      {location.postalCode && ` ${location.postalCode}`}
-                    </div>
-                  )}
-                  {location.website && (
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Globe className="h-3 w-3 mr-1" />
-                      <a href={location.website} target="_blank" rel="noopener noreferrer" 
-                         className="hover:text-primary">
-                        {location.website}
-                      </a>
-                    </div>
-                  )}
-                  {location.timeZone && (
-                    <div className="text-sm text-muted-foreground">
-                      🕒 {location.timeZone}
-                    </div>
-                  )}
-                </div>
-                <div className="mt-4">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => openEditDialog(location)}
-                    className="w-full"
-                  >
-                    <Edit className="h-3 w-3 mr-2" />
-                    Edit Location
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {!isLoading && filteredLocations.length === 0 && (
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No locations found</h3>
-            <p className="text-muted-foreground text-center">
-              {searchTerm ? 'No locations match your search.' : 'No locations available.'}
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Locations</CardTitle>
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredLocations.length}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Locations</CardTitle>
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{activeLocations.length}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Contacts</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalContacts}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Countries</CardTitle>
+            <Globe className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{countries.length}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex-1 min-w-[200px]">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search locations..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+        
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={filterCountry} onValueChange={setFilterCountry}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Country" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Countries</SelectItem>
+            {countries.map((country) => (
+              <SelectItem key={country} value={country}>
+                {country}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        
+        <Select value={`${sortBy}-${sortOrder}`} onValueChange={(value) => {
+          const [field, order] = value.split('-');
+          setSortBy(field);
+          setSortOrder(order);
+        }}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Sort" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="createdAt-desc">Newest</SelectItem>
+            <SelectItem value="createdAt-asc">Oldest</SelectItem>
+            <SelectItem value="name-asc">Name A-Z</SelectItem>
+            <SelectItem value="name-desc">Name Z-A</SelectItem>
+            <SelectItem value="contactCount-desc">Most Contacts</SelectItem>
+            <SelectItem value="contactCount-asc">Least Contacts</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Locations List */}
+      {isLoading ? (
+        <div className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="h-48 bg-gray-200 rounded"></div>
+            </div>
+          ))}
+        </div>
+      ) : filteredLocations.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <MapPin className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+            <h3 className="font-semibold mb-2">No locations found</h3>
+            <p className="text-gray-600 mb-6">
+              {searchTerm || filterStatus !== 'all' || filterCountry !== 'all'
+                ? 'Try adjusting your search or filters'
+                : 'No locations configured yet'
+              }
             </p>
           </CardContent>
         </Card>
-      )}
-
-      {/* Edit Location Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Location</DialogTitle>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Enter location name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      ) : (
+        <div className="space-y-4">
+          {filteredLocations.map((location: LocationData) => (
+            <Card key={location.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg">{location.name}</CardTitle>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge className={getStatusColor(location.isActive)}>
+                        {location.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                      <Badge variant="outline">{location.timezone}</Badge>
+                      {location.contactCount > 0 && (
+                        <Badge variant="outline">
+                          {location.contactCount} contact{location.contactCount !== 1 ? 's' : ''}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm">
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
               
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Enter street address" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Location Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2 text-sm">
+                        <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                        <span className="flex-1">{formatAddress(location)}</span>
+                      </div>
+                      
+                      {location.phone && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <span>{location.phone}</span>
+                        </div>
+                      )}
+                      
+                      {location.email && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <span>{location.email}</span>
+                        </div>
+                      )}
+                      
+                      {location.website && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Globe className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-blue-600 hover:underline">
+                            {location.website}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {location.settings.integrations && location.settings.integrations.length > 0 && (
+                        <div>
+                          <p className="text-sm font-medium mb-1">Integrations:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {location.settings.integrations.slice(0, 3).map((integration, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {integration}
+                              </Badge>
+                            ))}
+                            {location.settings.integrations.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{location.settings.integrations.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span>Notifications: {location.settings.notifications ? 'Enabled' : 'Disabled'}</span>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>City</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="City" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="state"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>State</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="State" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="postalCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Postal Code</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="ZIP/Postal" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="country"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Country</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Country" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="website"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Website</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="https://example.com" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? "Updating..." : "Update Location"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+                  {/* Metadata */}
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2 border-t">
+                    <span>Created {formatDate(location.createdAt)}</span>
+                    <span>Updated {formatDate(location.updatedAt)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

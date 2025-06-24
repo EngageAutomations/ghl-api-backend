@@ -16,8 +16,8 @@ import {
   MapPin,
   Settings
 } from 'lucide-react';
-import ProductsManager from '@/components/api/ProductsManager';
-import PricesManager from '@/components/api/PricesManager';
+import ProductManager from '@/components/api/ProductManager';
+import PriceManager from '@/components/api/PriceManager';
 import MediaManager from '@/components/api/MediaManager';
 import ContactsManager from '@/components/api/ContactsManager';
 import OpportunitiesManager from '@/components/api/OpportunitiesManager';
@@ -290,11 +290,11 @@ export default function APIManagement() {
         </TabsContent>
 
         <TabsContent value="products">
-          <ProductsManager />
+          <ProductManager />
         </TabsContent>
 
         <TabsContent value="prices">
-          <PricesManager />
+          <PriceManager />
         </TabsContent>
 
         <TabsContent value="media">
