@@ -1,0 +1,266 @@
+📑 Replit-Agent Integration Report
+(Targets the v1.4.3 Railway proxy now running at https://dir.engageautomations.com)
+
+1 · Authenticate once per browser session
+ts
+Copy
+Edit
+POST /api/auth/token
+// No body required, but you can send {role:"merchant"} if you want
+// Response → { jwt: "eyJhbGciOiJI..." }
+Store the jwt string in sessionStorage (or a React context) and inject it on every subsequent API request:
+
+makefile
+Copy
+Edit
+Authorization: Bearer <jwt>
+2 · Multi-image upload (0–10 files)
+ts
+Copy
+Edit
+POST /api/ghl/locations/:locationId/media
+Headers:  Authorization: Bearer <jwt>
+          Content-Type: multipart/form-data
+Body:     file=@img1.jpg
+          file=@img2.png
+          ... up to 10
+Success → { uploaded: [ { fileId, fileUrl, ... }, … ] }
+Rules
+
+Each field key must literally be file (Multer accepts duplicates).
+
+≤ 25 MB per file; JPEG/PNG/WEBP recommended.
+
+Response order matches upload order — keep it for gallery sorting.
+
+3 · Create the product
+ts
+Copy
+Edit
+POST /api/ghl/locations/:locationId/products
+Headers:  Authorization: Bearer <jwt>
+          Content-Type: application/json
+Body: {
+  "name":        "AI Robot Assistant Pro",
+  "description": "Your new super-bot",
+  "productType": "DIGITAL",        // or "PHYSICAL"
+  "price":        99.00,
+  "imageUrl":    "<first uploaded url>",
+  // …any extra GHL product fields your form collects
+}
+Success → { product:{ id, name, … } }
+locationId is only in the URL path – leave it out of the JSON unless you need it in GHL’s native schema (the proxy injects it anyway).
+
+4 · Legacy fall-backs (still live)
+Purpose	Method / Path	Notes
+Old single-file media	POST /api/ghl/media/upload	Body param installation_id required
+Old product create	POST /api/ghl/products/create	Body param installation_id required
+
+They work, but your new UI should prefer the location-centric paths.
+
+5 · Error semantics you should surface
+HTTP	Meaning from proxy	Suggested UX
+400	Missing field / bad JSON	Show “please fix form” toast
+401	JWT missing/expired	Refresh token or re-login
+404	Unknown locationId	Ask user to reconnect the app
+413	File > 25 MB	Client-side size validation
+429	Proxy rate-limit	Auto-retry with back-off
+5xx	GHL outage or proxy crash	Queue payload for later retry
+
+6 · Access-token refresh – nothing for you to do
+The proxy auto-refreshes the GHL access-token when it’s within 5 min of expiry.
+
+If the refresh token is revoked or expired, you’ll get 401 → prompt the user to “Reconnect app” in GoHighLevel.
+
+Your JWT remains valid for 8 h; renew it silently with /api/auth/token if you get a 401 from the proxy.
+
+7 · Minimal Axios wrapper (React / TS)
+ts
+Copy
+Edit
+import axios from 'axios';
+
+export const api = axios.create({
+  baseURL: 'https://dir.engageautomations.com/api/ghl'
+});
+
+api.interceptors.request.use(cfg => {
+  const jwt = sessionStorage.getItem('jwt');
+  if (jwt) cfg.headers.Authorization = `Bearer ${jwt}`;
+  return cfg;
+});
+Usage:
+
+ts
+Copy
+Edit
+// 1) upload files
+const form = new FormData();
+files.forEach(f => form.append('file', f));
+const { data:up } = await api.post(
+  `/locations/${locationId}/media`,
+  form
+);
+
+// 2) create product
+await api.post(`/locations/${locationId}/products`, {
+  name, description, price,
+  imageUrl: up.uploaded[0].fileUrl
+});
+✔️ Recap
+Get JWT → store it.
+
+Upload images with location-centric /media route.
+
+Create product with location-centric /products route.
+
+The proxy handles access-token refresh, legacy routes still exist, and any 401/404/5xx codes bubble back for graceful UI handling.
+
+Your Replit front-end can now call these endpoints directly; no more 404s. Ping me if you hit unexpected responses!
+
+
+
+
+
+
+
+
+You said:
+this can be coded into the app correct? Get JWT → store it.
+
+
+ChatGPT said:
+
+Thought for 7 seconds
+Yes — you can wire the new flow straight into your Replit front-end.
+Below is a drop-in helper (React + Axios) that implements the exact sequence:
+
+Get JWT once
+
+Attach it automatically to every request
+
+Upload one or many images
+
+Create the product with the first image URL (or any you choose)
+
+1 · api.ts – Axios wrapper
+ts
+Copy
+Edit
+// src/lib/api.ts
+import axios from 'axios';
+
+const BASE = 'https://dir.engageautomations.com';   // Railway proxy
+
+export const api = axios.create({ baseURL: `${BASE}/api/ghl` });
+
+// inject JWT on every call
+api.interceptors.request.use(cfg => {
+  const jwt = sessionStorage.getItem('jwt');
+  if (jwt) cfg.headers.Authorization = `Bearer ${jwt}`;
+  return cfg;
+});
+2 · auth.ts – fetch & store the JWT
+ts
+Copy
+Edit
+// src/lib/auth.ts
+import { api } from './api';
+
+export async function ensureJwt() {
+  if (sessionStorage.getItem('jwt')) return;
+  const { data } = await api.post('../auth/token', {}); // ../ bumps to /api/auth/token
+  sessionStorage.setItem('jwt', data.jwt);
+}
+Call ensureJwt() in your root App or inside a React Query onMount.
+
+3 · useUploadMedia.ts – hook for multi-image upload
+ts
+Copy
+Edit
+// src/hooks/useUploadMedia.ts
+import { api } from '@/lib/api';
+import { useMutation } from '@tanstack/react-query';
+
+type GhlUpload = { fileUrl: string; fileId: string };
+
+export function useUploadMedia(locationId: string) {
+  return useMutation(async (files: File[]) => {
+    const fd = new FormData();
+    files.forEach(f => fd.append('file', f));
+    const { data } = await api.post<{ uploaded: GhlUpload[] }>(
+      `/locations/${locationId}/media`,
+      fd,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    return data.uploaded;
+  });
+}
+4 · useCreateProduct.ts – hook for product create
+ts
+Copy
+Edit
+// src/hooks/useCreateProduct.ts
+import { api } from '@/lib/api';
+import { useMutation } from '@tanstack/react-query';
+
+interface CreateBody {
+  name: string;
+  description?: string;
+  price?: number;
+  imageUrl?: string;
+  productType?: 'DIGITAL'|'PHYSICAL';
+  availabilityType?: 'AVAILABLE_NOW'|'COMING_SOON';
+}
+
+export function useCreateProduct(locationId: string) {
+  return useMutation(async (body: CreateBody) => {
+    const { data } = await api.post(
+      `/locations/${locationId}/products`,
+      body
+    );
+    return data.product;
+  });
+}
+5 · Putting it together in your form
+tsx
+Copy
+Edit
+const { mutateAsync: upload }   = useUploadMedia(locationId);
+const { mutateAsync: create }   = useCreateProduct(locationId);
+
+async function onSubmit(form: FormValues) {
+  await ensureJwt();                // 1) get JWT if needed
+  const uploads = await upload(form.images);   // 2) multi-file upload
+  await create({
+    name:        form.title,
+    description: form.desc,
+    price:       parseFloat(form.price),
+    imageUrl:    uploads[0]?.fileUrl      // 3) first URL as thumbnail
+  });
+  toast.success('Product created in GoHighLevel!');
+}
+Error handling you’ll get “for free”
+401 Unauthorized → sessionStorage lacks / has stale JWT → call ensureJwt() again, retry once.
+
+404 locationId unknown → user installed app in wrong sub-account; prompt to “Reconnect”.
+
+413 Payload Too Large → pick smaller images (the proxy enforces ≤ 25 MB).
+
+5xx → network or GoHighLevel outage; show “Try again later”.
+
+No extra env vars or libraries needed
+The proxy’s auto-refresh keeps the GHL access-token valid — your front-end never sees it.
+
+Your existing package.json already contains axios; no new deps are required.
+
+If you want stricter typing, add @tanstack/react-query types and define interfaces for the GHL responses.
+
+Wire the four snippets above into your Replit project and your UI will call the new location-centric routes without any 404s or manual token work. Ping me if you hit unexpected responses!
+
+
+
+
+
+
+

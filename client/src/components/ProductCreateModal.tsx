@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useUploadImages } from '@/hooks/useUploadImages';
-import { useCreateProduct } from '@/hooks/useCreateProduct';
+import { useProductWorkflow } from '@/hooks/useRailwayAPI';
 import { CheckCircle, Loader2, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
