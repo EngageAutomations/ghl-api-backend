@@ -22,20 +22,23 @@ export function OAuthCapture() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for installation_id in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('installation_id');
+    // Check stored installation_id and location_id
+    const storedInstallationId = sessionStorage.getItem('installation_id');
+    const storedLocationId = sessionStorage.getItem('location_id');
     
-    if (id) {
-      setInstallationId(id);
-      sessionStorage.setItem('installation_id', id);
-      checkOAuthStatus(id);
-    } else {
-      // Check stored installation_id
-      const stored = sessionStorage.getItem('installation_id');
-      if (stored) {
-        setInstallationId(stored);
-        checkOAuthStatus(stored);
+    if (storedInstallationId) {
+      setInstallationId(storedInstallationId);
+      
+      if (storedLocationId) {
+        // Both IDs stored, set as authenticated
+        setOAuthStatus({
+          authenticated: true,
+          tokenStatus: 'valid',
+          locationId: storedLocationId
+        });
+      } else {
+        // Only installation_id stored, check status
+        checkOAuthStatus(storedInstallationId);
       }
     }
   }, []);
@@ -128,29 +131,34 @@ export function OAuthCapture() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="text-sm">
-          <strong>Installation ID:</strong> {installationId}
+        <div className="grid grid-cols-1 gap-2 text-sm">
+          <div>
+            <strong>Installation ID:</strong> <code className="bg-gray-100 px-1 rounded">{installationId}</code>
+          </div>
+          
+          {oauthStatus && (
+            <>
+              <div>
+                <strong>Authenticated:</strong> 
+                <span className={oauthStatus.authenticated ? 'text-green-600 ml-1' : 'text-red-600 ml-1'}>
+                  {oauthStatus.authenticated ? 'Yes' : 'No'}
+                </span>
+              </div>
+              
+              {oauthStatus.tokenStatus && (
+                <div>
+                  <strong>Token Status:</strong> <span className="text-blue-600">{oauthStatus.tokenStatus}</span>
+                </div>
+              )}
+              
+              {oauthStatus.locationId && (
+                <div>
+                  <strong>Location ID:</strong> <code className="bg-gray-100 px-1 rounded">{oauthStatus.locationId}</code>
+                </div>
+              )}
+            </>
+          )}
         </div>
-        
-        {oauthStatus && (
-          <>
-            <div className="text-sm">
-              <strong>Authenticated:</strong> {oauthStatus.authenticated ? 'Yes' : 'No'}
-            </div>
-            
-            {oauthStatus.tokenStatus && (
-              <div className="text-sm">
-                <strong>Token Status:</strong> {oauthStatus.tokenStatus}
-              </div>
-            )}
-            
-            {oauthStatus.locationId && (
-              <div className="text-sm">
-                <strong>Location ID:</strong> {oauthStatus.locationId}
-              </div>
-            )}
-          </>
-        )}
         
         <div className="flex gap-2">
           <Button 

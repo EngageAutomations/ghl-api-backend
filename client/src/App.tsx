@@ -45,34 +45,45 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function Router() {
   const [location] = useLocation();
   
-  // Capture installation_id from OAuth redirect
+  // Parse installation_id from OAuth redirect and get locationId
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const installationId = urlParams.get('installation_id');
-    
-    if (installationId) {
-      console.log('OAuth redirect detected - Installation ID:', installationId);
-      sessionStorage.setItem('installation_id', installationId);
+    const handleOAuthRedirect = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const installationId = urlParams.get('installation_id');
       
-      // Test OAuth status immediately after capture
-      const testOAuthStatus = async () => {
+      if (installationId) {
+        console.log('OAuth redirect detected - Installation ID:', installationId);
+        
         try {
+          // Immediately call /api/oauth/status to get locationId
           const { checkOAuthStatus } = await import('@/lib/railwayAPI');
           const status = await checkOAuthStatus(installationId);
-          console.log('OAuth status after installation_id capture:', status);
+          console.log('OAuth status response:', status);
+          
+          // Store both IDs in sessionStorage
+          sessionStorage.setItem('installation_id', installationId);
           
           if (status.authenticated && status.locationId) {
-            console.log('OAuth authentication successful!');
-            console.log('Location ID:', status.locationId);
             sessionStorage.setItem('location_id', status.locationId);
+            console.log('OAuth complete - stored installation_id and location_id');
+            console.log('Installation ID:', installationId);
+            console.log('Location ID:', status.locationId);
+            
+            // Clear URL params after successful capture
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+          } else {
+            console.log('OAuth incomplete - no locationId or not authenticated');
           }
         } catch (error) {
           console.log('OAuth status check failed:', error.message);
+          // Still store installation_id for retry attempts
+          sessionStorage.setItem('installation_id', installationId);
         }
-      };
-      
-      testOAuthStatus();
-    }
+      }
+    };
+    
+    handleOAuthRedirect();
   }, [location]);
   
   return (

@@ -35,27 +35,22 @@ async function getJWTToken(): Promise<string> {
   return '';
 }
 
-// Get installation_id from OAuth redirect or storage
+// Get installation_id from storage (used only for status checks)
 function getInstallationId(): string {
-  // First check URL params for fresh OAuth redirect
-  const urlParams = new URLSearchParams(window.location.search);
-  const installationId = urlParams.get('installation_id');
-  
-  if (installationId) {
-    console.log('Found installation_id in URL:', installationId);
-    sessionStorage.setItem('installation_id', installationId);
-    return installationId;
-  }
-  
-  // Check stored installation_id from previous OAuth
   const stored = sessionStorage.getItem('installation_id');
   if (stored) {
-    console.log('Using stored installation_id:', stored);
     return stored;
   }
-  
-  console.log('No installation_id found, using fallback');
   return 'latest';
+}
+
+// Get location_id from storage (used for uploads/products)
+function getLocationId(): string {
+  const stored = sessionStorage.getItem('location_id');
+  if (stored) {
+    return stored;
+  }
+  throw new Error('No location_id stored. Complete OAuth flow first.');
 }
 
 // Step 2: Check OAuth status and get locationId
@@ -78,12 +73,20 @@ export async function checkOAuthStatus(installationId: string) {
   return await response.json(); // { authenticated, tokenStatus, locationId }
 }
 
-// Get authenticated location ID
+// Get authenticated location ID using stored values
 async function getAuthenticatedLocationId(): Promise<{ locationId: string; needsReconnect: boolean }> {
-  const installationId = getInstallationId();
-  console.log('Getting location ID for installation:', installationId);
-  
   try {
+    // First try to use stored location_id
+    const storedLocationId = sessionStorage.getItem('location_id');
+    if (storedLocationId) {
+      console.log('Using stored location_id:', storedLocationId);
+      return { locationId: storedLocationId, needsReconnect: false };
+    }
+    
+    // If no stored location_id, check OAuth status
+    const installationId = getInstallationId();
+    console.log('Checking OAuth status for installation:', installationId);
+    
     const status = await checkOAuthStatus(installationId);
     console.log('OAuth status response:', status);
     
@@ -97,13 +100,16 @@ async function getAuthenticatedLocationId(): Promise<{ locationId: string; needs
       return { locationId: '', needsReconnect: true };
     }
     
-    console.log('Authenticated with location ID:', status.locationId);
-    // Store location ID for quick access
-    sessionStorage.setItem('location_id', status.locationId);
-    return { locationId: status.locationId, needsReconnect: false };
+    if (status.locationId) {
+      console.log('Got location ID from status check:', status.locationId);
+      sessionStorage.setItem('location_id', status.locationId);
+      return { locationId: status.locationId, needsReconnect: false };
+    }
+    
+    return { locationId: '', needsReconnect: true };
     
   } catch (error) {
-    console.log('OAuth status check failed:', error.message);
+    console.log('OAuth authentication check failed:', error.message);
     return { locationId: '', needsReconnect: true };
   }
 }
