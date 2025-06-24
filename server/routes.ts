@@ -1,7 +1,7 @@
 import { type Express } from "express";
 import { createServer } from "http";
 import { db } from "server/db";
-import { insertListingSchema, insertListingAddonSchema, insertDirectorySchema, insertCollectionSchema, insertWizardFormTemplateSchema, users } from "@shared/schema";
+import { insertListingSchema, insertListingAddonSchema, insertWizardFormTemplateSchema, users } from "@shared/schema";
 import { z } from "zod";
 import { storage } from "./storage";
 import { RailwayBridge, bridgeRoutes } from "./bridge-endpoints";
