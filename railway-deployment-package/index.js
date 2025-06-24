@@ -29,6 +29,13 @@ const CONFIG_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const REPLIT_BRIDGE_URL = process.env.REPLIT_BRIDGE_URL || 'https://62a303e9-3e97-4c9f-a7b4-c0026049fd6d-00-30skmv0mqe63e.janeway.replit.dev';
 const BRIDGE_TOKEN = process.env.BRIDGE_TOKEN || 'replit-railway-bridge-2025';
 
+// Debug logging
+console.log('Railway Bridge Configuration:', {
+  REPLIT_BRIDGE_URL: REPLIT_BRIDGE_URL,
+  BRIDGE_TOKEN: BRIDGE_TOKEN ? '[CONFIGURED]' : '[MISSING]',
+  fallback_client_id: process.env.CLIENT_ID ? '[CONFIGURED]' : '[MISSING]'
+});
+
 async function fetchOAuthConfigFromReplit() {
   const now = Date.now();
   
@@ -39,12 +46,14 @@ async function fetchOAuthConfigFromReplit() {
 
   try {
     console.log('🔄 Fetching OAuth config from Replit bridge...');
+    console.log(`Bridge URL: ${REPLIT_BRIDGE_URL}`);
     
     const response = await fetch(`${REPLIT_BRIDGE_URL}/api/oauth-config`, {
       headers: {
         'Authorization': `Bearer ${BRIDGE_TOKEN}`,
         'Content-Type': 'application/json'
-      }
+      },
+      timeout: 10000
     });
 
     if (!response.ok) {
@@ -66,10 +75,12 @@ async function fetchOAuthConfigFromReplit() {
   } catch (error) {
     console.error('❌ Failed to fetch OAuth config from Replit:', error.message);
     
-    // Fallback to environment variables
+    // Fallback to hardcoded credentials (always available)
+    console.log('Using fallback OAuth credentials');
     return {
-      clientId: process.env.CLIENT_ID,
-      clientSecret: process.env.CLIENT_SECRET,
+      clientId: '68474924a586bce22a6e64f7-mbpkmyu4',
+      clientSecret: 'b5a7a120-7df7-4d23-8796-4863cbd08f94',
+      sharedSecret: '9c0512a2-4e44-4147-9ec9-a482a8be9ef2',
       redirectUri: 'https://dir.engageautomations.com/api/oauth/callback',
       fallback: true
     };
@@ -95,7 +106,8 @@ app.get('/api/oauth/callback', async (req, res) => {
     const config = await fetchOAuthConfigFromReplit();
     
     if (!config.clientId || !config.clientSecret) {
-      console.error('❌ OAuth credentials not available from Replit');
+      console.error('❌ OAuth credentials not available');
+      console.error('Config received:', { clientId: !!config.clientId, clientSecret: !!config.clientSecret });
       return res.status(500).send('OAuth not configured');
     }
 
