@@ -4,9 +4,28 @@ import axios from 'axios';
 
 const RAILWAY_BASE = 'https://dir.engageautomations.com';
 
-// Railway proxy uses OAuth installation directly - no JWT needed
-function getInstallationId(): string {
-  return 'latest'; // Railway handles OAuth automatically
+// Discover working location ID for Railway proxy
+async function discoverLocationId(): Promise<string> {
+  // Try common location ID patterns
+  const patterns = ['WAVk87RmW9rBSDJHeOpH', 'install_1', 'location_1'];
+  
+  for (const locationId of patterns) {
+    try {
+      const response = await fetch(`${RAILWAY_BASE}/api/ghl/locations/${locationId}/products`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'test', price: 1, productType: 'DIGITAL' })
+      });
+      
+      if (response.status === 200) {
+        return locationId;
+      }
+    } catch (error) {
+      continue;
+    }
+  }
+  
+  throw new Error('No working location ID found');
 }
 
 // Types for Railway API responses
