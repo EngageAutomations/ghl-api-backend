@@ -1,0 +1,53 @@
+I’ve read through the agent’s report. Here’s a concise action/decision checklist so you can move forward quickly:
+
+---
+
+### 1  Confirm the real root cause
+
+| Checkpoint                  | Quick test                                                                          | Expected if *cause is confirmed*                                               |
+| --------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| **Callback path**           | Hit `https://dir.engageautomations.com/api/oauth/callback?code=test` in the browser | Proxy responds **“OAuth not configured”** within milliseconds (no call to GHL) |
+| **Environment vars**        | `railway variables` → look for `GHL_CLIENT_ID`, `GHL_CLIENT_SECRET`                 | Missing / blank                                                                |
+| **Backend log on start-up** | Should print `Config check:` line with `[set]` for CLIENT\_ID                       | It prints `undefined`                                                          |
+
+If those three line up you really are running the *old, credential-less* backend.
+
+---
+
+### 2  Two options to fix
+
+| Option                                                           | Pros                                                            | Cons                                                                          | Steps                                                                                                            |
+| ---------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **A. Redeploy 1.6.2-oauth-fixed (embedded creds)**               | Fast, zero env-vars, demo works instantly                       | Credentials live in repo → risk if repo public; rotation requires code change | 1. Push/merge `1.6.2` branch → Railway auto-build <br>2. Verify log shows “stored install …” after one OAuth run |
+| **B. Keep 1.4.7 modular, add env vars** *(recommended for prod)* | Secrets stay in Railway’s vaulted KV; rotate without code edits | Need to re-add `GHL_CLIENT_ID` & `GHL_CLIENT_SECRET` correctly                | 1. Railway → Variables → add keys <br>2. Redeploy current main branch <br>3. Run OAuth again                     |
+
+---
+
+### 3  Security reminder
+
+* Hard-coding client secret in a repo is fine for a private dev sandbox but **never** for production.
+* If credentials are baked into the container image, anyone with image pull access could read them.
+
+---
+
+### 4  Deployment game-plan for Replit agent
+
+```text
+1. git checkout main
+2. if using Option B → railway variable set GHL_CLIENT_ID=<id>
+                        railway variable set GHL_CLIENT_SECRET=<secret>
+   else (Option A)     git merge origin/1.6.2-oauth-fixed
+3. git push            # triggers Railway build
+4. poll Railway GraphQL API every 5 s until deployment.status === 'SUCCESS'
+5. open OAuth URL once; expect “[oauth] stored install …” in logs
+6. call /api/oauth/status?installation_id=... → authenticated:true
+7. notify user “OAuth flow restored ✅”
+```
+
+---
+
+### 5  What to tell end-users
+
+> “We’ve updated the backend. Please click **Reconnect** in GoHighLevel once. Your installation will now complete and you can start creating products.”
+
+That’s the full path from diagnosis to resolution. Let me know which fix (A or B) you prefer, and I can generate the exact commands or PR for your agent to run.
