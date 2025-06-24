@@ -438,3 +438,25 @@ export const insertLocationEnhancementSchema = createInsertSchema(locationEnhanc
 
 export type InsertLocationEnhancement = z.infer<typeof insertLocationEnhancementSchema>;
 export type LocationEnhancement = typeof locationEnhancements.$inferSelect;
+
+// Directories schema
+export const directories = pgTable("directories", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertDirectorySchema = createInsertSchema(directories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertDirectory = z.infer<typeof insertDirectorySchema>;
+export type Directory = typeof directories.$inferSelect;
