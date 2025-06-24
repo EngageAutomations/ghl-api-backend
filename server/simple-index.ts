@@ -75,10 +75,25 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Start server
-app.listen(port, "0.0.0.0", () => {
+const server = app.listen(port, "0.0.0.0", () => {
   console.log(`✅ GoHighLevel Product Management Server running on port ${port}`);
   console.log(`✅ Health check: http://localhost:${port}/health`);
   console.log(`✅ Product API: http://localhost:${port}/api/products/`);
+});
+
+// Handle process termination
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    process.exit(0);
+  });
 });
 
 export default app;
