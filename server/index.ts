@@ -1884,10 +1884,10 @@ app.use((req, res, next) => {
     }
   }
 
-  // Add GoHighLevel product management endpoints
+  // GoHighLevel product management endpoints
   app.post('/api/products/create', async (req, res) => {
     try {
-      console.log('Creating product in GoHighLevel:', req.body);
+      const { GHLProductService } = await import('./ghl-product-service');
       
       const productData = {
         name: req.body.name || "New Product",
@@ -1895,28 +1895,15 @@ app.use((req, res, next) => {
         type: req.body.type || "DIGITAL",
         price: req.body.price || 0,
         currency: req.body.currency || "USD",
-        sku: req.body.sku
+        sku: req.body.sku,
+        imageUrls: req.body.imageUrls || []
       };
 
-      // Create product with confirmed OAuth integration
-      const product = {
-        id: `prod_${Date.now()}`,
-        name: productData.name,
-        description: productData.description,
-        type: productData.type,
-        price: Math.round(productData.price * 100),
-        currency: productData.currency,
-        status: 'ACTIVE',
-        createdAt: new Date().toISOString()
-      };
-
+      const result = await GHLProductService.createProduct(productData);
+      
       res.json({
         success: true,
-        result: {
-          success: true,
-          product,
-          message: 'Product created successfully in GoHighLevel'
-        }
+        result
       });
     } catch (error) {
       console.error('Product creation error:', error);
@@ -1926,36 +1913,23 @@ app.use((req, res, next) => {
 
   app.get('/api/products/list', async (req, res) => {
     try {
-      console.log('Listing products from GoHighLevel...');
-      
-      const products = [
-        {
-          id: 'prod_1',
-          name: 'Premium Digital Course',
-          description: 'Complete digital marketing course',
-          price: 9999,
-          type: 'DIGITAL',
-          currency: 'USD',
-          status: 'ACTIVE'
-        },
-        {
-          id: 'prod_2', 
-          name: 'Consultation Service',
-          description: '1-on-1 business consultation',
-          price: 19999,
-          type: 'SERVICE',
-          currency: 'USD',
-          status: 'ACTIVE'
-        }
-      ];
-
-      res.json({
-        success: true,
-        products,
-        total: products.length
-      });
+      const { GHLProductService } = await import('./ghl-product-service');
+      const result = await GHLProductService.listProducts();
+      res.json(result);
     } catch (error) {
       console.error('Product listing error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/images/upload', async (req, res) => {
+    try {
+      const { GHLProductService } = await import('./ghl-product-service');
+      const files = req.body.files || [];
+      const result = await GHLProductService.uploadImages(files);
+      res.json(result);
+    } catch (error) {
+      console.error('Image upload error:', error);
       res.status(500).json({ error: error.message });
     }
   });
