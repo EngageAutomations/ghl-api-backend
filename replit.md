@@ -137,13 +137,12 @@ Use delete + create method for reliable file updates:
 
 ## Recent Changes
 
-- June 24, 2025: GitHub Repository Bridge Integration - COMPLETED
-  - Updated actual GitHub repository files (server.js, src/utils/install-store.js, README.md)
-  - Implemented bridge-enabled server with OAuth credential initialization
-  - Added fallback system using embedded credentials when bridge unavailable
-  - Preserved existing modular architecture for backward compatibility
-  - Bridge system eliminates Railway environment variable detection issues
-  - Files ready for Railway deployment with automatic OAuth credential provisioning
+- June 24, 2025: GitHub Repository Update Issue Identified - REQUIRES MANUAL ACTION
+  - ISSUE: Local Replit workspace NOT connected to GitHub repository
+  - Files created locally do not sync to EngageAutomations/oauth-backend repository
+  - Git protection mechanism prevents automatic GitHub updates from Replit
+  - SOLUTION: Created GITHUB_UPDATE_FILES.md with exact code to manually copy to GitHub
+  - Simplified approach: Embed OAuth credentials directly in server.js to bypass Railway env var issues
 
 - June 24, 2025: Railway-Replit Bridge System Implementation - COMPLETED
   - Implemented hardcoded bridge system bypassing Railway environment variable issues
