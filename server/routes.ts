@@ -27,13 +27,38 @@ import { authenticateToken } from "./auth-middleware";
 import { ghlProductCreator } from "./ghl-product-creator";
 import { getCurrentUser, logoutUser } from "./current-user";
 import { recoverSession, checkEmbeddedSession } from "./session-recovery";
+import { handleOAuthCallback, checkOAuthStatus, getInstallationToken } from "./oauth-handler";
 import jwt from "jsonwebtoken";
 import { validateLocationEnhancementBody } from "./middleware/validateLocationParam.js";
+import { createProduct, getProducts, getProduct, updateProduct, deleteProduct, uploadMedia, getMediaFiles } from "./ghl-direct-api";
+import multer from 'multer';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup working routes for directories, collections, and listings
   setupWorkingRoutes(app);
+
+  // === OAUTH ROUTES ===
+  // OAuth callback - handles GoHighLevel marketplace installations
+  app.get("/oauth/callback", handleOAuthCallback);
+  app.get("/api/oauth/callback", handleOAuthCallback);
+  
+  // OAuth status check
+  app.get("/api/oauth/status", checkOAuthStatus);
+
+  // === GHL API ROUTES ===
+  const upload = multer({ storage: multer.memoryStorage() });
+
+  // Product management endpoints
+  app.post("/api/ghl/locations/:locationId/products", createProduct);
+  app.get("/api/ghl/locations/:locationId/products", getProducts);
+  app.get("/api/ghl/locations/:locationId/products/:productId", getProduct);
+  app.put("/api/ghl/locations/:locationId/products/:productId", updateProduct);
+  app.delete("/api/ghl/locations/:locationId/products/:productId", deleteProduct);
+
+  // Media management endpoints
+  app.post("/api/ghl/locations/:locationId/media", upload.single('file'), uploadMedia);
+  app.get("/api/ghl/locations/:locationId/media", getMediaFiles);
   // Railway backend proxy routes to avoid CORS issues
   app.get("/api/railway/health", async (req, res) => {
     try {
