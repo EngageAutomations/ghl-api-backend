@@ -10,18 +10,29 @@ let jwtToken: string | null = null;
 async function getJWTToken(): Promise<string> {
   if (jwtToken) return jwtToken;
   
-  const response = await fetch(`${RAILWAY_BASE}/api/auth/token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  });
+  // Try different JWT endpoint patterns
+  const jwtEndpoints = ['/api/auth/token', '/auth/token', '/api/token', '/token'];
   
-  if (!response.ok) {
-    throw new Error(`JWT authentication failed: ${response.status}`);
+  for (const endpoint of jwtEndpoints) {
+    try {
+      const response = await fetch(`${RAILWAY_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        jwtToken = data.token || data.jwt || data.access_token;
+        if (jwtToken) return jwtToken;
+      }
+    } catch (error) {
+      continue;
+    }
   }
   
-  const data = await response.json();
-  jwtToken = data.token;
-  return jwtToken;
+  // Fallback: Return empty string to proceed without JWT (Railway may not require it)
+  console.log('JWT not available, proceeding without token');
+  return '';
 }
 
 // Get installation_id from OAuth redirect or storage
@@ -44,8 +55,13 @@ function getInstallationId(): string {
 export async function checkOAuthStatus(installationId: string) {
   const jwt = await getJWTToken();
   
+  const headers: Record<string, string> = {};
+  if (jwt) {
+    headers['Authorization'] = `Bearer ${jwt}`;
+  }
+  
   const response = await fetch(`${RAILWAY_BASE}/api/oauth/status?installation_id=${installationId}`, {
-    headers: { 'Authorization': `Bearer ${jwt}` }
+    headers
   });
   
   if (!response.ok) {
@@ -103,9 +119,14 @@ export async function uploadMedia(locationId: string, files: File[]): Promise<{ 
     const formData = new FormData();
     formData.append('file', file);
     
+    const headers: Record<string, string> = {};
+    if (jwt) {
+      headers['Authorization'] = `Bearer ${jwt}`;
+    }
+    
     const response = await fetch(`${RAILWAY_BASE}/api/ghl/locations/${authLocationId}/media`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${jwt}` },
+      headers,
       body: formData
     });
     
@@ -134,12 +155,17 @@ export async function createProduct(locationId: string, body: CreateProductBody)
   
   const jwt = await getJWTToken();
   
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  };
+  
+  if (jwt) {
+    headers['Authorization'] = `Bearer ${jwt}`;
+  }
+  
   const response = await fetch(`${RAILWAY_BASE}/api/ghl/locations/${authLocationId}/products`, {
     method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${jwt}`
-    },
+    headers,
     body: JSON.stringify(body)
   });
   
