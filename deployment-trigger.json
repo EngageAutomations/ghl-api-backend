@@ -1,0 +1,9 @@
+{
+  "deployment": {
+    "timestamp": "2025-06-24T19:30:00Z",
+    "version": "1.6.2-oauth-fixed",
+    "trigger": "force-railway-deployment",
+    "oauth_backend": "railway-deployment-oauth-fix/index.js",
+    "status": "triggering-deployment"
+  }
+}
