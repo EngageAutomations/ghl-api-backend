@@ -1877,7 +1877,11 @@ app.use((req, res, next) => {
     
   } else {
     console.log("Setting up development mode with Vite...");
-    await setupVite(app, server);
+    try {
+      await setupVite(app, server);
+    } catch (error) {
+      console.warn("Vite setup failed, continuing with basic Express server:", error.message);
+    }
   }
 
   // Use Replit's PORT environment variable (default 5000) 
