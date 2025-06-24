@@ -37,17 +37,24 @@ async function getJWTToken(): Promise<string> {
 
 // Get installation_id from OAuth redirect or storage
 function getInstallationId(): string {
+  // First check URL params for fresh OAuth redirect
   const urlParams = new URLSearchParams(window.location.search);
   const installationId = urlParams.get('installation_id');
   
   if (installationId) {
+    console.log('Found installation_id in URL:', installationId);
     sessionStorage.setItem('installation_id', installationId);
     return installationId;
   }
   
+  // Check stored installation_id from previous OAuth
   const stored = sessionStorage.getItem('installation_id');
-  if (stored) return stored;
+  if (stored) {
+    console.log('Using stored installation_id:', stored);
+    return stored;
+  }
   
+  console.log('No installation_id found, using fallback');
   return 'latest';
 }
 
@@ -74,17 +81,31 @@ export async function checkOAuthStatus(installationId: string) {
 // Get authenticated location ID
 async function getAuthenticatedLocationId(): Promise<{ locationId: string; needsReconnect: boolean }> {
   const installationId = getInstallationId();
-  const status = await checkOAuthStatus(installationId);
+  console.log('Getting location ID for installation:', installationId);
   
-  if (!status.authenticated) {
+  try {
+    const status = await checkOAuthStatus(installationId);
+    console.log('OAuth status response:', status);
+    
+    if (!status.authenticated) {
+      console.log('Not authenticated, needs reconnect');
+      return { locationId: '', needsReconnect: true };
+    }
+    
+    if (status.tokenStatus !== 'valid') {
+      console.log('Invalid token status, needs reconnect');
+      return { locationId: '', needsReconnect: true };
+    }
+    
+    console.log('Authenticated with location ID:', status.locationId);
+    // Store location ID for quick access
+    sessionStorage.setItem('location_id', status.locationId);
+    return { locationId: status.locationId, needsReconnect: false };
+    
+  } catch (error) {
+    console.log('OAuth status check failed:', error.message);
     return { locationId: '', needsReconnect: true };
   }
-  
-  if (status.tokenStatus !== 'valid') {
-    return { locationId: '', needsReconnect: true };
-  }
-  
-  return { locationId: status.locationId, needsReconnect: false };
 }
 
 // Types for Railway API responses
