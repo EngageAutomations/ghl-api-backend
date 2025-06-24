@@ -1,23 +1,13 @@
-// Direct GoHighLevel API Integration
-// Note: Railway v1.4.3 endpoints not yet available, using direct GHL API
+// Railway Proxy API Integration
+// Using correct location-centric endpoints
 import axios from 'axios';
 
-const GHL_BASE = 'https://services.leadconnectorhq.com';
+const RAILWAY_BASE = 'https://dir.engageautomations.com';
 
-// Direct GoHighLevel API client
-export const ghlApi = axios.create({
-  baseURL: GHL_BASE,
-  headers: {
-    'Version': '2021-07-28'
-  }
-});
-
-// Mock Railway integration for development
-export const api = {
-  post: async (endpoint: string, data: any) => {
-    throw new Error('Railway API endpoints not yet deployed. Use direct GoHighLevel integration.');
-  }
-};
+// Railway proxy uses OAuth installation directly - no JWT needed
+function getInstallationId(): string {
+  return 'latest'; // Railway handles OAuth automatically
+}
 
 // Types for Railway API responses
 export interface GhlUpload {
@@ -34,27 +24,15 @@ export interface CreateProductBody {
   availabilityType?: 'AVAILABLE_NOW' | 'COMING_SOON';
 }
 
-// Upload media directly to GoHighLevel
+// Upload media via Railway proxy
 export async function uploadMedia(locationId: string, files: File[]): Promise<GhlUpload[]> {
-  const accessToken = process.env.GHL_ACCESS_TOKEN || 
-                     sessionStorage.getItem('ghl_access_token') ||
-                     'ghl_pat_XQ6hy_y6Ke6sQj_0uHFdIbaPj_qEAEOME3emdj9x5Y4tJ5tAhqbL0G9e3AKsYmUP';
-  
-  if (!accessToken) {
-    throw new Error('GoHighLevel access token required. Please provide credentials.');
-  }
-  
   const uploadPromises = files.map(async (file) => {
     const formData = new FormData();
+    formData.append('installation_id', getInstallationId());
     formData.append('file', file);
-    formData.append('locationId', locationId);
     
-    const response = await fetch('https://services.leadconnectorhq.com/medias/upload-file', {
+    const response = await fetch(`${RAILWAY_BASE}/api/ghl/media/upload`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Version': '2021-07-28'
-      },
       body: formData
     });
     
@@ -64,36 +42,24 @@ export async function uploadMedia(locationId: string, files: File[]): Promise<Gh
     
     const result = await response.json();
     return {
-      fileUrl: result.url,
-      fileId: result.id || file.name
+      fileUrl: result.url || result.fileUrl,
+      fileId: result.id || result.fileId || file.name
     };
   });
   
   return await Promise.all(uploadPromises);
 }
 
-// Create product directly in GoHighLevel
+// Create product via Railway proxy using legacy endpoint
 export async function createProduct(locationId: string, body: CreateProductBody) {
-  const accessToken = process.env.GHL_ACCESS_TOKEN || 
-                     sessionStorage.getItem('ghl_access_token') ||
-                     'ghl_pat_XQ6hy_y6Ke6sQj_0uHFdIbaPj_qEAEOME3emdj9x5Y4tJ5tAhqbL0G9e3AKsYmUP';
-  
-  if (!accessToken) {
-    throw new Error('GoHighLevel access token required. Please provide credentials.');
-  }
-  
   const productData = {
-    locationId,
+    installation_id: getInstallationId(),
     ...body
   };
   
-  const response = await fetch('https://services.leadconnectorhq.com/products/', {
+  const response = await fetch(`${RAILWAY_BASE}/api/ghl/products/create`, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-      'Version': '2021-07-28'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(productData)
   });
   
@@ -102,5 +68,5 @@ export async function createProduct(locationId: string, body: CreateProductBody)
   }
   
   const result = await response.json();
-  return result;
+  return result.product || result;
 }

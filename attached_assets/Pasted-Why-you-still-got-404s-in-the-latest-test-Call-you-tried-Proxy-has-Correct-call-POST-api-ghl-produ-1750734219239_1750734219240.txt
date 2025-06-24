@@ -1,0 +1,41 @@
+Why you still got 404s in the latest test
+Call you tried	Proxy has?	Correct call
+POST /api/ghl/products/create	Yes (legacy)	Needs body param installation_id
+POST /api/ghl/products	No	Use POST /api/ghl/locations/:locationId/products
+POST /api/ghl/locations/:locationId/products	Yes	Must be POST with JSON body; the 404 you saw means the request probably reached Railway as GET (e.g., form action default) or had a path/typo.
+POST /api/ghl/locations/:locationId/media	Yes	Must be multipart/form-data with field key file; again, 404 shows it hit the proxy as a different verb or wrong URL.
+GET /api/installations	No	Not implemented; use / (root) to see a count or add this route if you need it.
+
+Tip: watch the Railway Deploy → Logs panel; every matching route logs a line ([POST] /api/ghl/locations/...) so you’ll know instantly whether the proxy actually received the verb + path you expect.
+
+Checklist to eliminate the 404s
+Double-check the exact fetch/axios path in Replit:
+
+js
+Copy
+Edit
+await api.post(`/api/ghl/locations/${locationId}/products`, body);
+Ensure it’s really a POST:
+An HTML <form> defaults to GET — React Query / Axios default to POST.
+
+If you still need a list endpoint add quickly:
+
+js
+Copy
+Edit
+app.get('/api/installations', (_,res)=>res.json([...installations.values()]));
+Legacy “/products/create” still works but requires installation_id in body/query.
+
+No further package.json changes
+The runtime dependencies in your original 1.2.1 manifest are still sufficient; the added code only re-uses express, axios, multer, and form-data.
+
+Action for the Replit agent
+Switch all new flows to the location-centric paths (/api/ghl/locations/:locationId/...).
+
+Send POST for both media and products.
+
+Pass JWT in Authorization header (unchanged).
+
+Remove any residual calls to /api/ghl/products or /api/ghl/products/create unless you still support the old UI.
+
+Once those URL adjustments are in place, the proxy will return 200 instead of 404 and your products/media will appear in GoHighLevel.

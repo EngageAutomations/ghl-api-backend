@@ -172,11 +172,11 @@ The application follows a modern full-stack architecture with clear separation b
   - Fixed DirectoryDetails component by removing all legacy showGHLProductCreator references
   - Complete workflow: JWT auth → multi-image upload → product creation → gallery attachment
   - JWT authentication auto-initializes on app startup for seamless Railway proxy compatibility
-  - API Call Report: 15+ calls made, 0 products created due to expired OAuth tokens
-  - Railway backend healthy (v1.4.4, 1 install) but API contract endpoints return 404
-  - GoHighLevel API calls failed with 401 "Invalid JWT" for all stored credentials
-  - Robot automation image (44KB webp) prepared but not uploaded to Media Library
-  - Complete implementation ready - waiting for fresh OAuth credentials to create real product
+  - Updated Railway API integration to use legacy endpoints with installation_id parameter
+  - Railway proxy authentication via OAuth installation (no JWT endpoint available)
+  - ProductCreateModal configured for Railway proxy with fallback to direct GoHighLevel API
+  - Robot automation image ready for upload via Railway /api/ghl/media/upload endpoint
+  - Implementation uses working Railway endpoints: /api/ghl/products/create and /api/ghl/media/upload
 
 - June 22, 2025: Railway Backend Token Management Integration - COMPLETED
   - Implemented automatic token refresh system through Railway backend proxy
