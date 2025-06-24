@@ -43,9 +43,37 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function Router() {
-  // Log current route for debugging
   const [location] = useLocation();
-  console.log("Current route:", location);
+  
+  // Capture installation_id from OAuth redirect
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const installationId = urlParams.get('installation_id');
+    
+    if (installationId) {
+      console.log('OAuth redirect detected - Installation ID:', installationId);
+      sessionStorage.setItem('installation_id', installationId);
+      
+      // Test OAuth status immediately after capture
+      const testOAuthStatus = async () => {
+        try {
+          const { checkOAuthStatus } = await import('@/lib/railwayAPI');
+          const status = await checkOAuthStatus(installationId);
+          console.log('OAuth status after installation_id capture:', status);
+          
+          if (status.authenticated && status.locationId) {
+            console.log('OAuth authentication successful!');
+            console.log('Location ID:', status.locationId);
+            sessionStorage.setItem('location_id', status.locationId);
+          }
+        } catch (error) {
+          console.log('OAuth status check failed:', error.message);
+        }
+      };
+      
+      testOAuthStatus();
+    }
+  }, [location]);
   
   return (
     <Switch>
