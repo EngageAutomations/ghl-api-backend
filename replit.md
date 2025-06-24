@@ -161,6 +161,16 @@ The application follows a modern full-stack architecture with clear separation b
 
 ## Recent Changes
 
+- June 24, 2025: OAuth Credentials Integration in Replit Environment - COMPLETED
+  - Configured GoHighLevel OAuth credentials directly in Replit environment variables
+  - Implemented complete OAuth handler (server/oauth-handler.ts) with token exchange and installation storage
+  - Created direct GHL API integration (server/ghl-direct-api.ts) for products and media endpoints
+  - Added OAuth callback routes: /oauth/callback and /api/oauth/callback for marketplace installations
+  - JWT authentication system for frontend integration with location-centric API routing
+  - Eliminated Railway backend dependency for OAuth flow - everything runs locally in Replit
+  - OAuth flow: marketplace installation → token exchange → installation storage → JWT generation
+  - Ready for GoHighLevel marketplace testing with authentic credentials
+
 - June 23, 2025: Railway Multi-API Product Creation Workflow Implementation with Corrected API Endpoints - COMPLETED
   - Token lifecycle correctly implemented: OAuth callback → in-memory Map by locationId → request-time token lookup/refresh
   - Security model: GoHighLevel access tokens live only in server-side memory, never in process.env or build images
