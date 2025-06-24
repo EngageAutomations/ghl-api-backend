@@ -5,7 +5,7 @@ export const GHL_OAUTH_CONFIG = {
   clientId: process.env.CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4',
   clientSecret: process.env.CLIENT_SECRET || 'b5a7a120-7df7-4d23-8796-4863cbd08f94',
   sharedSecret: process.env.SHARED_SECRET || '9c0512a2-4e44-4147-9ec9-a482a8be9ef2',
-  redirectUri: 'https://listings.engageautomations.com/oauth/callback',
+  redirectUri: process.env.REPLIT_DEV_DOMAIN ? `${process.env.REPLIT_DEV_DOMAIN}/oauth/callback` : 'https://listings.engageautomations.com/oauth/callback',
   // Standard flow - Updated to correct domain
   authUrl: 'https://marketplace.leadconnectorhq.com/oauth/chooselocation',
   // Alternative marketplace flow - Updated to correct domain
