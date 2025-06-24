@@ -20,71 +20,38 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 const installations = new Map();
 const tokensByLocation = new Map();
 
-// Configuration from Replit
-let oauthConfig = null;
-let configLastFetched = 0;
-const CONFIG_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+// OAuth Configuration - Always Available
+const OAUTH_CONFIG = {
+  clientId: '68474924a586bce22a6e64f7-mbpkmyu4',
+  clientSecret: 'b5a7a120-7df7-4d23-8796-4863cbd08f94',
+  sharedSecret: '9c0512a2-4e44-4147-9ec9-a482a8be9ef2',
+  redirectUri: 'https://dir.engageautomations.com/api/oauth/callback',
+  jwtSecret: 'replit-ghl-oauth-jwt-secret-2025'
+};
 
-// Replit bridge configuration
-const REPLIT_BRIDGE_URL = process.env.REPLIT_BRIDGE_URL || 'https://62a303e9-3e97-4c9f-a7b4-c0026049fd6d-00-30skmv0mqe63e.janeway.replit.dev';
-const BRIDGE_TOKEN = process.env.BRIDGE_TOKEN || 'replit-railway-bridge-2025';
-
-// Debug logging
-console.log('Railway Bridge Configuration:', {
-  REPLIT_BRIDGE_URL: REPLIT_BRIDGE_URL,
-  BRIDGE_TOKEN: BRIDGE_TOKEN ? '[CONFIGURED]' : '[MISSING]',
-  fallback_client_id: process.env.CLIENT_ID ? '[CONFIGURED]' : '[MISSING]'
+console.log('OAuth Configuration Status:', {
+  clientId: OAUTH_CONFIG.clientId ? '[CONFIGURED]' : '[MISSING]',
+  clientSecret: OAUTH_CONFIG.clientSecret ? '[CONFIGURED]' : '[MISSING]',
+  redirectUri: OAUTH_CONFIG.redirectUri
 });
 
 async function fetchOAuthConfigFromReplit() {
-  const now = Date.now();
-  
-  // Return cached config if still valid
-  if (oauthConfig && (now - configLastFetched) < CONFIG_CACHE_DURATION) {
-    return oauthConfig;
-  }
+  // Always use reliable OAuth credentials
+  const config = {
+    clientId: '68474924a586bce22a6e64f7-mbpkmyu4',
+    clientSecret: 'b5a7a120-7df7-4d23-8796-4863cbd08f94',
+    sharedSecret: '9c0512a2-4e44-4147-9ec9-a482a8be9ef2',
+    redirectUri: 'https://dir.engageautomations.com/api/oauth/callback',
+    jwtSecret: 'replit-ghl-oauth-jwt-secret-2025',
+    timestamp: Date.now()
+  };
 
-  try {
-    console.log('🔄 Fetching OAuth config from Replit bridge...');
-    console.log(`Bridge URL: ${REPLIT_BRIDGE_URL}`);
-    
-    const response = await fetch(`${REPLIT_BRIDGE_URL}/api/oauth-config`, {
-      headers: {
-        'Authorization': `Bearer ${BRIDGE_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      timeout: 10000
-    });
+  console.log('OAuth config loaded:', {
+    clientId: config.clientId ? '[CONFIGURED]' : '[MISSING]',
+    redirectUri: config.redirectUri
+  });
 
-    if (!response.ok) {
-      throw new Error(`Replit bridge responded with ${response.status}`);
-    }
-
-    const config = await response.json();
-    
-    console.log('✅ OAuth config received from Replit:', {
-      clientId: config.clientId ? '[LOADED]' : '[MISSING]',
-      timestamp: new Date(config.timestamp).toISOString()
-    });
-
-    oauthConfig = config;
-    configLastFetched = now;
-    
-    return oauthConfig;
-    
-  } catch (error) {
-    console.error('❌ Failed to fetch OAuth config from Replit:', error.message);
-    
-    // Fallback to hardcoded credentials (always available)
-    console.log('Using fallback OAuth credentials');
-    return {
-      clientId: '68474924a586bce22a6e64f7-mbpkmyu4',
-      clientSecret: 'b5a7a120-7df7-4d23-8796-4863cbd08f94',
-      sharedSecret: '9c0512a2-4e44-4147-9ec9-a482a8be9ef2',
-      redirectUri: 'https://dir.engageautomations.com/api/oauth/callback',
-      fallback: true
-    };
-  }
+  return config;
 }
 
 // OAuth callback - enhanced with Replit bridge
@@ -102,16 +69,10 @@ app.get('/api/oauth/callback', async (req, res) => {
   }
 
   try {
-    // Get OAuth config from Replit
-    const config = await fetchOAuthConfigFromReplit();
+    // Use reliable OAuth configuration
+    const config = OAUTH_CONFIG;
     
-    if (!config.clientId || !config.clientSecret) {
-      console.error('❌ OAuth credentials not available');
-      console.error('Config received:', { clientId: !!config.clientId, clientSecret: !!config.clientSecret });
-      return res.status(500).send('OAuth not configured');
-    }
-
-    console.log(`🔐 Using OAuth config from ${config.fallback ? 'fallback' : 'Replit bridge'}`);
+    console.log('🔐 Using OAuth configuration for token exchange');
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
@@ -188,20 +149,7 @@ app.get('/api/oauth/callback', async (req, res) => {
       expires_at: new Date(installation.expires_at).toISOString()
     });
 
-    // Sync installation back to Replit
-    try {
-      await fetch(`${REPLIT_BRIDGE_URL}/api/sync-installation`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${BRIDGE_TOKEN}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(installation)
-      });
-      console.log('🔄 Installation synced to Replit');
-    } catch (syncError) {
-      console.warn('⚠️ Failed to sync installation to Replit:', syncError.message);
-    }
+    console.log('💾 Installation stored successfully in Railway');
 
     // Redirect to success page with installation ID
     res.redirect(`https://listings.engageautomations.com/?installation_id=${installationId}&location_id=${location_id}`);
@@ -282,42 +230,22 @@ app.post('/api/ghl/locations/:locationId/products', async (req, res) => {
   }
 });
 
-// Health check with bridge status
+// Health check
 app.get('/', async (req, res) => {
-  try {
-    // Test bridge connection
-    const bridgeResponse = await fetch(`${REPLIT_BRIDGE_URL}/api/bridge/health`, {
-      headers: { 'Authorization': `Bearer ${BRIDGE_TOKEN}` }
-    });
-    
-    const bridgeStatus = bridgeResponse.ok ? 'Connected' : 'Disconnected';
-    
-    res.json({
-      service: 'GHL proxy with Replit bridge',
-      version: '1.6.0-bridge',
-      installs: installations.size,
-      authenticated: tokensByLocation.size,
-      bridge_status: bridgeStatus,
-      replit_url: REPLIT_BRIDGE_URL,
-      ts: Date.now()
-    });
-  } catch (error) {
-    res.json({
-      service: 'GHL proxy with Replit bridge',
-      version: '1.6.0-bridge',
-      installs: installations.size,
-      authenticated: tokensByLocation.size,
-      bridge_status: 'Error',
-      bridge_error: error.message,
-      ts: Date.now()
-    });
-  }
+  res.json({
+    service: 'GHL OAuth Backend',
+    version: '1.6.1-stable',
+    installs: installations.size,
+    authenticated: tokensByLocation.size,
+    oauth_configured: !!(OAUTH_CONFIG.clientId && OAUTH_CONFIG.clientSecret),
+    ts: Date.now()
+  });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Railway backend with Replit bridge running on port ${PORT}`);
-  console.log(`🌉 Bridge URL: ${REPLIT_BRIDGE_URL}`);
-  console.log('📋 Ready to fetch OAuth config from Replit and handle installations');
+  console.log(`🚀 Railway OAuth backend running on port ${PORT}`);
+  console.log('📋 OAuth credentials configured and ready for installations');
+  console.log(`✅ Redirect URI: ${OAUTH_CONFIG.redirectUri}`);
 });
 
 module.exports = app;
