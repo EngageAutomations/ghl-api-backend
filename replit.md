@@ -2,17 +2,35 @@
 
 ## Overview
 
-This is a full-stack marketplace application that provides OAuth integration with GoHighLevel and a universal API system for accessing GoHighLevel endpoints. The application enables users to authenticate with their GoHighLevel accounts and perform various operations through a unified API interface.
+This is a full-stack marketplace application that provides OAuth integration with GoHighLevel through a Railway-Replit bridge system. The application enables users to authenticate with their GoHighLevel accounts and perform various operations through a unified API interface.
 
 ## System Architecture
 
-The application follows a modern full-stack architecture with clear separation between frontend and backend concerns:
+The application follows a modern full-stack architecture with a hardcoded bridge system for Railway integration:
 
 - **Frontend**: React-based single-page application built with Vite
 - **Backend**: Express.js server with TypeScript/Node.js
 - **Database**: PostgreSQL with Drizzle ORM
-- **Deployment**: Configured for Replit autoscale deployment
-- **Authentication**: OAuth 2.0 integration with GoHighLevel
+- **Railway Bridge**: Hardcoded OAuth credential system bypassing environment variable issues
+- **Authentication**: OAuth 2.0 integration with GoHighLevel via bridge endpoints
+
+## Railway-Replit Bridge System
+
+### Architecture
+- **Railway Backend**: Requests credentials from Replit bridge endpoints
+- **Replit Bridge**: Provides secure credential endpoints at `/api/bridge/*`
+- **Hardcoded Implementation**: No manual configuration required for installations
+
+### Key Bridge Endpoints
+- `GET /api/bridge/oauth-credentials` - Provides OAuth credentials to Railway
+- `POST /api/bridge/process-oauth` - Processes authorization codes
+- `GET /api/bridge/installation/:id` - Returns installation status
+
+### Update Process
+Use delete + create method for reliable file updates:
+1. Delete existing endpoint file: `rm filename`
+2. Create updated file with new implementation
+3. Changes automatically reflect in GitHub and Railway integration
 
 ## Key Components
 
@@ -20,8 +38,13 @@ The application follows a modern full-stack architecture with clear separation b
 
 **Express Server (`server/index.ts`)**
 - Main server entry point handling API routes
-- OAuth callback management
+- Bridge endpoint integration for Railway communication
 - Universal API routing system
+
+**Bridge System (`server/bridge-endpoints.ts`)**
+- OAuth credential provisioning for Railway backend
+- Authorization code processing and token exchange
+- Installation data management and status tracking
 
 **Database Layer**
 - **Schema**: Defined in `shared/schema.ts` with user and OAuth installation tables
@@ -29,24 +52,10 @@ The application follows a modern full-stack architecture with clear separation b
 - **Storage Interface**: Abstracted storage operations (`server/storage.ts`)
 
 **OAuth System**
-- GoHighLevel OAuth 2.0 implementation
-- Token storage and refresh management
+- GoHighLevel OAuth 2.0 implementation via bridge
+- Token storage and refresh management through bridge endpoints
 - User session management with JWT
 - Installation tracking for marketplace apps
-
-**Session Recovery System**
-- Embedded CRM tab session restoration across devices
-- Cookie-independent authentication for iframe embedding
-- Multi-method user identification (User ID, Location ID, Installation ID)
-- Database-driven session recovery using existing OAuth installations
-- Automatic detection and recovery for cleared cookies or browser restrictions
-- Cross-device compatibility without re-authentication requirements
-
-**Universal API System**
-- Dynamic routing for all GoHighLevel API endpoints
-- Configuration-driven endpoint management
-- Automatic authentication injection
-- Comprehensive error handling
 
 ### Frontend Architecture
 
@@ -63,11 +72,11 @@ The application follows a modern full-stack architecture with clear separation b
 
 ### Key Features
 
-**OAuth Integration**
-- Complete marketplace OAuth flow
-- Automatic token refresh
-- Secure token storage
-- User account linking
+**Bridge-Based OAuth Integration**
+- Railway requests credentials from Replit endpoints
+- Automatic token exchange through bridge processing
+- Secure credential handling without environment variable dependencies
+- User account linking via processed installations
 
 **Universal API Router**
 - Single endpoint handles all GoHighLevel APIs
@@ -75,42 +84,24 @@ The application follows a modern full-stack architecture with clear separation b
 - Automatic location ID injection
 - Scope-based access control
 
-**API Categories Supported**
-- Products and pricing management
-- Contact management
-- Location operations
-- Opportunities and pipeline management
-- Workflows and automation
-- Forms and surveys
-- Media file management
-
 ## Data Flow
 
-1. **OAuth Authentication**
+1. **OAuth Authentication via Bridge**
+   - Railway backend requests credentials from `/api/bridge/oauth-credentials`
    - User initiates OAuth through GoHighLevel marketplace
-   - Application receives authorization code
-   - Token exchange and user data capture
-   - Installation record creation with access tokens
+   - Railway forwards authorization code to `/api/bridge/process-oauth`
+   - Bridge processes token exchange and creates installation record
 
-2. **Session Recovery for Embedded CRM Tab Access**
-   - User clicks app tab within GoHighLevel CRM
-   - System detects embedded access with user/location parameters
-   - Database lookup finds existing OAuth installation
-   - Automatic session restoration without re-authentication
-   - Cross-device compatibility with cookie-independent authentication
-
-3. **API Request Processing**
+2. **API Request Processing**
    - Frontend makes requests to `/api/ghl/*` endpoints
    - Middleware validates OAuth tokens
    - Universal router matches endpoint configuration
    - Parameters extracted and validated
    - Request forwarded to GoHighLevel with authentication
-   - Response processed and returned to frontend
 
-4. **Database Operations**
+3. **Database Operations**
    - User data stored in PostgreSQL
-   - OAuth installations tracked with tokens
-   - Session recovery data maintained for cross-device access
+   - OAuth installations tracked with tokens via bridge system
    - Drizzle ORM provides type-safe database operations
 
 ## External Dependencies
@@ -126,19 +117,9 @@ The application follows a modern full-stack architecture with clear separation b
 - Database migrations support
 
 **Authentication & API**
-- GoHighLevel OAuth 2.0 integration
+- GoHighLevel OAuth 2.0 integration via bridge system
 - JWT for session management
 - Axios for HTTP client operations
-
-**UI & Styling**
-- Tailwind CSS for styling
-- Radix UI for accessible components
-- shadcn/ui component library
-
-**Development Tools**
-- TypeScript for type safety
-- ESBuild for production builds
-- Testing framework for API validation
 
 ## Deployment Strategy
 
@@ -146,28 +127,25 @@ The application follows a modern full-stack architecture with clear separation b
 - Autoscale deployment target
 - Multi-port configuration (3000, 5000, 8080)
 - Automated build and start scripts
-- Environment variable management
+- Bridge endpoint hosting for Railway integration
 
-**Build Process**
-- Frontend build with Vite
-- Backend compilation with ESBuild
-- Static asset optimization
-- Production environment configuration
-
-**Database**
-- PostgreSQL module provisioned
-- Connection pooling configured
-- Migration support ready
+**Railway Integration**
+- Bridge endpoints provide OAuth credentials
+- No environment variable configuration required
+- Automatic credential provisioning through API calls
+- Hardcoded system requiring no manual setup
 
 ## Recent Changes
 
-- June 24, 2025: Railway OAuth Environment Variables Solution - IMPLEMENTING
-  - Identified root cause: Railway connected to separate oauth-backend repository, not this Replit repository
-  - GitHub screenshot confirms Railway deploying v1.5.0 from oauth-backend repo, not our OAuth fix
-  - Implementing Option B: Railway environment variables (GHL_CLIENT_ID, GHL_CLIENT_SECRET)
-  - Environment variables approach maintains security with Railway vault storage
-  - Works with existing oauth-backend repository without code changes
-  - Testing OAuth callback for environment variable activation
+- June 24, 2025: Railway-Replit Bridge System Implementation - COMPLETED
+  - Implemented hardcoded bridge system bypassing Railway environment variable issues
+  - Created `/api/bridge/oauth-credentials` endpoint for Railway credential requests
+  - Built `/api/bridge/process-oauth` endpoint for authorization code processing
+  - Added `/api/bridge/installation/:id` for installation status queries
+  - Documented complete bridge system architecture and update procedures
+  - Established delete + create method for reliable endpoint modifications
+  - Bridge system eliminates need for manual Railway configuration
+  - Self-contained OAuth processing requiring no agent intervention for installations
 
 - June 23, 2025: Railway Multi-API Product Creation Workflow Implementation with Corrected API Endpoints - COMPLETED
   - Token lifecycle correctly implemented: OAuth callback → in-memory Map by locationId → request-time token lookup/refresh
@@ -196,255 +174,28 @@ The application follows a modern full-stack architecture with clear separation b
   - Enhanced error handling and comprehensive logging for OAuth callback debugging
   - Complete OAuth workflow ready: redirect → token exchange → storage → product creation
 
-- June 22, 2025: Railway Backend Token Management Integration - COMPLETED
-  - Implemented automatic token refresh system through Railway backend proxy
-  - Railway backend handles all GoHighLevel OAuth token management transparently
-  - Fixed API endpoints to use proper Railway proxy with JWT session identification
-  - Form submissions now route through Railway backend for automatic token refresh
-  - No token management needed in Replit - Railway handles refresh automatically
-  - Enhanced error handling for 401/502 responses with re-authentication prompts
-
-- June 22, 2025: Railway Backend API Integration - COMPLETED
-  - Implemented proper Railway backend integration following preview death prevention guidelines
-  - Created comprehensive API layer with ghlMedia.ts and ghlProducts.ts for authenticated calls
-  - Added JWT authentication system for Railway backend authorization
-  - Implemented React hooks for image upload and product creation with proper error handling
-  - Enhanced DirectoryFormRenderer with multi-phase workflow (upload → create → gallery → done)
-  - Added visual loading states with Loader2 spinner and CheckCircle success indicator
-  - Fixed API URL handling for development vs production environments
-  - Integrated real GoHighLevel media upload and product creation through Railway proxy
-
-- June 22, 2025: Form Submission Error Resolution - COMPLETED
-  - Fixed critical storage implementation mismatch causing 500 errors in addon creation
-  - Switched from MockStorage to DatabaseStorage for proper database persistence
-  - Added unique timestamp-based slug generation to prevent duplicate conflicts
-  - Enhanced error handling with try-catch blocks for individual addon creation
-  - Database schema synchronized with all required tables (listings, listing_addons, users)
-  - Form submissions now work correctly with complete data storage chain
-
-- June 22, 2025: Rich Text Editor Implementation - COMPLETED
-  - Fixed critical export/import mismatch error in RichTextEditor component
-  - Changed from default export to named export pattern for proper module loading
-  - Updated import statements across CreateListingForm, ConfigWizardSlideshow, and DirectoryFormRenderer
-  - DirectoryFormRenderer now correctly renders rich text editor for expanded_description field type
-  - Form fields match wizard configuration exactly with comprehensive rich text support
-  - Rich text editor displays with formatting toolbar (headers, bold, italic, lists, links, images, alignment)
-  - DirectoryDetails.tsx "Create GHL Product" button now shows rich text editor instead of regular textarea
-  - Detailed description field repositioned to appear directly after product description in both form and preview
-  - Price field moved to appear under product title for better user flow
-  - Product creation form field labels updated: "Product/Service Name" changed to "Title"
-  - Implemented listing addons storage system for rich text descriptions, metadata bars, and Google Maps integration
-  - Form submissions now create structured addon data that can be retrieved via listing URL for display
-  - Eliminated React module import errors and resolved component loading issues
-
-- June 22, 2025: User-Defined Metadata Bar Implementation - COMPLETED
-  - Implemented user-defined metadata bar fields with icon upload + text pairs instead of hardcoded fields
-  - Added clickable button icon upload functionality with compact 48x48px square design
-  - Created font dropdown selection with 10 popular font options for text styling
-  - Enhanced form layout with icon button + text field pairs matching wizard screenshot exactly
-  - Metadata fields display as clickable upload buttons next to text input fields
-  - Added proper validation, error handling, and accessibility features (hover/focus states)
-  - Form generation creates up to 8 icon + text pairs that render as rows with icons over text on webpage
-  - Perfect visual match to wizard design with clean, professional button interface
-  - Updated Maps field label to "Map Embed Address (Google)" for clarity
-  - Form starts with 1 metadata row, users can add up to 8 total with "Add Additional Field" button
-  - All metadata text fields consistently show "Enter display text" placeholder
-  - Font dropdown positioned under metadata title, above first row, with field label removed for clean design
-  - Font options display in their respective typefaces for visual preview and better user experience
-  - Product image field converted to multi-image upload with immediate preview and gallery display, matching metadata icon behavior
-
-- June 22, 2025: Streamlined Wizard Configuration System - COMPLETED
-  - Implemented efficient approach: save wizard config as JSON and reuse generateFormFields() function
-  - Eliminated complex form duplication by using same logic from wizard in DirectoryFormRenderer
-  - Wizard configuration stored as JSON to feed directly into existing generateFormFields() function
-  - Products now properly associated with source directories via wizardConfigurationId
-  - Simplified architecture: wizard saves config → DirectoryFormRenderer loads config → reuses same form generation
-  - Fixed React hooks error and implemented proper storage methods for MockStorage and DatabaseStorage
-
-- June 21, 2025: Complete Wizard Template System Implementation with Exact Form Matching - COMPLETED
-  - Fixed "generateCodeOutput is not defined" error in ConfigWizardSlideshow by correcting function reference
-  - Enhanced DirectoryFormRenderer to load comprehensive wizard templates with 8 detailed form fields
-  - Implemented wizard template API returning complete configurations (name, description, image, price, expanded_description, address, seo_title, seo_description)
-  - Added fallback comprehensive form fields ensuring DirectoryFormRenderer displays full wizard layout
-  - Fixed template loading and form initialization for exact wizard-to-directory form matching
-  - DirectoryFormRenderer now displays complete wizard-generated forms instead of basic buttons
-  - Enhanced useWizardFormTemplate hook with direct fetch API calls and comprehensive logging
-  - Wizard templates include all fields configured in wizard preview for consistent user experience
-
-- June 21, 2025: Wizard Form Template System - Exact Form Matching Implementation - COMPLETED
-  - Implemented wizard form template system to ensure exact matching between wizard-generated forms and directory product creation forms
-  - DirectoryFormRenderer now loads wizard templates and renders identical form layouts using dynamic form generation
-  - Enhanced wizard completion process to save comprehensive form templates with all configuration details
-  - Form fields, validation rules, and layout match exactly what users see in wizard preview
-  - Added template persistence with fallback to default configurations for existing directories
-  - Wizard templates include: form fields, integration settings, styling, validation rules, and feature toggles
-  - DirectoryFormRenderer dynamically generates forms based on wizard configuration (showPrice, showMaps, showDescription, etc.)
-  - Enhanced API routes with proper error handling and default template generation
-  - Form validation now matches wizard-specified required fields and field types
-  - Single-column layout consistency maintained between wizard preview and actual product creation forms
-
-- June 21, 2025: Complete Location Enhancement System with Error Handling & Validation - COMPLETED
-  - Implemented comprehensive error handling and validation for location enhancement system
-  - Added location ID validation with regex patterns (/^[A-Za-z0-9]{20,24}$/) and real-time feedback
-  - Built location search autocomplete with GoHighLevel location lookup
-  - Created conflict resolution modal with merge/override options for concurrent edits
-  - Implemented bulk enhancement operations for multiple locations simultaneously
-  - Added React Error Boundary for application-wide error handling and recovery
-  - Enhanced API routes with audit trails, version conflict detection, and security validation
-  - Created comprehensive Cypress test suite for end-to-end validation
-  - Added auto-save functionality with debouncing (3 seconds) for form changes
-  - Implemented optimistic updates with rollback capabilities for better UX
-  - Built location access permission testing with real-time validation indicators
-  - Added comprehensive input sanitization and security hardening measures
-
-- June 20, 2025: Complete Wizard Form Template System Implementation - COMPLETED
-  - Implemented comprehensive wizard form template system with PostgreSQL database storage
-  - Added wizardFormTemplates table to schema with complete type definitions and validation
-  - Created useWizardFormTemplate hook for managing form template persistence across components
-  - Enhanced DirectoryFormRenderer to load and display exact wizard-generated form layouts
-  - Added backend API routes (/api/wizard-templates) for saving and retrieving wizard configurations
-  - Implemented storage methods for both MemStorage and DatabaseStorage classes
-  - Form templates now preserve: wizard configuration, form fields, integration settings, and styling
-  - DirectoryFormRenderer displays identical single-column layout with drag-and-drop image upload
-  - When users click "Create GHL Product" in directories, they see exact wizard-configured forms
-  - Complete persistence ensures wizard settings are maintained across sessions and devices
-
-- June 19, 2025: Wizard Form Integration and Icon Upload Enhancement - COMPLETED
-  - Created DirectoryFormRenderer component with exact wizard single-column layout
-  - Implemented prominent drag-and-drop image upload area matching wizard design
-  - Replaced GHLProductCreator with wizard-proven form generation from /lib/dynamic-form-generator.ts
-  - "Create GHL Product" button displays identical single-column forms as ConfigWizardSlideshow
-  - Features: drag-and-drop image upload to GoHighLevel, AI bullet point generation, auto-generated SEO fields
-  - Single-column layout with proper spacing, wizard-style card design, and Railway backend integration
-  - Form validation requires product name, description, and uploaded image before submission
-  - Enhanced metadata icon field in ConfigWizardSlideshow: replaced static emoji with centered upload icon
-  - Users can now upload custom icons for metadata fields with clean upload interface and immediate preview
-
-- June 19, 2025: Railway Backend Integration Analysis and Compatibility Update - COMPLETED
-  - Analyzed actual Railway backend structure (version 1.4.0) running at dir.engageautomations.com
-  - Railway backend is healthy with 1 installation but requires fresh OAuth flow for API access
-  - Confirmed endpoints: /api/ghl/products, /api/ghl/media/upload, /api/ghl/contacts/create
-  - Updated MediaUpload component to use install_seed installation pattern
-  - Created RailwayIntegration class for proper backend communication
-  - Installation ID discovery system for finding valid Railway installations
-  - Railway backend uses automatic token refresh with ensureFreshToken() protection
-  - OAuth callback redirects to listings.engageautomations.com with installation_id parameter
-  - Frontend Integration Completed:
-    • Created comprehensive MediaUpload component with drag-and-drop functionality
-    • Enhanced GHLProductCreator with multi-image upload support
-    • Added real-time upload progress tracking and error handling
-    • Integrated Railway backend proxy route in server/routes.ts
-    • Updated database schema to support image arrays with proper TypeScript types
-    • Added visual image gallery preview with uploaded media tracking
-    • Full Railway backend v1.4.0 compatibility for direct GoHighLevel Media Library access
-
-- June 15, 2025: Enhanced OAuth Dual-Domain Architecture Deployed to Railway
-  - Deployed complete enhanced OAuth system to Railway production backend
-  - Authorization Code with PKCE flow now handling real marketplace installations
-  - Universal API Router active supporting 50+ GoHighLevel endpoints via /api/ghl/*
-  - Session recovery system deployed for embedded CRM tab access
-  - Automatic token management with refresh capabilities in production
-  - Professional OAuth success page with error handling deployed
-  - Cross-device compatibility with cookie-independent authentication live
-  - Health check endpoint (/health) configured for Railway monitoring
-  - Production-ready system now handling real GoHighLevel marketplace installations
-
-- June 14, 2025: Data Saving Fix Implementation Completed
-  - Resolved critical 404 errors preventing directories, collections, and listings from saving
-  - Implemented SimpleStorage solution with working CRUD operations for all core entities
-  - Created dedicated working routes (server/working-routes.ts) with proper error handling and logging
-  - Fixed authentication and type mismatch conflicts between storage implementations
-  - All data now persists properly: directories save with listing statistics, collections create with user association, listings save with slug validation
-  - UI-to-API mapping now functional for core operations while maintaining sophisticated OAuth integration
-  - Two-domain architecture (custom + Replit) confirmed working with Railway OAuth backend
-
-- June 14, 2025: Custom Domain Production Deployment Completed
-  - Fixed Internal Server Error on custom domain with proper production configuration
-  - Implemented fallback static interface with professional marketplace design
-  - Added health check endpoint for deployment monitoring
-  - Configured proper static file serving for production environments
-  - Custom domain listings.engageautomations.com now displays functional marketplace interface
-  - Production deployment ready with OAuth integration and API management access
-
-- June 14, 2025: Real OAuth Credentials Successfully Captured
-  - Updated Railway backend with installation detail endpoints
-  - Successfully completed OAuth flow with authentic GoHighLevel account
-  - Captured real access token (valid until June 15, 2025) and refresh token (valid until 2026)
-  - Location ID: WAVk87RmW9rBSDJHeOpH confirmed and accessible
-  - Scopes include: products, media, locations, contacts (read/write permissions)
-  - Credentials stored locally in .env.real for development testing
-  - Ready to test directory logo upload API with authentic account data
-
-- June 14, 2025: OAuth Real Data Capture System Fixed
-  - Fixed OAuth callback to properly capture real GoHighLevel account data during app installations
-  - Implemented direct SQL database storage to avoid schema field mapping conflicts
-  - Added comprehensive logging to track OAuth flow and authentic data capture
-  - Removed dependency on demo/placeholder data for testing API functionality
-  - Directory logo upload API ready to work with real access tokens and location data
-  - OAuth callback system now stores: access tokens, refresh tokens, user info, location data, token expiry
-
-- June 13, 2025: Complete Custom Domain Configuration
-  - Updated Railway backend redirect URI to listings.engageautomations.com
-  - Configured CORS origins for custom domain access
-  - Updated all OAuth flow URLs to use professional domain
-  - Verified authentication error handling and installation-required redirects
-  - Ready for GoHighLevel marketplace deployment with custom domain
-
-- June 13, 2025: Embedded CRM Tab Session Recovery System Implementation
-  - Comprehensive session recovery for GoHighLevel CRM tab access
-  - Multi-method user identification: GoHighLevel User ID, Location ID, Installation ID
-  - Cross-device session restoration without re-authentication
-  - Cookie-independent authentication supporting iframe embedding
-  - Automatic detection and recovery for cleared cookies or different devices
-  - Database-driven session recovery using existing OAuth installations
-  - Iframe-compatible cookie settings with sameSite: 'none' for embedded access
-  - Session recovery endpoints: /api/auth/recover and /api/auth/check-embedded
-
-- June 13, 2025: Marketplace Installation Flow Optimization
-  - Removed OAuth connection screen requirement for marketplace installations
-  - Updated root route to handle marketplace OAuth callbacks automatically
-  - Configured direct redirect to API management interface after successful OAuth
-  - Streamlined user experience: install from marketplace → immediate access to APIs
-  - Maintained development OAuth screen at /oauth-app for testing purposes
-
-- June 13, 2025: Complete Media Library API Suite Integration
-  - Added Get List of Files API with advanced filtering, sorting, and multi-tenant support
-  - Integrated Upload File API with multipart/form-data handling for binary and hosted uploads
-  - Updated endpoint configurations to match exact GoHighLevel specifications
-  - Demonstrated sophisticated parameter management across diverse endpoint patterns
-  - Achieved 50+ GoHighLevel operations support through configuration-driven architecture
-
-- June 13, 2025: Universal API System Enhancement
-  - Advanced query parameter handling for complex filtering scenarios
-  - Multipart upload support with dual upload modes (direct file and remote URL)
-  - Pattern flexibility supporting both global and location-specific endpoints
-  - Content type intelligence for JSON, form data, and query parameters
-  - Zero-maintenance scalability with configuration-only endpoint additions
-
-## Changelog
-
-- June 13, 2025. Initial setup and universal API system development
-
-## Session Recovery Benefits
+## Bridge System Benefits
 
 **Business Value**
-- Eliminates user frustration from lost sessions in embedded CRM tabs
-- Reduces support tickets related to authentication issues
-- Provides seamless experience across multiple devices and browsers
-- Maintains professional appearance with automatic session restoration
+- Eliminates Railway environment variable detection issues
+- Provides hardcoded solution requiring no manual configuration
+- Enables day-to-day operations without agent intervention
+- Maintains secure credential handling through API endpoints
 
 **Technical Benefits**
-- Cookie-independent authentication works in restrictive iframe environments
-- Database-driven recovery using existing OAuth installations
-- Multi-method identification ensures maximum compatibility
-- Automatic detection requires no user intervention
+- Complete control over OAuth credential provisioning
+- Bridge-based token exchange processing
+- Automatic installation data management
+- Self-contained system with GitHub integration
 
-**User Experience**
-- One-click access from any GoHighLevel CRM tab
-- No re-authentication required when switching devices
-- Seamless operation despite cleared cookies or browser restrictions
-- Professional embedded app experience matching enterprise expectations
+**Update Process**
+- Delete + create method for reliable endpoint modifications
+- Direct GitHub reflection of bridge endpoint changes
+- No environment variable dependencies
+- Comprehensive documentation for future maintenance
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+File update method: Delete + create approach for reliable modifications.
+Bridge system: Hardcoded Railway integration eliminating manual configuration.
