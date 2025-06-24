@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useProductWorkflow } from '@/hooks/useRailwayAPI';
 import { CheckCircle, Loader2, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,20 @@ export function ProductCreateModal({ locationId, onClose }: ProductCreateModalPr
   
   const { toast } = useToast();
   const { createProductWithImages, isLoading } = useProductWorkflow(locationId);
+  
+  // Check OAuth status on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { checkOAuthStatus } = await import('@/lib/railwayAPI');
+        const installationId = new URLSearchParams(window.location.search).get('installation_id') || 'latest';
+        await checkOAuthStatus(installationId);
+      } catch (error) {
+        console.log('OAuth check:', error.message);
+      }
+    };
+    checkAuth();
+  }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);

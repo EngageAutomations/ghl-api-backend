@@ -23,7 +23,7 @@ function getInstallationId(): string {
 }
 
 // Check OAuth status for installation
-async function checkOAuthStatus(installationId: string) {
+export async function checkOAuthStatus(installationId: string) {
   const response = await fetch(`${RAILWAY_BASE}/api/oauth/status?installation_id=${installationId}`);
   if (response.ok) {
     return await response.json(); // { authenticated, tokenStatus, locationId }
