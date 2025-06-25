@@ -107,8 +107,10 @@ export default async function handler(req, res) {
  * Generate OAuth authorization URL
  */
 function generateOAuthUrl(state) {
-  const clientId = process.env.GHL_CLIENT_ID;
-  const redirectUri = process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/api/oauth/callback';
+  // Get credentials from bridge system instead of environment variables
+  const credentials = await getBridgeCredentials();
+  const clientId = credentials.client_id;
+  const redirectUri = credentials.redirect_uri;
   const scopes = 'products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly locations.readonly contacts.readonly contacts.write';
   
   if (!clientId) {
@@ -133,9 +135,11 @@ function generateOAuthUrl(state) {
  * Exchange authorization code for access token
  */
 async function exchangeCodeForTokens(code, state) {
-  const clientId = process.env.GHL_CLIENT_ID;
-  const clientSecret = process.env.GHL_CLIENT_SECRET;
-  const redirectUri = process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/api/oauth/callback';
+  // Get credentials from bridge system instead of environment variables
+  const credentials = await getBridgeCredentials();
+  const clientId = credentials.client_id;
+  const clientSecret = credentials.client_secret;
+  const redirectUri = credentials.redirect_uri;
   
   if (!clientId || !clientSecret) {
     throw new Error('OAuth credentials not configured');
