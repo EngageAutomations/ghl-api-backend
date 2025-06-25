@@ -38,10 +38,10 @@
                         </button>
                         
                         <button 
-                            onclick="testProductAPI()"
+                            onclick="createProductWithPricing()"
                             class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
                         >
-                            Test Product API
+                            Create Product with Price & Images
                         </button>
                     </div>
                     
@@ -66,29 +66,70 @@
             }
         }
         
-        async function testProductAPI() {
+        async function createProductWithPricing() {
             const status = document.getElementById('status');
             status.classList.remove('hidden');
-            status.innerHTML = 'Testing product API...';
+            status.innerHTML = 'Creating product with pricing...';
             
             try {
-                const response = await fetch('https://dir.engageautomations.com/api/ghl/products/create', {
+                // Check for OAuth installation
+                const installResponse = await fetch('https://dir.engageautomations.com/installations');
+                const installData = await installResponse.json();
+                
+                if (installData.total === 0) {
+                    status.innerHTML = 'No OAuth installation found. Complete OAuth first.';
+                    status.className = 'mt-4 p-3 bg-red-100 text-red-800 rounded';
+                    return;
+                }
+                
+                const installationId = installData.installations[0].id;
+                
+                // Create product
+                const productData = {
+                    installation_id: installationId,
+                    name: "Digital Marketing Masterclass",
+                    description: "Complete course with videos, worksheets, and bonus materials",
+                    productType: "DIGITAL"
+                };
+                
+                const productResponse = await fetch('https://dir.engageautomations.com/api/products/create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: 'Test Product',
-                        description: 'API test product',
-                        productType: 'DIGITAL'
-                    })
+                    body: JSON.stringify(productData)
                 });
                 
-                if (response.ok) {
-                    status.innerHTML = 'Product API: Ready for OAuth';
+                const productResult = await productResponse.json();
+                
+                if (productResult.success) {
+                    // Add pricing
+                    const priceData = {
+                        installation_id: installationId,
+                        name: "One-time Purchase",
+                        type: "one_time",
+                        amount: 19700,
+                        currency: "USD"
+                    };
+                    
+                    const priceResponse = await fetch(`https://dir.engageautomations.com/api/products/${productResult.product.id}/prices`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(priceData)
+                    });
+                    
+                    const priceResult = await priceResponse.json();
+                    
+                    if (priceResult.success) {
+                        status.innerHTML = `Product created: ${productResult.product.name}<br>Price: $197.00 USD<br>Status: Active in GoHighLevel`;
+                        status.className = 'mt-4 p-3 bg-green-100 text-green-800 rounded';
+                    } else {
+                        status.innerHTML = 'Product created but pricing failed';
+                        status.className = 'mt-4 p-3 bg-yellow-100 text-yellow-800 rounded';
+                    }
                 } else {
-                    status.innerHTML = 'Product API: Requires OAuth installation';
+                    status.innerHTML = `Product creation failed: ${productResult.error}`;
                 }
             } catch (error) {
-                status.innerHTML = 'Product API: Connection established';
+                status.innerHTML = `Error: ${error.message}`;
             }
         }
         
