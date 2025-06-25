@@ -1,0 +1,30 @@
+### What to zero-in on now
+
+*(the backend code is probably fine — the evidence points to OAuth traffic never making it to the callback or being refused by GHL’s `/oauth/token` service)*
+
+| Check                                                                    | How to run it in minutes                                                                                                                                                                                   | Expected clue                                                                                                                                                                                          |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1 · See if the callback endpoint is ever hit**                         | In `api/oauth/callback` add<br>`js console.log('↪️  callback hit', req.query);` <br>Redeploy, reinstall the app, watch Railway logs **live**.                                                              | • **Nothing logged** → GHL never called you → redirect URI mismatch.<br>• `{ code:'…' }` logged → move to Check 2.                                                                                     |
+| **2 · Capture the outbound token-exchange request**                      | Insert before the https/axios call:<br>`js console.log('→ exchanging', { code, client:process.env.GHL_CLIENT_ID.slice(-4) });`<br>and `console.log('←', resp.status, resp.data);` inside `try {}`.         | • Status 400/401 with message like “invalid\_client” → bad client-id/secret.<br>• Status 400 “redirect\_uri mismatch” → URI mismatch.<br>• You never get inside `try` → network error / wrong host.    |
+| **3 · Manual token exchange**                                            | From local shell:<br>`curl -X POST \\`<br>` -d \"grant_type=authorization_code&client_id=ID&client_secret=SEC&code=CODE&redirect_uri=CALLBACK\" \\`<br>` https://services.leadconnectorhq.com/oauth/token` | 200 JSON → backend code path is fine, problem is that the callback never executes.<br>400 → same error string your code sees.                                                                          |
+| **4 · Verify GHL app settings** *(UI)*                                   | Developers → Apps → *Your app*                                                                                                                                                                             | \* Redirect URI **exactly** `https://dir.engageautomations.com/api/oauth/callback` (no HTTP, no trailing slash).<br>\* App status = **LIVE**.<br>\* Client secret matches `.env` or hard-coded string. |
+| **5 · Make sure the app install URL uses the same client-id & redirect** | Compare the URL beginning with `https://services.leadconnectorhq.com/oauth/authorize?...` that the marketplace launches to your backend `client_id`.                                                       | Any mismatch → GHL will issue a code that **only** the displayed client-id + redirect pair can redeem; your backend uses different creds → “authorization code not found / invalid\_client”.           |
+
+---
+
+### Most common culprits seen in GHL OAuth
+
+1. **Redirect-URI mismatch** (upper/lowercase or missing `/api/`).
+2. **Two apps with similar names** — you copy client-id from App A but marketplace listing points to App B.
+3. **App still in TEST mode** — codes from live sub-accounts can’t be redeemed.
+4. **Using the same authorization code twice** in debugging loops (GHL rejects reuse).
+
+---
+
+### Concrete next move
+
+1. Add the tiny `console.log` lines in the callback + token exchange.
+2. Reinstall once, copy the exact log output, and you’ll know **immediately** which of the five bullets applies.
+3. Fix the mismatched value, redeploy, reinstall once more → `installations` map should show ≥1 and `/api/oauth/status` returns `authenticated:true`.
+
+Let me know the first set of callback logs and we can pinpoint the fix in a single iteration.

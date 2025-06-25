@@ -137,12 +137,12 @@ Use delete + create method for reliable file updates:
 
 ## Recent Changes
 
-- June 25, 2025: OAuth Token Exchange Ready for Testing - Backend v5.0.0-stable Operational
-  - Railway backend v5.0.0-stable deployed with proven token exchange pattern from railway-backend/index.js
-  - Native https module implementation eliminates axios dependency issues
-  - URLSearchParams-based token exchange matching previous successful implementation
-  - Backend operational at dir.engageautomations.com with 0 installations awaiting OAuth reinstallation
-  - Complete Premium Digital Marketing Course workflow prepared for immediate testing upon authentication
+- June 25, 2025: Debug Backend Deployed with Comprehensive OAuth Logging - v5.1.0-debug
+  - Added detailed logging to callback endpoint to detect if GHL calls the callback
+  - Implemented token exchange request/response logging to identify failure points
+  - Enhanced error tracking for authorization code processing and user info retrieval
+  - Backend ready to diagnose exact OAuth failure: callback reception vs token exchange vs credential issues
+  - Will determine if problem is redirect URI mismatch, client credential issues, or network connectivity
 
 - June 25, 2025: Enhanced GoHighLevel Product Creation with Images and Pricing APIs - COMPLETED
   - Implemented three additional API endpoints using OAuth authentication
