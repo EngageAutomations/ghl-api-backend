@@ -10,34 +10,27 @@ const port = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 25 * 1024 * 1024 // 25MB limit
+  }
+});
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// GoHighLevel product management endpoints
+// Enhanced GoHighLevel product management endpoints
 app.post('/api/products/create', async (req, res) => {
   try {
-    const { GHLProductService } = await import('./ghl-product-service');
-    
-    const productData = {
-      name: req.body.name || "New Product",
-      description: req.body.description || "",
-      type: req.body.type || "DIGITAL",
-      price: req.body.price || 0,
-      currency: req.body.currency || "USD",
-      sku: req.body.sku,
-      imageUrls: req.body.imageUrls || []
-    };
-
-    const result = await GHLProductService.createProduct(productData);
-    
-    res.json({
-      success: true,
-      result
-    });
+    const ghlService = new EnhancedGHLService();
+    const result = await ghlService.createProduct(req.body);
+    res.json(result);
   } catch (error) {
     console.error('Product creation error:', error);
     res.status(500).json({ error: error.message });
@@ -46,8 +39,8 @@ app.post('/api/products/create', async (req, res) => {
 
 app.get('/api/products/list', async (req, res) => {
   try {
-    const { GHLProductService } = await import('./ghl-product-service');
-    const result = await GHLProductService.listProducts();
+    const ghlService = new EnhancedGHLService();
+    const result = await ghlService.listProducts();
     res.json(result);
   } catch (error) {
     console.error('Product listing error:', error);
@@ -55,14 +48,48 @@ app.get('/api/products/list', async (req, res) => {
   }
 });
 
-app.post('/api/images/upload', async (req, res) => {
+// Product pricing API endpoint
+app.post('/api/products/:productId/prices', async (req, res) => {
   try {
-    const { GHLProductService } = await import('./ghl-product-service');
-    const files = req.body.files || [];
-    const result = await GHLProductService.uploadImages(files);
+    const { productId } = req.params;
+    const ghlService = new EnhancedGHLService();
+    const result = await ghlService.createProductPrice(productId, req.body);
+    res.json(result);
+  } catch (error) {
+    console.error('Product price creation error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Enhanced Media library API endpoints
+app.post('/api/images/upload', upload.single('file'), async (req, res) => {
+  try {
+    const ghlService = new EnhancedGHLService();
+    
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    
+    const result = await ghlService.uploadImageToMediaLibrary(
+      req.file.buffer, 
+      req.file.originalname, 
+      req.file.mimetype
+    );
     res.json(result);
   } catch (error) {
     console.error('Image upload error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/images/list', async (req, res) => {
+  try {
+    const { limit = 20, offset = 0 } = req.query;
+    const ghlService = new EnhancedGHLService();
+    const result = await ghlService.getMediaFiles(parseInt(limit as string), parseInt(offset as string));
+    res.json(result);
+  } catch (error) {
+    console.error('Media files listing error:', error);
     res.status(500).json({ error: error.message });
   }
 });
