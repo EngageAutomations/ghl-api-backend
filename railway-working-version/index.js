@@ -8,6 +8,12 @@ const multer = require('multer');
 const FormData = require('form-data');
 const fs = require('fs');
 
+// Configure multer for file uploads
+const upload = multer({ 
+  dest: 'uploads/',
+  limits: { fileSize: 25 * 1024 * 1024 } // 25MB limit
+});
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -102,12 +108,12 @@ app.get('/', (req, res) => {
   const authenticatedCount = Array.from(installations.values()).filter(inst => inst.tokenStatus === 'valid').length;
   res.json({
     service: "GoHighLevel OAuth Backend",
-    version: "5.1.1-fixed",
+    version: "5.3.0-complete-workflow",
     installs: installations.size,
     authenticated: authenticatedCount,
     status: "operational",
-    features: ["oauth", "products", "images", "pricing"],
-    debug: "installation tracking active",
+    features: ["oauth", "products", "images", "pricing", "media-upload"],
+    debug: "complete multi-step workflow ready",
     ts: Date.now()
   });
 });
@@ -216,9 +222,158 @@ app.get('/api/oauth/status', (req, res) => {
   res.json({ authenticated: true, tokenStatus: inst.tokenStatus, locationId: inst.locationId });
 });
 
+// MEDIA UPLOAD ENDPOINT
+app.post('/api/media/upload', upload.single('file'), async (req, res) => {
+  console.log('=== MEDIA UPLOAD REQUEST ===');
+  
+  try {
+    const { installation_id } = req.body;
+    
+    if (!installation_id) {
+      return res.status(400).json({ success: false, error: 'installation_id required' });
+    }
+    
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'file required' });
+    }
+    
+    console.log(`Uploading file: ${req.file.originalname} (${req.file.size} bytes)`);
+    
+    await ensureFreshToken(installation_id);
+    const installation = installations.get(installation_id);
+    
+    // Create form data for GoHighLevel API
+    const formData = new FormData();
+    formData.append('file', fs.createReadStream(req.file.path), {
+      filename: req.file.originalname,
+      contentType: req.file.mimetype
+    });
+    
+    // Upload to GoHighLevel media library
+    const uploadResponse = await axios.post(`https://services.leadconnectorhq.com/medias/upload-file`, formData, {
+      headers: {
+        'Authorization': `Bearer ${installation.accessToken}`,
+        'Version': '2021-07-28',
+        ...formData.getHeaders()
+      },
+      params: {
+        locationId: installation.locationId
+      }
+    });
+    
+    // Clean up uploaded file
+    fs.unlinkSync(req.file.path);
+    
+    console.log('Media upload successful:', uploadResponse.data);
+    
+    res.json({
+      success: true,
+      mediaUrl: uploadResponse.data.url || uploadResponse.data.fileUrl,
+      mediaId: uploadResponse.data.id,
+      data: uploadResponse.data
+    });
+    
+  } catch (error) {
+    // Clean up file if it exists
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    console.error('Media upload error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message
+    });
+  }
+});
+
+// MEDIA LIST ENDPOINT
+app.get('/api/media/list', async (req, res) => {
+  try {
+    const { installation_id } = req.query;
+    
+    if (!installation_id) {
+      return res.status(400).json({ success: false, error: 'installation_id required' });
+    }
+    
+    await ensureFreshToken(installation_id);
+    const installation = installations.get(installation_id);
+    
+    const mediaResponse = await axios.get('https://services.leadconnectorhq.com/medias/', {
+      headers: {
+        'Authorization': `Bearer ${installation.accessToken}`,
+        'Version': '2021-07-28'
+      },
+      params: {
+        locationId: installation.locationId,
+        limit: 100
+      }
+    });
+    
+    res.json({
+      success: true,
+      media: mediaResponse.data.medias || mediaResponse.data,
+      total: mediaResponse.data.count || mediaResponse.data.length
+    });
+    
+  } catch (error) {
+    console.error('Media list error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message
+    });
+  }
+});
+
+// PRICING ENDPOINT
+app.post('/api/products/:productId/prices', async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { installation_id, name, type, amount, currency } = req.body;
+    
+    if (!installation_id) {
+      return res.status(400).json({ success: false, error: 'installation_id required' });
+    }
+    
+    await ensureFreshToken(installation_id);
+    const installation = installations.get(installation_id);
+    
+    const priceData = {
+      name,
+      type,
+      amount: parseInt(amount),
+      currency: currency || 'USD'
+    };
+    
+    const priceResponse = await axios.post(`https://services.leadconnectorhq.com/products/${productId}/prices`, priceData, {
+      headers: {
+        'Authorization': `Bearer ${installation.accessToken}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('Price created:', priceResponse.data);
+    
+    res.json({
+      success: true,
+      price: priceResponse.data
+    });
+    
+  } catch (error) {
+    console.error('Price creation error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message
+    });
+  }
+});
+
 // Start server
 app.listen(port, () => {
-  console.log(`OAuth backend running on port ${port}`);
+  console.log(`Enhanced OAuth backend running on port ${port}`);
+  console.log(`Version: 5.3.0-complete-workflow`);
+  console.log(`Features: OAuth, Products, Media Upload, Pricing`);
   console.log(`Installations: ${installations.size}`);
-  console.log('Ready for OAuth callbacks');
+  console.log('Ready for multi-step product creation workflow');
 });
