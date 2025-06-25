@@ -1,5 +1,5 @@
 // bridge-server.js  (runs inside Replit)
-const express = require("express");
+import express from "express";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -18,6 +18,9 @@ app.get("/api/bridge/oauth-credentials", (req, res) => {
   });
 });
 
-app.listen(PORT, "0.0.0.0", () =>
-  console.log("Bridge up on", PORT)
-);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Bridge server running on port ${PORT}`);
+  console.log(`Health endpoint: http://localhost:${PORT}/health`);
+  console.log(`OAuth credentials: http://localhost:${PORT}/api/bridge/oauth-credentials`);
+  console.log("Bridge ready to serve OAuth credentials to Railway");
+});

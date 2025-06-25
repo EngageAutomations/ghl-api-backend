@@ -3,6 +3,9 @@ deploymentTarget = "autoscale"
 run = ["node", "bridge-server.js"]
 publicVisible = true
 
+[run]
+command = "node bridge-server.js"
+
 # Force all traffic to Express server
 [[deployment.routes]]
 source = "/(.*)"
