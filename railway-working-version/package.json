@@ -1,0 +1,20 @@
+{
+  "name": "oauth-backend-emergency",
+  "version": "1.4.4-installation-fix",
+  "description": "OAuth Backend with Installation Tracking Fixed",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "latest",
+    "cors": "latest",
+    "axios": "latest",
+    "multer": "latest",
+    "form-data": "latest"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

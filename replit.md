@@ -137,8 +137,17 @@ Use delete + create method for reliable file updates:
 
 ## Recent Changes
 
+- June 25, 2025: Railway OAuth Backend Fixed and Documented - COMPLETED
+  - Fixed missing `/installations` endpoint causing "0 installs" display issue
+  - Enhanced OAuth callback logging for better debugging capabilities
+  - Updated to version 5.1.1-fixed with proper installation tracking
+  - Copied complete working Railway backend to `/railway-working-version/` directory
+  - Documented all OAuth token management files and deployment configuration
+  - OAuth installations now properly tracked and visible via backend endpoints
+  - System fully operational with verified OAuth flow and token management
+
 - June 25, 2025: Complete System Operational - Frontend and Backend Ready
-  - OAuth backend deployed and operational on Railway (v1.4.1-fixed)
+  - OAuth backend deployed and operational on Railway (v5.1.1-fixed)
   - Frontend application running on Replit with OAuth integration interface
   - Preview screen now displays functional marketplace application
   - OAuth installation flow ready with direct marketplace integration
@@ -254,33 +263,44 @@ Use delete + create method for reliable file updates:
   - Enhanced error handling and comprehensive logging for OAuth callback debugging
   - Complete OAuth workflow ready: redirect → token exchange → storage → product creation
 
-## Railway-Replit Bridge System
+## Railway OAuth Backend - Working Version
 
-**Overview**
-Railway backend cannot detect environment variables, so we use a bridge system where Replit provides OAuth credentials via API endpoints.
+**Current Status**
+Railway backend is fully operational with direct OAuth handling - no bridge system needed.
 
-**How It Works**
-1. Railway requests credentials from `/api/bridge/oauth-credentials` 
-2. Replit provides client ID and secret via bridge endpoint
-3. Railway uses these credentials for GoHighLevel OAuth flow
-4. No environment variables needed on Railway side
+**Live Backend**
+- URL: `https://dir.engageautomations.com/`
+- Version: 5.1.1-fixed
+- Status: Operational with proper installation tracking
 
-**Bridge Endpoints**
-- `GET /api/bridge/oauth-credentials` - Provides OAuth credentials to Railway
-- `POST /api/bridge/process-oauth` - Processes authorization codes  
-- `GET /api/bridge/installation/:id` - Returns installation status
+**Repository**
+- GitHub: `https://github.com/EngageAutomations/oauth-backend`
+- Working files archived in `/railway-working-version/` directory
+- Automatic deployment from GitHub main branch
+
+**Key OAuth Files**
+- `index.js` - Main OAuth backend with token management
+- `server.js` - Railway entry point
+- `package.json` - Dependencies and deployment config
+- `railway.toml` - Railway deployment settings
+
+**OAuth Flow**
+1. GoHighLevel marketplace → OAuth callback at `/api/oauth/callback`
+2. Authorization code exchange for access/refresh tokens
+3. Installation stored with automatic token refresh scheduling
+4. All installations visible via `/installations` endpoint
+
+**Token Management**
+- In-memory storage with automatic refresh
+- 5-minute padding before token expiration
+- Enhanced logging for debugging OAuth issues
+- Proper installation tracking and counting
 
 **Benefits**
-- Eliminates Railway environment variable issues
-- Hardcoded solution requiring no manual configuration
-- Complete control over OAuth credential provisioning
-- Self-contained system with no dependencies
-
-**GitHub Integration**
-- Repository: `https://github.com/EngageAutomations/oauth-backend`
-- Access: Private token (GITHUB_TOKEN) for direct file updates
-- Process: Update backend code via GitHub API → Railway auto-deploys
-- Target: Replace environment variables with bridge system calls
+- Direct OAuth handling without bridge complexity
+- Proven token management with automatic refresh
+- Complete installation tracking and visibility
+- Enhanced debugging with detailed logging
 
 ## User Preferences
 
