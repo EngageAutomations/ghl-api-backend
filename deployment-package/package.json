@@ -1,0 +1,20 @@
+{
+  "name": "oauth-backend-emergency",
+  "version": "5.3.0",
+  "description": "GoHighLevel OAuth Backend with complete media upload and pricing workflow",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "latest",
+    "cors": "latest",
+    "axios": "latest",
+    "multer": "latest",
+    "form-data": "latest"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
