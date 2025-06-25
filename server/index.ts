@@ -1870,6 +1870,9 @@ app.use((req, res, next) => {
     res.sendFile(filePath);
   });
   
+  // Setup bridge endpoints first
+  setupBridgeEndpoints(app);
+  
   if (forceProductionMode) {
     console.log("Setting up production static serving...");
     
@@ -1884,7 +1887,7 @@ app.use((req, res, next) => {
   } else {
     console.log("Setting up development mode with Vite...");
     try {
-      await setupVite(app, server);
+      await setupVite(app, httpServer);
     } catch (error) {
       console.warn("Vite setup failed, continuing with basic Express server:", error.message);
       // Set up basic static serving as fallback
