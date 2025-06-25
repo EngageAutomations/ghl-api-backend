@@ -106,7 +106,7 @@ export default async function handler(req, res) {
 /**
  * Generate OAuth authorization URL
  */
-function generateOAuthUrl(state) {
+async function generateOAuthUrl(state) {
   // Get credentials from bridge system instead of environment variables
   const credentials = await getBridgeCredentials();
   const clientId = credentials.client_id;
@@ -196,5 +196,23 @@ async function exchangeCodeForTokens(code, state) {
   } catch (parseError) {
     console.error('Failed to parse token response:', parseError);
     throw new Error(`Invalid JSON response: ${responseText}`);
+  }
+}
+
+/**
+ * Get OAuth credentials from bridge system
+ */
+async function getBridgeCredentials() {
+  try {
+    const response = await fetch('/api/bridge/oauth-credentials');
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.credentials;
+    }
+    throw new Error('Bridge credentials not available');
+  } catch (error) {
+    console.error('Failed to get bridge credentials:', error);
+    throw new Error('OAuth credentials not available from bridge');
   }
 }
