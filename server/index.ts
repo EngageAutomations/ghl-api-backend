@@ -14,6 +14,7 @@ import { UniversalAPIRouter, requireOAuth, handleSessionRecovery } from "./unive
 import { createJWTEndpoint, createGHLProxyRouter } from "./ghl-proxy";
 import { setupBridgeEndpoints } from "./bridge-integration";
 import { pool } from "./db";
+import { BridgeProtection, validateBridgeEndpoints } from "./bridge-protection";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
@@ -1870,8 +1871,14 @@ app.use((req, res, next) => {
     res.sendFile(filePath);
   });
   
-  // Setup bridge endpoints first
+  // Setup bridge endpoints first with protection
   setupBridgeEndpoints(app);
+  
+  // Add bridge protection middleware
+  app.use(validateBridgeEndpoints);
+  
+  // Start bridge health monitoring
+  BridgeProtection.startHealthMonitoring(app);
   
   if (forceProductionMode) {
     console.log("Setting up production static serving...");
