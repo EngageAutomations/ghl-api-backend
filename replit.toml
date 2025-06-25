@@ -1,6 +1,6 @@
 [deployment]
 deploymentTarget = "autoscale"
-run = ["npx", "tsx", "server/index.ts"]
+run = ["node", "bridge-server.js"]
 publicVisible = true
 
 # Force all traffic to Express server
