@@ -13,6 +13,7 @@ import { UniversalAPIRouter, requireOAuth, handleSessionRecovery } from "./unive
 // import { handleOAuthCallback } from "./oauth-enhanced";
 import { createJWTEndpoint, createGHLProxyRouter } from "./ghl-proxy";
 import { setupBridgeEndpoints } from "./bridge-integration";
+import { pool } from "./db";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
@@ -753,7 +754,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
             RETURNING id, ghl_user_id, ghl_location_id, ghl_location_name;
           `;
 
-          const result = await db.query(insertQuery, [
+          const result = await pool.query(insertQuery, [
             installationData.ghl_user_id,
             installationData.ghl_user_email,
             installationData.ghl_user_name,
@@ -1946,7 +1947,7 @@ app.use((req, res, next) => {
 
   // Use Replit's PORT environment variable (default 5000) 
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen(port, "0.0.0.0", () => {
+  httpServer.listen(port, "0.0.0.0", () => {
     console.log('='.repeat(50));
     console.log('🚀 Server Running');
     console.log('='.repeat(50));
