@@ -1,0 +1,24 @@
+// Force Railway deployment trigger by updating package.json version
+const packageUpdate = {
+  "name": "oauth-backend-emergency",
+  "version": "5.2.0-product-api-force",
+  "description": "OAuth Backend with Product API - Force Deploy",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "latest",
+    "cors": "latest", 
+    "axios": "latest",
+    "multer": "latest",
+    "form-data": "latest"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+};
+
+console.log('Package update ready for deployment trigger');
+console.log(JSON.stringify(packageUpdate, null, 2));
