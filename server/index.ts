@@ -8,8 +8,9 @@ import { setupVite, serveStatic, log } from "./vite";
 import { setupDomainRedirects, setupCORS } from "./domain-config";
 // import { setupDirectOAuthRoutes } from "./oauth-direct";
 import { DatabaseStorage } from "./storage";
+import { users } from "../shared/schema";
 import { UniversalAPIRouter, requireOAuth, handleSessionRecovery } from "./universal-api-router";
-import { handleOAuthCallback } from "./oauth-enhanced";
+// import { handleOAuthCallback } from "./oauth-enhanced";
 import { createJWTEndpoint, createGHLProxyRouter } from "./ghl-proxy";
 import { setupBridgeEndpoints } from "./bridge-integration";
 import { fileURLToPath } from 'url';
@@ -1771,7 +1772,7 @@ app.use((req, res, next) => {
   
   console.log(`Production mode: ${forceProductionMode}, Environment: ${process.env.NODE_ENV}`);
 
-  let server: Server;
+  let appServer: Server;
   
   // CRITICAL: Add Railway proxy routes directly to bypass Vite middleware
   app.get("/api/railway/health", async (req, res) => {
@@ -1827,7 +1828,7 @@ app.use((req, res, next) => {
   console.log('✅ Railway GHL proxy configured');
 
   // Create HTTP server
-  const server = createServer(app);
+  const httpServer = createServer(app);
   
   // Register API routes
   await registerRoutes(app);
