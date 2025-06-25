@@ -41,7 +41,7 @@
                             onclick="createProductWithPricing()"
                             class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
                         >
-                            Create Product with Price & Images
+                            Multi-Step: Upload Image → Create Product → Add Price
                         </button>
                     </div>
                     
@@ -69,7 +69,7 @@
         async function createProductWithPricing() {
             const status = document.getElementById('status');
             status.classList.remove('hidden');
-            status.innerHTML = 'Creating product with pricing...';
+            status.innerHTML = 'Starting multi-step product creation...';
             
             try {
                 // Check for OAuth installation
@@ -84,12 +84,72 @@
                 
                 const installationId = installData.installations[0].id;
                 
-                // Create product
+                // Check backend capabilities
+                const backendStatus = await fetch('https://dir.engageautomations.com/');
+                const backendData = await backendStatus.json();
+                
+                if (!backendData.features.includes('media-upload')) {
+                    status.innerHTML = 'Backend updating with media upload capabilities. Creating basic product...';
+                    
+                    // Create basic product without media upload
+                    const basicProductData = {
+                        installation_id: installationId,
+                        name: "Digital Marketing Masterclass Pro",
+                        description: "Professional digital marketing course with video tutorials and templates",
+                        productType: "DIGITAL"
+                    };
+                    
+                    const basicResponse = await fetch('https://dir.engageautomations.com/api/products/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(basicProductData)
+                    });
+                    
+                    const basicResult = await basicResponse.json();
+                    
+                    if (basicResult.success) {
+                        status.innerHTML = `Product created: ${basicResult.product.name}<br>Product ID: ${basicResult.product._id}<br>Status: Ready for images and pricing when backend completes deployment`;
+                        status.className = 'mt-4 p-3 bg-blue-100 text-blue-800 rounded';
+                    }
+                    return;
+                }
+                
+                // Complete multi-step workflow
+                status.innerHTML = 'Step 1: Downloading product image...';
+                
+                // Download professional image
+                const imageResponse = await fetch('https://images.unsplash.com/photo-1556740758-90de374c12ad?w=800&h=600&fit=crop&q=80');
+                const imageBlob = await imageResponse.blob();
+                
+                status.innerHTML = 'Step 2: Uploading image to GoHighLevel media library...';
+                
+                // Upload to GoHighLevel
+                const formData = new FormData();
+                formData.append('file', imageBlob, 'course_image.jpg');
+                formData.append('installation_id', installationId);
+                
+                const uploadResponse = await fetch('https://dir.engageautomations.com/api/media/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const uploadResult = await uploadResponse.json();
+                
+                if (!uploadResult.success) {
+                    status.innerHTML = `Image upload failed: ${uploadResult.error}`;
+                    status.className = 'mt-4 p-3 bg-red-100 text-red-800 rounded';
+                    return;
+                }
+                
+                status.innerHTML = 'Step 3: Creating product with uploaded image...';
+                
+                // Create product with GoHighLevel media URL
                 const productData = {
                     installation_id: installationId,
-                    name: "Digital Marketing Masterclass",
-                    description: "Complete course with videos, worksheets, and bonus materials",
-                    productType: "DIGITAL"
+                    name: "Premium Digital Marketing Masterclass 2025",
+                    description: "Complete digital marketing course with 50+ HD video tutorials, downloadable templates, case studies, and bonus materials. Learn SEO, PPC, social media marketing, email automation, and conversion optimization.",
+                    productType: "DIGITAL",
+                    medias: [{ url: uploadResult.mediaUrl, type: 'image' }]
                 };
                 
                 const productResponse = await fetch('https://dir.engageautomations.com/api/products/create', {
@@ -100,36 +160,47 @@
                 
                 const productResult = await productResponse.json();
                 
-                if (productResult.success) {
-                    // Add pricing
-                    const priceData = {
-                        installation_id: installationId,
-                        name: "One-time Purchase",
-                        type: "one_time",
-                        amount: 19700,
-                        currency: "USD"
-                    };
-                    
-                    const priceResponse = await fetch(`https://dir.engageautomations.com/api/products/${productResult.product.id}/prices`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(priceData)
-                    });
-                    
-                    const priceResult = await priceResponse.json();
-                    
-                    if (priceResult.success) {
-                        status.innerHTML = `Product created: ${productResult.product.name}<br>Price: $197.00 USD<br>Status: Active in GoHighLevel`;
-                        status.className = 'mt-4 p-3 bg-green-100 text-green-800 rounded';
-                    } else {
-                        status.innerHTML = 'Product created but pricing failed';
-                        status.className = 'mt-4 p-3 bg-yellow-100 text-yellow-800 rounded';
-                    }
-                } else {
+                if (!productResult.success) {
                     status.innerHTML = `Product creation failed: ${productResult.error}`;
+                    status.className = 'mt-4 p-3 bg-red-100 text-red-800 rounded';
+                    return;
                 }
+                
+                status.innerHTML = 'Step 4: Adding premium pricing...';
+                
+                // Add pricing
+                const priceData = {
+                    installation_id: installationId,
+                    name: "Premium Lifetime Access",
+                    type: "one_time",
+                    amount: 39700, // $397.00
+                    currency: "USD"
+                };
+                
+                const priceResponse = await fetch(`https://dir.engageautomations.com/api/products/${productResult.product._id}/prices`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(priceData)
+                });
+                
+                const priceResult = await priceResponse.json();
+                
+                if (priceResult.success) {
+                    status.innerHTML = `COMPLETE WORKFLOW SUCCESSFUL<br>
+                        Product: ${productResult.product.name}<br>
+                        Product ID: ${productResult.product._id}<br>
+                        Image: Uploaded to GoHighLevel media library<br>
+                        Price: $397.00 USD<br>
+                        Status: Complete product with authentic GoHighLevel media and pricing`;
+                    status.className = 'mt-4 p-3 bg-green-100 text-green-800 rounded';
+                } else {
+                    status.innerHTML = `Product created with image but pricing failed: ${priceResult.error}`;
+                    status.className = 'mt-4 p-3 bg-yellow-100 text-yellow-800 rounded';
+                }
+                
             } catch (error) {
                 status.innerHTML = `Error: ${error.message}`;
+                status.className = 'mt-4 p-3 bg-red-100 text-red-800 rounded';
             }
         }
         
