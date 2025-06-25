@@ -142,7 +142,7 @@ Use delete + create method for reliable file updates:
 - Complete multi-step workflow ready: image upload → product creation → pricing addition
 - OAuth installation required for testing (previous session expired)
 
-**Current Status:** OAuth backend fixed and deployed (v5.4.2) - fresh OAuth installation required to test pricing functionality
+**Current Status:** OAuth backend operational (v5.4.2) - Railway environment variables (GHL_CLIENT_ID, GHL_CLIENT_SECRET) required for OAuth completion
 
 **Complete Workflow Operational:** Car detailing image successfully uploaded to GoHighLevel media library and used to create complete product listing with pricing
 
