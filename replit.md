@@ -277,6 +277,12 @@ Railway backend cannot detect environment variables, so we use a bridge system w
 - Complete control over OAuth credential provisioning
 - Self-contained system with no dependencies
 
+**GitHub Integration**
+- Repository: `https://github.com/EngageAutomations/oauth-backend`
+- Access: Private token (GITHUB_TOKEN) for direct file updates
+- Process: Update backend code via GitHub API → Railway auto-deploys
+- Target: Replace environment variables with bridge system calls
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
