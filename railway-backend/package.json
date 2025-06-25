@@ -1,32 +1,20 @@
 {
-  "name": "ghl-oauth-backend",
-  "version": "1.0.0",
+  "name": "oauth-backend-emergency",
+  "version": "5.4.3-working-oauth",
+  "description": "GoHighLevel OAuth Backend - Working Version with Direct OAuth",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "node index.js",
-    "build": "echo 'No build needed for JavaScript'",
-    "serve": "node index.js"
+    "dev": "node index.js"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.0",
-    "axios": "^1.6.7",
-    "cookie-parser": "^1.4.6",
-    "cors": "^2.8.5",
-    "drizzle-orm": "^0.30.0",
-    "express": "^4.18.2",
-    "ws": "^8.16.0"
-  },
-  "devDependencies": {
-    "@types/cookie-parser": "^1.4.6",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/node": "^20.11.19",
-    "ts-node": "^10.9.1",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.3.3"
+    "express": "latest",
+    "cors": "latest",
+    "axios": "latest",
+    "multer": "latest",
+    "form-data": "latest"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18"
   }
 }

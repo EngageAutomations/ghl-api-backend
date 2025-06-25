@@ -1,625 +1,379 @@
-// Universal GoHighLevel API Backend - Handles all endpoints dynamically
+// OAuth Backend Fix - Add missing endpoints for installation tracking
+// This file adds the missing /installations endpoint and debugging
+
 const express = require('express');
-const axios = require('axios');
-const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const axios = require('axios');
+const multer = require('multer');
+const FormData = require('form-data');
+const fs = require('fs');
+
+// Configure multer for file uploads
+const upload = multer({ 
+  dest: 'uploads/',
+  limits: { fileSize: 25 * 1024 * 1024 } // 25MB limit
+});
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-// In-memory storage for OAuth installations
-let oauthInstallations = [];
-
-const storage = {
-  createInstallation(installationData) {
-    const installation = {
-      id: oauthInstallations.length + 1,
-      ...installationData,
-      installationDate: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    oauthInstallations.push(installation);
-    return installation;
-  },
-
-  getAllInstallations() {
-    return oauthInstallations.sort((a, b) => new Date(b.installationDate) - new Date(a.installationDate));
-  },
-
-  getInstallationByUserId(ghlUserId) {
-    return oauthInstallations
-      .filter(install => install.ghlUserId === ghlUserId)
-      .sort((a, b) => new Date(b.installationDate) - new Date(a.installationDate))[0];
-  }
-};
-
-// Comprehensive GoHighLevel API endpoint configurations
-const GHL_API_ENDPOINTS = [
-  // Products API
-  { path: '/products', method: 'GET', ghlEndpoint: '/products/', requiresLocationId: true, scope: 'products.readonly' },
-  { path: '/products', method: 'POST', ghlEndpoint: '/products/', requiresLocationId: true, scope: 'products.write' },
-  { path: '/products/:productId', method: 'GET', ghlEndpoint: '/products/{productId}', requiresLocationId: true, scope: 'products.readonly' },
-  { path: '/products/:productId', method: 'PUT', ghlEndpoint: '/products/{productId}', requiresLocationId: false, scope: 'products.write' },
-  { path: '/products/:productId', method: 'DELETE', ghlEndpoint: '/products/{productId}', requiresLocationId: false, scope: 'products.write' },
-  
-  // Product Prices API
-  { path: '/products/:productId/prices', method: 'GET', ghlEndpoint: '/products/{productId}/prices', requiresLocationId: false, scope: 'products/prices.readonly' },
-  { path: '/products/:productId/prices', method: 'POST', ghlEndpoint: '/products/{productId}/prices', requiresLocationId: false, scope: 'products/prices.write' },
-  { path: '/products/:productId/prices/:priceId', method: 'GET', ghlEndpoint: '/products/{productId}/prices/{priceId}', requiresLocationId: false, scope: 'products/prices.readonly' },
-  { path: '/products/:productId/prices/:priceId', method: 'PUT', ghlEndpoint: '/products/{productId}/prices/{priceId}', requiresLocationId: false, scope: 'products/prices.write' },
-  { path: '/products/:productId/prices/:priceId', method: 'DELETE', ghlEndpoint: '/products/{productId}/prices/{priceId}', requiresLocationId: false, scope: 'products/prices.write' },
-  
-  // Contacts API
-  { path: '/contacts', method: 'GET', ghlEndpoint: '/locations/{locationId}/contacts', requiresLocationId: true, scope: 'contacts.readonly' },
-  { path: '/contacts', method: 'POST', ghlEndpoint: '/locations/{locationId}/contacts', requiresLocationId: true, scope: 'contacts.write' },
-  { path: '/contacts/:contactId', method: 'GET', ghlEndpoint: '/locations/{locationId}/contacts/{contactId}', requiresLocationId: true, scope: 'contacts.readonly' },
-  { path: '/contacts/:contactId', method: 'PUT', ghlEndpoint: '/locations/{locationId}/contacts/{contactId}', requiresLocationId: true, scope: 'contacts.write' },
-  { path: '/contacts/:contactId', method: 'DELETE', ghlEndpoint: '/locations/{locationId}/contacts/{contactId}', requiresLocationId: true, scope: 'contacts.write' },
-  
-  // Opportunities API
-  { path: '/opportunities', method: 'GET', ghlEndpoint: '/locations/{locationId}/opportunities', requiresLocationId: true, scope: 'opportunities.readonly' },
-  { path: '/opportunities', method: 'POST', ghlEndpoint: '/locations/{locationId}/opportunities', requiresLocationId: true, scope: 'opportunities.write' },
-  { path: '/opportunities/:opportunityId', method: 'GET', ghlEndpoint: '/locations/{locationId}/opportunities/{opportunityId}', requiresLocationId: true, scope: 'opportunities.readonly' },
-  { path: '/opportunities/:opportunityId', method: 'PUT', ghlEndpoint: '/locations/{locationId}/opportunities/{opportunityId}', requiresLocationId: true, scope: 'opportunities.write' },
-  { path: '/opportunities/:opportunityId', method: 'DELETE', ghlEndpoint: '/locations/{locationId}/opportunities/{opportunityId}', requiresLocationId: true, scope: 'opportunities.write' },
-  
-  // Locations API
-  { path: '/locations', method: 'GET', ghlEndpoint: '/locations/', requiresLocationId: false, scope: 'locations.readonly' },
-  { path: '/locations/:locationId', method: 'GET', ghlEndpoint: '/locations/{locationId}', requiresLocationId: false, scope: 'locations.readonly' },
-  { path: '/locations/:locationId', method: 'PUT', ghlEndpoint: '/locations/{locationId}', requiresLocationId: false, scope: 'locations.write' },
-  
-  // Workflows API
-  { path: '/workflows', method: 'GET', ghlEndpoint: '/locations/{locationId}/workflows', requiresLocationId: true, scope: 'workflows.readonly' },
-  { path: '/workflows/:workflowId/contacts/:contactId', method: 'POST', ghlEndpoint: '/locations/{locationId}/workflows/{workflowId}/contacts/{contactId}', requiresLocationId: true, scope: 'workflows.write' },
-  
-  // Forms API
-  { path: '/forms', method: 'GET', ghlEndpoint: '/locations/{locationId}/forms', requiresLocationId: true, scope: 'forms.readonly' },
-  { path: '/forms/:formId', method: 'GET', ghlEndpoint: '/locations/{locationId}/forms/{formId}', requiresLocationId: true, scope: 'forms.readonly' },
-  { path: '/forms/:formId/submissions', method: 'GET', ghlEndpoint: '/locations/{locationId}/forms/{formId}/submissions', requiresLocationId: true, scope: 'forms.readonly' },
-  
-  // Surveys API
-  { path: '/surveys', method: 'GET', ghlEndpoint: '/locations/{locationId}/surveys', requiresLocationId: true, scope: 'surveys.readonly' },
-  { path: '/surveys/:surveyId/submissions', method: 'GET', ghlEndpoint: '/locations/{locationId}/surveys/{surveyId}/submissions', requiresLocationId: true, scope: 'surveys.readonly' },
-  
-  // Media API
-  { path: '/media', method: 'GET', ghlEndpoint: '/locations/{locationId}/medias', requiresLocationId: true, scope: 'medias.readonly' },
-  { path: '/media/upload', method: 'POST', ghlEndpoint: '/locations/{locationId}/medias/upload-file', requiresLocationId: true, scope: 'medias.write' },
-  { path: '/media/:mediaId', method: 'GET', ghlEndpoint: '/locations/{locationId}/medias/{mediaId}', requiresLocationId: true, scope: 'medias.readonly' },
-  { path: '/media/:mediaId', method: 'DELETE', ghlEndpoint: '/locations/{locationId}/medias/{mediaId}', requiresLocationId: true, scope: 'medias.write' },
-  
-  // Calendars API
-  { path: '/calendars', method: 'GET', ghlEndpoint: '/locations/{locationId}/calendars', requiresLocationId: true, scope: 'calendars.readonly' },
-  { path: '/calendars/:calendarId/events', method: 'GET', ghlEndpoint: '/locations/{locationId}/calendars/{calendarId}/events', requiresLocationId: true, scope: 'calendars.readonly' },
-  { path: '/calendars/:calendarId/events', method: 'POST', ghlEndpoint: '/locations/{locationId}/calendars/{calendarId}/events', requiresLocationId: true, scope: 'calendars.write' },
-  
-  // User Info API
-  { path: '/user/info', method: 'GET', ghlEndpoint: '/oauth/userinfo', requiresLocationId: false, scope: 'oauth' },
-  { path: '/user/me', method: 'GET', ghlEndpoint: '/users/me', requiresLocationId: false, scope: 'users.readonly' }
-];
-
-// Universal API Handler Class
-class UniversalAPIHandler {
-  static findEndpointConfig(method, path) {
-    return GHL_API_ENDPOINTS.find(endpoint => {
-      if (endpoint.method !== method) return false;
-      
-      const pattern = endpoint.path
-        .replace(/:[^\/]+/g, '[^/]+')
-        .replace(/\//g, '\\/');
-      
-      const regex = new RegExp(`^${pattern}$`);
-      return regex.test(path);
-    });
-  }
-
-  static extractPathParams(pattern, actualPath) {
-    const params = {};
-    const patternParts = pattern.split('/');
-    const actualParts = actualPath.split('/');
-    
-    for (let i = 0; i < patternParts.length; i++) {
-      const patternPart = patternParts[i];
-      if (patternPart.startsWith(':')) {
-        const paramName = patternPart.substring(1);
-        params[paramName] = actualParts[i];
-      }
-    }
-    
-    return params;
-  }
-
-  static buildGHLEndpoint(config, pathParams, locationId) {
-    let endpoint = config.ghlEndpoint;
-    
-    Object.entries(pathParams).forEach(([key, value]) => {
-      endpoint = endpoint.replace(`{${key}}`, value);
-    });
-    
-    if (config.requiresLocationId && locationId) {
-      endpoint = endpoint.replace('{locationId}', locationId);
-    }
-    
-    return endpoint;
-  }
-
-  static async getInstallation(installationId) {
-    const installations = storage.getAllInstallations();
-    
-    if (installations.length === 0) {
-      throw new Error('No OAuth installations found');
-    }
-    
-    const installation = installationId 
-      ? installations.find(i => i.id.toString() === installationId)
-      : installations[0];
-    
-    if (!installation) {
-      throw new Error('Installation not found');
-    }
-    
-    if (!installation.ghlAccessToken) {
-      throw new Error('No access token available');
-    }
-    
-    return installation;
-  }
-
-  static async makeGHLRequest(config, pathParams, queryParams, body, headers, installation, locationId) {
-    const ghlEndpoint = this.buildGHLEndpoint(config, pathParams, locationId || installation.ghlLocationId);
-    
-    const requestConfig = {
-      method: config.method,
-      url: `https://services.leadconnectorhq.com${ghlEndpoint}`,
-      headers: {
-        'Authorization': `Bearer ${installation.ghlAccessToken}`,
-        'Content-Type': 'application/json',
-        'Version': '2021-07-28',
-        ...headers
-      },
-      timeout: 15000
-    };
-
-    if (body && ['POST', 'PUT', 'PATCH'].includes(config.method)) {
-      requestConfig.data = body;
-    }
-
-    if (queryParams && Object.keys(queryParams).length > 0) {
-      requestConfig.params = queryParams;
-    }
-
-    console.log(`[GHL API] ${config.method} ${ghlEndpoint}`);
-    
-    try {
-      const response = await axios(requestConfig);
-      return {
-        success: true,
-        data: response.data,
-        status: response.status
-      };
-    } catch (error) {
-      console.error(`[GHL API Error] ${config.method} ${ghlEndpoint}:`, error.message);
-      return {
-        success: false,
-        error: error.response?.data?.error || error.message,
-        status: error.response?.status || 500,
-        details: error.response?.data
-      };
-    }
-  }
-
-  static async handleUniversalRequest(req, res) {
-    try {
-      const method = req.method;
-      const path = req.path.replace('/api/ghl', '');
-      
-      console.log(`[Universal API] ${method} ${path}`);
-      
-      const config = this.findEndpointConfig(method, path);
-      if (!config) {
-        return res.status(404).json({
-          success: false,
-          error: 'API endpoint not found',
-          method,
-          path,
-          availableEndpoints: GHL_API_ENDPOINTS.map(e => `${e.method} ${e.path}`)
-        });
-      }
-      
-      const installationId = req.query.installationId || req.headers['x-installation-id'];
-      const locationId = req.query.locationId || req.headers['x-location-id'];
-      
-      const installation = await this.getInstallation(installationId);
-      const pathParams = this.extractPathParams(config.path, path);
-      
-      // Filter query parameters (remove our internal params)
-      const queryParams = { ...req.query };
-      delete queryParams.installationId;
-      delete queryParams.locationId;
-      
-      // Add locationId to query for endpoints that require it in query params
-      if (config.requiresLocationId && (config.ghlEndpoint.includes('products/') || config.path.includes('/products/'))) {
-        queryParams.locationId = locationId || installation.ghlLocationId;
-      }
-      
-      const result = await this.makeGHLRequest(
-        config,
-        pathParams,
-        queryParams,
-        req.body,
-        {},
-        installation,
-        locationId
-      );
-      
-      if (result.success) {
-        res.status(result.status || 200).json(result);
-      } else {
-        res.status(result.status || 400).json(result);
-      }
-      
-    } catch (error) {
-      console.error('[Universal API Error]:', error);
-      res.status(500).json({
-        success: false,
-        error: 'API request failed',
-        details: error.message
-      });
-    }
-  }
-}
+const port = process.env.PORT || 3000;
 
 // Middleware
+app.use(cors());
 app.use(express.json());
-app.use(cookieParser());
-app.use(cors({
-  origin: ['https://listings.engageautomations.com', 'https://dir.engageautomations.com', 'http://localhost:3000'],
-  credentials: true
-}));
 
-function requireOAuth(req, res, next) {
-  const installations = storage.getAllInstallations();
-  
-  if (installations.length === 0) {
-    return res.status(401).json({
-      success: false,
-      error: 'No OAuth installations found. Complete OAuth setup first.',
-      hint: 'Visit /api/oauth/url to start OAuth flow'
-    });
-  }
-  
-  next();
+// In-memory install store
+const installations = new Map();
+
+// Add pre-seeded installation if env vars exist
+if (process.env.GHL_ACCESS_TOKEN) {
+  installations.set('install_seed', {
+    id: 'install_seed',
+    accessToken: process.env.GHL_ACCESS_TOKEN,
+    refreshToken: process.env.GHL_REFRESH_TOKEN || null,
+    expiresIn: 86399,
+    expiresAt: Date.now() + 86399 * 1000,
+    locationId: process.env.GHL_LOCATION_ID || 'WAvk87RmW9rBSDJHeOpH',
+    scopes: process.env.GHL_SCOPES || 'medias.write medias.readonly',
+    tokenStatus: 'valid',
+    createdAt: new Date().toISOString()
+  });
 }
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    service: 'Universal GHL API Backend', 
-    timestamp: new Date().toISOString(),
-    installationsCount: oauthInstallations.length,
-    supportedEndpoints: GHL_API_ENDPOINTS.length
-  });
-});
+// TOKEN LIFECYCLE HELPERS
+const PADDING_MS = 5 * 60 * 1000;
+const refreshers = new Map();
 
-// OAuth endpoints
-app.get('/api/oauth/url', (req, res) => {
-  const clientId = process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4';
-  const redirectUri = process.env.GHL_REDIRECT_URI || 'https://listings.engageautomations.com/api/oauth/callback';
-  const scopes = 'locations.readonly locations.write contacts.readonly contacts.write opportunities.readonly opportunities.write calendars.readonly calendars.write forms.readonly forms.write surveys.readonly surveys.write workflows.readonly workflows.write snapshots.readonly snapshots.write products/prices.write products/prices.readonly products/collection.write products/collection.readonly medias.write medias.readonly';
-  
-  const state = `oauth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  const authUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${clientId}&state=${state}&scope=${encodeURIComponent(scopes)}`;
-  
-  res.json({
-    success: true,
-    authUrl: authUrl,
-    state: state,
-    timestamp: Date.now()
-  });
-});
-
-app.get('/api/oauth/callback', async (req, res) => {
-  const { code, state, error } = req.query;
-
-  if (error) {
-    const errorUrl = `https://listings.engageautomations.com/oauth-error?error=${encodeURIComponent(error)}`;
-    return res.redirect(errorUrl);
-  }
-
-  if (!code) {
-    const errorUrl = `https://listings.engageautomations.com/oauth-error?error=${encodeURIComponent('Missing authorization code')}`;
-    return res.redirect(errorUrl);
-  }
+async function refreshAccessToken(id) {
+  const inst = installations.get(id);
+  if (!inst || !inst.refreshToken) return;
 
   try {
-    const tokenRequestData = new URLSearchParams({
-      grant_type: 'authorization_code',
-      client_id: process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4',
+    const body = new URLSearchParams({
+      client_id: process.env.GHL_CLIENT_ID,
       client_secret: process.env.GHL_CLIENT_SECRET,
-      code: String(code),
-      redirect_uri: process.env.GHL_REDIRECT_URI || 'https://listings.engageautomations.com/api/oauth/callback'
+      grant_type: 'refresh_token',
+      refresh_token: inst.refreshToken
     });
 
-    const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', 
-      tokenRequestData.toString(),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json'
-        },
-        timeout: 10000
-      }
+    const { data } = await axios.post(
+      'https://services.leadconnectorhq.com/oauth/token',
+      body,
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, timeout: 15000 }
     );
 
-    // Get user info
-    let userInfo = null;
-    try {
-      const userResponse = await axios.get('https://services.leadconnectorhq.com/oauth/userinfo', {
-        headers: {
-          'Authorization': `Bearer ${response.data.access_token}`
-        },
-        timeout: 5000
-      });
-      userInfo = userResponse.data;
-    } catch (userError) {
-      console.warn('Failed to get user info:', userError.message);
-    }
+    inst.accessToken = data.access_token;
+    inst.refreshToken = data.refresh_token || inst.refreshToken;
+    inst.expiresIn = data.expires_in;
+    inst.expiresAt = Date.now() + data.expires_in * 1000;
+    inst.tokenStatus = 'valid';
 
-    const installationData = {
-      ghlUserId: userInfo?.userId || `user_${Date.now()}`,
-      ghlLocationId: userInfo?.locationId,
-      ghlCompanyId: userInfo?.companyId,
-      ghlAccessToken: response.data.access_token,
-      ghlRefreshToken: response.data.refresh_token,
-      ghlTokenType: response.data.token_type || 'Bearer',
-      ghlExpiresIn: response.data.expires_in || 3600,
-      ghlScopes: response.data.scope,
-      isActive: true
-    };
-
-    const savedInstallation = storage.createInstallation(installationData);
-    console.log('✅ OAuth installation saved with ID:', savedInstallation.id);
-
-    const params = new URLSearchParams({
-      success: 'true',
-      timestamp: Date.now().toString(),
-      locationId: userInfo?.locationId || 'unknown',
-      installationId: savedInstallation.id.toString()
-    });
-
-    const successUrl = `https://listings.engageautomations.com/oauth-success?${params.toString()}`;
-    return res.redirect(successUrl);
-
-  } catch (error) {
-    console.error('Token exchange failed:', error.message);
-    const errorUrl = `https://listings.engageautomations.com/oauth-error?error=${encodeURIComponent(error.message)}`;
-    return res.redirect(errorUrl);
+    scheduleRefresh(id);
+    console.log(`[REFRESH] ${id} → ${(data.expires_in / 3600).toFixed(1)} h`);
+  } catch (err) {
+    console.error(`[REFRESH-FAIL] ${id}`, err.response?.data || err.message);
+    inst.tokenStatus = 'invalid';
   }
-});
+}
 
-// Debug endpoints
-app.get('/api/debug/installations', (req, res) => {
-  const installations = storage.getAllInstallations();
+function scheduleRefresh(id) {
+  clearTimeout(refreshers.get(id));
+  const inst = installations.get(id);
+  if (!inst || !inst.expiresAt) return;
+  const delay = Math.max(inst.expiresAt - Date.now() - PADDING_MS, 0);
+  const t = setTimeout(() => refreshAccessToken(id), delay);
+  refreshers.set(id, t);
+}
+
+async function ensureFreshToken(id) {
+  const inst = installations.get(id);
+  if (!inst) throw new Error('Unknown installation');
+  if (!inst.expiresAt || inst.expiresAt - Date.now() < PADDING_MS) {
+    await refreshAccessToken(id);
+  }
+  if (inst.tokenStatus !== 'valid') throw new Error('Token invalid');
+}
+
+function requireInstall(req, res) {
+  const installationId = req.method === 'GET' ? req.query.installation_id : req.body.installation_id;
+  const inst = installations.get(installationId);
+  if (!inst || !inst.accessToken) {
+    res.status(400).json({ success: false, error: `Installation not found: ${installationId}` });
+    return null;
+  }
+  return inst;
+}
+
+// BASIC ROUTES
+app.get('/', (req, res) => {
+  const authenticatedCount = Array.from(installations.values()).filter(inst => inst.tokenStatus === 'valid').length;
   res.json({
-    success: true,
-    count: installations.length,
-    installations: installations.map(install => ({
-      id: install.id,
-      ghlUserId: install.ghlUserId,
-      ghlLocationId: install.ghlLocationId,
-      hasAccessToken: !!install.ghlAccessToken,
-      scopes: install.ghlScopes,
-      installationDate: install.installationDate
-    }))
+    service: "GoHighLevel OAuth Backend",
+    version: "5.3.0-complete-workflow",
+    installs: installations.size,
+    authenticated: authenticatedCount,
+    status: "operational",
+    features: ["oauth", "products", "images", "pricing", "media-upload"],
+    debug: "complete multi-step workflow ready",
+    ts: Date.now()
   });
 });
 
-// Installation details endpoint - provides complete installation data for development
-app.get('/api/installations/:id/details', (req, res) => {
-  const installation = storage.getAllInstallations().find(inst => inst.id == req.params.id);
-  if (installation) {
-    res.json({
-      success: true,
-      installation: {
-        id: installation.id,
-        ghlUserId: installation.ghlUserId,
-        ghlLocationId: installation.ghlLocationId,
-        ghlAccessToken: installation.ghlAccessToken,
-        ghlRefreshToken: installation.ghlRefreshToken,
-        ghlTokenType: installation.ghlTokenType,
-        ghlScopes: installation.ghlScopes,
-        installationDate: installation.installationDate,
-        isActive: installation.isActive
-      }
-    });
-  } else {
-    res.status(404).json({ success: false, error: 'Installation not found' });
-  }
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', ts: new Date().toISOString() });
 });
 
-// Latest installation endpoint - provides most recent installation details
-app.get('/api/installations/latest', (req, res) => {
-  const installations = storage.getAllInstallations();
-  if (installations.length > 0) {
-    const latest = installations.sort((a, b) => new Date(b.installationDate) - new Date(a.installationDate))[0];
-    res.json({
-      success: true,
-      installation: {
-        id: latest.id,
-        ghlUserId: latest.ghlUserId,
-        ghlLocationId: latest.ghlLocationId,
-        ghlAccessToken: latest.ghlAccessToken,
-        ghlRefreshToken: latest.ghlRefreshToken,
-        ghlTokenType: latest.ghlTokenType,
-        ghlScopes: latest.ghlScopes,
-        installationDate: latest.installationDate,
-        isActive: latest.isActive
-      }
-    });
-  } else {
-    res.status(404).json({ success: false, error: 'No installations found' });
-  }
-});
-
-// API Documentation
-app.get('/api/ghl/docs', (req, res) => {
+// MISSING INSTALLATIONS ENDPOINT - This was the problem!
+app.get('/installations', (req, res) => {
+  const installList = Array.from(installations.values()).map(inst => ({
+    id: inst.id,
+    locationId: inst.locationId,
+    tokenStatus: inst.tokenStatus,
+    createdAt: inst.createdAt,
+    expiresAt: new Date(inst.expiresAt).toISOString(),
+    scopes: inst.scopes
+  }));
+  
   res.json({
-    success: true,
-    documentation: {
-      baseUrl: '/api/ghl',
-      authentication: 'OAuth2 Bearer Token (stored from installation)',
-      totalEndpoints: GHL_API_ENDPOINTS.length,
-      endpoints: GHL_API_ENDPOINTS.map(endpoint => ({
-        method: endpoint.method,
-        path: `/api/ghl${endpoint.path}`,
-        scope: endpoint.scope,
-        requiresLocationId: endpoint.requiresLocationId
-      })),
-      parameters: {
-        headers: {
-          'x-installation-id': 'Optional: Specific installation ID',
-          'x-location-id': 'Optional: Override location ID'
-        },
-        query: {
-          limit: 'Pagination limit',
-          offset: 'Pagination offset',
-          search: 'Search term (for products)',
-          installationId: 'Alternative to header',
-          locationId: 'Alternative to header'
-        }
-      }
-    }
+    total: installations.size,
+    authenticated: installList.filter(inst => inst.tokenStatus === 'valid').length,
+    installations: installList
   });
 });
 
-// Test all endpoints
-app.get('/api/ghl/test/all', requireOAuth, async (req, res) => {
-  try {
-    const installationId = req.query.installationId;
-    const installation = await UniversalAPIHandler.getInstallation(installationId);
-    
-    const testResults = {};
-    const testEndpoints = [
-      { method: 'GET', path: '/products', name: 'products' },
-      { method: 'GET', path: '/contacts', name: 'contacts' },
-      { method: 'GET', path: '/locations', name: 'locations' },
-      { method: 'GET', path: '/workflows', name: 'workflows' },
-      { method: 'GET', path: '/forms', name: 'forms' },
-      { method: 'GET', path: '/media', name: 'media' },
-      { method: 'GET', path: '/user/info', name: 'userInfo' }
-    ];
-    
-    for (const testEndpoint of testEndpoints) {
-      try {
-        const config = UniversalAPIHandler.findEndpointConfig(testEndpoint.method, testEndpoint.path);
-        if (config) {
-          const result = await UniversalAPIHandler.makeGHLRequest(
-            config, 
-            {}, 
-            { limit: 5 }, 
-            null, 
-            {}, 
-            installation, 
-            installation.ghlLocationId
-          );
-          testResults[testEndpoint.name] = {
-            success: result.success,
-            status: result.status,
-            hasData: !!result.data
-          };
-        }
-      } catch (error) {
-        testResults[testEndpoint.name] = { 
-          success: false, 
-          error: error.message 
-        };
-      }
-    }
-    
-    res.json({
-      success: true,
-      installation: {
-        id: installation.id,
-        locationId: installation.ghlLocationId
-      },
-      testResults
-    });
-    
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Test failed',
-      details: error.message
-    });
+// OAuth token exchange
+async function exchangeCode(code, redirectUri) {
+  const body = new URLSearchParams({
+    client_id: process.env.GHL_CLIENT_ID,
+    client_secret: process.env.GHL_CLIENT_SECRET,
+    grant_type: 'authorization_code',
+    code,
+    redirect_uri: redirectUri
+  });
+  const { data } = await axios.post('https://services.leadconnectorhq.com/oauth/token', body, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    timeout: 15000
+  });
+  return data;
+}
+
+function storeInstall(tokenData) {
+  const id = `install_${Date.now()}`;
+  installations.set(id, {
+    id,
+    accessToken: tokenData.access_token,
+    refreshToken: tokenData.refresh_token,
+    expiresIn: tokenData.expires_in,
+    expiresAt: Date.now() + tokenData.expires_in * 1000,
+    locationId: tokenData.locationId || 'WAvk87RmW9rBSDJHeOpH',
+    scopes: tokenData.scope || '',
+    tokenStatus: 'valid',
+    createdAt: new Date().toISOString()
+  });
+  scheduleRefresh(id);
+  console.log(`[NEW INSTALL] ${id} stored with location ${tokenData.locationId || 'WAvk87RmW9rBSDJHeOpH'}`);
+  return id;
+}
+
+// OAUTH CALLBACK - Enhanced with better logging
+app.get(['/oauth/callback', '/api/oauth/callback'], async (req, res) => {
+  console.log('=== OAUTH CALLBACK RECEIVED ===');
+  console.log('Query params:', req.query);
+  console.log('Headers:', req.headers);
+  
+  const { code, error, state } = req.query;
+  
+  if (error) {
+    console.error('OAuth error from GHL:', error);
+    return res.status(400).json({ error: 'OAuth error', details: error });
   }
-});
-
-// Universal API router - handles ALL GoHighLevel endpoints dynamically
-app.all('/api/ghl/*', requireOAuth, UniversalAPIHandler.handleUniversalRequest);
-
-// Legacy test endpoint for compatibility
-app.post('/api/test/ghl-product', requireOAuth, async (req, res) => {
-  const testProductData = {
-    name: req.body.name || `Test Product ${Date.now()}`,
-    description: req.body.description || 'Test product created via universal API',
-    productType: req.body.productType || 'DIGITAL',
-    availableInStore: req.body.availableInStore !== undefined ? req.body.availableInStore : true
-  };
+  
+  if (!code) {
+    console.error('No authorization code received');
+    return res.status(400).json({ error: 'code required' });
+  }
   
   try {
-    const installation = await UniversalAPIHandler.getInstallation();
-    const config = UniversalAPIHandler.findEndpointConfig('POST', '/products');
+    const redirectUri = req.path.startsWith('/api')
+      ? (process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/api/oauth/callback')
+      : (process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/oauth/callback');
+
+    console.log('Exchanging code for tokens...');
+    console.log('Redirect URI:', redirectUri);
     
-    const result = await UniversalAPIHandler.makeGHLRequest(
-      config,
-      {},
-      { locationId: installation.ghlLocationId },
-      testProductData,
-      {},
-      installation,
-      installation.ghlLocationId
-    );
+    const tokenData = await exchangeCode(code, redirectUri);
+    console.log('Token exchange successful');
     
-    if (result.success) {
-      result.installation = {
-        id: installation.id,
-        ghlLocationId: installation.ghlLocationId
-      };
+    const id = storeInstall(tokenData);
+    console.log('Installation stored with ID:', id);
+    
+    const url = `https://listings.engageautomations.com/?installation_id=${id}&welcome=true`;
+    console.log('Redirecting to:', url);
+    
+    res.redirect(url);
+  } catch (e) {
+    console.error('OAuth error:', e.response?.data || e.message);
+    res.status(500).json({ error: 'OAuth failed', details: e.response?.data || e.message });
+  }
+});
+
+app.get('/api/oauth/status', (req, res) => {
+  const inst = installations.get(req.query.installation_id);
+  if (!inst) return res.json({ authenticated: false });
+  res.json({ authenticated: true, tokenStatus: inst.tokenStatus, locationId: inst.locationId });
+});
+
+// MEDIA UPLOAD ENDPOINT
+app.post('/api/media/upload', upload.single('file'), async (req, res) => {
+  console.log('=== MEDIA UPLOAD REQUEST ===');
+  
+  try {
+    const { installation_id } = req.body;
+    
+    if (!installation_id) {
+      return res.status(400).json({ success: false, error: 'installation_id required' });
     }
     
-    res.json(result);
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'file required' });
+    }
+    
+    console.log(`Uploading file: ${req.file.originalname} (${req.file.size} bytes)`);
+    
+    await ensureFreshToken(installation_id);
+    const installation = installations.get(installation_id);
+    
+    // Create form data for GoHighLevel API
+    const formData = new FormData();
+    formData.append('file', fs.createReadStream(req.file.path), {
+      filename: req.file.originalname,
+      contentType: req.file.mimetype
+    });
+    
+    // Upload to GoHighLevel media library
+    const uploadResponse = await axios.post(`https://services.leadconnectorhq.com/medias/upload-file`, formData, {
+      headers: {
+        'Authorization': `Bearer ${installation.accessToken}`,
+        'Version': '2021-07-28',
+        ...formData.getHeaders()
+      },
+      params: {
+        locationId: installation.locationId
+      }
+    });
+    
+    // Clean up uploaded file
+    fs.unlinkSync(req.file.path);
+    
+    console.log('Media upload successful:', uploadResponse.data);
+    
+    res.json({
+      success: true,
+      mediaUrl: uploadResponse.data.url || uploadResponse.data.fileUrl,
+      mediaId: uploadResponse.data.id,
+      data: uploadResponse.data
+    });
     
   } catch (error) {
+    // Clean up file if it exists
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    console.error('Media upload error:', error.response?.data || error.message);
     res.status(500).json({
       success: false,
-      error: 'Test failed',
-      details: error.message
+      error: error.response?.data || error.message
     });
   }
 });
 
-// Error handling
-app.use((error, req, res, next) => {
-  console.error('Unhandled error:', error);
-  res.status(500).json({
-    error: 'Internal server error',
-    message: error.message,
-    timestamp: new Date().toISOString()
-  });
+// MEDIA LIST ENDPOINT
+app.get('/api/media/list', async (req, res) => {
+  try {
+    const { installation_id } = req.query;
+    
+    if (!installation_id) {
+      return res.status(400).json({ success: false, error: 'installation_id required' });
+    }
+    
+    await ensureFreshToken(installation_id);
+    const installation = installations.get(installation_id);
+    
+    const mediaResponse = await axios.get('https://services.leadconnectorhq.com/medias/', {
+      headers: {
+        'Authorization': `Bearer ${installation.accessToken}`,
+        'Version': '2021-07-28'
+      },
+      params: {
+        locationId: installation.locationId,
+        limit: 100
+      }
+    });
+    
+    res.json({
+      success: true,
+      media: mediaResponse.data.medias || mediaResponse.data,
+      total: mediaResponse.data.count || mediaResponse.data.length
+    });
+    
+  } catch (error) {
+    console.error('Media list error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message
+    });
+  }
+});
+
+// PRICING ENDPOINT
+app.post('/api/products/:productId/prices', async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { installation_id, name, type, amount, currency } = req.body;
+    
+    if (!installation_id) {
+      return res.status(400).json({ success: false, error: 'installation_id required' });
+    }
+    
+    await ensureFreshToken(installation_id);
+    const installation = installations.get(installation_id);
+    
+    const priceData = {
+      name,
+      type,
+      amount: parseInt(amount),
+      currency: currency || 'USD'
+    };
+    
+    const priceResponse = await axios.post(`https://services.leadconnectorhq.com/products/${productId}/prices`, priceData, {
+      headers: {
+        'Authorization': `Bearer ${installation.accessToken}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('Price created:', priceResponse.data);
+    
+    res.json({
+      success: true,
+      price: priceResponse.data
+    });
+    
+  } catch (error) {
+    console.error('Price creation error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message
+    });
+  }
 });
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Universal GHL API Backend Running`);
-  console.log(`Port: ${PORT}`);
-  console.log(`Supported endpoints: ${GHL_API_ENDPOINTS.length}`);
-  console.log(`API Documentation: http://0.0.0.0:${PORT}/api/ghl/docs`);
-  console.log(`Universal router: /api/ghl/* handles all endpoints automatically`);
-  console.log('');
-  console.log('🚀 API Categories:');
-  const categories = [...new Set(GHL_API_ENDPOINTS.map(e => e.scope.split('.')[0]))];
-  categories.forEach(cat => console.log(`   • ${cat.charAt(0).toUpperCase() + cat.slice(1)}`));
+app.listen(port, () => {
+  console.log(`Enhanced OAuth backend running on port ${port}`);
+  console.log(`Version: 5.3.0-complete-workflow`);
+  console.log(`Features: OAuth, Products, Media Upload, Pricing`);
+  console.log(`Installations: ${installations.size}`);
+  console.log('Ready for multi-step product creation workflow');
 });
-
-module.exports = app;
