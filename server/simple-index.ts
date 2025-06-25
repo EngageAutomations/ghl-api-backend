@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
-import { RailwayGHLService } from './railway-ghl-service.js';
+import { WorkingGHLService } from './working-ghl-service.js';
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -25,10 +25,10 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Railway GoHighLevel product management endpoints
+// Working GoHighLevel product management endpoints
 app.post('/api/products/create', async (req, res) => {
   try {
-    const ghlService = new RailwayGHLService();
+    const ghlService = new WorkingGHLService();
     const result = await ghlService.createProduct(req.body);
     res.json(result);
   } catch (error) {
@@ -39,7 +39,7 @@ app.post('/api/products/create', async (req, res) => {
 
 app.get('/api/products/list', async (req, res) => {
   try {
-    const ghlService = new RailwayGHLService();
+    const ghlService = new WorkingGHLService();
     const result = await ghlService.listProducts();
     res.json(result);
   } catch (error) {
@@ -52,7 +52,7 @@ app.get('/api/products/list', async (req, res) => {
 app.post('/api/products/:productId/prices', async (req, res) => {
   try {
     const { productId } = req.params;
-    const ghlService = new RailwayGHLService();
+    const ghlService = new WorkingGHLService();
     const result = await ghlService.createProductPrice(productId, req.body);
     res.json(result);
   } catch (error) {
@@ -61,10 +61,10 @@ app.post('/api/products/:productId/prices', async (req, res) => {
   }
 });
 
-// Railway Media library API endpoints
+// Working Media library API endpoints
 app.post('/api/images/upload', upload.single('file'), async (req, res) => {
   try {
-    const ghlService = new RailwayGHLService();
+    const ghlService = new WorkingGHLService();
     
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -85,7 +85,7 @@ app.post('/api/images/upload', upload.single('file'), async (req, res) => {
 app.get('/api/images/list', async (req, res) => {
   try {
     const { limit = 20, offset = 0 } = req.query;
-    const ghlService = new RailwayGHLService();
+    const ghlService = new WorkingGHLService();
     const result = await ghlService.getMediaFiles(parseInt(limit as string), parseInt(offset as string));
     res.json(result);
   } catch (error) {
