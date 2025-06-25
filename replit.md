@@ -137,12 +137,13 @@ Use delete + create method for reliable file updates:
 
 ## Recent Changes
 
-- June 25, 2025: OAuth Credential Mismatch Fixed - v5.2.0-fixed-credentials Deployed
-  - Found credential mismatch: backend using incorrect client secret from multiple sources
-  - Deployed corrected credentials from attached assets (Client Key_1750755927343.txt)
-  - Client ID: 68474924a586bce22a6e64f7-mbpkmyu4, Secret: b5a7a120-7df7-4d23-8796-4863cbd08f94
-  - Backend v5.2.0-fixed-credentials operational with comprehensive OAuth logging
-  - Ready for OAuth testing with corrected credentials and callback detection
+- June 25, 2025: OAuth Callback Routing Fixed - v5.3.0-callback-fixed Deployed  
+  - Found root cause: callback endpoint /api/oauth/callback was not properly accessible (404 error)
+  - Fixed Express routing to ensure OAuth callback endpoint responds correctly
+  - Added test endpoint /api/oauth/callback/test for verification
+  - Enhanced logging with IP tracking and user agent detection in callback
+  - Backend v5.3.0 deployed with corrected routing and comprehensive OAuth debugging
+  - Ready for OAuth testing with properly accessible callback endpoint
 
 - June 25, 2025: Enhanced GoHighLevel Product Creation with Images and Pricing APIs - COMPLETED
   - Implemented three additional API endpoints using OAuth authentication
