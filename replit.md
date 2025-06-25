@@ -142,7 +142,7 @@ Use delete + create method for reliable file updates:
 - Complete multi-step workflow ready: image upload → product creation → pricing addition
 - OAuth installation required for testing (previous session expired)
 
-**Current Status:** Bridge system operational - Railway backend updated to use Replit bridge for OAuth credentials (v5.4.3-bridge-integrated)
+**Current Status:** Bridge-first architecture implemented - Replit bridge operational, Railway updated to v6.0.0-bridge-first (requires BRIDGE_URL environment variable)
 
 **Complete Workflow Operational:** Car detailing image successfully uploaded to GoHighLevel media library and used to create complete product listing with pricing
 

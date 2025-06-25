@@ -1,0 +1,155 @@
+Below is a **step-by-step “bridge-first” game-plan** that has worked for other Railway + Replit setups. Follow it exactly once; after that, OAuth installs will succeed without ever touching Railway env vars.
+
+---
+
+## ① Stand-up a *tiny* Replit “Bridge API”
+
+### ①-A Create `bridge-server.js`
+
+```js
+// bridge-server.js  (runs inside Replit)
+import express from "express";
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+/* 1) Health ping */
+app.get("/health", (_, res) => res.json({ ok: true, ts: Date.now() }));
+
+/* 2) OAuth creds for Railway */
+app.get("/api/bridge/oauth-credentials", (req, res) => {
+  res.json({
+    clientId:     process.env.GHL_CLIENT_ID,
+    clientSecret: process.env.GHL_CLIENT_SECRET,
+    scopes:       "products.write medias.write",
+    redirectBase: "https://dir.engageautomations.com"   // Railway host
+  });
+});
+
+app.listen(PORT, "0.0.0.0", () =>
+  console.log("Bridge up on", PORT)
+);
+```
+
+### ①-B Replit ► Secrets
+
+```
+GHL_CLIENT_ID     = <copy-from GHL portal>
+GHL_CLIENT_SECRET = <copy-from GHL portal>
+```
+
+*(Keep ONLY these two; no token ever leaves Replit.)*
+
+### ①-C package.json (start script)
+
+```json
+"scripts": { "start": "node bridge-server.js" }
+```
+
+Replit will automatically expose `https://<your-repl>.id.repl.co`.
+
+Test from your laptop:
+
+```bash
+curl https://<repl>.id.repl.co/health
+curl https://<repl>.id.repl.co/api/bridge/oauth-credentials
+```
+
+Both should return JSON (not HTML, not 502).
+
+---
+
+## ② Tell Railway where the bridge lives
+
+### ②-A Add ONE env-var in Railway
+
+```
+BRIDGE_URL = https://<repl>.id.repl.co/api/bridge/oauth-credentials
+```
+
+*(Leave GHL\_CLIENT\_* **unset** in Railway—proves the bridge works.)\*
+
+### ②-B Edit Railway backend (one function)
+
+```js
+// utils/fetchBridge.js
+const axios = require("axios");
+const URL   = process.env.BRIDGE_URL;
+
+module.exports = async function getCreds() {
+  if (!URL) throw new Error("BRIDGE_URL not set");
+  const { data } = await axios.get(URL, { timeout: 4000 });
+  if (!data.clientId || !data.clientSecret) {
+    throw new Error("Bridge returned empty creds");
+  }
+  return data;                       // { clientId, clientSecret, ... }
+};
+```
+
+### ②-C Use it in the OAuth callback
+
+```js
+const getCreds = require("./utils/fetchBridge");
+
+app.get("/api/oauth/callback", async (req, res) => {
+  const { code } = req.query;
+  const { clientId, clientSecret, redirectBase } = await getCreds();
+
+  const body = new URLSearchParams({
+    client_id:     clientId,
+    client_secret: clientSecret,
+    grant_type:    "authorization_code",
+    code,
+    redirect_uri:  `${redirectBase}/api/oauth/callback`
+  });
+  // …exchange as usual…
+});
+```
+
+### ②-D (Option) Retry logic
+
+```js
+async function withRetry(fn, n = 3) {
+  for (let i = 1; i <= n; i++) {
+    try { return await fn(); }
+    catch (e) { if (i === n) throw e; await new Promise(r => setTimeout(r, 1000*i)); }
+  }
+}
+```
+
+Wrap the first `axios.get(URL)` inside `withRetry`.
+
+---
+
+## ③ Smoke-test end-to-end
+
+1. **Redeploy Railway** (logs: “Config check: CLIENT\_ID undefined – fine”).
+2. **In a private browser** hit OAuth authorize URL:
+
+   ```
+   https://services.leadconnectorhq.com/oauth/authorize?client_id=<real>&redirect_uri=https://dir.engageautomations.com/api/oauth/callback&response_type=code&scope=products.write+medias.write
+   ```
+3. Approve → Railway logs should show
+
+   ```
+   [bridge] pulled creds ok
+   [oauth] stored install WAvk87R…
+   ```
+4. `GET /api/oauth/status?installation_id=...` → `{ authenticated:true }`
+
+---
+
+### ④ Why this fixes every failing deploy loop
+
+* **Railway** never needs the secret in env vars; it lazily fetches on first OAuth hit.
+* **Replit server** is <40 lines and runs on its own port, so startup is reliable.
+* **Health endpoint** lets you catch “bridge down” before OAuth users see errors.
+* All retries/timeouts are handled in one helper (`fetchBridge.js`)—no more silent ECONNREFUSED.
+
+---
+
+### ⑤ Security note
+
+* Tokens & secrets remain only in Replit’s Secrets vault.
+* If you worry about public access, add a shared `BRIDGE_TOKEN` header that Railway sends and the bridge verifies.
+
+Now the bridge is the single source of credentials, Railway always knows where to get them, and your OAuth callback will finally capture tokens.
