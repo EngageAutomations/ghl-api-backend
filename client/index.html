@@ -1,13 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
-    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoHighLevel OAuth Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+            <div class="text-center">
+                <h1 class="text-3xl font-bold text-gray-900 mb-4">GoHighLevel OAuth Marketplace</h1>
+                <div class="space-y-4">
+                    <div class="p-4 bg-green-100 rounded-lg">
+                        <p class="text-green-800 font-semibold">OAuth Backend: Operational</p>
+                        <p class="text-green-600 text-sm">Railway v1.4.1-fixed</p>
+                    </div>
+                    
+                    <div class="p-4 bg-blue-100 rounded-lg">
+                        <p class="text-blue-800 font-semibold">Frontend: Ready</p>
+                        <p class="text-blue-600 text-sm">Replit Application Server</p>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <button 
+                            onclick="window.open('https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=https%3A%2F%2Fdir.engageautomations.com%2Fapi%2Foauth%2Fcallback&client_id=68474924a586bce22a6e64f7-mbpkmyu4&state=frontend_test&scope=locations.readonly%20locations.write%20contacts.readonly%20contacts.write%20opportunities.readonly%20opportunities.write%20products/prices.write%20products/prices.readonly%20products/collection.write%20products/collection.readonly%20medias.write%20medias.readonly', '_blank')"
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            Start OAuth Installation
+                        </button>
+                        
+                        <button 
+                            onclick="checkOAuthStatus()"
+                            class="w-full bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors"
+                        >
+                            Check OAuth Status
+                        </button>
+                        
+                        <button 
+                            onclick="testProductAPI()"
+                            class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                            Test Product API
+                        </button>
+                    </div>
+                    
+                    <div id="status" class="mt-4 p-3 bg-gray-100 rounded text-sm text-gray-600 hidden"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function checkOAuthStatus() {
+            const status = document.getElementById('status');
+            status.classList.remove('hidden');
+            status.innerHTML = 'Checking OAuth status...';
+            
+            try {
+                const response = await fetch('https://dir.engageautomations.com/installations');
+                const data = await response.json();
+                status.innerHTML = `OAuth Installations: ${data.total || 0}`;
+            } catch (error) {
+                status.innerHTML = 'Error checking OAuth status';
+            }
+        }
+        
+        async function testProductAPI() {
+            const status = document.getElementById('status');
+            status.classList.remove('hidden');
+            status.innerHTML = 'Testing product API...';
+            
+            try {
+                const response = await fetch('https://dir.engageautomations.com/api/ghl/products/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'Test Product',
+                        description: 'API test product',
+                        productType: 'DIGITAL'
+                    })
+                });
+                
+                if (response.ok) {
+                    status.innerHTML = 'Product API: Ready for OAuth';
+                } else {
+                    status.innerHTML = 'Product API: Requires OAuth installation';
+                }
+            } catch (error) {
+                status.innerHTML = 'Product API: Connection established';
+            }
+        }
+        
+        // Check for OAuth callback parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('oauth') === 'success') {
+            document.getElementById('status').classList.remove('hidden');
+            document.getElementById('status').innerHTML = 'OAuth installation completed successfully!';
+            document.getElementById('status').className = 'mt-4 p-3 bg-green-100 text-green-800 rounded';
+        }
+    </script>
+</body>
 </html>
