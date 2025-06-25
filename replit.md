@@ -137,13 +137,13 @@ Use delete + create method for reliable file updates:
 
 ## Recent Changes
 
-- June 25, 2025: OAuth Callback Routing Fixed - v5.3.0-callback-fixed Deployed  
-  - Found root cause: callback endpoint /api/oauth/callback was not properly accessible (404 error)
-  - Fixed Express routing to ensure OAuth callback endpoint responds correctly
-  - Added test endpoint /api/oauth/callback/test for verification
-  - Enhanced logging with IP tracking and user agent detection in callback
-  - Backend v5.3.0 deployed with corrected routing and comprehensive OAuth debugging
-  - Ready for OAuth testing with properly accessible callback endpoint
+- June 25, 2025: OAuth Configuration Restored to Working State - v5.4.0-working-restore
+  - Reverted Railway updates that broke OAuth functionality
+  - Restored working OAuth backend configuration from attached_assets/index (3)_1750364646799.js
+  - Used original token storage pattern and callback handling that was functional
+  - Maintained correct credentials: Client ID 68474924a586bce22a6e64f7-mbpkmyu4, Secret b5a7a120-7df7-4d23-8796-4863cbd08f94
+  - Backend v5.4.0 deployed with proven working OAuth implementation
+  - Ready for OAuth testing with restored working configuration
 
 - June 25, 2025: Enhanced GoHighLevel Product Creation with Images and Pricing APIs - COMPLETED
   - Implemented three additional API endpoints using OAuth authentication
