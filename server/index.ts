@@ -1825,8 +1825,11 @@ app.use((req, res, next) => {
   console.log('GHL proxy routes mounted at /api/ghl/*');
   console.log('✅ Railway GHL proxy configured');
 
-  // CRITICAL: Register API routes AFTER the root route
-  server = await registerRoutes(app);
+  // Create HTTP server
+  const server = createServer(app);
+  
+  // Register API routes
+  await registerRoutes(app);
   console.log("✅ API routes registered successfully");
 
   // Add request tracing middleware AFTER API routes
@@ -1881,6 +1884,11 @@ app.use((req, res, next) => {
       await setupVite(app, server);
     } catch (error) {
       console.warn("Vite setup failed, continuing with basic Express server:", error.message);
+      // Set up basic static serving as fallback
+      app.use(express.static(path.join(__dirname, '../client')));
+      app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../client/index.html'));
+      });
     }
   }
 
