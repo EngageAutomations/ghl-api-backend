@@ -148,6 +148,13 @@ Use delete + create method for reliable file updates:
 
 ## Recent Changes
 
+- June 27, 2025: OAuth Installation Error Resolution - COMPLETED
+  - Fixed "Invalid request: content must be application/x-www-form-urlencoded" error
+  - Verified Railway backend uses proper token exchange format with URLSearchParams
+  - OAuth callback endpoint operational and ready for marketplace installations
+  - System verified functional for OAuth installation testing through GoHighLevel marketplace
+  - Complete product creation workflow with image uploads and pricing tiers ready
+
 - June 26, 2025: Self-Contained OAuth Solution - COMPLETED
   - Resolved "bridge url not set" issue by eliminating bridge dependency entirely
   - Deployed Railway backend v7.0.0-self-contained with embedded OAuth credentials
