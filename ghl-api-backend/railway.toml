@@ -1,0 +1,8 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "npm start"
+
+[env]
+OAUTH_BACKEND_URL = "https://dir.engageautomations.com"

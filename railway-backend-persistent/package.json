@@ -1,0 +1,23 @@
+{
+  "name": "oauth-backend-persistent",
+  "version": "8.0.0-persistent",
+  "description": "Persistent modular OAuth backend - installations survive deployments",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "latest",
+    "cors": "latest",
+    "axios": "latest",
+    "multer": "latest",
+    "form-data": "latest",
+    "@neondatabase/serverless": "latest",
+    "drizzle-orm": "latest",
+    "ws": "latest"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -148,6 +148,15 @@ Use delete + create method for reliable file updates:
 
 ## Recent Changes
 
+- June 27, 2025: Separate API Repository Architecture - COMPLETED
+  - Created completely separate API backend repository for GoHighLevel APIs
+  - OAuth backend remains untouched at https://dir.engageautomations.com
+  - API backend connects via OAuth bridge middleware for token access
+  - All API development isolated from OAuth installations - zero deployment risk
+  - Complete modular structure: products, media, pricing, contacts, workflows APIs
+  - OAuth installations persist through all API deployments and changes
+  - Perfect separation of concerns: OAuth stability + API development freedom
+
 - June 27, 2025: OAuth Installation Error Resolution - COMPLETED
   - Identified "Invalid request: content must be application/x-www-form-urlencoded" error persisting
   - Root cause: Railway backend sending JSON instead of form-encoded data to GoHighLevel

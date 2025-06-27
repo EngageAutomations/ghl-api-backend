@@ -1,0 +1,24 @@
+{
+  "name": "ghl-api-backend",
+  "version": "1.0.0",
+  "description": "GoHighLevel API Backend - OAuth handled separately",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "latest",
+    "cors": "latest",
+    "axios": "latest",
+    "multer": "latest",
+    "form-data": "latest"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EngageAutomations/ghl-api-backend"
+  }
+}
