@@ -1,20 +1,34 @@
 # GoHighLevel API Backend
 
-Separate API backend for GoHighLevel integrations. OAuth handled by separate backend.
-
-## Quick Start
-```bash
-npm install
-npm start
-```
+API backend deployed at: **https://api.engageautomations.com**
 
 ## Architecture
-- OAuth Backend: https://dir.engageautomations.com
-- API Backend: This repository
-- Bridge: OAuth bridge middleware
+- **OAuth Backend**: https://dir.engageautomations.com (handles installations)
+- **API Backend**: https://api.engageautomations.com (handles API calls)
+- **Bridge**: OAuth bridge middleware connects the two backends
 
-## Features
-- Complete GoHighLevel API coverage
-- OAuth installations persist through deployments
-- Safe API development
-- Modular structure
+## Deployment Status
+✅ Deployed to Railway with custom domain
+✅ Connected to OAuth backend via bridge
+✅ OAuth installations persist through API deployments
+
+## API Endpoints
+All endpoints available at https://api.engageautomations.com
+
+- `GET /` - Health check and service info
+- `POST /api/products` - Create product  
+- `GET /api/products` - List products
+- `POST /api/media/upload` - Upload media files
+- `GET /api/media` - List media files
+- `POST /api/pricing/:productId` - Create product pricing
+- `GET /api/pricing/:productId` - Get product prices
+- `POST /api/contacts` - Create contact
+- `GET /api/contacts` - List contacts
+- `GET /api/workflows` - List workflows
+
+## Development
+All API changes can be deployed independently without affecting OAuth installations.
+
+## Environment Variables
+- `OAUTH_BACKEND_URL`: https://dir.engageautomations.com
+- `PORT`: Auto-detected by Railway (4000)
