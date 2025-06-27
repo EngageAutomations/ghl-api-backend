@@ -1,7 +1,7 @@
 {
   "name": "oauth-backend-emergency",
-  "version": "7.0.2-encoding-verified",
-  "description": "OAuth backend with fixed installation error handling",
+  "version": "7.0.3-encoding-fixed",
+  "description": "OAuth backend with explicit form encoding fix",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

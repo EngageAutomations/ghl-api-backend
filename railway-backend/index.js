@@ -142,18 +142,33 @@ app.get('/installations', (req, res) => {
 
 // OAuth token exchange
 async function exchangeCode(code, redirectUri) {
-  const body = new URLSearchParams({
-    client_id: process.env.GHL_CLIENT_ID,
-    client_secret: process.env.GHL_CLIENT_SECRET,
-    grant_type: 'authorization_code',
-    code,
-    redirect_uri: redirectUri
-  });
-  const { data } = await axios.post('https://services.leadconnectorhq.com/oauth/token', body, {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    timeout: 15000
-  });
-  return data;
+  try {
+    console.log('Token exchange starting with code:', code.substring(0, 10) + '...');
+    
+    // Create form-encoded body using URLSearchParams
+    const params = new URLSearchParams();
+    params.append('client_id', process.env.GHL_CLIENT_ID);
+    params.append('client_secret', process.env.GHL_CLIENT_SECRET);
+    params.append('grant_type', 'authorization_code');
+    params.append('code', code);
+    params.append('redirect_uri', redirectUri);
+    
+    console.log('Sending form-encoded request to GoHighLevel...');
+    
+    const { data } = await axios.post('https://services.leadconnectorhq.com/oauth/token', params, {
+      headers: { 
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      timeout: 15000
+    });
+    
+    console.log('Token exchange successful');
+    return data;
+  } catch (error) {
+    console.error('Token exchange failed:', error.response?.data || error.message);
+    throw error;
+  }
 }
 
 function storeInstall(tokenData) {
