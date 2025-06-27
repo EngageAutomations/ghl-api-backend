@@ -34,6 +34,9 @@ app.use('/api/pricing', pricingRoutes);
 app.use('/api/contacts', contactsRoutes);
 app.use('/api/workflows', workflowsRoutes);
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`API backend running on port ${port}`);
+  console.log(`Custom domain: https://api.engageautomations.com`);
+  console.log(`OAuth backend: https://dir.engageautomations.com`);
+  console.log('Separate Railway architecture operational');
 });
