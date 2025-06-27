@@ -2,6 +2,8 @@ const axios = require('axios');
 
 const OAUTH_BACKEND_URL = process.env.OAUTH_BACKEND_URL || 'https://dir.engageautomations.com';
 
+console.log('OAuth Bridge initialized with backend:', OAUTH_BACKEND_URL);
+
 async function requireOAuth(req, res, next) {
   try {
     // Get active installation from OAuth backend
