@@ -153,6 +153,7 @@ Use delete + create method for reliable file updates:
   - GitHub Repository: https://github.com/EngageAutomations/ghl-api-backend
   - OAuth backend remains untouched at https://dir.engageautomations.com
   - API backend connects via OAuth bridge middleware for token access
+  - Requires separate Railway environment for API backend deployment
   - All API development isolated from OAuth installations - zero deployment risk
   - Complete modular structure: products, media, pricing, contacts, workflows APIs
   - OAuth installations persist through all API deployments and changes
