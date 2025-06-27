@@ -3,6 +3,9 @@ builder = "NIXPACKS"
 
 [deploy]
 startCommand = "npm start"
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
 
 [env]
-OAUTH_BACKEND_URL = "https://dir.engageautomations.com"
+NODE_ENV = "production"
