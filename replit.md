@@ -150,6 +150,7 @@ Use delete + create method for reliable file updates:
 
 - June 27, 2025: Separate API Repository Architecture - COMPLETED
   - Created completely separate API backend repository for GoHighLevel APIs
+  - GitHub Repository: https://github.com/EngageAutomations/ghl-api-backend
   - OAuth backend remains untouched at https://dir.engageautomations.com
   - API backend connects via OAuth bridge middleware for token access
   - All API development isolated from OAuth installations - zero deployment risk
