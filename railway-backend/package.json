@@ -1,7 +1,7 @@
 {
   "name": "oauth-backend-emergency",
-  "version": "5.4.3-working-oauth",
-  "description": "GoHighLevel OAuth Backend - Working Version with Direct OAuth",
+  "version": "7.0.2-encoding-verified",
+  "description": "OAuth backend with fixed installation error handling",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
