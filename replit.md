@@ -411,6 +411,24 @@ Railway backend is fully operational with direct OAuth handling - no bridge syst
 - Complete installation tracking and visibility
 - Enhanced debugging with detailed logging
 
+## Dual Backend Architecture Documentation
+
+**Complete Documentation Created:**
+- `DUAL_BACKEND_ARCHITECTURE_GUIDE.md`: Comprehensive implementation guide
+- `ARCHITECTURE_DECISION_RECORD.md`: Technical decision rationale and validation
+
+**Architecture Pattern:**
+- OAuth Backend: Persistent installation storage and token management
+- API Backend: Business logic and GoHighLevel API endpoints  
+- Bridge Communication: HTTP-based secure token exchange
+- Zero deployment risk: OAuth installations survive all API changes
+
+**Use Case Applications:**
+- Any OAuth-dependent application requiring deployment stability
+- Microservices requiring authentication separation
+- Development environments needing rapid iteration safety
+- SaaS applications with persistent user authentication
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
