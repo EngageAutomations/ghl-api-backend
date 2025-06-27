@@ -142,7 +142,7 @@ Use delete + create method for reliable file updates:
 - Complete multi-step workflow ready: image upload → product creation → pricing addition
 - OAuth installation required for testing (previous session expired)
 
-**Current Status:** OAuth installation error resolved - Railway backend v7.0.2-encoding-verified with fixed token exchange format (application/x-www-form-urlencoded), OAuth callback endpoints operational, installation error "Invalid request: content must be application/x-www-form-urlencoded" fixed, system ready for successful OAuth installations through GoHighLevel marketplace.
+**Current Status:** Dual-backend architecture deployed and operational - OAuth backend stable at https://dir.engageautomations.com with persistent installations, API backend deployed at https://api.engageautomations.com with complete GoHighLevel API endpoints, OAuth installations now protected from all API development and deployments through separate Railway environments.
 
 **Complete Workflow Operational:** Car detailing image successfully uploaded to GoHighLevel media library and used to create complete product listing with pricing
 
@@ -154,6 +154,7 @@ Use delete + create method for reliable file updates:
   - OAuth backend remains untouched at https://dir.engageautomations.com
   - API backend connects via OAuth bridge middleware for token access
   - Requires separate Railway environment for API backend deployment
+  - Custom domain configured: https://api.engageautomations.com
   - All API development isolated from OAuth installations - zero deployment risk
   - Complete modular structure: products, media, pricing, contacts, workflows APIs
   - OAuth installations persist through all API deployments and changes
