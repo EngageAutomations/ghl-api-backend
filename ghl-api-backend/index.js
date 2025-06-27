@@ -1,6 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 
+console.log('Starting API backend...');
+console.log('Environment check:');
+console.log('- NODE_ENV:', process.env.NODE_ENV);
+console.log('- PORT:', process.env.PORT);
+console.log('- OAUTH_BACKEND_URL:', process.env.OAUTH_BACKEND_URL);
+
 // Import API route modules
 const productRoutes = require('./routes/products');
 const mediaRoutes = require('./routes/media');
