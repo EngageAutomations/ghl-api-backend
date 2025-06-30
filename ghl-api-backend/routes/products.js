@@ -12,14 +12,15 @@ router.post('/', requireOAuth, async (req, res) => {
       locationId: req.locationId
     };
     
-    const product = await createProduct(productData, req.accessToken);
+    const product = await createProduct(productData, req.installationId);
     
-    res.json({
+    res.status(201).json({
       success: true,
       product,
       api_version: '1.0.0'
     });
   } catch (error) {
+    console.error('Product creation error:', error.message);
     res.status(500).json({
       error: 'Product creation failed',
       message: error.message,
@@ -31,7 +32,7 @@ router.post('/', requireOAuth, async (req, res) => {
 // List products
 router.get('/', requireOAuth, async (req, res) => {
   try {
-    const products = await getProducts(req.locationId, req.accessToken);
+    const products = await getProducts(req.locationId, req.installationId);
     res.json({
       success: true,
       products,
