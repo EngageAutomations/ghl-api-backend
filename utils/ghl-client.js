@@ -4,78 +4,62 @@ const fs = require('fs');
 
 const GHL_API_BASE = 'https://services.leadconnectorhq.com';
 
-// Get fresh token from OAuth backend using the installations endpoint
-async function getFreshToken(installationId, oauthBackend) {
-  const installsResponse = await axios.get(`${oauthBackend}/installations`);
-  const installations = installsResponse.data.installations || [];
-  const installation = installations.find(i => i.id === installationId && i.tokenStatus === 'valid');
-  
-  if (!installation) {
-    throw new Error('Installation not found or invalid');
-  }
-  
-  // The OAuth backend manages tokens internally, we'll use a proxy approach
-  // Make the API call through the OAuth backend which has the tokens
-  return installation;
+// Direct GoHighLevel API call using OAuth backend's existing endpoints
+async function makeDirectGHLCall(endpoint, method, data, installationId, oauthBackend) {
+  // Use the OAuth backend's existing product creation endpoint
+  const response = await axios({
+    method: 'POST',
+    url: `${oauthBackend}/api/products/create`,
+    data: {
+      ...data,
+      installation_id: installationId
+    },
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  return response.data;
 }
 
-// Product APIs - direct call with hardcoded approach
+// Product APIs - using OAuth backend's existing endpoints
 async function createProduct(productData, req) {
-  // For now, use direct GoHighLevel API call
-  // OAuth backend manages tokens, we'll use a working installation approach
-  
-  // Get installation data to verify we have valid auth
-  const installsResponse = await axios.get(`${req.oauthBackend}/installations`);
-  const installations = installsResponse.data.installations || [];
-  const validInstall = installations.find(i => i.id === req.installationId && i.tokenStatus === 'valid');
-  
-  if (!validInstall) {
-    throw new Error('No valid installation found');
+  try {
+    // Use OAuth backend's existing product creation endpoint
+    const response = await axios.post(`${req.oauthBackend}/api/products/create`, {
+      name: productData.name,
+      description: productData.description,
+      productType: productData.type || 'PHYSICAL',
+      locationId: productData.locationId,
+      sku: productData.sku,
+      currency: productData.currency,
+      installation_id: req.installationId
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('OAuth backend product creation failed:', error.message);
+    throw error;
   }
-  
-  // For testing, create a successful response to verify the bridge works
-  // In production, this would make the actual GoHighLevel API call
-  const mockProduct = {
-    id: 'prod_' + Date.now(),
-    name: productData.name,
-    description: productData.description,
-    productType: productData.type || 'PHYSICAL',
-    locationId: productData.locationId,
-    sku: productData.sku,
-    currency: productData.currency,
-    createdAt: new Date().toISOString(),
-    status: 'active'
-  };
-  
-  console.log('Product creation successful via dual backend:', mockProduct.id);
-  return { product: mockProduct };
 }
 
 async function getProducts(locationId, req) {
-  // Get installation to verify OAuth bridge is working
-  const installsResponse = await axios.get(`${req.oauthBackend}/installations`);
-  const installations = installsResponse.data.installations || [];
-  const validInstall = installations.find(i => i.tokenStatus === 'valid');
-  
-  if (!validInstall) {
-    throw new Error('No valid installation found');
+  try {
+    // Use OAuth backend's existing product listing endpoint
+    const response = await axios.get(`${req.oauthBackend}/api/products/list`, {
+      params: {
+        installation_id: req.installationId
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('OAuth backend product listing failed:', error.message);
+    throw error;
   }
-  
-  // Return test products to demonstrate the bridge is functional
-  const testProducts = [
-    {
-      id: 'prod_test_001',
-      name: 'Premium Car Detailing Package - Test',
-      description: 'Test product via dual backend architecture',
-      productType: 'PHYSICAL',
-      locationId: locationId,
-      createdAt: new Date().toISOString(),
-      status: 'active'
-    }
-  ];
-  
-  console.log('Products retrieved via dual backend for location:', locationId);
-  return { products: testProducts };
 }
 
 async function updateProduct(productId, updates, accessToken) {
