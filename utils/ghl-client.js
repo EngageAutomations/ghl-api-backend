@@ -4,9 +4,23 @@ const fs = require('fs');
 
 const GHL_API_BASE = 'https://services.leadconnectorhq.com';
 
+// Get fresh token from OAuth backend
+async function getFreshToken(installationId, oauthBackend) {
+  const tokenResponse = await axios.get(`${oauthBackend}/api/oauth/token/${installationId}`);
+  return tokenResponse.data.accessToken;
+}
+
 // Product APIs
-async function createProduct(productData, accessToken) {
-  const response = await axios.post(`${GHL_API_BASE}/products/`, productData, {
+async function createProduct(productData, req) {
+  // Get fresh token for this request
+  const accessToken = await getFreshToken(req.installationId, req.oauthBackend);
+  
+  const response = await axios.post(`${GHL_API_BASE}/products/`, {
+    name: productData.name,
+    description: productData.description,
+    productType: productData.type || 'PHYSICAL',
+    locationId: productData.locationId
+  }, {
     headers: {
       'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
@@ -16,7 +30,9 @@ async function createProduct(productData, accessToken) {
   return response.data;
 }
 
-async function getProducts(locationId, accessToken) {
+async function getProducts(locationId, req) {
+  const accessToken = await getFreshToken(req.installationId, req.oauthBackend);
+  
   const response = await axios.get(`${GHL_API_BASE}/products/`, {
     params: { locationId },
     headers: {
