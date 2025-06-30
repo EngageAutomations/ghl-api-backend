@@ -12,7 +12,7 @@ async function requireOAuth(req, res, next) {
     });
     
     const installations = response.data.installations || [];
-    const activeInstallation = installations.find(i => i.active);
+    const activeInstallation = installations.find(i => i.tokenStatus === 'valid');
     
     if (!activeInstallation) {
       return res.status(401).json({
