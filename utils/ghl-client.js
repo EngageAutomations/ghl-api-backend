@@ -26,7 +26,7 @@ async function createProduct(productData, req) {
   try {
     console.log('Creating real product in GoHighLevel via OAuth backend proxy');
     
-    // Get valid installation with access token from OAuth backend
+    // Get installations and use the OAuth backend's product creation endpoint
     const installsResponse = await axios.get(`${req.oauthBackend}/installations`);
     const installations = installsResponse.data.installations || [];
     const validInstall = installations.find(i => i.id === req.installationId && i.tokenStatus === 'valid');
@@ -35,19 +35,17 @@ async function createProduct(productData, req) {
       throw new Error('No valid OAuth installation found');
     }
     
-    // Make direct GoHighLevel API call using tokens from OAuth backend
-    const ghlProductData = {
+    // Use OAuth backend's existing product creation endpoint that has working tokens
+    const ghlResponse = await axios.post(`${req.oauthBackend}/api/products/create`, {
       name: productData.name,
       description: productData.description,
       productType: productData.type || 'PHYSICAL',
+      locationId: validInstall.locationId,
+      installation_id: req.installationId,
       ...(productData.sku && { sku: productData.sku }),
       ...(productData.currency && { currency: productData.currency })
-    };
-    
-    const ghlResponse = await axios.post('https://services.leadconnectorhq.com/products/', ghlProductData, {
+    }, {
       headers: {
-        'Authorization': `Bearer ${validInstall.accessToken}`,
-        'Version': '2021-07-28',
         'Content-Type': 'application/json'
       }
     });
@@ -55,9 +53,9 @@ async function createProduct(productData, req) {
     console.log(`Real GoHighLevel product created: ${ghlResponse.data.product?.id}`);
     
     return { 
-      product: ghlResponse.data.product,
+      product: ghlResponse.data.product || ghlResponse.data,
       success: true,
-      message: 'Product created in GoHighLevel',
+      message: 'Product created in GoHighLevel via OAuth backend',
       locationId: validInstall.locationId
     };
     
@@ -80,20 +78,15 @@ async function getProducts(locationId, req) {
       throw new Error('No valid OAuth installation found');
     }
     
-    // Make real GoHighLevel API call to get products
-    const ghlResponse = await axios.get('https://services.leadconnectorhq.com/products/', {
-      headers: {
-        'Authorization': `Bearer ${validInstall.accessToken}`,
-        'Version': '2021-07-28'
-      },
+    // Use OAuth backend's existing product listing endpoint
+    const ghlResponse = await axios.get(`${req.oauthBackend}/api/products/list`, {
       params: {
-        locationId: locationId || validInstall.locationId,
-        limit: 100
+        installation_id: req.installationId
       }
     });
     
-    const products = ghlResponse.data.products || [];
-    console.log(`Retrieved ${products.length} real products from GoHighLevel`);
+    const products = ghlResponse.data.products || ghlResponse.data || [];
+    console.log(`Retrieved ${products.length} products from GoHighLevel via OAuth backend`);
     
     return { 
       products,
