@@ -4,40 +4,46 @@ const fs = require('fs');
 
 const GHL_API_BASE = 'https://services.leadconnectorhq.com';
 
-// Get fresh token from OAuth backend
+// Get fresh token from OAuth backend using the installations endpoint
 async function getFreshToken(installationId, oauthBackend) {
-  const tokenResponse = await axios.get(`${oauthBackend}/api/oauth/token/${installationId}`);
-  return tokenResponse.data.accessToken;
+  const installsResponse = await axios.get(`${oauthBackend}/installations`);
+  const installations = installsResponse.data.installations || [];
+  const installation = installations.find(i => i.id === installationId && i.tokenStatus === 'valid');
+  
+  if (!installation) {
+    throw new Error('Installation not found or invalid');
+  }
+  
+  // The OAuth backend manages tokens internally, we'll use a proxy approach
+  // Make the API call through the OAuth backend which has the tokens
+  return installation;
 }
 
-// Product APIs
+// Product APIs - proxy through OAuth backend
 async function createProduct(productData, req) {
-  // Get fresh token for this request
-  const accessToken = await getFreshToken(req.installationId, req.oauthBackend);
-  
-  const response = await axios.post(`${GHL_API_BASE}/products/`, {
-    name: productData.name,
-    description: productData.description,
-    productType: productData.type || 'PHYSICAL',
-    locationId: productData.locationId
+  // Use OAuth backend as proxy since it has the tokens
+  const response = await axios.post(`${req.oauthBackend}/api/ghl/products/create`, {
+    productData: {
+      name: productData.name,
+      description: productData.description,
+      productType: productData.type || 'PHYSICAL',
+      locationId: productData.locationId
+    },
+    installation_id: req.installationId
   }, {
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-      'Version': '2021-07-28'
+      'Content-Type': 'application/json'
     }
   });
   return response.data;
 }
 
 async function getProducts(locationId, req) {
-  const accessToken = await getFreshToken(req.installationId, req.oauthBackend);
-  
-  const response = await axios.get(`${GHL_API_BASE}/products/`, {
-    params: { locationId },
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Version': '2021-07-28'
+  // Use OAuth backend as proxy for API calls
+  const response = await axios.get(`${req.oauthBackend}/api/ghl/products/list`, {
+    params: { 
+      installation_id: req.installationId,
+      locationId: locationId
     }
   });
   return response.data;
