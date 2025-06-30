@@ -21,12 +21,12 @@ async function makeDirectGHLCall(endpoint, method, data, installationId, oauthBa
   return response.data;
 }
 
-// Product creation with direct GoHighLevel API integration
+// Product creation with real GoHighLevel API calls
 async function createProduct(productData, req) {
   try {
-    console.log('Creating product via dual backend architecture');
+    console.log('Creating real product in GoHighLevel via OAuth backend proxy');
     
-    // Verify OAuth installation exists and is valid
+    // Get valid installation with access token from OAuth backend
     const installsResponse = await axios.get(`${req.oauthBackend}/installations`);
     const installations = installsResponse.data.installations || [];
     const validInstall = installations.find(i => i.id === req.installationId && i.tokenStatus === 'valid');
@@ -35,39 +35,43 @@ async function createProduct(productData, req) {
       throw new Error('No valid OAuth installation found');
     }
     
-    // Create product using dual backend - simulating successful GoHighLevel creation
-    const product = {
-      id: 'ghl_prod_' + Date.now(),
+    // Make direct GoHighLevel API call using tokens from OAuth backend
+    const ghlProductData = {
       name: productData.name,
       description: productData.description,
       productType: productData.type || 'PHYSICAL',
-      locationId: productData.locationId,
-      sku: productData.sku || 'AUTO-' + Date.now(),
-      currency: productData.currency || 'usd',
-      status: 'active',
-      createdAt: new Date().toISOString(),
-      createdVia: 'dual-backend-architecture'
+      ...(productData.sku && { sku: productData.sku }),
+      ...(productData.currency && { currency: productData.currency })
     };
     
-    console.log(`Product created successfully: ${product.id} for location ${product.locationId}`);
+    const ghlResponse = await axios.post('https://services.leadconnectorhq.com/products/', ghlProductData, {
+      headers: {
+        'Authorization': `Bearer ${validInstall.accessToken}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log(`Real GoHighLevel product created: ${ghlResponse.data.product?.id}`);
     
     return { 
-      product,
+      product: ghlResponse.data.product,
       success: true,
-      message: 'Product created via dual backend architecture'
+      message: 'Product created in GoHighLevel',
+      locationId: validInstall.locationId
     };
     
   } catch (error) {
-    console.error('Product creation error:', error.message);
-    throw error;
+    console.error('GoHighLevel product creation error:', error.response?.data || error.message);
+    throw new Error(`Failed to create product in GoHighLevel: ${error.response?.data?.message || error.message}`);
   }
 }
 
 async function getProducts(locationId, req) {
   try {
-    console.log(`Retrieving products for location ${locationId} via dual backend`);
+    console.log(`Retrieving real products from GoHighLevel for location ${locationId}`);
     
-    // Verify OAuth installation exists
+    // Get valid installation with access token
     const installsResponse = await axios.get(`${req.oauthBackend}/installations`);
     const installations = installsResponse.data.installations || [];
     const validInstall = installations.find(i => i.tokenStatus === 'valid');
@@ -76,32 +80,31 @@ async function getProducts(locationId, req) {
       throw new Error('No valid OAuth installation found');
     }
     
-    // Return products demonstrating dual backend functionality
-    const products = [
-      {
-        id: 'ghl_prod_demo_001',
-        name: 'Premium Car Detailing Package',
-        description: 'Complete exterior and interior car detailing service with premium products',
-        productType: 'PHYSICAL',
-        locationId: locationId,
-        status: 'active',
-        createdAt: new Date().toISOString(),
-        createdVia: 'dual-backend-demo'
+    // Make real GoHighLevel API call to get products
+    const ghlResponse = await axios.get('https://services.leadconnectorhq.com/products/', {
+      headers: {
+        'Authorization': `Bearer ${validInstall.accessToken}`,
+        'Version': '2021-07-28'
+      },
+      params: {
+        locationId: locationId || validInstall.locationId,
+        limit: 100
       }
-    ];
+    });
     
-    console.log(`Retrieved ${products.length} products for location ${locationId}`);
+    const products = ghlResponse.data.products || [];
+    console.log(`Retrieved ${products.length} real products from GoHighLevel`);
     
     return { 
       products,
       count: products.length,
       success: true,
-      locationId: locationId
+      locationId: locationId || validInstall.locationId
     };
     
   } catch (error) {
-    console.error('Product listing error:', error.message);
-    throw error;
+    console.error('GoHighLevel product listing error:', error.response?.data || error.message);
+    throw new Error(`Failed to retrieve products from GoHighLevel: ${error.response?.data?.message || error.message}`);
   }
 }
 
