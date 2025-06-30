@@ -45,11 +45,13 @@ async function createProduct(productData, req) {
       ...(productData.sku && { sku: productData.sku })
     };
     
-    // Make request to OAuth backend to proxy the GoHighLevel API call
-    const proxyResponse = await axios.post(`${req.oauthBackend}/proxy/ghl/products`, {
-      endpoint: 'https://services.leadconnectorhq.com/products/',
-      method: 'POST',
-      data: productPayload,
+    // Use OAuth backend's new product creation endpoint
+    const proxyResponse = await axios.post(`${req.oauthBackend}/api/products/create`, {
+      name: productData.name,
+      description: productData.description,
+      productType: productData.type || 'PHYSICAL',
+      sku: productData.sku,
+      currency: productData.currency,
       installation_id: req.installationId
     }, {
       headers: { 'Content-Type': 'application/json' }
@@ -106,12 +108,11 @@ async function getProducts(locationId, req) {
     }
     
     try {
-      // Try to use OAuth backend proxy for product listing
-      const proxyResponse = await axios.post(`${req.oauthBackend}/proxy/ghl/products`, {
-        endpoint: 'https://services.leadconnectorhq.com/products/',
-        method: 'GET',
-        params: { locationId: locationId || validInstall.locationId, limit: 100 },
-        installation_id: req.installationId
+      // Use OAuth backend's new product listing endpoint
+      const proxyResponse = await axios.get(`${req.oauthBackend}/api/products/list`, {
+        params: {
+          installation_id: req.installationId
+        }
       });
       
       const products = proxyResponse.data.products || [];
