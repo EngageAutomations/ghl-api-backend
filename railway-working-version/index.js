@@ -24,6 +24,16 @@ app.use(express.json());
 // In-memory install store
 const installations = new Map();
 
+// Customer support data store
+const supportTickets = new Map();
+const supportSessions = new Map();
+const supportMetrics = {
+  totalTickets: 0,
+  resolvedTickets: 0,
+  averageResponseTime: 0,
+  customerSatisfaction: 0
+};
+
 // Add pre-seeded installation if env vars exist
 if (process.env.GHL_ACCESS_TOKEN) {
   installations.set('install_seed', {
