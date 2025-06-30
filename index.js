@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 console.log('Starting API backend...');
+console.log('Deploy timestamp: 2025-06-30T02:43:56.484Z');
 console.log('Environment check:');
 console.log('- NODE_ENV:', process.env.NODE_ENV);
 console.log('- PORT:', process.env.PORT);
