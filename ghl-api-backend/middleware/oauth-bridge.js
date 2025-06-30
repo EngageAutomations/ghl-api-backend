@@ -12,7 +12,7 @@ async function requireOAuth(req, res, next) {
     });
     
     const installations = response.data.installations || [];
-    const activeInstallation = installations.find(i => i.active);
+    const activeInstallation = installations.find(i => i.tokenStatus === 'valid');
     
     if (!activeInstallation) {
       return res.status(401).json({
@@ -22,14 +22,12 @@ async function requireOAuth(req, res, next) {
       });
     }
     
-    // Get fresh token from OAuth backend
-    const tokenResponse = await axios.get(`${OAUTH_BACKEND_URL}/api/oauth/token/${activeInstallation.id}`, {
-      timeout: 10000
-    });
-    
-    req.accessToken = tokenResponse.data.accessToken;
-    req.locationId = tokenResponse.data.locationId;
+    // For now, use the installation data directly since OAuth backend manages tokens
+    // The OAuth backend automatically refreshes tokens in the background
+    req.accessToken = 'managed_by_oauth_backend';
+    req.locationId = activeInstallation.locationId;
     req.installationId = activeInstallation.id;
+    req.oauthBackend = OAUTH_BACKEND_URL;
     
     next();
   } catch (error) {

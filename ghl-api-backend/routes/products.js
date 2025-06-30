@@ -12,7 +12,7 @@ router.post('/', requireOAuth, async (req, res) => {
       locationId: req.locationId
     };
     
-    const product = await createProduct(productData, req.installationId);
+    const product = await createProduct(productData, req);
     
     res.status(201).json({
       success: true,
@@ -32,7 +32,7 @@ router.post('/', requireOAuth, async (req, res) => {
 // List products
 router.get('/', requireOAuth, async (req, res) => {
   try {
-    const products = await getProducts(req.locationId, req.installationId);
+    const products = await getProducts(req.locationId, req);
     res.json({
       success: true,
       products,
