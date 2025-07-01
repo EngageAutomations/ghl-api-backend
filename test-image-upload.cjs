@@ -1,73 +1,93 @@
-const axios = require('axios');
-const FormData = require('form-data');
+/**
+ * Test Image Upload API
+ * Test the image upload functionality with the car detailing image
+ */
+
 const fs = require('fs');
+const FormData = require('form-data');
+const axios = require('axios');
 
 async function testImageUpload() {
   try {
-    console.log('=== Testing Image Upload Workflow ===');
+    console.log('=== Testing Image Upload API ===');
     
-    const installation_id = "install_1751333384380";
-    const logoPath = 'attached_assets/Full_Logo (1) 1_1751332270007.png';
+    // Get the installation ID
+    const installationsResponse = await axios.get('https://dir.engageautomations.com/installations');
+    const installations = installationsResponse.data.installations;
     
-    if (!fs.existsSync(logoPath)) {
-      console.log('❌ Logo file not found:', logoPath);
-      return;
+    if (!installations || installations.length === 0) {
+      console.log('❌ No OAuth installations found');
+      return { success: false, error: 'No OAuth installations available' };
     }
     
-    console.log('Found logo file:', logoPath);
-    console.log('File size:', fs.statSync(logoPath).size, 'bytes');
+    const installation = installations[0];
+    console.log('Using installation:', installation.id);
+    console.log('Token status:', installation.tokenStatus);
+    console.log('Time until expiry:', installation.timeUntilExpiry, 'seconds');
     
-    // Test different upload endpoints
-    const endpoints = [
-      '/api/media/upload',
-      '/api/images/upload', 
-      '/api/photos/upload-multiple'
-    ];
+    // Check if we have a test image file
+    const imagePath = './attached_assets/From Dull to Dazzling_ How Our Exterior Detailing Makes a Difference_1750872068191.png';
     
-    for (const endpoint of endpoints) {
-      try {
-        console.log(`\n--- Testing ${endpoint} ---`);
-        
-        const formData = new FormData();
-        formData.append('file', fs.createReadStream(logoPath), {
-          filename: 'maker-expressed-logo.png',
-          contentType: 'image/png'
-        });
-        formData.append('installation_id', installation_id);
-        
-        const uploadResponse = await axios.post(`https://dir.engageautomations.com${endpoint}`, formData, {
-          headers: {
-            ...formData.getHeaders()
-          },
-          timeout: 30000
-        });
-        
-        console.log(`✅ ${endpoint} SUCCESS!`);
-        console.log('Response:', JSON.stringify(uploadResponse.data, null, 2));
-        
-        if (uploadResponse.data.mediaId || uploadResponse.data.mediaIds) {
-          console.log('Media ID obtained, can attach to product');
-          return uploadResponse.data;
-        }
-        
-      } catch (uploadError) {
-        console.log(`❌ ${endpoint} failed:`, uploadError.response?.status, uploadError.response?.data?.error || uploadError.message);
-      }
+    if (!fs.existsSync(imagePath)) {
+      console.log('❌ Test image not found at:', imagePath);
+      return { success: false, error: 'Test image file not found' };
     }
     
-    console.log('\n--- Testing direct media upload to GoHighLevel ---');
+    console.log('📷 Found test image file');
+    console.log('File size:', fs.statSync(imagePath).size, 'bytes');
     
-    // Get installation details
-    const installResponse = await axios.get('https://dir.engageautomations.com/installations');
-    const installation = installResponse.data.installations[0];
+    // Create FormData for the upload
+    const formData = new FormData();
+    formData.append('file', fs.createReadStream(imagePath));
+    formData.append('installation_id', installation.id);
     
-    // Note: This would need the access token which isn't exposed
-    console.log('Installation scopes:', installation.scopes);
-    console.log('Has media write scope:', installation.scopes.includes('medias.write'));
+    console.log('🚀 Uploading image to GoHighLevel media library...');
+    
+    const uploadResponse = await axios.post('https://dir.engageautomations.com/api/images/upload', formData, {
+      headers: {
+        ...formData.getHeaders()
+      },
+      timeout: 30000,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity
+    });
+    
+    console.log('✅ Upload successful!');
+    console.log('Response:', uploadResponse.data);
+    
+    return {
+      success: true,
+      uploadResult: uploadResponse.data,
+      message: 'Image successfully uploaded to GoHighLevel media library'
+    };
     
   } catch (error) {
-    console.error('Image upload test error:', error.message);
+    console.error('❌ Image upload test failed:');
+    
+    if (error.response) {
+      console.error('Status:', error.response.status);
+      console.error('Response:', error.response.data);
+      
+      if (error.response.status === 404) {
+        return {
+          success: false,
+          error: 'Image upload endpoint not found - deployment may still be in progress',
+          suggestion: 'Wait for Railway deployment to complete, then try again'
+        };
+      }
+    } else {
+      console.error('Error:', error.message);
+    }
+    
+    return {
+      success: false,
+      error: error.response?.data || error.message,
+      status: error.response?.status
+    };
   }
 }
 
-testImageUpload();
+testImageUpload().then(result => {
+  console.log('\n=== IMAGE UPLOAD TEST RESULT ===');
+  console.log(JSON.stringify(result, null, 2));
+});
