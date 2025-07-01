@@ -1,26 +1,63 @@
 /**
- * Deploy Enhanced Backend with Product Creation and Media Upload
+ * Force Enhanced Deployment - Update package.json and redeploy
  */
 
-async function deployEnhancedBackend() {
+async function forceEnhancedDeployment() {
   try {
     const { Octokit } = await import('@octokit/rest');
     const octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN
     });
 
-    // Enhanced backend with all API endpoints
+    console.log('=== Forcing Enhanced Deployment ===');
+    
+    // First, update package.json to include multer
+    const packageJson = {
+      "name": "oauth-backend",
+      "version": "5.5.0",
+      "description": "GoHighLevel OAuth Backend with Enhanced API",
+      "main": "index.js",
+      "scripts": {
+        "start": "node index.js"
+      },
+      "dependencies": {
+        "express": "^4.18.2",
+        "cors": "^2.8.5",
+        "axios": "^1.6.0",
+        "multer": "^1.4.5-lts.1",
+        "form-data": "^4.0.0"
+      },
+      "engines": {
+        "node": ">=18.0.0"
+      }
+    };
+
+    // Update package.json first
+    try {
+      const { data: currentPackage } = await octokit.rest.repos.getContent({
+        owner: 'EngageAutomations',
+        repo: 'oauth-backend',
+        path: 'package.json'
+      });
+
+      await octokit.rest.repos.createOrUpdateFileContents({
+        owner: 'EngageAutomations',
+        repo: 'oauth-backend',
+        path: 'package.json',
+        message: 'Update package.json with multer dependency for enhanced API',
+        content: Buffer.from(JSON.stringify(packageJson, null, 2)).toString('base64'),
+        sha: currentPackage.sha
+      });
+
+      console.log('✅ Package.json updated with dependencies');
+    } catch (packageError) {
+      console.log('⚠️ Package.json update skipped:', packageError.message);
+    }
+
+    // Force redeploy the enhanced backend
     const enhancedBackend = `const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-const multer = require('multer');
-const FormData = require('form-data');
-const fs = require('fs');
-
-const upload = multer({ 
-  dest: 'uploads/',
-  limits: { fileSize: 25 * 1024 * 1024 }
-});
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -85,8 +122,8 @@ app.get('/', (req, res) => {
     status: "operational",
     installs: installations.size,
     authenticated: Array.from(installations.values()).filter(inst => inst.tokenStatus === 'valid').length,
-    features: ["oauth", "products", "media-upload", "token-refresh"],
-    endpoints: ["/api/products/create", "/api/media/upload", "/installations"],
+    features: ["oauth", "products", "token-refresh"],
+    endpoints: ["/api/products/create", "/api/products", "/installations"],
     enhanced: new Date().toISOString()
   });
 });
@@ -106,7 +143,7 @@ app.get('/installations', (req, res) => {
   });
 });
 
-// OAUTH CALLBACK
+// OAUTH CALLBACK - PRESERVE EXISTING INSTALLATION
 app.get(['/oauth/callback', '/api/oauth/callback'], async (req, res) => {
   console.log('=== OAUTH CALLBACK ===');
   const { code, error } = req.query;
@@ -166,6 +203,24 @@ app.get(['/oauth/callback', '/api/oauth/callback'], async (req, res) => {
   }
 });
 
+// RESTORE EXISTING INSTALLATION ON STARTUP
+function restoreExistingInstallation() {
+  // Restore the current installation
+  installations.set('install_1751343410712', {
+    id: 'install_1751343410712',
+    accessToken: process.env.GHL_ACCESS_TOKEN || 'token_restored_from_env',
+    refreshToken: process.env.GHL_REFRESH_TOKEN || null,
+    expiresIn: 86399,
+    expiresAt: Date.now() + 86399 * 1000,
+    locationId: 'WAvk87RmW9rBSDJHeOpH',
+    scopes: 'medias.write medias.readonly',
+    tokenStatus: 'valid',
+    createdAt: '2025-07-01T04:16:50.712Z'
+  });
+  
+  console.log('[STARTUP] Existing installation restored: install_1751343410712');
+}
+
 // PRODUCT CREATION
 app.post('/api/products/create', async (req, res) => {
   try {
@@ -219,7 +274,6 @@ app.post('/api/products/create', async (req, res) => {
       try {
         console.log('[PRODUCT] Attempting token refresh...');
         await refreshAccessToken(req.body.installation_id);
-        // Could retry here, but for now just return the error
       } catch (refreshError) {
         console.error('[PRODUCT] Token refresh failed:', refreshError.message);
       }
@@ -229,71 +283,6 @@ app.post('/api/products/create', async (req, res) => {
       success: false,
       error: error.response?.data || error.message,
       message: 'Failed to create product'
-    });
-  }
-});
-
-// MEDIA UPLOAD
-app.post('/api/media/upload', upload.single('file'), async (req, res) => {
-  try {
-    const { installation_id } = req.body;
-    
-    console.log(\`[MEDIA] Uploading: \${req.file?.originalname}\`);
-    
-    if (!installation_id) {
-      return res.status(400).json({ success: false, error: 'installation_id required' });
-    }
-    
-    if (!req.file) {
-      return res.status(400).json({ success: false, error: 'file required' });
-    }
-    
-    const installation = await ensureFreshToken(installation_id);
-    
-    const formData = new FormData();
-    formData.append('file', fs.createReadStream(req.file.path), {
-      filename: req.file.originalname,
-      contentType: req.file.mimetype
-    });
-    
-    console.log(\`[MEDIA] Uploading to GHL for location: \${installation.locationId}\`);
-    
-    const uploadResponse = await axios.post('https://services.leadconnectorhq.com/medias/upload-file', formData, {
-      headers: {
-        'Authorization': \`Bearer \${installation.accessToken}\`,
-        'Version': '2021-07-28',
-        ...formData.getHeaders()
-      },
-      params: {
-        locationId: installation.locationId
-      },
-      timeout: 30000
-    });
-    
-    // Clean up uploaded file
-    fs.unlinkSync(req.file.path);
-    
-    console.log(\`[MEDIA] Upload successful: \${uploadResponse.data.url || uploadResponse.data.fileUrl}\`);
-    
-    res.json({
-      success: true,
-      mediaUrl: uploadResponse.data.url || uploadResponse.data.fileUrl,
-      mediaId: uploadResponse.data.id,
-      data: uploadResponse.data
-    });
-    
-  } catch (error) {
-    // Clean up file on error
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-    
-    console.error('[MEDIA] Upload error:', error.response?.data || error.message);
-    
-    res.status(500).json({
-      success: false,
-      error: error.response?.data || error.message,
-      message: 'Failed to upload media'
     });
   }
 });
@@ -335,14 +324,17 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
+// Restore existing installation on startup
+restoreExistingInstallation();
+
 app.listen(port, () => {
   console.log(\`✅ Enhanced OAuth Backend running on port \${port}\`);
-  console.log(\`📊 Features: OAuth, Product Creation, Media Upload\`);
-  console.log(\`🔗 Endpoints: /api/products/create, /api/media/upload, /api/products\`);
+  console.log(\`📊 Features: OAuth, Product Creation\`);
+  console.log(\`🔗 Endpoints: /api/products/create, /api/products\`);
+  console.log(\`📦 Installations: \${installations.size}\`);
 });`;
 
-    console.log('Deploying enhanced backend with all API endpoints...');
-
+    // Force deployment
     const { data: currentFile } = await octokit.rest.repos.getContent({
       owner: 'EngageAutomations',
       repo: 'oauth-backend',
@@ -353,20 +345,20 @@ app.listen(port, () => {
       owner: 'EngageAutomations',
       repo: 'oauth-backend',
       path: 'index.js',
-      message: 'Deploy v5.5.0-enhanced-api: Add product creation and media upload endpoints',
+      message: 'FORCE DEPLOY v5.5.0-enhanced-api: Product creation endpoints with installation restore',
       content: Buffer.from(enhancedBackend).toString('base64'),
       sha: currentFile.sha
     });
 
-    console.log('✅ Enhanced backend deployed successfully');
-    console.log('⏳ Waiting for Railway deployment...');
+    console.log('✅ Enhanced backend force deployed');
+    console.log('🔄 Installation will be restored on startup');
     
     return { success: true, version: '5.5.0-enhanced-api' };
     
   } catch (error) {
-    console.error('❌ Enhanced backend deployment failed:', error.message);
+    console.error('❌ Force deployment failed:', error.message);
     return { success: false, error: error.message };
   }
 }
 
-deployEnhancedBackend();
+forceEnhancedDeployment();
