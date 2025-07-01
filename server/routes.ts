@@ -24,7 +24,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Image Upload API - GoHighLevel Media Upload
+  // Image Upload API - GoHighLevel Media Upload via OAuth Backend
   app.post("/api/images/upload", upload.single('file'), async (req, res) => {
     try {
       console.log('=== Image Upload Request ===');
@@ -45,111 +45,81 @@ export function registerRoutes(app: Express) {
         size: req.file.size
       });
       
-      // Get OAuth installation from the OAuth backend
-      const installationsResponse = await axios.get('https://dir.engageautomations.com/installations');
-      const installations = installationsResponse.data.installations || [];
+      // Get OAuth token from OAuth backend
+      const tokenResponse = await axios.post('https://dir.engageautomations.com/api/token-access', {
+        installation_id: installation_id
+      });
       
-      const installation = installations.find((inst: any) => inst.id === installation_id);
-      if (!installation) {
-        return res.status(404).json({ 
-          success: false, 
-          error: 'Installation not found',
-          available_installations: installations.map((i: any) => i.id)
-        });
-      }
-      
-      if (installation.tokenStatus !== 'valid') {
-        return res.status(401).json({ 
-          success: false, 
-          error: 'OAuth token invalid or expired',
-          tokenStatus: installation.tokenStatus
-        });
-      }
-      
-      console.log(`Using installation ${installation_id} with location ${installation.locationId}`);
-      
-      // Get fresh access token by making a test API call through OAuth backend
-      let accessToken;
-      try {
-        const tokenTestResponse = await axios.post('https://dir.engageautomations.com/api/products/create', {
-          name: 'Token Test - Delete Me',
-          description: 'Testing token for image upload',
-          installation_id: installation_id
-        });
-        
-        // If the call succeeds, we know the token is valid
-        // We need to get the actual token - for now we'll make a direct call
-        console.log('OAuth token confirmed valid through product creation test');
-        
-        // Since we can't directly access the token from OAuth backend,
-        // we'll make the upload request through the OAuth backend instead
-        const FormData = require('form-data');
-        const formData = new FormData();
-        formData.append('file', req.file.buffer, {
-          filename: req.file.originalname,
-          contentType: req.file.mimetype
-        });
-        formData.append('installation_id', installation_id);
-        
-        console.log('Uploading file through OAuth backend...');
-        
-        // Try to upload through OAuth backend first (if it has the endpoint)
-        try {
-          const uploadResponse = await axios.post('https://dir.engageautomations.com/api/images/upload', formData, {
-            headers: formData.getHeaders(),
-            timeout: 30000,
-            maxContentLength: Infinity,
-            maxBodyLength: Infinity
-          });
-          
-          return res.json({
-            success: true,
-            media: uploadResponse.data,
-            message: 'Image uploaded successfully via OAuth backend'
-          });
-          
-        } catch (oauthUploadError) {
-          console.log('OAuth backend upload not available, using direct GoHighLevel API...');
-          
-          // Since OAuth backend doesn't have upload endpoint, we'll need the actual token
-          // For now, return a helpful message
-          return res.status(501).json({
-            success: false,
-            error: 'Image upload requires OAuth backend enhancement',
-            suggestion: 'OAuth backend needs image upload endpoint implementation',
-            fileReady: {
-              name: req.file.originalname,
-              size: req.file.size,
-              type: req.file.mimetype
-            },
-            installationReady: {
-              id: installation_id,
-              locationId: installation.locationId,
-              tokenStatus: installation.tokenStatus
-            }
-          });
-        }
-        
-      } catch (tokenError) {
-        console.error('Token validation failed:', tokenError.response?.data || tokenError.message);
+      if (!tokenResponse.data.success) {
         return res.status(401).json({
           success: false,
-          error: 'OAuth token validation failed',
-          details: tokenError.response?.data || tokenError.message
+          error: tokenResponse.data.error || 'Token access failed'
         });
       }
       
-    } catch (error) {
-      console.error('Image upload error:', error);
-      res.status(500).json({
-        success: false,
-        error: error.message || 'Image upload failed',
-        details: error.response?.data || error.message
+      const { accessToken, installation } = tokenResponse.data;
+      console.log(`Using installation ${installation_id} with location ${installation.locationId}`);
+      
+      // Create form data for GoHighLevel API
+      const FormData = require('form-data');
+      const formData = new FormData();
+      formData.append('file', req.file.buffer, {
+        filename: req.file.originalname,
+        contentType: req.file.mimetype
       });
+      
+      console.log('🚀 Uploading to GoHighLevel media library...');
+      
+      // Upload directly to GoHighLevel using the token from OAuth backend
+      const uploadResponse = await axios.post('https://services.leadconnectorhq.com/medias/upload-file', formData, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Version': '2021-07-28',
+          ...formData.getHeaders()
+        },
+        timeout: 30000,
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity
+      });
+      
+      console.log('✅ Image uploaded to GoHighLevel successfully!');
+      console.log('Media response:', uploadResponse.data);
+      
+      res.json({
+        success: true,
+        media: uploadResponse.data,
+        installation: {
+          id: installation_id,
+          locationId: installation.locationId,
+          tokenStatus: installation.tokenStatus
+        },
+        message: 'Image uploaded to GoHighLevel media library successfully'
+      });
+      
+    } catch (error) {
+      console.error('❌ Image upload error:', error);
+      
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+        
+        res.status(error.response.status).json({
+          success: false,
+          error: error.response.data?.message || 'GoHighLevel API error',
+          details: error.response.data,
+          ghl_status: error.response.status
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: error.message || 'Image upload failed',
+          details: error.message
+        });
+      }
     }
   });
 
-  // List Media Files API  
+  // List Media Files API via OAuth Backend
   app.get("/api/images/list", async (req, res) => {
     try {
       const { installation_id, limit = 20, offset = 0 } = req.query;
@@ -158,21 +128,37 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ success: false, error: 'installation_id required' });
       }
       
-      // Get installation info from OAuth backend
-      const installationsResponse = await axios.get('https://dir.engageautomations.com/installations');
-      const installations = installationsResponse.data.installations || [];
+      // Get OAuth token from OAuth backend
+      const tokenResponse = await axios.post('https://dir.engageautomations.com/api/token-access', {
+        installation_id: installation_id
+      });
       
-      const installation = installations.find((inst: any) => inst.id === installation_id);
-      if (!installation) {
-        return res.status(404).json({ success: false, error: 'Installation not found' });
+      if (!tokenResponse.data.success) {
+        return res.status(401).json({
+          success: false,
+          error: tokenResponse.data.error || 'Token access failed'
+        });
       }
       
-      // For now, return a placeholder response since we need OAuth backend media endpoint
+      const { accessToken, installation } = tokenResponse.data;
+      
+      // Get media files from GoHighLevel
+      const mediaResponse = await axios.get('https://services.leadconnectorhq.com/medias/', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Version': '2021-07-28'
+        },
+        params: { limit, offset }
+      });
+      
       res.json({
         success: true,
-        media: [],
-        pagination: { limit, offset, total: 0 },
-        message: 'Media listing requires OAuth backend media endpoints',
+        media: mediaResponse.data.medias || [],
+        pagination: {
+          limit: parseInt(limit as string),
+          offset: parseInt(offset as string),
+          total: mediaResponse.data.total || 0
+        },
         installation: {
           id: installation_id,
           locationId: installation.locationId,
@@ -182,10 +168,19 @@ export function registerRoutes(app: Express) {
       
     } catch (error) {
       console.error('Media list error:', error);
-      res.status(500).json({
-        success: false,
-        error: error.message || 'Failed to list media files'
-      });
+      
+      if (error.response) {
+        res.status(error.response.status).json({
+          success: false,
+          error: error.response.data?.message || 'GoHighLevel API error',
+          details: error.response.data
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: error.message || 'Failed to list media files'
+        });
+      }
     }
   });
 
