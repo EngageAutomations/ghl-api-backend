@@ -1,0 +1,112 @@
+GOHIGHLEVEL MEDIA UPLOAD API ERROR PAYLOADS
+=====================================================
+
+ERROR 1: JWT ERROR
+-----------------
+HTTP Status: 401
+Content-Type: application/json; charset=utf-8
+
+Request Details:
+POST https://services.leadconnectorhq.com/medias/upload-file
+Headers:
+  Authorization: Bearer {access_token}
+  Version: 2021-07-28
+  Content-Type: multipart/form-data
+Params:
+  locationId: WAvk87RmW9rBSDJHeOpH
+
+Response Payload:
+{
+  "statusCode": 401,
+  "message": "Invalid JWT"
+}
+
+Response Headers:
+{
+  "date": "Tue, 01 Jul 2025 02:18:28 GMT",
+  "content-type": "application/json; charset=utf-8",
+  "content-length": "42",
+  "connection": "keep-alive",
+  "x-powered-by": "Express",
+  "access-control-allow-origin": "*",
+  "etag": "W/\"2a-qxuFM7LyQy4BSMxrkg0ha5X4C+A\"",
+  "vary": "Accept-Encoding",
+  "x-envoy-upstream-service-time": "2",
+  "strict-transport-security": "max-age=31536000",
+  "cf-cache-status": "DYNAMIC",
+  "server": "cloudflare",
+  "cf-ray": "958269b4ac6498d4-ATL"
+}
+
+=====================================================
+
+ERROR 2: AUTHCLASS ERROR  
+-----------------------
+HTTP Status: 401
+Content-Type: application/json; charset=utf-8
+
+Request Details:
+POST https://dir.engageautomations.com/api/media/upload
+(Routes to GoHighLevel via Railway backend)
+Content-Type: multipart/form-data
+Fields:
+  file: maker-expressed-logo.png
+  installation_id: install_1751333384380
+
+Response Payload:
+{
+  "success": false,
+  "error": {
+    "statusCode": 401,
+    "message": "This authClass type is not allowed to access this scope.  Please verify your IAM configuration if this is not the case."
+  }
+}
+
+=====================================================
+
+OAUTH SCOPE VERIFICATION
+------------------------
+Installation ID: install_1751333384380
+Location ID: WAvk87RmW9rBSDJHeOpH
+Token Status: valid
+Available Scopes: 
+  - products/prices.write
+  - products/prices.readonly
+  - products/collection.readonly
+  - medias.write ✓
+  - medias.readonly ✓
+  - locations.readonly
+  - contacts.readonly
+  - contacts.write
+  - products/collection.write
+  - users.readonly
+  - products.write
+  - products.readonly
+
+Note: medias.write permission IS present in OAuth scopes
+
+=====================================================
+
+WORKING API COMPARISON
+---------------------
+Product Creation API (WORKS):
+POST https://services.leadconnectorhq.com/products/
+Headers:
+  Authorization: Bearer {same_access_token}
+  Version: 2021-07-28
+  Content-Type: application/json
+
+Response: 200 OK - Products created successfully
+
+=====================================================
+
+DIAGNOSIS
+---------
+1. JWT Error: Token format incompatible with media API specifically
+2. AuthClass Error: OAuth app configuration issue with media scope access
+3. Scope Present: medias.write permission exists but rejected by API
+4. Token Valid: Same token works for products API but not media API
+5. Conclusion: GoHighLevel marketplace app configuration issue
+
+RECOMMENDATION: Contact GoHighLevel support for marketplace app 
+media API access configuration review.
