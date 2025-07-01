@@ -1,6 +1,6 @@
 {
   "name": "oauth-backend-emergency",
-  "version": "5.4.1-bridge-fix",
+  "version": "5.4.2-field-fix",
   "description": "Complete GoHighLevel OAuth Backend with working media upload and pricing",
   "main": "index.js",
   "scripts": {

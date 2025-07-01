@@ -118,7 +118,7 @@ app.get('/', (req, res) => {
   const authenticatedCount = Array.from(installations.values()).filter(inst => inst.tokenStatus === 'valid').length;
   res.json({
     service: "GoHighLevel OAuth Backend",
-    version: "5.4.1-bridge-fix",
+    version: "5.4.2-field-fix",
     installs: installations.size,
     authenticated: authenticatedCount,
     status: "operational",
@@ -493,7 +493,7 @@ app.post('/api/products/create', async (req, res) => {
     const productData = {
       name,
       description: description || '',
-      type: productType || 'PHYSICAL', // GoHighLevel API uses 'type' not 'productType'
+      productType: productType || 'DIGITAL', // GoHighLevel API expects 'productType' field with DIGITAL enum
       locationId: installation.locationId,
       ...(sku && { sku }),
       ...(currency && { currency })
@@ -821,7 +821,7 @@ app.post('/api/workflow/complete-product', async (req, res) => {
     const productData = {
       name,
       description: description || '',
-      type: productType || 'PHYSICAL', // Use 'type' for GoHighLevel API
+      productType: productType || 'DIGITAL', // GoHighLevel API expects 'productType' field with DIGITAL enum
       locationId: installation.locationId,
       mediaIds: mediaIds, // Attach uploaded photos
       ...(sku && { sku }),
