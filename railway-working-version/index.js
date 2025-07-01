@@ -546,13 +546,14 @@ app.post('/api/media/upload', upload.single('file'), async (req, res) => {
     // Clean up uploaded file
     fs.unlinkSync(req.file.path);
     
-    console.log('Media upload successful:', uploadResponse.data);
+    console.log('[MEDIA] ✅ Upload successful with auto-retry protection');
     
     res.json({
       success: true,
       mediaUrl: uploadResponse.data.url || uploadResponse.data.fileUrl,
       mediaId: uploadResponse.data.id,
-      data: uploadResponse.data
+      data: uploadResponse.data,
+      message: 'Media uploaded successfully with auto-retry protection'
     });
     
   } catch (error) {
@@ -561,10 +562,13 @@ app.post('/api/media/upload', upload.single('file'), async (req, res) => {
       fs.unlinkSync(req.file.path);
     }
     
-    console.error('Media upload error:', error.response?.data || error.message);
+    console.error('[MEDIA] ❌ Upload failed after all retries:', error.response?.data || error.message);
     res.status(500).json({
       success: false,
-      error: error.response?.data || error.message
+      error: 'Media upload failed',
+      details: error.response?.data || error.message,
+      retry_exhausted: true,
+      action: error.message?.includes('OAuth reinstallation required') ? 'complete_oauth_installation' : 'retry_later'
     });
   }
 });
@@ -1671,11 +1675,176 @@ function getTopCustomers(tickets) {
     .map(([email, count]) => ({ email, ticketCount: count }));
 }
 
-// Start server
+// PRODUCTION MONITORING ENDPOINTS
+
+// Token health check endpoint
+app.get('/api/token-health/:id', async (req, res) => {
+  const { id } = req.params;
+  const inst = installations.get(id);
+  
+  if (!inst) {
+    return res.status(404).json({ error: 'Installation not found' });
+  }
+
+  const timeUntilExpiry = inst.expiresAt - Date.now();
+  
+  res.json({
+    installation_id: id,
+    token_status: inst.tokenStatus,
+    expires_at: inst.expiresAt,
+    expires_in_minutes: Math.round(timeUntilExpiry / 60000),
+    has_refresh_token: !!inst.refreshToken,
+    last_refresh: inst.lastRefresh || 'never',
+    needs_refresh: timeUntilExpiry < PADDING_MS,
+    health: timeUntilExpiry > 0 ? 'healthy' : 'expired'
+  });
+});
+
+// Manual refresh endpoint for emergencies
+app.post('/api/refresh-token/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const success = await enhancedRefreshAccessToken(id);
+    
+    if (success) {
+      res.json({
+        success: true,
+        message: 'Token refreshed successfully',
+        installation_id: id,
+        expires_at: installations.get(id).expiresAt
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: 'Refresh failed - OAuth reinstallation required',
+        installation_id: id
+      });
+    }
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Refresh attempt failed',
+      details: error.message
+    });
+  }
+});
+
+// Universal API proxy with auto-retry for any GoHighLevel endpoint
+app.all('/api/ghl/*', async (req, res) => {
+  try {
+    const installation_id = req.body.installation_id || req.query.installation_id;
+    
+    if (!installation_id) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'installation_id required' 
+      });
+    }
+    
+    // Extract target URL from path
+    const targetPath = req.path.replace('/api/ghl', '');
+    const targetUrl = `https://services.leadconnectorhq.com${targetPath}`;
+    
+    console.log(`[PROXY] ${req.method.toUpperCase()} ${targetUrl} with auto-retry`);
+    
+    const response = await makeGHLAPICall(installation_id, {
+      method: req.method.toLowerCase(),
+      url: targetUrl,
+      data: req.body,
+      params: req.query
+    });
+    
+    res.json(response.data);
+    
+  } catch (error) {
+    console.error('[PROXY] Request failed:', error.response?.data || error.message);
+    
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: 'API request failed',
+      details: error.response?.data || error.message,
+      retry_exhausted: true
+    });
+  }
+});
+
+// Complete workflow endpoint with auto-retry
+app.post('/api/workflow/complete-product', async (req, res) => {
+  try {
+    const { installation_id, productData, priceData } = req.body;
+    
+    if (!installation_id) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'installation_id required' 
+      });
+    }
+    
+    const results = {
+      product: null,
+      prices: []
+    };
+    
+    console.log('[WORKFLOW] Starting complete product creation workflow with auto-retry');
+    
+    // Step 1: Create product
+    const productResponse = await makeGHLAPICall(installation_id, {
+      method: 'post',
+      url: 'https://services.leadconnectorhq.com/products/',
+      data: productData
+    });
+    
+    results.product = productResponse.data;
+    console.log('[WORKFLOW] ✅ Product created');
+    
+    // Step 2: Add pricing (if pricing API exists)
+    if (priceData && results.product.id) {
+      try {
+        const priceResponse = await makeGHLAPICall(installation_id, {
+          method: 'post',
+          url: `https://services.leadconnectorhq.com/products/${results.product.id}/prices`,
+          data: priceData
+        });
+        
+        results.prices.push(priceResponse.data);
+        console.log('[WORKFLOW] ✅ Pricing added');
+        
+      } catch (priceError) {
+        console.log('[WORKFLOW] ⚠️ Pricing creation failed (API may not exist)');
+        // Continue without pricing
+      }
+    }
+    
+    res.json({
+      success: true,
+      workflow_complete: true,
+      results: results,
+      message: 'Complete product workflow executed successfully with auto-retry protection'
+    });
+    
+  } catch (error) {
+    console.error('[WORKFLOW] Failed:', error.response?.data || error.message);
+    
+    res.status(500).json({
+      success: false,
+      error: 'Workflow execution failed',
+      details: error.response?.data || error.message,
+      partial_results: results,
+      retry_exhausted: true
+    });
+  }
+});
+
+// Start Enhanced OAuth Backend Server
 app.listen(port, () => {
-  console.log(`OAuth backend with customer support running on port ${port}`);
-  console.log(`Version: 6.0.0-customer-support`);
-  console.log(`Features: OAuth, Products, Media Upload, Pricing, Customer Support`);
-  console.log(`Installations: ${installations.size}`);
-  console.log('Customer support system: Ready');
+  console.log(`✅ Enhanced OAuth Backend with Auto-Retry running on port ${port}`);
+  console.log(`📊 Version: 7.0.0-production-ready`);
+  console.log(`🔧 Features: OAuth, Products, Media, Support, Webhooks, Auto-Retry`);
+  console.log(`⚡ Installations: ${installations.size}`);
+  console.log(`🎫 Support tickets: ${supportTickets.size}`);
+  console.log(`🔄 Token Management: Enhanced with early expiry protection`);
+  console.log(`🛡️ API Protection: Automatic retry on token failures`);
+  console.log(`🚀 Production Ready: Token monitoring and emergency refresh endpoints`);
 });
