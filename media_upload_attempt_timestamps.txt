@@ -1,0 +1,76 @@
+GOHIGHLEVEL MEDIA UPLOAD ATTEMPT TIMESTAMPS
+============================================
+
+ATTEMPT 1: JWT ERROR (Direct GoHighLevel API)
+---------------------------------------------
+Timestamp: Tue, 01 Jul 2025 02:18:28 GMT
+UTC Time: 2025-07-01T02:18:28.000Z
+Local Time: July 1, 2025 at 2:18:28 AM UTC
+
+Request Details:
+- Method: POST
+- Endpoint: https://services.leadconnectorhq.com/medias/upload-file
+- Authorization: Bearer token (OAuth access token)
+- Version: 2021-07-28
+- Content-Type: multipart/form-data
+- File: maker-expressed-logo.png
+- Location ID: WAvk87RmW9rBSDJHeOpH
+
+Response:
+- Status: 401 Unauthorized
+- Error: "Invalid JWT"
+- Server: cloudflare
+- CF-Ray: 958269b4ac6498d4-ATL
+
+ATTEMPT 2: AUTHCLASS ERROR (Railway Backend Proxy)
+--------------------------------------------------
+Timestamp: Approximately 2025-07-01T01:33:27.000Z (from curl test)
+Local Time: July 1, 2025 at 1:33:27 AM UTC
+
+Request Details:
+- Method: POST
+- Endpoint: https://dir.engageautomations.com/api/media/upload
+- Content-Type: multipart/form-data
+- File: Full_Logo (1) 1_1751332270007.png
+- Installation ID: install_1751333384380
+
+Response:
+- Status: 500 (proxied from 401)
+- Error: "This authClass type is not allowed to access this scope"
+
+OAUTH INSTALLATION TIMESTAMP
+----------------------------
+Installation Created: 2025-07-01T01:29:44.380Z
+Installation ID: install_1751333384380
+Last Activity: 2025-07-01T01:29:44.380Z
+Token Status: valid
+
+PRODUCT CREATION SUCCESS TIMELINE
+---------------------------------
+First Product: 2025-07-01T01:30:27.898Z (Maker Expressed - Premium Design Services)
+Latest Product: 2025-07-01T02:16:45.000Z (Maker Expressed - Monthly Design Retainer)
+Total Products: 21 successfully created
+Success Rate: 100% for product creation
+
+TESTING SESSION TIMELINE
+------------------------
+Session Start: ~2025-07-01T01:30:00.000Z
+OAuth Test: 2025-07-01T01:33:27.000Z (authClass error)
+Product Creation: 2025-07-01T01:30:27.898Z to 2025-07-01T02:16:45.000Z
+Direct API Test: 2025-07-01T02:18:28.000Z (JWT error)
+Session Duration: ~48 minutes of continuous testing
+
+TIME CORRELATION ANALYSIS
+-------------------------
+1. OAuth installation successful at 01:29:44
+2. Product creation working immediately at 01:30:27 (43 seconds later)
+3. Media upload failing at 01:33:27 (3 minutes 43 seconds after OAuth)
+4. Continued product success through 02:16:45 (47 minutes later)
+5. Direct JWT error at 02:18:28 (48 minutes 44 seconds total)
+
+CONCLUSION FROM TIMING
+----------------------
+- OAuth token valid and working for products continuously for 48+ minutes
+- Media upload failed immediately when first attempted (3 minutes after OAuth)
+- Same token worked for products before and after media upload failures
+- Timing confirms token validity - issue is API-specific authentication
