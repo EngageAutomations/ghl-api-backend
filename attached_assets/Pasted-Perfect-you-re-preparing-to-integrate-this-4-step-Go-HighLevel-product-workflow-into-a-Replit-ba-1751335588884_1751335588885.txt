@@ -1,0 +1,88 @@
+Perfect — you're preparing to integrate this 4-step Go HighLevel product workflow into a **Replit-based project**, so here’s a checklist of **key questions to send to Replit or clarify internally** to ensure smooth implementation.
+
+---
+
+## ❓ Questions to Ask or Investigate in Replit Context
+
+### 🔐 **1. OAuth Token Handling**
+
+* How are we managing the Go HighLevel OAuth access token?
+
+  * Do we already have a refresh mechanism in place?
+  * Where are tokens stored securely (Replit Secrets, DB, or local memory)?
+
+### 🗃️ **2. File Upload Support**
+
+* Can we upload images from Replit to Go HighLevel?
+
+  * Are we uploading **local files**, or do we need to support **file uploads from a user interface (via form input)?**
+  * If UI upload: Are we using `express` or some framework that supports `multipart/form-data`?
+
+### 🧰 **3. Required Node.js Packages**
+
+* Do we have the following modules installed in Replit?
+
+  * `axios`
+  * `form-data`
+  * `fs` (comes with Node, but confirm access to file system)
+* Do we need to install or update these via Replit's package manager?
+
+### 🛠️ **4. Runtime Environment**
+
+* Are we using plain Node.js or a framework like `Express`?
+
+  * If Express: Do we already have endpoints where this workflow will be triggered?
+* Is the app running persistently, or do we need to handle cold starts or persistence issues (e.g., with OAuth tokens)?
+
+### 🧪 **5. Testing and Logging**
+
+* How do we want to test this?
+
+  * Manual test with test image?
+  * Auto-test with a dummy product and mock image?
+* Where should logs go: console only, or Replit's built-in debugger?
+
+### 💾 **6. Data Inputs**
+
+* Where will the inputs for product name, description, price, and image file path come from?
+
+  * Static for now?
+  * From a form submission?
+  * From an external webhook?
+
+### 🖼️ **7. Multiple Images or Just One?**
+
+* Do we want to support only one image per product right now?
+
+  * If multiple: How do we store/display them (e.g., as custom fields or external gallery)?
+
+---
+
+## ✅ Suggested Next Step
+
+If you're communicating with your team or Replit devs, send them this list of questions. Here's a quick version you can paste:
+
+---
+
+### 📤 Message to Replit Team or Dev Partner
+
+> Hey, we're implementing a 4-step Go HighLevel product creation flow:
+>
+> 1. Upload product image
+> 2. Create product
+> 3. Update product with image URL
+> 4. Add price to product
+>
+> Can you help clarify:
+>
+> * How are we handling and storing the OAuth token?
+> * Do we support file uploads (local or via form) in our current Replit setup?
+> * Are `axios`, `form-data`, and `fs` available or do we need to install them?
+> * Are we using Express or plain Node? Where will we trigger this flow from?
+> * What's our plan for logging and testing this?
+> * Where are the product/image inputs coming from (manual or form)?
+> * Do we support only one image per product right now?
+
+---
+
+Once you hear back, I can help you implement based on their answers. Want help drafting a sample Replit endpoint or script to trigger the full flow now?
