@@ -142,7 +142,7 @@ Use delete + create method for reliable file updates:
 - Complete multi-step workflow ready: image upload → product creation → pricing addition
 - OAuth installation required for testing (previous session expired)
 
-**Current Status (July 1, 2025):** OAuth backend updated to version 5.7.0-oauth-bridge with user-friendly HTML installation pages. White screen issue resolved - users now see proper installation success/error pages instead of raw code. Backend ready for fresh OAuth installations with auto-retry system, smart token refresh, and enhanced user experience. Installation count reset to 0, ready for new marketplace installations.
+**Current Status (July 1, 2025):** OAuth backend updated to version 6.1.0-correct-credentials with fixed GoHighLevel OAuth credentials. Deployment corrected the 401 authentication error by using the proper client_id and client_secret from attached Client Key file. Enhanced success/error pages with improved debugging information. Both OAuth backend (authentication) and API backend (operations) are operational with clean separation maintained.
 
 **Complete Workflow Operational:** Car detailing image successfully uploaded to GoHighLevel media library and used to create complete product listing with pricing
 
