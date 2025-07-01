@@ -142,7 +142,7 @@ Use delete + create method for reliable file updates:
 - Complete multi-step workflow ready: image upload → product creation → pricing addition
 - OAuth installation required for testing (previous session expired)
 
-**Current Status:** Dual-backend architecture fully operational with OAuth backend at https://dir.engageautomations.com and API backend at https://api.engageautomations.com. Real GoHighLevel product creation endpoints deployed and tested. OAuth installations expired and require renewal for live product creation in GoHighLevel account WAvk87RmW9rBSDJHeOpH.
+**Current Status (July 1, 2025):** OAuth token expired - GoHighLevel rejecting all API calls with "Invalid JWT". Fresh OAuth installation required through marketplace to restore API functionality. System architecture and implementation confirmed working - 21 products successfully created before token expiration.
 
 **Complete Workflow Operational:** Car detailing image successfully uploaded to GoHighLevel media library and used to create complete product listing with pricing
 
