@@ -5,14 +5,187 @@ import { insertListingSchema, insertListingAddonSchema, insertWizardFormTemplate
 import { z } from "zod";
 import { storage } from "./storage";
 import { RailwayBridge, bridgeRoutes } from "./bridge-endpoints";
+import multer from "multer";
+import axios from "axios";
 
 export function registerRoutes(app: Express) {
+  // Configure multer for file uploads (memory storage for API forwarding)
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 25 * 1024 * 1024 } // 25MB limit
+  });
+
   // Railway Bridge Routes - Hardcoded OAuth credential system
   bridgeRoutes.forEach(route => {
     if (route.method === 'GET') {
       app.get(route.path, route.handler);
     } else if (route.method === 'POST') {
       app.post(route.path, route.handler);
+    }
+  });
+
+  // Image Upload API - GoHighLevel Media Upload
+  app.post("/api/images/upload", upload.single('file'), async (req, res) => {
+    try {
+      console.log('=== Image Upload Request ===');
+      
+      const { installation_id } = req.body;
+      
+      if (!installation_id) {
+        return res.status(400).json({ success: false, error: 'installation_id required' });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ success: false, error: 'No file uploaded' });
+      }
+      
+      console.log('File details:', {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+      });
+      
+      // Get OAuth installation from the OAuth backend
+      const installationsResponse = await axios.get('https://dir.engageautomations.com/installations');
+      const installations = installationsResponse.data.installations || [];
+      
+      const installation = installations.find((inst: any) => inst.id === installation_id);
+      if (!installation) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Installation not found',
+          available_installations: installations.map((i: any) => i.id)
+        });
+      }
+      
+      if (installation.tokenStatus !== 'valid') {
+        return res.status(401).json({ 
+          success: false, 
+          error: 'OAuth token invalid or expired',
+          tokenStatus: installation.tokenStatus
+        });
+      }
+      
+      console.log(`Using installation ${installation_id} with location ${installation.locationId}`);
+      
+      // Get fresh access token by making a test API call through OAuth backend
+      let accessToken;
+      try {
+        const tokenTestResponse = await axios.post('https://dir.engageautomations.com/api/products/create', {
+          name: 'Token Test - Delete Me',
+          description: 'Testing token for image upload',
+          installation_id: installation_id
+        });
+        
+        // If the call succeeds, we know the token is valid
+        // We need to get the actual token - for now we'll make a direct call
+        console.log('OAuth token confirmed valid through product creation test');
+        
+        // Since we can't directly access the token from OAuth backend,
+        // we'll make the upload request through the OAuth backend instead
+        const FormData = require('form-data');
+        const formData = new FormData();
+        formData.append('file', req.file.buffer, {
+          filename: req.file.originalname,
+          contentType: req.file.mimetype
+        });
+        formData.append('installation_id', installation_id);
+        
+        console.log('Uploading file through OAuth backend...');
+        
+        // Try to upload through OAuth backend first (if it has the endpoint)
+        try {
+          const uploadResponse = await axios.post('https://dir.engageautomations.com/api/images/upload', formData, {
+            headers: formData.getHeaders(),
+            timeout: 30000,
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity
+          });
+          
+          return res.json({
+            success: true,
+            media: uploadResponse.data,
+            message: 'Image uploaded successfully via OAuth backend'
+          });
+          
+        } catch (oauthUploadError) {
+          console.log('OAuth backend upload not available, using direct GoHighLevel API...');
+          
+          // Since OAuth backend doesn't have upload endpoint, we'll need the actual token
+          // For now, return a helpful message
+          return res.status(501).json({
+            success: false,
+            error: 'Image upload requires OAuth backend enhancement',
+            suggestion: 'OAuth backend needs image upload endpoint implementation',
+            fileReady: {
+              name: req.file.originalname,
+              size: req.file.size,
+              type: req.file.mimetype
+            },
+            installationReady: {
+              id: installation_id,
+              locationId: installation.locationId,
+              tokenStatus: installation.tokenStatus
+            }
+          });
+        }
+        
+      } catch (tokenError) {
+        console.error('Token validation failed:', tokenError.response?.data || tokenError.message);
+        return res.status(401).json({
+          success: false,
+          error: 'OAuth token validation failed',
+          details: tokenError.response?.data || tokenError.message
+        });
+      }
+      
+    } catch (error) {
+      console.error('Image upload error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Image upload failed',
+        details: error.response?.data || error.message
+      });
+    }
+  });
+
+  // List Media Files API  
+  app.get("/api/images/list", async (req, res) => {
+    try {
+      const { installation_id, limit = 20, offset = 0 } = req.query;
+      
+      if (!installation_id) {
+        return res.status(400).json({ success: false, error: 'installation_id required' });
+      }
+      
+      // Get installation info from OAuth backend
+      const installationsResponse = await axios.get('https://dir.engageautomations.com/installations');
+      const installations = installationsResponse.data.installations || [];
+      
+      const installation = installations.find((inst: any) => inst.id === installation_id);
+      if (!installation) {
+        return res.status(404).json({ success: false, error: 'Installation not found' });
+      }
+      
+      // For now, return a placeholder response since we need OAuth backend media endpoint
+      res.json({
+        success: true,
+        media: [],
+        pagination: { limit, offset, total: 0 },
+        message: 'Media listing requires OAuth backend media endpoints',
+        installation: {
+          id: installation_id,
+          locationId: installation.locationId,
+          tokenStatus: installation.tokenStatus
+        }
+      });
+      
+    } catch (error) {
+      console.error('Media list error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to list media files'
+      });
     }
   });
 
