@@ -170,6 +170,8 @@ Use delete + create method for reliable file updates:
   - System ready to create real products once OAuth is renewed
   - Added comprehensive customer support system to OAuth backend
   - Customer support includes ticket management, analytics, and satisfaction tracking
+  - Added GoHighLevel app uninstall webhook detection for automatic installation cleanup
+  - Webhook endpoint: POST /webhook/app-uninstall provides real-time uninstall notifications
 
 ## Recent Changes
 

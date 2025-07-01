@@ -140,13 +140,15 @@ app.get('/installations', (req, res) => {
     tokenStatus: inst.tokenStatus,
     createdAt: inst.createdAt,
     expiresAt: new Date(inst.expiresAt).toISOString(),
-    scopes: inst.scopes
+    scopes: inst.scopes,
+    lastActivity: inst.lastActivity || inst.createdAt
   }));
   
   res.json({
     total: installations.size,
     authenticated: installList.filter(inst => inst.tokenStatus === 'valid').length,
-    installations: installList
+    installations: installList,
+    webhookEndpoint: '/webhook/app-uninstall'
   });
 });
 
