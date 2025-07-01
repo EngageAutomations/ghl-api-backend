@@ -148,14 +148,14 @@ Use delete + create method for reliable file updates:
 
 ## Recent Changes
 
-- July 1, 2025: OAuth User Experience Enhancement - COMPLETED
-  - Fixed white screen issue during OAuth installation process
-  - Deployed Railway backend v5.7.0-oauth-bridge with user-friendly HTML pages
-  - OAuth callback now displays proper installation success/error pages instead of raw code
-  - Enhanced installation flow with clear status messages and navigation links
-  - Backend reset to 0 installations, ready for fresh marketplace OAuth installations
-  - OAuth redirect URL https://dir.engageautomations.com/oauth/callback confirmed intentional and working
-  - User experience improved from technical code display to professional installation interface
+- July 1, 2025: OAuth Frontend Redirect Implementation - COMPLETED
+  - Fixed OAuth callback flow to redirect users to frontend application automatically
+  - Deployed Railway backend v5.8.0-frontend-redirect with seamless user redirection
+  - Users no longer see OAuth callback URLs - automatically redirected to listings.engageautomations.com
+  - Post-installation flow: OAuth processing → automatic redirect → frontend welcome interface
+  - Enhanced logging and error handling for OAuth debugging and troubleshooting
+  - Frontend parameters: installation_id and welcome=true for proper onboarding experience
+  - Complete OAuth user journey from marketplace installation to frontend application access
 
 - July 1, 2025: Production-Ready Auto-Retry System Implementation - COMPLETED
   - Enhanced token refresh system with 80% lifetime refresh scheduling instead of waiting for expiry
