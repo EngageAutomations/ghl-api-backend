@@ -631,6 +631,291 @@ app.post('/api/collections/:collectionId/products', async (req, res) => {
   }
 });
 
+// COMPLETE PRODUCT WORKFLOW WITH PHOTOS AND PRICING
+
+// Complete product creation workflow: photos → product → pricing
+app.post('/api/workflow/complete-product', async (req, res) => {
+  console.log('=== COMPLETE PRODUCT WORKFLOW ===');
+  
+  try {
+    const { 
+      name, 
+      description, 
+      productType, 
+      sku, 
+      currency,
+      photos = [], // Array of photo objects: [{filename, buffer, mimetype}, ...]
+      pricing = [], // Array of pricing objects: [{name, type, amount, currency}, ...]
+      installation_id 
+    } = req.body;
+    
+    if (!installation_id) {
+      return res.status(400).json({ success: false, error: 'installation_id required' });
+    }
+    
+    if (!name) {
+      return res.status(400).json({ success: false, error: 'product name required' });
+    }
+    
+    console.log(`Starting complete workflow for: ${name}`);
+    console.log(`Photos to upload: ${photos.length}`);
+    console.log(`Pricing tiers: ${pricing.length}`);
+    
+    await ensureFreshToken(installation_id);
+    const installation = installations.get(installation_id);
+    
+    const workflowResult = {
+      product: null,
+      uploadedPhotos: [],
+      createdPrices: [],
+      errors: []
+    };
+    
+    // Step 1: Upload multiple photos to media library
+    console.log('Step 1: Uploading photos to media library...');
+    
+    for (let i = 0; i < photos.length; i++) {
+      try {
+        const photo = photos[i];
+        console.log(`Uploading photo ${i + 1}/${photos.length}: ${photo.filename}`);
+        
+        const formData = new FormData();
+        // Handle both buffer and file path scenarios
+        if (photo.buffer) {
+          formData.append('file', photo.buffer, {
+            filename: photo.filename,
+            contentType: photo.mimetype
+          });
+        } else if (photo.path) {
+          formData.append('file', fs.createReadStream(photo.path), {
+            filename: photo.filename,
+            contentType: photo.mimetype
+          });
+        }
+        
+        const uploadResponse = await axios.post(`https://services.leadconnectorhq.com/medias/upload-file`, formData, {
+          headers: {
+            'Authorization': `Bearer ${installation.accessToken}`,
+            'Version': '2021-07-28',
+            ...formData.getHeaders()
+          },
+          timeout: 30000
+        });
+        
+        workflowResult.uploadedPhotos.push({
+          filename: photo.filename,
+          mediaId: uploadResponse.data.id,
+          url: uploadResponse.data.url,
+          success: true
+        });
+        
+        console.log(`✓ Photo ${i + 1} uploaded: ${uploadResponse.data.id}`);
+        
+      } catch (photoError) {
+        console.error(`✗ Photo ${i + 1} upload failed:`, photoError.response?.data || photoError.message);
+        workflowResult.uploadedPhotos.push({
+          filename: photos[i].filename,
+          success: false,
+          error: photoError.response?.data || photoError.message
+        });
+        workflowResult.errors.push(`Photo upload failed: ${photos[i].filename}`);
+      }
+    }
+    
+    // Step 2: Create the product with uploaded photo IDs
+    console.log('Step 2: Creating product...');
+    
+    const mediaIds = workflowResult.uploadedPhotos
+      .filter(photo => photo.success)
+      .map(photo => photo.mediaId);
+    
+    const productData = {
+      name,
+      description: description || '',
+      type: productType || 'PHYSICAL', // Use 'type' for GoHighLevel API
+      locationId: installation.locationId,
+      mediaIds: mediaIds, // Attach uploaded photos
+      ...(sku && { sku }),
+      ...(currency && { currency })
+    };
+    
+    console.log(`Creating product with ${mediaIds.length} attached photos`);
+    
+    const productResponse = await axios.post('https://services.leadconnectorhq.com/products/', productData, {
+      headers: {
+        'Authorization': `Bearer ${installation.accessToken}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000
+    });
+    
+    workflowResult.product = productResponse.data;
+    console.log(`✓ Product created: ${productResponse.data.id}`);
+    
+    // Step 3: Add multiple pricing tiers
+    console.log('Step 3: Adding pricing tiers...');
+    
+    for (let i = 0; i < pricing.length; i++) {
+      try {
+        const price = pricing[i];
+        console.log(`Adding price ${i + 1}/${pricing.length}: ${price.name}`);
+        
+        const priceData = {
+          name: price.name,
+          type: price.type || 'one_time',
+          amount: parseInt(price.amount),
+          currency: price.currency || 'USD'
+        };
+        
+        const priceResponse = await axios.post(`https://services.leadconnectorhq.com/products/${productResponse.data.id}/prices`, priceData, {
+          headers: {
+            'Authorization': `Bearer ${installation.accessToken}`,
+            'Version': '2021-07-28',
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        });
+        
+        workflowResult.createdPrices.push({
+          name: price.name,
+          priceId: priceResponse.data.id,
+          amount: price.amount,
+          type: price.type,
+          success: true
+        });
+        
+        console.log(`✓ Price ${i + 1} created: ${priceResponse.data.id}`);
+        
+      } catch (priceError) {
+        console.error(`✗ Price ${i + 1} creation failed:`, priceError.response?.data || priceError.message);
+        workflowResult.createdPrices.push({
+          name: pricing[i].name,
+          success: false,
+          error: priceError.response?.data || priceError.message
+        });
+        workflowResult.errors.push(`Price creation failed: ${pricing[i].name}`);
+      }
+    }
+    
+    // Workflow completion summary
+    const summary = {
+      success: true,
+      productId: workflowResult.product?.id,
+      productName: workflowResult.product?.name,
+      photosUploaded: workflowResult.uploadedPhotos.filter(p => p.success).length,
+      pricesCreated: workflowResult.createdPrices.filter(p => p.success).length,
+      totalErrors: workflowResult.errors.length
+    };
+    
+    console.log('=== WORKFLOW COMPLETE ===');
+    console.log(`Product: ${summary.productName} (${summary.productId})`);
+    console.log(`Photos: ${summary.photosUploaded}/${photos.length} uploaded`);
+    console.log(`Prices: ${summary.pricesCreated}/${pricing.length} created`);
+    console.log(`Errors: ${summary.totalErrors}`);
+    
+    res.json({
+      success: true,
+      summary,
+      details: workflowResult,
+      message: 'Complete product workflow executed'
+    });
+    
+  } catch (error) {
+    console.error('Complete workflow error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message,
+      message: 'Complete product workflow failed'
+    });
+  }
+});
+
+// Multi-photo upload endpoint (standalone)
+app.post('/api/photos/upload-multiple', upload.array('photos', 10), async (req, res) => {
+  console.log('=== MULTIPLE PHOTO UPLOAD ===');
+  
+  try {
+    const { installation_id } = req.body;
+    
+    if (!installation_id) {
+      return res.status(400).json({ success: false, error: 'installation_id required' });
+    }
+    
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ success: false, error: 'No photos provided' });
+    }
+    
+    console.log(`Uploading ${req.files.length} photos`);
+    
+    await ensureFreshToken(installation_id);
+    const installation = installations.get(installation_id);
+    
+    const uploadResults = [];
+    
+    for (let i = 0; i < req.files.length; i++) {
+      try {
+        const file = req.files[i];
+        console.log(`Uploading photo ${i + 1}/${req.files.length}: ${file.originalname}`);
+        
+        const formData = new FormData();
+        formData.append('file', fs.createReadStream(file.path), {
+          filename: file.originalname,
+          contentType: file.mimetype
+        });
+        
+        const uploadResponse = await axios.post(`https://services.leadconnectorhq.com/medias/upload-file`, formData, {
+          headers: {
+            'Authorization': `Bearer ${installation.accessToken}`,
+            'Version': '2021-07-28',
+            ...formData.getHeaders()
+          },
+          timeout: 30000
+        });
+        
+        uploadResults.push({
+          filename: file.originalname,
+          mediaId: uploadResponse.data.id,
+          url: uploadResponse.data.url,
+          size: file.size,
+          success: true
+        });
+        
+        console.log(`✓ Photo uploaded: ${uploadResponse.data.id}`);
+        
+        // Clean up temp file
+        fs.unlinkSync(file.path);
+        
+      } catch (uploadError) {
+        console.error(`✗ Photo upload failed:`, uploadError.response?.data || uploadError.message);
+        uploadResults.push({
+          filename: req.files[i].originalname,
+          success: false,
+          error: uploadError.response?.data || uploadError.message
+        });
+      }
+    }
+    
+    const successCount = uploadResults.filter(r => r.success).length;
+    
+    res.json({
+      success: true,
+      totalUploaded: successCount,
+      totalFiles: req.files.length,
+      uploads: uploadResults,
+      mediaIds: uploadResults.filter(r => r.success).map(r => r.mediaId)
+    });
+    
+  } catch (error) {
+    console.error('Multiple photo upload error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message,
+      message: 'Multiple photo upload failed'
+    });
+  }
+});
+
 // ENHANCED PRODUCT WORKFLOWS
 
 // Create product with collection assignment
