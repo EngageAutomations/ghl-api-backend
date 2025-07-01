@@ -118,7 +118,7 @@ app.get('/', (req, res) => {
   const authenticatedCount = Array.from(installations.values()).filter(inst => inst.tokenStatus === 'valid').length;
   res.json({
     service: "GoHighLevel OAuth Backend",
-    version: "5.3.0-complete-workflow",
+    version: "5.4.0-api-fix",
     installs: installations.size,
     authenticated: authenticatedCount,
     status: "operational",
@@ -404,7 +404,7 @@ app.post('/api/products/create', async (req, res) => {
     const productData = {
       name,
       description: description || '',
-      productType: productType || 'PHYSICAL',
+      type: productType || 'PHYSICAL', // GoHighLevel API uses 'type' not 'productType'
       locationId: installation.locationId,
       ...(sku && { sku }),
       ...(currency && { currency })
