@@ -748,6 +748,52 @@ app.post('/api/products/create-with-collection', async (req, res) => {
   }
 });
 
+// TOKEN TEST ENDPOINT
+app.get('/api/test/token', async (req, res) => {
+  console.log('=== TOKEN TEST REQUEST ===');
+  
+  try {
+    const { installation_id } = req.query;
+    
+    if (!installation_id) {
+      return res.status(400).json({ success: false, error: 'installation_id required' });
+    }
+    
+    await ensureFreshToken(installation_id);
+    const installation = installations.get(installation_id);
+    
+    console.log('Testing token with location info request...');
+    
+    // Test with a simple location info request
+    const testResponse = await axios.get(`https://services.leadconnectorhq.com/locations/${installation.locationId}`, {
+      headers: {
+        'Authorization': `Bearer ${installation.accessToken}`,
+        'Version': '2021-07-28'
+      }
+    });
+    
+    console.log('Token test successful:', testResponse.status);
+    
+    res.json({
+      success: true,
+      tokenStatus: 'valid',
+      locationId: installation.locationId,
+      scopes: installation.scopes,
+      locationData: testResponse.data
+    });
+    
+  } catch (error) {
+    console.error('Token test error:', error.response?.data || error.message);
+    console.error('Error status:', error.response?.status);
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message,
+      status: error.response?.status,
+      message: 'Token test failed'
+    });
+  }
+});
+
 // CUSTOMER SUPPORT ENDPOINTS
 
 // Create support ticket
