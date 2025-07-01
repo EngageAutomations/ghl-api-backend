@@ -118,7 +118,7 @@ app.get('/', (req, res) => {
   const authenticatedCount = Array.from(installations.values()).filter(inst => inst.tokenStatus === 'valid').length;
   res.json({
     service: "GoHighLevel OAuth Backend",
-    version: "5.4.0-api-fix",
+    version: "5.4.1-bridge-fix",
     installs: installations.size,
     authenticated: authenticatedCount,
     status: "operational",
@@ -130,6 +130,95 @@ app.get('/', (req, res) => {
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', ts: new Date().toISOString() });
+});
+
+// BRIDGE SYSTEM ENDPOINTS
+
+// Bridge endpoint to provide OAuth credentials to external systems
+app.get('/api/bridge/oauth-credentials', (req, res) => {
+  console.log('Bridge: Providing OAuth credentials');
+  
+  // Return hardcoded OAuth credentials for bridge system
+  res.json({
+    client_id: '675e4251e4b0e7a613050be3',
+    client_secret: '675e4251e4b0e7a613050be3-3lGGH5vhNS4RJxXb',
+    redirect_uri: 'https://dir.engageautomations.com/api/oauth/callback',
+    scope: 'businesses.readonly businesses.write calendars.readonly calendars.write campaigns.readonly campaigns.write companies.readonly companies.write contacts.readonly contacts.write conversations.readonly conversations.write courses.readonly courses.write forms.readonly forms.write links.readonly links.write locations.readonly locations.write medias.readonly medias.write opportunities.readonly opportunities.write payments.write products.readonly products.write snapshots.readonly surveys.readonly surveys.write users.readonly users.write workflows.readonly workflows.write',
+    authorization_url: 'https://marketplace.gohighlevel.com/oauth/chooselocation',
+    token_url: 'https://services.leadconnectorhq.com/oauth/token'
+  });
+});
+
+// Bridge endpoint to handle OAuth authorization codes
+app.post('/api/bridge/process-oauth', async (req, res) => {
+  console.log('Bridge: Processing OAuth authorization code');
+  
+  try {
+    const { code, redirectUri } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({ success: false, error: 'Authorization code required' });
+    }
+    
+    // Exchange code for tokens (same logic as OAuth callback)
+    const tokenData = await exchangeCode(code, redirectUri || 'https://dir.engageautomations.com/api/oauth/callback');
+    
+    if (tokenData) {
+      const installationId = storeInstall(tokenData);
+      
+      res.json({
+        success: true,
+        installation_id: installationId,
+        location_id: tokenData.locationId,
+        access_token: tokenData.access_token,
+        expires_in: tokenData.expires_in
+      });
+    } else {
+      res.status(400).json({ success: false, error: 'Token exchange failed' });
+    }
+    
+  } catch (error) {
+    console.error('Bridge OAuth processing error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Bridge endpoint to get installation status
+app.get('/api/bridge/installation/:id', (req, res) => {
+  const { id } = req.params;
+  const installation = installations.get(id);
+  
+  if (!installation) {
+    return res.status(404).json({ success: false, error: 'Installation not found' });
+  }
+  
+  res.json({
+    success: true,
+    installation: {
+      id: installation.id,
+      location_id: installation.locationId,
+      status: installation.tokenStatus,
+      scopes: installation.scopes,
+      created_at: installation.createdAt
+    }
+  });
+});
+
+// Bridge endpoint to list all installations
+app.get('/api/bridge/installations', (req, res) => {
+  const installationList = Array.from(installations.values()).map(install => ({
+    id: install.id,
+    location_id: install.locationId,
+    status: install.tokenStatus,
+    scopes: install.scopes,
+    created_at: install.createdAt
+  }));
+  
+  res.json({
+    success: true,
+    total: installationList.length,
+    installations: installationList
+  });
 });
 
 // MISSING INSTALLATIONS ENDPOINT - This was the problem!
