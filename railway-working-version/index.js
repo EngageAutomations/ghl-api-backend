@@ -405,6 +405,7 @@ app.post('/api/products/create', async (req, res) => {
       name,
       description: description || '',
       productType: productType || 'PHYSICAL',
+      locationId: installation.locationId,
       ...(sku && { sku }),
       ...(currency && { currency })
     };
@@ -428,9 +429,13 @@ app.post('/api/products/create', async (req, res) => {
     
   } catch (error) {
     console.error('Product creation error:', error.response?.data || error.message);
+    console.error('Error status:', error.response?.status);
+    console.error('Error headers:', error.response?.headers);
+    console.error('Full error:', error);
     res.status(500).json({
       success: false,
       error: error.response?.data || error.message,
+      status: error.response?.status,
       message: 'Failed to create product in GoHighLevel'
     });
   }
