@@ -479,6 +479,270 @@ app.get('/api/products/list', async (req, res) => {
   }
 });
 
+// COLLECTION MANAGEMENT ENDPOINTS
+
+// Create product collection
+app.post('/api/collections/create', async (req, res) => {
+  console.log('=== COLLECTION CREATION REQUEST ===');
+  
+  try {
+    const { name, description, productIds = [], installation_id } = req.body;
+    
+    if (!installation_id) {
+      return res.status(400).json({ success: false, error: 'installation_id required' });
+    }
+    
+    if (!name) {
+      return res.status(400).json({ success: false, error: 'collection name required' });
+    }
+    
+    console.log(`Creating collection: ${name}`);
+    console.log(`Products to include: ${productIds.length}`);
+    
+    await ensureFreshToken(installation_id);
+    const installation = installations.get(installation_id);
+    
+    const collectionData = {
+      name,
+      description: description || '',
+      productIds: productIds,
+      locationId: installation.locationId
+    };
+    
+    const collectionResponse = await axios.post('https://services.leadconnectorhq.com/collections/', collectionData, {
+      headers: {
+        'Authorization': `Bearer ${installation.accessToken}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('Collection created:', collectionResponse.data);
+    
+    res.json({
+      success: true,
+      collection: collectionResponse.data,
+      message: 'Collection created successfully'
+    });
+    
+  } catch (error) {
+    console.error('Collection creation error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message,
+      message: 'Failed to create collection'
+    });
+  }
+});
+
+// List all collections
+app.get('/api/collections/list', async (req, res) => {
+  console.log('=== COLLECTION LIST REQUEST ===');
+  
+  try {
+    const { installation_id } = req.query;
+    
+    if (!installation_id) {
+      return res.status(400).json({ success: false, error: 'installation_id required' });
+    }
+    
+    await ensureFreshToken(installation_id);
+    const installation = installations.get(installation_id);
+    
+    const collectionsResponse = await axios.get('https://services.leadconnectorhq.com/collections/', {
+      headers: {
+        'Authorization': `Bearer ${installation.accessToken}`,
+        'Version': '2021-07-28'
+      },
+      params: {
+        locationId: installation.locationId
+      }
+    });
+    
+    console.log('Collections retrieved:', collectionsResponse.data.collections?.length || 0);
+    
+    res.json({
+      success: true,
+      collections: collectionsResponse.data.collections || [],
+      count: collectionsResponse.data.collections?.length || 0
+    });
+    
+  } catch (error) {
+    console.error('Collection listing error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message,
+      message: 'Failed to retrieve collections'
+    });
+  }
+});
+
+// Add products to existing collection
+app.post('/api/collections/:collectionId/products', async (req, res) => {
+  console.log('=== ADD PRODUCTS TO COLLECTION ===');
+  
+  try {
+    const { collectionId } = req.params;
+    const { productIds, installation_id } = req.body;
+    
+    if (!installation_id) {
+      return res.status(400).json({ success: false, error: 'installation_id required' });
+    }
+    
+    if (!productIds || !Array.isArray(productIds)) {
+      return res.status(400).json({ success: false, error: 'productIds array required' });
+    }
+    
+    console.log(`Adding ${productIds.length} products to collection ${collectionId}`);
+    
+    await ensureFreshToken(installation_id);
+    const installation = installations.get(installation_id);
+    
+    const updateResponse = await axios.patch(`https://services.leadconnectorhq.com/collections/${collectionId}`, {
+      productIds: productIds
+    }, {
+      headers: {
+        'Authorization': `Bearer ${installation.accessToken}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('Products added to collection:', updateResponse.data);
+    
+    res.json({
+      success: true,
+      collection: updateResponse.data,
+      message: 'Products added to collection successfully'
+    });
+    
+  } catch (error) {
+    console.error('Add products to collection error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message,
+      message: 'Failed to add products to collection'
+    });
+  }
+});
+
+// ENHANCED PRODUCT WORKFLOWS
+
+// Create product with collection assignment
+app.post('/api/products/create-with-collection', async (req, res) => {
+  console.log('=== PRODUCT + COLLECTION WORKFLOW ===');
+  
+  try {
+    const { 
+      name, 
+      description, 
+      productType, 
+      sku, 
+      currency, 
+      collectionId,
+      pricing = [],
+      mediaIds = [],
+      installation_id 
+    } = req.body;
+    
+    if (!installation_id) {
+      return res.status(400).json({ success: false, error: 'installation_id required' });
+    }
+    
+    if (!name) {
+      return res.status(400).json({ success: false, error: 'product name required' });
+    }
+    
+    console.log(`Creating product with collection assignment: ${name}`);
+    
+    await ensureFreshToken(installation_id);
+    const installation = installations.get(installation_id);
+    
+    // Step 1: Create the product
+    const productData = {
+      name,
+      description: description || '',
+      productType: productType || 'product',
+      sku: sku || '',
+      currency: currency || 'USD',
+      locationId: installation.locationId,
+      mediaIds: mediaIds
+    };
+    
+    const productResponse = await axios.post('https://services.leadconnectorhq.com/products/', productData, {
+      headers: {
+        'Authorization': `Bearer ${installation.accessToken}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const createdProduct = productResponse.data;
+    console.log('Product created:', createdProduct.id);
+    
+    // Step 2: Add pricing if provided
+    const createdPrices = [];
+    if (pricing.length > 0) {
+      for (const price of pricing) {
+        try {
+          const priceResponse = await axios.post(`https://services.leadconnectorhq.com/products/${createdProduct.id}/prices`, {
+            name: price.name,
+            type: price.type || 'one_time',
+            amount: parseInt(price.amount),
+            currency: price.currency || 'USD'
+          }, {
+            headers: {
+              'Authorization': `Bearer ${installation.accessToken}`,
+              'Version': '2021-07-28',
+              'Content-Type': 'application/json'
+            }
+          });
+          createdPrices.push(priceResponse.data);
+          console.log('Price created:', priceResponse.data.id);
+        } catch (priceError) {
+          console.error('Price creation failed:', priceError.response?.data);
+        }
+      }
+    }
+    
+    // Step 3: Add to collection if specified
+    let collectionUpdate = null;
+    if (collectionId) {
+      try {
+        const updateResponse = await axios.patch(`https://services.leadconnectorhq.com/collections/${collectionId}`, {
+          productIds: [createdProduct.id]
+        }, {
+          headers: {
+            'Authorization': `Bearer ${installation.accessToken}`,
+            'Version': '2021-07-28',
+            'Content-Type': 'application/json'
+          }
+        });
+        collectionUpdate = updateResponse.data;
+        console.log('Product added to collection:', collectionId);
+      } catch (collectionError) {
+        console.error('Collection update failed:', collectionError.response?.data);
+      }
+    }
+    
+    res.json({
+      success: true,
+      product: createdProduct,
+      prices: createdPrices,
+      collection: collectionUpdate,
+      message: 'Product created with full workflow'
+    });
+    
+  } catch (error) {
+    console.error('Product workflow error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message,
+      message: 'Failed to create product with workflow'
+    });
+  }
+});
+
 // CUSTOMER SUPPORT ENDPOINTS
 
 // Create support ticket
