@@ -49,15 +49,27 @@ if (process.env.GHL_ACCESS_TOKEN) {
   });
 }
 
-// TOKEN LIFECYCLE HELPERS
-const PADDING_MS = 5 * 60 * 1000;
+// ENHANCED TOKEN LIFECYCLE HELPERS
+const PADDING_MS = 10 * 60 * 1000; // 10 minutes padding for early expiry protection
 const refreshers = new Map();
 
-async function refreshAccessToken(id) {
+async function enhancedRefreshAccessToken(id) {
   const inst = installations.get(id);
-  if (!inst || !inst.refreshToken) return;
+  
+  if (!inst) {
+    console.log(`[REFRESH] Installation ${id} not found`);
+    return false;
+  }
+
+  if (!inst.refreshToken) {
+    console.log(`[REFRESH] No refresh token for ${id} - OAuth reinstall required`);
+    inst.tokenStatus = 'refresh_required';
+    return false;
+  }
 
   try {
+    console.log(`[REFRESH] Attempting token refresh for ${id}`);
+    
     const body = new URLSearchParams({
       client_id: process.env.GHL_CLIENT_ID,
       client_secret: process.env.GHL_CLIENT_SECRET,
@@ -68,39 +80,212 @@ async function refreshAccessToken(id) {
     const { data } = await axios.post(
       'https://services.leadconnectorhq.com/oauth/token',
       body,
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, timeout: 15000 }
+      { 
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, 
+        timeout: 15000 
+      }
     );
 
+    // Update installation with new tokens
     inst.accessToken = data.access_token;
-    inst.refreshToken = data.refresh_token || inst.refreshToken;
+    inst.refreshToken = data.refresh_token || inst.refreshToken; // Keep old if new not provided
     inst.expiresIn = data.expires_in;
     inst.expiresAt = Date.now() + data.expires_in * 1000;
     inst.tokenStatus = 'valid';
-
-    scheduleRefresh(id);
-    console.log(`[REFRESH] ${id} → ${(data.expires_in / 3600).toFixed(1)} h`);
-  } catch (err) {
-    console.error(`[REFRESH-FAIL] ${id}`, err.response?.data || err.message);
-    inst.tokenStatus = 'invalid';
+    inst.lastRefresh = new Date().toISOString();
+    
+    console.log(`[REFRESH] ✅ Token refreshed successfully for ${id}`);
+    console.log(`[REFRESH] New expiry: ${new Date(inst.expiresAt).toISOString()}`);
+    
+    // Schedule next refresh
+    scheduleRefreshSmart(id);
+    
+    return true;
+    
+  } catch (error) {
+    console.error(`[REFRESH] ❌ Failed for ${id}:`, error.response?.data || error.message);
+    
+    if (error.response?.data?.error === 'invalid_grant') {
+      console.log(`[REFRESH] Refresh token expired for ${id} - OAuth reinstall required`);
+      inst.tokenStatus = 'refresh_expired';
+    } else {
+      inst.tokenStatus = 'refresh_failed';
+    }
+    
+    return false;
   }
 }
 
+// Legacy function for backward compatibility
+async function refreshAccessToken(id) {
+  return await enhancedRefreshAccessToken(id);
+}
+
+// Enhanced refresh scheduling with shorter intervals for early expiry protection
+function scheduleRefreshSmart(id) {
+  const inst = installations.get(id);
+  if (!inst) return;
+
+  // Clear existing refresh timer
+  if (refreshers.has(id)) {
+    clearTimeout(refreshers.get(id));
+  }
+
+  // Calculate time until refresh needed (refresh at 80% of token lifetime)
+  const timeUntilExpiry = inst.expiresAt - Date.now();
+  const refreshTime = Math.max(timeUntilExpiry * 0.8, 5 * 60 * 1000); // Minimum 5 minutes
+  
+  console.log(`[SCHEDULE] ${id} refresh scheduled in ${Math.round(refreshTime / 60000)} minutes`);
+
+  const timer = setTimeout(async () => {
+    console.log(`[SCHEDULE] Executing scheduled refresh for ${id}`);
+    await enhancedRefreshAccessToken(id);
+  }, refreshTime);
+
+  refreshers.set(id, timer);
+}
+
+// Legacy function for backward compatibility
 function scheduleRefresh(id) {
-  clearTimeout(refreshers.get(id));
-  const inst = installations.get(id);
-  if (!inst || !inst.expiresAt) return;
-  const delay = Math.max(inst.expiresAt - Date.now() - PADDING_MS, 0);
-  const t = setTimeout(() => refreshAccessToken(id), delay);
-  refreshers.set(id, t);
+  scheduleRefreshSmart(id);
 }
 
-async function ensureFreshToken(id) {
+// Smart token validation with automatic refresh and early expiry detection
+async function ensureFreshTokenSmart(id) {
   const inst = installations.get(id);
-  if (!inst) throw new Error('Unknown installation');
-  if (!inst.expiresAt || inst.expiresAt - Date.now() < PADDING_MS) {
-    await refreshAccessToken(id);
+  
+  if (!inst) {
+    throw new Error(`Installation ${id} not found`);
   }
-  if (inst.tokenStatus !== 'valid') throw new Error('Token invalid');
+
+  // Check if token is expired or will expire soon
+  const timeUntilExpiry = inst.expiresAt - Date.now();
+  const needsRefresh = timeUntilExpiry < PADDING_MS; // 10 minutes padding
+  
+  console.log(`[TOKEN] ${id} expires in ${Math.round(timeUntilExpiry / 60000)} minutes`);
+  
+  if (needsRefresh) {
+    console.log(`[TOKEN] ${id} needs refresh - attempting automatic renewal`);
+    
+    const refreshSuccess = await enhancedRefreshAccessToken(id);
+    
+    if (!refreshSuccess) {
+      throw new Error(`Token refresh failed for ${id} - OAuth reinstallation required`);
+    }
+  }
+
+  // Test token validity with a lightweight API call
+  try {
+    await axios.get(`https://services.leadconnectorhq.com/locations/${inst.locationId}`, {
+      headers: {
+        'Authorization': `Bearer ${inst.accessToken}`,
+        'Version': '2021-07-28'
+      },
+      timeout: 5000
+    });
+    
+    console.log(`[TOKEN] ✅ ${id} token validated successfully`);
+    inst.tokenStatus = 'valid';
+    return true;
+    
+  } catch (validationError) {
+    console.log(`[TOKEN] ❌ ${id} token validation failed:`, validationError.response?.data?.message || validationError.message);
+    
+    if (validationError.response?.status === 401) {
+      console.log(`[TOKEN] ${id} token expired early - attempting refresh`);
+      
+      const refreshSuccess = await enhancedRefreshAccessToken(id);
+      
+      if (!refreshSuccess) {
+        inst.tokenStatus = 'invalid';
+        throw new Error(`Token invalid and refresh failed for ${id} - OAuth reinstallation required`);
+      }
+      
+      return true;
+    }
+    
+    throw validationError;
+  }
+}
+
+// Legacy function for backward compatibility
+async function ensureFreshToken(id) {
+  return await ensureFreshTokenSmart(id);
+}
+
+// AUTOMATIC API RETRY SYSTEM
+async function makeGHLAPICall(installation_id, requestConfig, maxRetries = 2) {
+  let attempt = 0;
+  
+  while (attempt <= maxRetries) {
+    try {
+      // Get fresh token before each attempt
+      await ensureFreshTokenSmart(installation_id);
+      const inst = installations.get(installation_id);
+      
+      if (!inst || !inst.accessToken) {
+        throw new Error('No valid installation found');
+      }
+      
+      // Clone and enhance request config
+      const enhancedConfig = {
+        ...requestConfig,
+        headers: {
+          'Authorization': `Bearer ${inst.accessToken}`,
+          'Version': '2021-07-28',
+          'Accept': 'application/json',
+          ...requestConfig.headers
+        }
+      };
+      
+      // Add location ID if needed and not present
+      if (inst.locationId && !enhancedConfig.params?.locationId) {
+        enhancedConfig.params = {
+          locationId: inst.locationId,
+          ...enhancedConfig.params
+        };
+      }
+      
+      console.log(`[API] Attempt ${attempt + 1}/${maxRetries + 1} for ${requestConfig.method?.toUpperCase() || 'GET'} ${requestConfig.url}`);
+      
+      // Make the API call
+      const response = await axios.request(enhancedConfig);
+      
+      console.log(`[API] ✅ Success on attempt ${attempt + 1}`);
+      return response;
+      
+    } catch (error) {
+      attempt++;
+      
+      const isTokenError = error.response?.status === 401 || 
+                          error.response?.data?.message?.includes('Invalid JWT') ||
+                          error.response?.data?.message?.includes('Unauthorized');
+      
+      if (isTokenError && attempt <= maxRetries) {
+        console.log(`[API] ❌ Token error on attempt ${attempt}, retrying...`);
+        console.log(`[API] Error: ${error.response?.data?.message || error.message}`);
+        
+        // Force token refresh
+        const inst = installations.get(installation_id);
+        if (inst) {
+          inst.tokenStatus = 'needs_refresh';
+          const refreshSuccess = await enhancedRefreshAccessToken(installation_id);
+          
+          if (!refreshSuccess) {
+            throw new Error('Token refresh failed - OAuth reinstallation required');
+          }
+          
+          // Wait a moment before retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        }
+      }
+      
+      // Non-token error or max retries reached
+      console.log(`[API] ❌ Final failure after ${attempt} attempts`);
+      throw error;
+    }
+  }
 }
 
 function requireInstall(req, res) {
@@ -323,9 +508,9 @@ app.get('/api/oauth/status', (req, res) => {
   res.json({ authenticated: true, tokenStatus: inst.tokenStatus, locationId: inst.locationId });
 });
 
-// MEDIA UPLOAD ENDPOINT
+// ENHANCED MEDIA UPLOAD ENDPOINT WITH AUTO-RETRY
 app.post('/api/media/upload', upload.single('file'), async (req, res) => {
-  console.log('=== MEDIA UPLOAD REQUEST ===');
+  console.log('=== MEDIA UPLOAD REQUEST WITH AUTO-RETRY ===');
   
   try {
     const { installation_id } = req.body;
@@ -338,10 +523,7 @@ app.post('/api/media/upload', upload.single('file'), async (req, res) => {
       return res.status(400).json({ success: false, error: 'file required' });
     }
     
-    console.log(`Uploading file: ${req.file.originalname} (${req.file.size} bytes)`);
-    
-    await ensureFreshToken(installation_id);
-    const installation = installations.get(installation_id);
+    console.log(`[MEDIA] Uploading file: ${req.file.originalname} (${req.file.size} bytes) with auto-retry`);
     
     // Create form data for GoHighLevel API
     const formData = new FormData();
@@ -350,16 +532,15 @@ app.post('/api/media/upload', upload.single('file'), async (req, res) => {
       contentType: req.file.mimetype
     });
     
-    // Upload to GoHighLevel media library
-    const uploadResponse = await axios.post(`https://services.leadconnectorhq.com/medias/upload-file`, formData, {
+    // Use automatic retry system for media upload
+    const uploadResponse = await makeGHLAPICall(installation_id, {
+      method: 'post',
+      url: 'https://services.leadconnectorhq.com/medias/upload-file',
+      data: formData,
       headers: {
-        'Authorization': `Bearer ${installation.accessToken}`,
-        'Version': '2021-07-28',
         ...formData.getHeaders()
       },
-      params: {
-        locationId: installation.locationId
-      }
+      maxBodyLength: Infinity
     });
     
     // Clean up uploaded file
@@ -470,9 +651,9 @@ app.post('/api/products/:productId/prices', async (req, res) => {
   }
 });
 
-// PRODUCT CREATION ENDPOINT
+// ENHANCED PRODUCT CREATION ENDPOINT WITH AUTO-RETRY
 app.post('/api/products/create', async (req, res) => {
-  console.log('=== PRODUCT CREATION REQUEST ===');
+  console.log('=== PRODUCT CREATION REQUEST WITH AUTO-RETRY ===');
   
   try {
     const { name, description, productType, sku, currency, installation_id } = req.body;
@@ -485,47 +666,40 @@ app.post('/api/products/create', async (req, res) => {
       return res.status(400).json({ success: false, error: 'product name required' });
     }
     
-    console.log(`Creating product: ${name}`);
-    
-    await ensureFreshToken(installation_id);
-    const installation = installations.get(installation_id);
+    console.log(`[PRODUCT] Creating product: ${name} with auto-retry system`);
     
     const productData = {
       name,
       description: description || '',
-      productType: productType || 'DIGITAL', // GoHighLevel API expects 'productType' field with DIGITAL enum
-      locationId: installation.locationId,
+      productType: productType || 'DIGITAL',
       ...(sku && { sku }),
       ...(currency && { currency })
     };
     
-    // Create product in GoHighLevel
-    const productResponse = await axios.post('https://services.leadconnectorhq.com/products/', productData, {
-      headers: {
-        'Authorization': `Bearer ${installation.accessToken}`,
-        'Version': '2021-07-28',
-        'Content-Type': 'application/json'
-      }
+    // Use automatic retry system for product creation
+    const response = await makeGHLAPICall(installation_id, {
+      method: 'post',
+      url: 'https://services.leadconnectorhq.com/products/',
+      data: productData
     });
     
-    console.log('Product creation successful:', productResponse.data);
+    console.log('[PRODUCT] ✅ Product creation successful:', response.data);
     
     res.json({
       success: true,
-      product: productResponse.data.product || productResponse.data,
-      message: 'Product created successfully in GoHighLevel'
+      product: response.data.product || response.data,
+      message: 'Product created successfully with auto-retry protection'
     });
     
   } catch (error) {
-    console.error('Product creation error:', error.response?.data || error.message);
-    console.error('Error status:', error.response?.status);
-    console.error('Error headers:', error.response?.headers);
-    console.error('Full error:', error);
+    console.error('[PRODUCT] ❌ Creation failed after all retries:', error.response?.data || error.message);
+    
     res.status(500).json({
       success: false,
-      error: error.response?.data || error.message,
-      status: error.response?.status,
-      message: 'Failed to create product in GoHighLevel'
+      error: 'Product creation failed',
+      details: error.response?.data || error.message,
+      retry_exhausted: true,
+      action: error.message?.includes('OAuth reinstallation required') ? 'complete_oauth_installation' : 'retry_later'
     });
   }
 });
