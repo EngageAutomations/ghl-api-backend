@@ -8,6 +8,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { productWorkflowService } from './product-workflow-service';
+import { dynamicWorkflowService } from './dynamic-workflow-service';
 
 const router = Router();
 
@@ -208,6 +209,102 @@ router.get('/status/:installationId', async (req, res) => {
     res.status(500).json({
       ready: false,
       error: 'Failed to check workflow status',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/workflow/directory/:directoryName
+ * Process workflow based on directory wizard configuration
+ */
+router.post('/directory/:directoryName', upload.single('image'), async (req, res) => {
+  try {
+    const { directoryName } = req.params;
+    
+    console.log(`📝 Received dynamic workflow request for directory: ${directoryName}`);
+    
+    // Parse form data
+    let formData;
+    try {
+      formData = typeof req.body.data === 'string' 
+        ? JSON.parse(req.body.data) 
+        : req.body;
+    } catch (parseError) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid form data provided',
+        details: parseError.message
+      });
+    }
+
+    // Extract installation ID
+    const installationId = formData.installationId || req.body.installationId;
+    if (!installationId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Installation ID is required'
+      });
+    }
+
+    console.log('🔧 Processing dynamic workflow:', {
+      directoryName,
+      installationId,
+      hasImage: !!req.file,
+      formKeys: Object.keys(formData)
+    });
+
+    // Process dynamic workflow
+    const result = await dynamicWorkflowService.processDynamicWorkflow({
+      installationId,
+      directoryName,
+      formData,
+      imageFile: req.file
+    });
+
+    // Clean up uploaded file after processing
+    if (req.file) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (cleanupError) {
+        console.warn('Failed to cleanup uploaded file:', cleanupError);
+      }
+    }
+
+    res.json(result);
+
+  } catch (error: any) {
+    console.error('Dynamic workflow error:', error);
+    
+    // Clean up uploaded file on error
+    if (req.file) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (cleanupError) {
+        console.warn('Failed to cleanup uploaded file:', cleanupError);
+      }
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Dynamic workflow execution failed',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/workflow/directory/:directoryName/example
+ * Get example form structure for a specific directory
+ */
+router.get('/directory/:directoryName/example', async (req, res) => {
+  try {
+    const { directoryName } = req.params;
+    const example = await dynamicWorkflowService.getDirectoryFormExample(directoryName);
+    res.json(example);
+  } catch (error: any) {
+    res.status(500).json({
+      error: 'Failed to get directory form example',
       details: error.message
     });
   }
