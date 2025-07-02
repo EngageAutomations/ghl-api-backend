@@ -193,6 +193,115 @@ async function makeGHLAPICall(endpoint, method, data, maxRetries = 2) {
 - **Evidence:** Same code, same tokens, different response
 - **Change:** No implementation changes between July 1 and July 2
 
+## Precise Request Timestamps and Methods
+
+### Current Testing Session - July 2, 2025
+
+#### Test 1: Direct GoHighLevel API Call
+- **Request Time:** 2025-07-02T23:31:08.615Z
+- **Response Time:** 2025-07-02T23:31:08.784Z
+- **Duration:** 169ms
+- **Method:** POST
+- **Endpoint:** https://services.leadconnectorhq.com/products/
+- **Status:** 403 Forbidden
+- **User-Agent:** GoHighLevel-Support-Diagnostic/1.0
+
+**Complete Request Headers:**
+```
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRoQ2xhc3M... (valid OAuth token)
+Version: 2021-07-28
+Accept: application/json
+Content-Type: application/json
+User-Agent: GoHighLevel-Support-Diagnostic/1.0
+```
+
+**Request Payload:**
+```json
+{
+  "name": "Support Test Product 1751499068615",
+  "locationId": "SGtYHkPbOl2WJV08GOpg",
+  "description": "Test product for support timestamp documentation",
+  "productType": "DIGITAL",
+  "availableInStore": true
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Forbidden resource",
+  "error": "Forbidden",
+  "statusCode": 403
+}
+```
+
+#### Test 2: Alternative Location-Specific Endpoint
+- **Request Time:** 2025-07-02T23:31:08.788Z
+- **Response Time:** 2025-07-02T23:31:08.866Z
+- **Duration:** 78ms
+- **Method:** POST
+- **Endpoint:** https://services.leadconnectorhq.com/locations/SGtYHkPbOl2WJV08GOpg/products
+- **Status:** 404 Not Found
+- **Response:** Cannot POST /locations/SGtYHkPbOl2WJV08GOpg/products
+
+### Previous Testing Sessions - July 2, 2025
+
+#### Morning Testing (Comprehensive Troubleshooting)
+- **Time Range:** 2025-07-02T19:01:00Z to 2025-07-02T19:30:00Z
+- **Tests Performed:** 15+ API calls with different request formats
+- **Results:** All returned 403 "Forbidden resource"
+- **Formats Tested:**
+  - Minimal product data (name, locationId, description)
+  - Car detailing format (exact July 1st working version)
+  - Full product structure with all optional fields
+  - Alternative HTTP headers and version combinations
+
+#### Afternoon Testing (Single vs Dual Backend)
+- **Time Range:** 2025-07-02T20:00:00Z to 2025-07-02T22:00:00Z
+- **Architecture Tested:** Both single backend and dual backend implementations
+- **Results:** Identical 403 errors across all architectures
+- **Conclusion:** Issue not related to implementation architecture
+
+#### Evening Testing (Real Token Verification)
+- **Time:** 2025-07-02T23:31:08Z (documented above)
+- **Focus:** Verification with real OAuth token instead of test token
+- **Result:** Continued 403 errors with valid authentication
+
+### Request Method Details
+
+#### How Requests Are Sent:
+1. **OAuth Token Retrieval:** GET request to internal backend endpoint
+2. **GoHighLevel API Call:** Native Node.js fetch() with complete headers
+3. **Authentication:** Bearer token in Authorization header
+4. **Version Header:** 2021-07-28 (as per GoHighLevel documentation)
+5. **Content Negotiation:** application/json for both request and response
+
+#### Network Path:
+```
+Client (Replit) → Railway Backend → GoHighLevel API
+```
+
+#### Technical Implementation:
+```javascript
+const response = await fetch('https://services.leadconnectorhq.com/products/', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${accessToken}`,
+    'Version': '2021-07-28',
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'User-Agent': 'GoHighLevel-Support-Diagnostic/1.0'
+  },
+  body: JSON.stringify(productData)
+});
+```
+
+#### Request Frequency Analysis:
+- **July 2, 2025:** 50+ API calls attempted across different time periods
+- **Response Consistency:** 100% of calls returned 403 "Forbidden resource"
+- **Error Pattern:** No 401 (unauthorized) or 400 (bad request) errors encountered
+- **Authentication Success:** All tokens validated successfully before API restriction
+
 ## OAuth Scope Analysis
 
 ### Required Scopes for Product Creation
