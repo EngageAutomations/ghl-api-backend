@@ -15,10 +15,10 @@ function extractLocationIdFromToken(token) {
   }
 }
 
-// Product creation using the EXACT GoHighLevel format you provided
+// Product creation using EXACT single backend format that was working
 async function createProduct(productData, req) {
   try {
-    console.log('Creating product in GoHighLevel with CORRECT API format');
+    console.log('Creating product using single backend format that was working');
     
     // Get access token from OAuth backend
     const tokenResponse = await axios.post(`${req.oauthBackend}/api/token-access`, {
@@ -39,7 +39,7 @@ async function createProduct(productData, req) {
       throw new Error('No location ID available for product creation');
     }
     
-    // Create product payload using EXACT GoHighLevel format from your example
+    // Use EXACT product format that single backend was using (simpler structure)
     const productPayload = {
       name: productData.name,
       locationId: locationId,
@@ -48,83 +48,98 @@ async function createProduct(productData, req) {
       availableInStore: productData.availableInStore !== false
     };
     
-    // Add optional fields with correct structure - EXACTLY as your example
+    // Add image if provided (single backend style)
     if (productData.image) {
       productPayload.image = productData.image;
     }
     
-    if (productData.statementDescriptor) {
-      productPayload.statementDescriptor = productData.statementDescriptor;
-    }
-    
+    // Add medias array if provided (single backend style)
     if (productData.medias && Array.isArray(productData.medias)) {
       productPayload.medias = productData.medias;
     }
     
-    if (productData.variants && Array.isArray(productData.variants)) {
-      productPayload.variants = productData.variants;
-    }
-    
-    if (productData.collectionIds && Array.isArray(productData.collectionIds)) {
-      productPayload.collectionIds = productData.collectionIds;
-    }
-    
-    if (productData.isTaxesEnabled !== undefined) {
-      productPayload.isTaxesEnabled = productData.isTaxesEnabled;
-    }
-    
-    if (productData.taxes && Array.isArray(productData.taxes)) {
-      productPayload.taxes = productData.taxes;
-    }
-    
-    if (productData.automaticTaxCategoryId) {
-      productPayload.automaticTaxCategoryId = productData.automaticTaxCategoryId;
-    }
-    
-    if (productData.isLabelEnabled !== undefined) {
-      productPayload.isLabelEnabled = productData.isLabelEnabled;
-    }
-    
-    if (productData.label) {
-      productPayload.label = productData.label;
-    }
-    
-    if (productData.slug) {
-      productPayload.slug = productData.slug;
-    }
-    
-    if (productData.seo) {
-      productPayload.seo = productData.seo;
-    }
-    
-    console.log('Making direct call to GoHighLevel Products API with CORRECT format');
+    console.log('Using single backend request format with automatic retry system');
     console.log('Location ID:', locationId);
     console.log('Product payload:', JSON.stringify(productPayload, null, 2));
     
-    // Make direct call using EXACT configuration from your example
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
+    // Use EXACT makeGHLAPICall format from single backend
+    const requestConfig = {
+      method: 'POST',
       url: 'https://services.leadconnectorhq.com/products/',
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Accept': 'application/json', 
-        'Version': '2021-07-28', 
-        'Authorization': `Bearer ${accessToken}`
-      },
-      data: productPayload
+      data: productPayload,
+      headers: {
+        'Content-Type': 'application/json'
+      }
     };
     
-    const response = await axios.request(config);
+    // Replicate single backend's automatic API retry system
+    const response = await makeGHLAPICallLikeSingleBackend(req.installationId, requestConfig, accessToken, locationId);
     
-    console.log('GoHighLevel response:', response.status, response.data);
+    console.log('GoHighLevel response (single backend format):', response.status, response.data);
     return response.data;
   } catch (error) {
-    console.error('Product creation error:', error.message);
+    console.error('Product creation error (single backend format):', error.message);
     if (error.response) {
       console.error('GoHighLevel error response:', error.response.status, error.response.data);
     }
     throw error;
+  }
+}
+
+// Replicate single backend's makeGHLAPICall function
+async function makeGHLAPICallLikeSingleBackend(installation_id, requestConfig, accessToken, locationId, maxRetries = 2) {
+  let attempt = 0;
+  
+  while (attempt <= maxRetries) {
+    try {
+      // Clone and enhance request config EXACTLY like single backend
+      const enhancedConfig = {
+        ...requestConfig,
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Version': '2021-07-28',
+          'Accept': 'application/json',
+          ...requestConfig.headers
+        }
+      };
+      
+      // Add location ID params like single backend
+      if (locationId && !enhancedConfig.params?.locationId) {
+        enhancedConfig.params = {
+          locationId: locationId,
+          ...enhancedConfig.params
+        };
+      }
+      
+      console.log(`[API] Attempt ${attempt + 1}/${maxRetries + 1} for ${requestConfig.method?.toUpperCase() || 'GET'} ${requestConfig.url}`);
+      console.log(`[API] Headers: Authorization: Bearer ${accessToken.substring(0, 20)}..., Version: 2021-07-28`);
+      
+      // Make the API call EXACTLY like single backend
+      const response = await axios.request(enhancedConfig);
+      
+      console.log(`[API] ✅ Success on attempt ${attempt + 1} (single backend format)`);
+      return response;
+      
+    } catch (error) {
+      attempt++;
+      
+      const isTokenError = error.response?.status === 401 || 
+                          error.response?.data?.message?.includes('Invalid JWT') ||
+                          error.response?.data?.message?.includes('Unauthorized');
+      
+      if (isTokenError && attempt <= maxRetries) {
+        console.log(`[API] ❌ Token error on attempt ${attempt}, retrying... (single backend style)`);
+        console.log(`[API] Error: ${error.response?.data?.message || error.message}`);
+        
+        // Wait a moment before retry (single backend behavior)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        continue;
+      }
+      
+      // Non-token error or max retries reached
+      console.log(`[API] ❌ Final failure after ${attempt} attempts (single backend format)`);
+      throw error;
+    }
   }
 }
 
