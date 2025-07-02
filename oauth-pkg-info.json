@@ -1,0 +1,18 @@
+{
+  "name": "package.json",
+  "path": "package.json",
+  "sha": "0a6f2a4ec6b96fc68cd4e62b5acd22ce2620d912",
+  "size": 339,
+  "url": "https://api.github.com/repos/EngageAutomations/oauth-backend/contents/package.json?ref=main",
+  "html_url": "https://github.com/EngageAutomations/oauth-backend/blob/main/package.json",
+  "git_url": "https://api.github.com/repos/EngageAutomations/oauth-backend/git/blobs/0a6f2a4ec6b96fc68cd4e62b5acd22ce2620d912",
+  "download_url": "https://raw.githubusercontent.com/EngageAutomations/oauth-backend/main/package.json",
+  "type": "file",
+  "content": "ewogICJuYW1lIjogIm9hdXRoLWJhY2tlbmQiLAogICJ2ZXJzaW9uIjogIjYu\nMC4wIiwKICAiZGVzY3JpcHRpb24iOiAiUHVyZSBPQXV0aCBiYWNrZW5kIGZv\nciBHb0hpZ2hMZXZlbCBtYXJrZXRwbGFjZSBpbnRlZ3JhdGlvbiIsCiAgIm1h\naW4iOiAiaW5kZXguanMiLAogICJzY3JpcHRzIjogewogICAgInN0YXJ0Ijog\nIm5vZGUgaW5kZXguanMiCiAgfSwKICAiZGVwZW5kZW5jaWVzIjogewogICAg\nImV4cHJlc3MiOiAiXjQuMTguMiIsCiAgICAiY29ycyI6ICJeMi44LjUiLAog\nICAgImF4aW9zIjogIl4xLjYuMCIKICB9LAogICJlbmdpbmVzIjogewogICAg\nIm5vZGUiOiAiPj0xOC4wLjAiCiAgfQp9\n",
+  "encoding": "base64",
+  "_links": {
+    "self": "https://api.github.com/repos/EngageAutomations/oauth-backend/contents/package.json?ref=main",
+    "git": "https://api.github.com/repos/EngageAutomations/oauth-backend/git/blobs/0a6f2a4ec6b96fc68cd4e62b5acd22ce2620d912",
+    "html": "https://github.com/EngageAutomations/oauth-backend/blob/main/package.json"
+  }
+}
