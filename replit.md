@@ -148,6 +148,18 @@ Use delete + create method for reliable file updates:
 
 ## Recent Changes
 
+- July 2, 2025: Dynamic Product Workflow System - COMPLETED
+  - Built comprehensive dynamic workflow system that adapts to directory wizard configurations
+  - Created DynamicWorkflowService that maps form fields based on wizard templates stored in database
+  - Implemented intelligent field mapping for GoHighLevel essential fields: title, description, price, SEO
+  - Added dynamic API route `/api/workflow/directory/:directoryName` for wizard-based form processing
+  - Created DynamicProductWorkflow React component with real-time directory configuration loading
+  - System automatically extracts and validates only fields that will be sent to GoHighLevel
+  - Simplified workflow focuses on essential product data while supporting varied form structures
+  - Enhanced ProductWorkflowPage to use new dynamic component with directory-specific form generation
+  - Complete workflow: Load directory config → Validate form fields → Extract essential data → Create GoHighLevel product
+  - Automatic retry functionality and OAuth token refresh maintained throughout dynamic workflows
+
 - July 1, 2025: Image Upload API Implementation - COMPLETED
   - Fixed dual backend architecture confusion - maintained proper separation of concerns
   - OAuth Backend (Railway): Reverted to pure OAuth functionality only with token management

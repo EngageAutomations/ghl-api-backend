@@ -1,4 +1,4 @@
-import { ProductWorkflow } from '@/components/ProductWorkflow';
+import { DynamicProductWorkflow } from '@/components/DynamicProductWorkflow';
 
 export default function ProductWorkflowPage() {
   return (
@@ -14,7 +14,7 @@ export default function ProductWorkflowPage() {
           </p>
         </div>
         
-        <ProductWorkflow />
+        <DynamicProductWorkflow />
         
         <div className="mt-12 bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-xl font-semibold mb-4">How It Works</h2>
