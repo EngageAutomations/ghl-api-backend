@@ -102,15 +102,15 @@ async function createProduct(productData, req) {
     console.log('Product payload:', JSON.stringify(productPayload, null, 2));
     
     // Make direct call using EXACT configuration from your example
-    const config = {
+    let config = {
       method: 'post',
       maxBodyLength: Infinity,
       url: 'https://services.leadconnectorhq.com/products/',
       headers: { 
         'Content-Type': 'application/json', 
         'Accept': 'application/json', 
-        'Authorization': `Bearer ${accessToken}`,
-        'Version': '2021-07-28'
+        'Version': '2021-07-28', 
+        'Authorization': `Bearer ${accessToken}`
       },
       data: productPayload
     };
