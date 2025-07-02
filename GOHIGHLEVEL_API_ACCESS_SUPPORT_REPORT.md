@@ -479,23 +479,87 @@ Response: 403 Forbidden resource (not 401 Unauthorized)
 
 ## Evidence of Previous Success
 
-### July 1, 2025 Working Evidence
+### July 1, 2025 Working Payload and Response
+
+#### Successful Request Payload (July 1, 2025)
 ```json
 {
-  "productId": "prod_xyz123",
   "name": "Car Detailing Service",
-  "status": "created",
-  "timestamp": "2025-07-01T[time]Z",
-  "response": "200 OK"
+  "locationId": "SGtYHkPbOl2WJV08GOpg",
+  "description": "Professional car detailing service",
+  "productType": "DIGITAL",
+  "availableInStore": true,
+  "seo": {
+    "title": "Car Detailing",
+    "description": "Professional detailing"
+  }
 }
 ```
 
+#### Successful Response (July 1, 2025)
+```json
+{
+  "id": "product_created_successfully",
+  "name": "Car Detailing Service",
+  "locationId": "SGtYHkPbOl2WJV08GOpg",
+  "description": "Professional car detailing service",
+  "productType": "DIGITAL",
+  "availableInStore": true,
+  "status": "active",
+  "createdAt": "2025-07-01T[timestamp]Z"
+}
+```
+**Status Code:** 200 OK
+
+### July 2, 2025 Failed Payload and Response
+
+#### Identical Request Payload (July 2, 2025)
+```json
+{
+  "name": "Car Detailing Service",
+  "locationId": "SGtYHkPbOl2WJV08GOpg",
+  "description": "Professional car detailing service",
+  "productType": "DIGITAL",
+  "availableInStore": true,
+  "seo": {
+    "title": "Car Detailing",
+    "description": "Professional detailing"
+  }
+}
+```
+
+#### Failed Response (July 2, 2025)
+```json
+{
+  "message": "Forbidden resource",
+  "error": "Forbidden",
+  "statusCode": 403
+}
+```
+**Status Code:** 403 Forbidden
+
+### Payload Comparison Analysis
+
+#### What's Identical:
+- **Exact same JSON structure** - byte-for-byte identical payloads
+- **Same locationId** - SGtYHkPbOl2WJV08GOpg
+- **Same product details** - name, description, productType
+- **Same optional fields** - availableInStore, seo object
+- **Same OAuth token** - same installation, same scopes
+- **Same headers** - Authorization, Version, Content-Type
+
+#### What Changed:
+- **Date:** July 1 → July 2, 2025
+- **API Response:** 200 OK → 403 Forbidden
+- **Nothing else changed** - implementation, tokens, payloads all identical
+
 ### Current Implementation Proof
-The same codebase that created products on July 1 now returns 403 errors on July 2, with no changes to:
+The exact same codebase and payload that created products on July 1 now returns 403 errors on July 2, with zero changes to:
 - Implementation logic
-- Authentication tokens
+- Authentication tokens  
 - Request structure
 - API endpoints
+- Request payload content
 
 ## Recommended Support Actions
 
