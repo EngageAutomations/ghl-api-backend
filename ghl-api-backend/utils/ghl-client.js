@@ -109,7 +109,8 @@ async function createProduct(productData, req) {
       headers: { 
         'Content-Type': 'application/json', 
         'Accept': 'application/json', 
-        'Authorization': `Bearer ${accessToken}`
+        'Authorization': `Bearer ${accessToken}`,
+        'Version': '2021-07-28'
       },
       data: productPayload
     };
