@@ -497,19 +497,12 @@ Response: 403 Forbidden resource (not 401 Unauthorized)
 ```
 
 #### Successful Response (July 1, 2025)
-```json
-{
-  "id": "product_created_successfully",
-  "name": "Car Detailing Service",
-  "locationId": "SGtYHkPbOl2WJV08GOpg",
-  "description": "Professional car detailing service",
-  "productType": "DIGITAL",
-  "availableInStore": true,
-  "status": "active",
-  "createdAt": "2025-07-01T[timestamp]Z"
-}
-```
-**Status Code:** 200 OK
+**Status Code:** 200 OK or 201 Created
+**Note:** The exact response payload from July 1st was not logged, but the key evidence is:
+- Products were successfully created in the GoHighLevel account
+- Status codes returned 200/201 (success)
+- No 403 "Forbidden resource" errors occurred
+- The same payload structure that now returns 403 worked successfully
 
 ### July 2, 2025 Failed Payload and Response
 
