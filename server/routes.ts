@@ -5,6 +5,7 @@ import { insertListingSchema, insertListingAddonSchema, insertWizardFormTemplate
 import { z } from "zod";
 import { storage } from "./storage";
 import { RailwayBridge, bridgeRoutes } from "./bridge-endpoints";
+import { workflowRoutes } from "./workflow-routes";
 import multer from "multer";
 import axios from "axios";
 
@@ -23,6 +24,9 @@ export function registerRoutes(app: Express) {
       app.post(route.path, route.handler);
     }
   });
+
+  // Product Creation Workflow Routes
+  app.use('/api/workflow', workflowRoutes);
 
   // Directory Loading Page
   app.get("/directory", async (req, res) => {

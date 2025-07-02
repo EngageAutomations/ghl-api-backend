@@ -1,0 +1,118 @@
+✅ Step-by-Step Workflow
+🟢 Step 1: Upload Image
+Endpoint: POST /media/upload
+What it does: Uploads your image and returns the image url.
+
+🟢 Step 2: Create Product (Without Image)
+Endpoint: POST /products
+What it does: Creates a new product and returns the productId.
+Leave the image field out for now.
+
+🟢 Step 3: Update Product With Image URL
+Endpoint: PUT /products/{productId}
+What it does: Attaches the uploaded image to the product by passing the image URL.
+
+🟢 Step 4: Add Price to Product
+Endpoint: POST /products/{productId}/prices
+What it does: Sets a price for the product using the productId.
+
+🔧 Full Example (Node.js)
+js
+Copy
+Edit
+const axios = require('axios');
+const FormData = require('form-data');
+const fs = require('fs');
+
+// Step 1: Upload Image
+async function uploadImage(filePath, token) {
+  const form = new FormData();
+  form.append('file', fs.createReadStream(filePath));
+
+  const res = await axios.post(
+    'https://services.leadconnectorhq.com/media/upload',
+    form,
+    {
+      headers: {
+        ...form.getHeaders(),
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return res.data.url;
+}
+
+// Step 2: Create Product
+async function createProduct(productDetails, token) {
+  const res = await axios.post(
+    'https://services.leadconnectorhq.com/products',
+    productDetails,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return res.data.id;
+}
+
+// Step 3: Update Product with Image URL
+async function updateProductWithImage(productId, imageUrl, token) {
+  const payload = { image: imageUrl };
+
+  await axios.put(
+    `https://services.leadconnectorhq.com/products/${productId}`,
+    payload,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+}
+
+// Step 4: Add Price to Product
+async function addPriceToProduct(productId, priceData, token) {
+  await axios.post(
+    `https://services.leadconnectorhq.com/products/${productId}/prices`,
+    priceData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+}
+
+// 🔁 Full Workflow Function
+async function createCompleteProductWorkflow(filePath, productDetails, priceData, token) {
+  const imageUrl = await uploadImage(filePath, token);
+  const productId = await createProduct(productDetails, token);
+  await updateProductWithImage(productId, imageUrl, token);
+  await addPriceToProduct(productId, priceData, token);
+  console.log(`✅ Product ${productId} created with image and price.`);
+}
+🧾 Example Inputs
+js
+Copy
+Edit
+const filePath = './image.jpg';
+const productDetails = {
+  name: 'Test Product',
+  description: 'A sample product',
+  type: 'one_time', // or 'recurring'
+};
+
+const priceData = {
+  amount: 1999, // in cents, e.g., $19.99
+  currency: 'USD',
+};
+
+const token = 'your-oauth-access-token';
+
+createCompleteProductWorkflow(filePath, productDetails, priceData, token);

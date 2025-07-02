@@ -38,6 +38,7 @@ import { GHLProductDemo } from "@/components/GHLProductDemo";
 import { RailwayBackendTest } from "@/components/RailwayBackendTest";
 import ProductCreationDemo from "@/components/ProductCreationDemo";
 import PricingManager from "@/pages/PricingManager";
+import ProductWorkflowPage from "@/pages/ProductWorkflowPage";
 
 // No authentication required - direct access
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -190,6 +191,15 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <GHLProductDemo />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+
+      {/* Product Creation Workflow */}
+      <Route path="/product-workflow">
+        <ProtectedRoute>
+          <AppLayout>
+            <ProductWorkflowPage />
           </AppLayout>
         </ProtectedRoute>
       </Route>
