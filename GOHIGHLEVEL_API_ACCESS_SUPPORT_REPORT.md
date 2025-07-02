@@ -112,24 +112,35 @@ POST https://services.leadconnectorhq.com/products/?locationId=SGtYHkPbOl2WJV08G
 ```
 **Result:** 403 Forbidden resource
 
-### Implementation Architecture
+### Implementation Architecture - Dual Backend System (Production)
 
-#### Dual Backend System
-1. **OAuth Backend (Railway):** Handles OAuth flow and token management
-   - URL: https://dir.engageautomations.com
-   - Repository: https://github.com/EngageAutomations/oauth-backend
-   - Function: OAuth callbacks, token storage, refresh management
+**This is our primary production architecture that worked successfully on July 1, 2025**
 
-2. **API Backend (Railway):** Handles GoHighLevel API operations
-   - URL: https://api.engageautomations.com  
-   - Repository: https://github.com/EngageAutomations/ghl-api-backend
-   - Function: Product creation, media upload, pricing management
+#### 1. OAuth Backend (Railway)
+- **URL:** https://dir.engageautomations.com
+- **Repository:** https://github.com/EngageAutomations/oauth-backend
+- **Function:** OAuth callbacks, token storage, refresh management
+- **Status:** Operational with installation install_1751436979939
 
-#### Authentication Flow
-1. OAuth Backend stores access/refresh tokens
-2. API Backend retrieves tokens via bridge middleware
-3. API Backend makes authenticated calls to GoHighLevel
-4. Automatic token refresh on 401 errors
+#### 2. API Backend (Railway) 
+- **URL:** https://api.engageautomations.com
+- **Repository:** https://github.com/EngageAutomations/ghl-api-backend  
+- **Function:** Product creation, media upload, pricing management
+- **Status:** Operational, ready for GoHighLevel API calls
+
+#### Production Authentication Flow (Working July 1, 2025)
+1. **OAuth Backend** stores access/refresh tokens from GoHighLevel installation
+2. **API Backend** retrieves tokens via bridge middleware from OAuth backend
+3. **API Backend** makes authenticated calls to GoHighLevel with retrieved tokens
+4. **Automatic retry system** refreshes tokens on 401 errors
+5. **Complete separation** ensures OAuth stability during API development
+
+#### Bridge Communication Pattern
+```
+Frontend (Replit) → API Backend (Railway) → OAuth Backend (Railway) → GoHighLevel API
+```
+
+**This dual backend architecture successfully created products on July 1, 2025 and is our preferred implementation for support resolution.**
 
 ### Code Implementation Details
 
@@ -628,13 +639,19 @@ This comprehensive analysis demonstrates that:
 
 The 403 "Forbidden resource" error indicates an API access restriction implemented between July 1-2, 2025, affecting product creation capabilities for this specific OAuth installation or account.
 
-**Immediate Request:** Please restore product API access for installation install_1751436979939 or provide guidance on obtaining proper permissions for product creation functionality.
+**Immediate Request:** Please restore product API access for installation install_1751436979939 to enable our dual backend architecture to resume normal operations.
+
+**Architecture Support Needed:** Our dual backend system (OAuth backend + API backend) was fully operational on July 1, 2025. We need assistance ensuring this production architecture continues to work with GoHighLevel's API access policies.
 
 ---
 
 **Contact Information:**
-- OAuth Installation: install_1751436979939
-- Account ID: WAvk87RmW9rBSDJHeOpH  
-- Location ID: SGtYHkPbOl2WJV08GOpG
-- Implementation: Dual backend architecture with proper OAuth flow
-- Status: Ready to resume product creation once API access restored
+- **OAuth Installation:** install_1751436979939
+- **Account ID:** WAvk87RmW9rBSDJHeOpH  
+- **Location ID:** SGtYHkPbOl2WJV08GOpg
+- **Production Architecture:** Dual backend system (OAuth + API backends on Railway)
+- **OAuth Backend:** https://dir.engageautomations.com
+- **API Backend:** https://api.engageautomations.com
+- **Status:** Dual backend architecture ready to resume product creation once API access restored
+
+**Technical Implementation:** Our dual backend system provides separation of concerns with OAuth backend handling authentication and API backend handling GoHighLevel operations. This architecture worked successfully July 1, 2025 and is our preferred production setup.
