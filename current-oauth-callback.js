@@ -99,8 +99,9 @@ app.get('/api/oauth/callback', async (req, res) => {
     console.log(`✅ Installation ${installation_id} stored successfully`);
     console.log('   Total installations:', installations.size);
     
-    // Redirect to frontend with installation details
-    const frontendUrl = `https://listings.engageautomations.com/?installation_id=${installation_id}&welcome=true`;
+    // Redirect to frontend with installation details - configurable via environment variable
+    const baseUrl = process.env.FRONTEND_REDIRECT_URL || 'https://listings.engageautomations.com';
+    const frontendUrl = `${baseUrl}/?installation_id=${installation_id}&welcome=true`;
     
     res.send(`<!DOCTYPE html>
 <html lang="en">
@@ -336,7 +337,37 @@ app.get('/debug', (req, res) => {
       count: installations.size,
       ids: Array.from(installations.keys())
     },
+    frontend_redirect: process.env.FRONTEND_REDIRECT_URL || 'https://listings.engageautomations.com',
     last_request: new Date().toISOString()
+  });
+});
+
+// Get current redirect URL
+app.get('/api/redirect-url', (req, res) => {
+  res.json({
+    current_url: process.env.FRONTEND_REDIRECT_URL || 'https://listings.engageautomations.com',
+    default_url: 'https://listings.engageautomations.com',
+    message: 'Change via Railway environment variable: FRONTEND_REDIRECT_URL'
+  });
+});
+
+// Update redirect URL (runtime change)
+app.post('/api/redirect-url', (req, res) => {
+  const { url } = req.body;
+  
+  if (!url || !url.startsWith('http')) {
+    return res.status(400).json({
+      error: 'Valid URL required (must start with http/https)'
+    });
+  }
+  
+  // Update runtime environment variable
+  process.env.FRONTEND_REDIRECT_URL = url;
+  
+  res.json({
+    success: true,
+    new_url: url,
+    message: 'Redirect URL updated for current session. Set FRONTEND_REDIRECT_URL environment variable in Railway for persistence.'
   });
 });
 
