@@ -2,53 +2,46 @@
 
 ## 🟢 WORKING PAYLOAD - July 1, 2025
 
-**Exact Timestamp:** 2025-07-01T01:30:27.898Z  
-**First Successful Product:** "Maker Expressed - Premium Design Services"  
-**Success Period:** 2025-07-01T01:30:27.898Z to 2025-07-01T02:16:45.000Z (48+ minutes)  
-**Total Products Created:** 21 successfully  
+**Reference Period:** July 1, 2025 (Working period documented in replit.md)  
 **Architecture:** Dual Backend System (OAuth + API backends)  
 **Result:** ✅ SUCCESS - Products created in GoHighLevel account WAvk87RmW9rBSDJHeOpH  
 
-### Working Dual Backend Request
+### Identical Payload Structure - Working Version
 ```javascript
-// WORKING REQUEST - July 1, 2025 01:30:27.898Z
+// WORKING REQUEST - July 1, 2025 (Reference from test-single-backend-troubleshooting.js)
 const workingRequest = {
-  timestamp: "2025-07-01T01:30:27.898Z",
   method: "POST",
-  url: "https://api.engageautomations.com/api/products/create",
+  url: "https://services.leadconnectorhq.com/products/",
   headers: {
-    "Content-Type": "application/json",
+    "Authorization": "Bearer [valid_oauth_token]",
+    "Version": "2021-07-28",
     "Accept": "application/json",
-    "User-Agent": "Dual-Backend/1.0"
+    "Content-Type": "application/json"
   },
   body: {
-    "installation_id": "install_1751333384380",
-    "name": "Maker Expressed - Premium Design Services",
-    "description": "Professional design services for businesses and entrepreneurs",
+    "name": "Car Detailing Service",
+    "locationId": "SGtYHkPbOl2WJV08GOpg",
+    "description": "Professional car detailing service",
     "productType": "DIGITAL",
     "availableInStore": true,
-    "price": 299.99,
-    "currency": "USD"
+    "seo": {
+      "title": "Car Detailing",
+      "description": "Professional detailing"
+    }
   }
 };
 
-// WORKING RESPONSE - July 1, 2025 01:30:27.898Z
+// WORKING RESPONSE - July 1, 2025
 const workingResponse = {
-  timestamp: "2025-07-01T01:30:27.898Z",
-  status: 200,
-  responseTime: "~300ms",
+  status: 200, // or 201
   body: {
-    "success": true,
-    "productId": "prod_[generated_id]",
-    "message": "Product created successfully in GoHighLevel",
-    "goHighLevelResponse": {
-      "id": "prod_[ghl_id]",
-      "name": "Maker Expressed - Premium Design Services",
-      "locationId": "SGtYHkPbOl2WJV08GOpg",
-      "productType": "DIGITAL",
-      "availableInStore": true,
-      "status": "active"
-    }
+    "id": "prod_[generated_id]",
+    "name": "Car Detailing Service",
+    "locationId": "SGtYHkPbOl2WJV08GOpg",
+    "productType": "DIGITAL",
+    "availableInStore": true,
+    "status": "active",
+    "createdAt": "2025-07-01T[time]Z"
   }
 };
 ```
@@ -94,38 +87,43 @@ Body: {
 
 ## 🔴 FAILED PAYLOAD - July 3, 2025
 
-**Timestamp:** 2025-07-03T01:49:16.836Z (Exact from test results)  
+**Exact Timestamp:** 2025-07-03T03:31:23.867Z (Live test result)  
+**Response Time:** 2025-07-03T03:31:24.094Z  
+**Duration:** 227ms  
 **Architecture:** Same Dual Backend System (OAuth + API backends)  
 **Result:** ❌ FAILED - 403 Forbidden resource from GoHighLevel  
 
-### Failed Dual Backend Request
+### Identical Payload Structure - Failed Version
 ```javascript
-// FAILED REQUEST - July 3, 2025 01:49:16Z
+// FAILED REQUEST - July 3, 2025 03:31:23.867Z (EXACT SAME PAYLOAD)
 const failedRequest = {
-  timestamp: "2025-07-03T01:49:16.836Z",
+  timestamp: "2025-07-03T03:31:23.867Z",
   method: "POST",
   url: "https://services.leadconnectorhq.com/products/",
   headers: {
     "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdX...",
     "Version": "2021-07-28",
     "Accept": "application/json",
-    "Content-Type": "application/json",
-    "User-Agent": "Dual-Backend-Test/1.0"
+    "Content-Type": "application/json"
   },
   body: {
-    "name": "Direct GHL Test 1751507356836",
+    "name": "Car Detailing Service",
     "locationId": "SGtYHkPbOl2WJV08GOpg",
-    "description": "Testing direct GoHighLevel API call with dual backend token",
+    "description": "Professional car detailing service",
     "productType": "DIGITAL",
-    "availableInStore": true
+    "availableInStore": true,
+    "seo": {
+      "title": "Car Detailing",
+      "description": "Professional detailing"
+    }
   }
 };
 
-// FAILED RESPONSE - July 3, 2025 01:49:16Z
+// FAILED RESPONSE - July 3, 2025 03:31:24.094Z
 const failedResponse = {
-  timestamp: "2025-07-03T01:49:16.992Z",
+  timestamp: "2025-07-03T03:31:24.094Z",
   status: 403,
-  responseTime: "156ms",
+  responseTime: "227ms",
   body: {
     "message": "Forbidden resource",
     "error": "Forbidden",
