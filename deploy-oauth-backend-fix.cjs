@@ -1,4 +1,34 @@
-// Enhanced OAuth Backend with Location-Level Authentication
+/**
+ * Deploy OAuth Backend Fix
+ * Redeploy the working OAuth backend to fix token exchange
+ */
+
+const { Octokit } = require("@octokit/rest");
+const fs = require('fs');
+
+async function deployOAuthBackend() {
+  console.log('🚀 DEPLOYING OAUTH BACKEND FIX');
+  console.log('='.repeat(50));
+  
+  try {
+    // Get GitHub token from environment
+    const githubToken = process.env.GITHUB_TOKEN;
+    if (!githubToken) {
+      console.log('❌ GITHUB_TOKEN environment variable not found');
+      return;
+    }
+
+    const octokit = new Octokit({
+      auth: githubToken,
+    });
+
+    const owner = 'EngageAutomations';
+    const repo = 'oauth-backend';
+    
+    console.log('1. Preparing enhanced OAuth backend...');
+    
+    // Enhanced OAuth backend with location-level authentication
+    const enhancedOAuthBackend = `// Enhanced OAuth Backend with Location-Level Authentication
 // Version: 8.5.2-location-working
 // Features: Location-level tokens, enhanced error handling, complete workflow support
 
@@ -109,7 +139,7 @@ app.get('/api/oauth/callback', async (req, res) => {
     });
     
     // Store installation with location-level tokens
-    const installationId = `install_${Date.now()}`;
+    const installationId = \`install_\${Date.now()}\`;
     const installation = {
       id: installationId,
       access_token: response.data.access_token,
@@ -126,15 +156,15 @@ app.get('/api/oauth/callback', async (req, res) => {
     
     installations.set(installationId, installation);
     
-    console.log(`Installation stored: ${installationId}`);
-    console.log(`Location ID: ${installation.location_id}`);
+    console.log(\`Installation stored: \${installationId}\`);
+    console.log(\`Location ID: \${installation.location_id}\`);
     
     // Schedule token refresh
     scheduleTokenRefresh(installationId);
     
     // Redirect to frontend with installation details
-    const redirectUrl = `https://listings.engageautomations.com/?installation_id=${installationId}&location_id=${installation.location_id}&welcome=true`;
-    console.log(`Redirecting to: ${redirectUrl}`);
+    const redirectUrl = \`https://listings.engageautomations.com/?installation_id=\${installationId}&location_id=\${installation.location_id}&welcome=true\`;
+    console.log(\`Redirecting to: \${redirectUrl}\`);
     
     res.redirect(redirectUrl);
     
@@ -143,7 +173,7 @@ app.get('/api/oauth/callback', async (req, res) => {
     
     let errorMessage = 'Token exchange failed';
     if (error.response?.data?.error) {
-      errorMessage += `: ${error.response.data.error}`;
+      errorMessage += \`: \${error.response.data.error}\`;
     }
     
     res.status(400).json({ 
@@ -170,7 +200,7 @@ app.get('/api/token-access/:installationId', async (req, res) => {
     // Check if token needs refresh
     const timeUntilExpiry = installation.expires_at - Date.now();
     if (timeUntilExpiry < 600000) { // 10 minutes
-      console.log(`Refreshing token for ${installationId}`);
+      console.log(\`Refreshing token for \${installationId}\`);
       await refreshToken(installationId);
     }
     
@@ -218,7 +248,7 @@ async function refreshToken(installationId) {
     installation.token_status = 'valid';
     installation.last_refresh = new Date().toISOString();
     
-    console.log(`Token refreshed successfully for ${installationId}`);
+    console.log(\`Token refreshed successfully for \${installationId}\`);
     
     // Schedule next refresh
     scheduleTokenRefresh(installationId);
@@ -242,15 +272,125 @@ function scheduleTokenRefresh(installationId) {
     try {
       await refreshToken(installationId);
     } catch (error) {
-      console.error(`Scheduled refresh failed for ${installationId}:`, error);
+      console.error(\`Scheduled refresh failed for \${installationId}:\`, error);
     }
   }, timeUntilRefresh);
   
-  console.log(`Token refresh scheduled for ${installationId} in ${Math.round(timeUntilRefresh / 60000)} minutes`);
+  console.log(\`Token refresh scheduled for \${installationId} in \${Math.round(timeUntilRefresh / 60000)} minutes\`);
 }
 
 // Start server
 app.listen(port, () => {
-  console.log(`OAuth Backend running on port ${port}`);
+  console.log(\`OAuth Backend running on port \${port}\`);
   console.log('Features: Location-level authentication, token refresh, media upload support');
-});
+});`;
+
+    // Update package.json for Railway deployment
+    const packageJson = {
+      "name": "oauth-backend",
+      "version": "8.5.2-location-working",
+      "description": "Enhanced OAuth Backend with Location-Level Authentication",
+      "main": "index.js",
+      "scripts": {
+        "start": "node index.js",
+        "dev": "node index.js"
+      },
+      "dependencies": {
+        "express": "^4.18.2",
+        "cors": "^2.8.5",
+        "axios": "^1.4.0"
+      },
+      "engines": {
+        "node": ">=18.0.0"
+      }
+    };
+
+    // Railway configuration
+    const railwayToml = `[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10`;
+
+    console.log('2. Deploying to GitHub repository...');
+    
+    // Update index.js
+    await octokit.rest.repos.createOrUpdateFileContents({
+      owner,
+      repo,
+      path: 'index.js',
+      message: 'Deploy OAuth Backend Fix - Enhanced Location-Level Authentication',
+      content: Buffer.from(enhancedOAuthBackend).toString('base64'),
+      sha: await getFileSha(octokit, owner, repo, 'index.js')
+    });
+    
+    // Update package.json
+    await octokit.rest.repos.createOrUpdateFileContents({
+      owner,
+      repo,
+      path: 'package.json',
+      message: 'Update package.json for enhanced OAuth backend',
+      content: Buffer.from(JSON.stringify(packageJson, null, 2)).toString('base64'),
+      sha: await getFileSha(octokit, owner, repo, 'package.json')
+    });
+    
+    // Update railway.toml
+    await octokit.rest.repos.createOrUpdateFileContents({
+      owner,
+      repo,
+      path: 'railway.toml',
+      message: 'Update Railway configuration',
+      content: Buffer.from(railwayToml).toString('base64'),
+      sha: await getFileSha(octokit, owner, repo, 'railway.toml')
+    });
+    
+    console.log('✅ OAuth Backend deployed successfully!');
+    console.log('');
+    console.log('🔧 DEPLOYMENT DETAILS:');
+    console.log('Repository: https://github.com/EngageAutomations/oauth-backend');
+    console.log('Version: 8.5.2-location-working');
+    console.log('Features: Location-level authentication, enhanced token refresh');
+    console.log('');
+    console.log('⏳ Railway will automatically deploy from GitHub...');
+    console.log('Backend will be available at: https://dir.engageautomations.com');
+    console.log('');
+    console.log('🚀 NEXT STEPS:');
+    console.log('1. Wait 2-3 minutes for Railway deployment');
+    console.log('2. Test OAuth installation from marketplace');
+    console.log('3. Verify location-level tokens for media upload');
+    console.log('');
+    console.log('Installation URL: https://marketplace.gohighlevel.com/app/68474924a586bce22a6e64f7');
+    
+  } catch (error) {
+    console.error('❌ Deployment failed:', error.message);
+    
+    if (error.status === 401) {
+      console.log('');
+      console.log('🔑 AUTHENTICATION ISSUE:');
+      console.log('GitHub token may have expired or insufficient permissions');
+      console.log('Please check the GITHUB_TOKEN environment variable');
+    }
+  }
+}
+
+async function getFileSha(octokit, owner, repo, path) {
+  try {
+    const { data } = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path
+    });
+    return data.sha;
+  } catch (error) {
+    if (error.status === 404) {
+      return undefined; // File doesn't exist
+    }
+    throw error;
+  }
+}
+
+deployOAuthBackend().catch(console.error);

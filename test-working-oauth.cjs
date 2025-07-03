@@ -1,169 +1,166 @@
 /**
- * Test Working OAuth Backend with Location Authentication
- * Verify the system is ready for location-level token generation
+ * Test OAuth Backend and Fix Token Exchange
+ * Diagnose and fix the token exchange failure
  */
 
-async function testWorkingOAuth() {
-  console.log('🧪 TESTING WORKING OAUTH BACKEND');
-  console.log('Verifying location-level authentication system');
+async function testOAuthBackend() {
+  console.log('🔍 DIAGNOSING OAUTH TOKEN EXCHANGE FAILURE');
   console.log('='.repeat(60));
   
   try {
-    // 1. Verify backend health
-    console.log('1. CHECKING BACKEND STATUS...');
-    const healthResponse = await fetch('https://dir.engageautomations.com/health');
-    const healthData = await healthResponse.json();
+    // 1. Check backend health
+    console.log('1. Checking OAuth backend health...');
+    const healthResponse = await fetch('https://dir.engageautomations.com/');
+    console.log(`Backend status: ${healthResponse.status}`);
     
-    console.log(`✅ Backend Status: ${healthData.status}`);
-    console.log(`   Version: ${healthData.version}`);
-    console.log(`   Auth Type: ${healthData.auth_type}`);
-    console.log(`   Current Installations: ${healthData.installations}`);
-    
-    // 2. Check current installations
-    console.log('\n2. CHECKING CURRENT INSTALLATIONS...');
-    const installationsResponse = await fetch('https://dir.engageautomations.com/installations');
-    const installationsData = await installationsResponse.json();
-    
-    console.log(`   Total Installations: ${installationsData.count}`);
-    
-    if (installationsData.count > 0) {
-      console.log('   Recent installations found - testing latest...');
-      
-      const latestInstallation = installationsData.installations
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
-      
-      console.log(`   Latest: ${latestInstallation.id}`);
-      console.log(`   Location: ${latestInstallation.location_id}`);
-      console.log(`   Active: ${latestInstallation.active}`);
-      
-      // Test the latest installation
-      await testInstallationToken(latestInstallation.id);
-    }
-    
-    // 3. System ready message
-    console.log('\n3. OAUTH SYSTEM STATUS...');
-    console.log('✅ OAuth backend operational and ready');
-    console.log('✅ Location-level authentication configured');
-    console.log('✅ Token exchange using user_type: "location"');
-    console.log('');
-    console.log('🔗 FRESH OAUTH INSTALLATION URL:');
-    console.log('   https://marketplace.gohighlevel.com/app/68474924a586bce22a6e64f7');
-    console.log('');
-    console.log('🎯 EXPECTED RESULTS AFTER FRESH INSTALLATION:');
-    console.log('   • OAuth will request user_type: "location"');
-    console.log('   • JWT token will show authClass: "Location"');
-    console.log('   • Media upload will work (no more 401 IAM errors)');
-    console.log('   • Complete workflow: products + pricing + media');
-    console.log('');
-    console.log('📋 SYSTEM COMPONENTS READY:');
-    console.log('   ✅ OAuth Backend: https://dir.engageautomations.com');
-    console.log('   ✅ API Backend: https://api.engageautomations.com');
-    console.log('   ✅ Frontend: https://listings.engageautomations.com');
-    console.log('   ✅ Product Creation: Operational');
-    console.log('   ✅ Pricing Integration: Operational');
-    console.log('   ✅ Location Authentication: Fixed');
-    
-  } catch (error) {
-    console.error('❌ Test failed:', error.message);
-  }
-}
-
-async function testInstallationToken(installationId) {
-  try {
-    console.log('\n🔍 TESTING EXISTING INSTALLATION TOKEN...');
-    
-    const tokenResponse = await fetch(`https://dir.engageautomations.com/api/token-access/${installationId}`);
-    
-    if (!tokenResponse.ok) {
-      console.log('   Token access failed - installation may be expired');
+    if (healthResponse.ok) {
+      const healthData = await healthResponse.text();
+      console.log('✅ OAuth backend is responding');
+    } else {
+      console.log('❌ OAuth backend health check failed');
       return;
     }
     
-    const tokenData = await tokenResponse.json();
-    console.log(`   Location ID: ${tokenData.location_id}`);
-    console.log(`   Expires: ${tokenData.expires_at}`);
+    // 2. Check installations endpoint
+    console.log('\n2. Checking installations endpoint...');
+    const installResponse = await fetch('https://dir.engageautomations.com/installations');
     
-    // Decode JWT to check auth class
-    if (tokenData.access_token) {
-      const tokenParts = tokenData.access_token.split('.');
-      if (tokenParts.length === 3) {
-        const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
-        console.log(`   Auth Class: ${payload.authClass}`);
-        
-        if (payload.authClass === 'Location') {
-          console.log('✅ EXISTING TOKEN IS LOCATION-LEVEL!');
-          console.log('🧪 Testing media upload with existing token...');
-          await testMediaUpload(tokenData);
-        } else {
-          console.log('❌ Existing token is still Company-level');
-          console.log('   Fresh installation needed to get Location-level token');
-        }
-      }
-    }
-    
-  } catch (error) {
-    console.log('   Installation test failed:', error.message);
-  }
-}
-
-async function testMediaUpload(tokenData) {
-  try {
-    const FormData = require('form-data');
-    
-    // Create test image
-    const testImageData = Buffer.from([
-      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
-      0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
-      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-      0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
-      0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41,
-      0x54, 0x08, 0xD7, 0x63, 0xF8, 0x0F, 0x00, 0x00,
-      0x01, 0x00, 0x01, 0x5C, 0xCD, 0x90, 0x0A, 0x00,
-      0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
-      0x42, 0x60, 0x82
-    ]);
-    
-    const form = new FormData();
-    form.append('file', testImageData, {
-      filename: 'location-test-success.png',
-      contentType: 'image/png'
-    });
-    form.append('locationId', tokenData.location_id);
-    
-    console.log('   Uploading test image...');
-    
-    const uploadResponse = await fetch('https://services.leadconnectorhq.com/medias/upload-file', {
-      method: 'POST',
-      body: form,
-      headers: {
-        'Authorization': `Bearer ${tokenData.access_token}`,
-        'Version': '2021-07-28',
-        'Accept': 'application/json',
-        ...form.getHeaders()
-      }
-    });
-    
-    console.log(`   Upload Status: ${uploadResponse.status} ${uploadResponse.statusText}`);
-    
-    if (uploadResponse.ok) {
-      const result = await uploadResponse.json();
-      console.log('✅ MEDIA UPLOAD SUCCESS!');
-      console.log(`   Media ID: ${result.id || result._id}`);
-      console.log('🎉 COMPLETE WORKFLOW NOW OPERATIONAL!');
-      console.log('   All features working: OAuth + Products + Pricing + Media');
+    if (installResponse.ok) {
+      const installData = await installResponse.json();
+      console.log(`Current installations: ${installData.count}`);
       
+      if (installData.count > 0) {
+        console.log('Recent installations:');
+        installData.installations.forEach((inst, i) => {
+          console.log(`  ${i+1}. ID: ${inst.id}, Active: ${inst.active}, Created: ${inst.created_at}`);
+        });
+      }
     } else {
-      const error = await uploadResponse.text();
-      console.log('❌ Media upload failed:', error.substring(0, 100));
+      console.log('❌ Installations endpoint failed');
+    }
+    
+    // 3. Test token exchange manually
+    console.log('\n3. Testing token exchange process...');
+    const authCode = '545557cf021700a26b6643379173ad4b20becc79';
+    
+    console.log(`Testing with auth code: ${authCode}`);
+    
+    // Direct token exchange test
+    const tokenExchangeResult = await testTokenExchange(authCode);
+    
+    if (tokenExchangeResult.success) {
+      console.log('✅ Token exchange working');
+      console.log(`Access token received: ${tokenExchangeResult.data.access_token ? 'Yes' : 'No'}`);
+    } else {
+      console.log('❌ Token exchange failed');
+      console.log(`Error: ${tokenExchangeResult.error}`);
       
-      if (error.includes('authClass type is not allowed')) {
-        console.log('   Still getting IAM error - fresh installation needed');
+      // Analyze the error
+      if (tokenExchangeResult.error.includes('invalid_grant')) {
+        console.log('\n🔍 DIAGNOSIS: Authorization code expired or invalid');
+        console.log('Auth codes expire quickly (usually 10 minutes)');
+        console.log('Need fresh installation attempt');
+      } else if (tokenExchangeResult.error.includes('invalid_client')) {
+        console.log('\n🔍 DIAGNOSIS: OAuth credentials issue');
+        console.log('Client ID or secret may be incorrect');
+      } else {
+        console.log('\n🔍 DIAGNOSIS: Unknown token exchange error');
+        console.log('May need to check OAuth backend configuration');
       }
     }
     
+    // 4. Check OAuth configuration
+    console.log('\n4. Checking OAuth configuration...');
+    await checkOAuthConfig();
+    
   } catch (error) {
-    console.log('   Media upload test failed:', error.message);
+    console.error('❌ Diagnostic failed:', error.message);
   }
 }
 
-testWorkingOAuth().catch(console.error);
+async function testTokenExchange(authCode) {
+  try {
+    console.log('Making direct token exchange request...');
+    
+    const tokenData = {
+      grant_type: 'authorization_code',
+      code: authCode,
+      redirect_uri: 'https://dir.engageautomations.com/api/oauth/callback',
+      client_id: process.env.GHL_CLIENT_ID || 'your-client-id',
+      client_secret: process.env.GHL_CLIENT_SECRET || 'your-client-secret',
+      user_type: 'location'
+    };
+    
+    const formData = new URLSearchParams();
+    Object.keys(tokenData).forEach(key => {
+      formData.append(key, tokenData[key]);
+    });
+    
+    const response = await fetch('https://services.leadconnectorhq.com/oauth/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      body: formData
+    });
+    
+    console.log(`Token exchange response: ${response.status}`);
+    
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        success: true,
+        data: data
+      };
+    } else {
+      const error = await response.text();
+      return {
+        success: false,
+        error: `${response.status}: ${error}`
+      };
+    }
+    
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+async function checkOAuthConfig() {
+  try {
+    console.log('Checking OAuth backend configuration...');
+    
+    // Test if backend has proper OAuth credentials
+    const testResponse = await fetch('https://dir.engageautomations.com/test-config', {
+      method: 'GET'
+    });
+    
+    if (testResponse.ok) {
+      const configData = await testResponse.json();
+      console.log('✅ OAuth configuration endpoint responding');
+    } else {
+      console.log('⚠️ OAuth configuration endpoint not available');
+    }
+    
+  } catch (error) {
+    console.log('Configuration check failed:', error.message);
+  }
+}
+
+// Run with instructions
+console.log('📋 OAUTH TOKEN EXCHANGE DIAGNOSTIC');
+console.log('');
+console.log('This script will help diagnose the token exchange failure');
+console.log('');
+console.log('Common issues:');
+console.log('1. Authorization code expired (codes expire in ~10 minutes)');
+console.log('2. OAuth credentials mismatch');
+console.log('3. Backend configuration issues');
+console.log('');
+console.log('Running diagnostic...');
+console.log('');
+
+testOAuthBackend().catch(console.error);
