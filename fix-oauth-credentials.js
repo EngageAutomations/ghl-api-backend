@@ -1,405 +1,362 @@
-/**
- * Fix OAuth Backend Credentials
- * Updates OAuth backend with correct GoHighLevel credentials
- */
-
-import { Octokit } from '@octokit/rest';
-
-async function fixOAuthCredentials() {
-  console.log('=== Fixing OAuth Backend Credentials ===');
-  
-  try {
-    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-    
-    if (!GITHUB_TOKEN) {
-      console.log('❌ GITHUB_TOKEN environment variable not found');
-      return;
-    }
-    
-    const octokit = new Octokit({ auth: GITHUB_TOKEN });
-    
-    const owner = 'EngageAutomations';
-    const repo = 'oauth-backend';
-    const branch = 'main';
-    
-    console.log('1. Getting current index.js SHA...');
-    
-    const { data: currentIndex } = await octokit.rest.repos.getContent({
-      owner,
-      repo,
-      path: 'index.js'
-    });
-    
-    console.log('2. Creating OAuth backend with corrected credentials...');
-    
-    // OAuth backend with corrected credentials
-    const fixedOAuthBackend = `/**
- * Pure OAuth Backend - Fixed Credentials
- * Handles OAuth callback, token management, and provides bridge for API backend
- */
+// Fixed OAuth Backend with Correct Credentials
+// Version: 8.5.6-correct-credentials
 
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Enhanced error handling
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// In-memory OAuth installation store
+// Request logging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
+
+// Global error handler
+app.use((error, req, res, next) => {
+  console.error('Express error:', error);
+  res.status(500).json({ error: 'Internal server error', message: error.message });
+});
+
+// In-memory installations store
 const installations = new Map();
 
-// GoHighLevel OAuth Configuration - Using working credentials
-const CLIENT_ID = 'Q7DGQOCn7LgdPdGCKZiKzwCfx3eUlEgEp1lM8zVqo2';
-const CLIENT_SECRET = 'Q4zrAwYqKdWp8NKSHy72bGLIJpRzrlUpZ4bUhFhU';
-const REDIRECT_URI = 'https://dir.engageautomations.com/api/oauth/callback';
+// CORRECT OAuth configuration from Client Key file
+const OAUTH_CONFIG = {
+  clientId: '68474924a586bce22a6e64f7-mbpkmyu4',
+  clientSecret: 'b5a7a120-7df7-4d23-8796-4863cbd08f94',
+  redirectUri: 'https://dir.engageautomations.com/api/oauth/callback',
+  scope: 'businesses.readonly businesses.write calendars.readonly calendars.write campaigns.readonly campaigns.write companies.readonly companies.write contacts.readonly contacts.write conversations.readonly conversations.write courses.readonly courses.write forms.readonly forms.write links.readonly links.write locations.readonly locations.write medias.readonly medias.write opportunities.readonly opportunities.write payments.write products.readonly products.write snapshots.readonly surveys.readonly surveys.write users.readonly users.write workflows.readonly workflows.write',
+  authorizationUrl: 'https://marketplace.gohighlevel.com/oauth/chooselocation',
+  tokenUrl: 'https://services.leadconnectorhq.com/oauth/token'
+};
 
-// Enhanced OAuth Callback Handler with better error handling
-app.get('/api/oauth/callback', async (req, res) => {
-  console.log('=== OAuth Callback Received ===');
-  console.log('Query params:', req.query);
-  
-  const { code, location_id, error, error_description } = req.query;
-  
-  if (error) {
-    console.log('❌ OAuth error:', error, error_description);
-    return res.status(400).send(\`<html><body>
-      <h2>OAuth Error</h2>
-      <p>Error: \${error}</p>
-      <p>Description: \${error_description}</p>
-      <a href="https://listings.engageautomations.com">Return to Application</a>
-    </body></html>\`);
-  }
-  
-  if (!code) {
-    console.log('❌ No authorization code received');
-    return res.status(400).send('<html><body><h2>Error: No authorization code received</h2><a href="https://listings.engageautomations.com">Return to Application</a></body></html>');
-  }
-  
+// Health check routes
+app.get('/', (req, res) => {
   try {
-    console.log('🔄 Exchanging authorization code for tokens...');
-    console.log('   Code:', code.substring(0, 20) + '...');
-    console.log('   Location ID:', location_id);
-    console.log('   Client ID:', CLIENT_ID);
-    console.log('   Redirect URI:', REDIRECT_URI);
-    
-    // Exchange code for tokens using URLSearchParams
-    const tokenParams = new URLSearchParams();
-    tokenParams.append('client_id', CLIENT_ID);
-    tokenParams.append('client_secret', CLIENT_SECRET);
-    tokenParams.append('grant_type', 'authorization_code');
-    tokenParams.append('code', code);
-    tokenParams.append('redirect_uri', REDIRECT_URI);
-    
-    console.log('📡 Making token exchange request to GoHighLevel...');
-    
-    const tokenResponse = await axios.post(
-      'https://services.leadconnectorhq.com/oauth/token',
-      tokenParams,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json'
-        },
-        timeout: 30000
-      }
-    );
-    
-    const { access_token, refresh_token, expires_in, scope } = tokenResponse.data;
-    console.log('✅ Tokens received successfully');
-    console.log('   Expires in:', expires_in, 'seconds');
-    console.log('   Scopes:', scope);
-    console.log('   Access token (first 20 chars):', access_token.substring(0, 20) + '...');
-    
-    // Generate installation ID
-    const installation_id = \`install_\${Date.now()}\`;
-    
-    // Store installation with tokens
-    installations.set(installation_id, {
-      id: installation_id,
-      accessToken: access_token,
-      refreshToken: refresh_token,
-      expiresIn: expires_in,
-      expiresAt: Date.now() + (expires_in * 1000),
-      locationId: location_id,
-      scopes: scope,
-      tokenStatus: 'valid',
-      createdAt: new Date().toISOString(),
-      lastRefresh: null
+    const authenticatedCount = Array.from(installations.values()).filter(inst => inst.active).length;
+    res.json({
+      service: "GoHighLevel OAuth Backend",
+      version: "8.5.6-correct-credentials",
+      installs: installations.size,
+      authenticated: authenticatedCount,
+      status: "operational",
+      features: ["oauth-standard", "token-refresh", "media-upload", "correct-credentials"],
+      debug: "using correct client credentials from Client Key file",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
     });
-    
-    console.log(\`✅ Installation \${installation_id} stored successfully\`);
-    console.log('   Total installations:', installations.size);
-    
-    // Redirect to frontend with installation details
-    const frontendUrl = \`https://listings.engageautomations.com/?installation_id=\${installation_id}&welcome=true\`;
-    
-    res.send(\`<html><head><title>OAuth Success</title></head><body>
-      <h2>🎉 OAuth Installation Successful!</h2>
-      <p><strong>Installation ID:</strong> \${installation_id}</p>
-      <p><strong>Location ID:</strong> \${location_id}</p>
-      <p><strong>Token Status:</strong> Valid</p>
-      <p><strong>Scopes:</strong> \${scope}</p>
-      <p>Redirecting to application in 3 seconds...</p>
-      <script>
-        console.log('OAuth installation successful:', {
-          installation_id: '\${installation_id}',
-          location_id: '\${location_id}',
-          scopes: '\${scope}'
-        });
-        setTimeout(() => {
-          window.location.href = '\${frontendUrl}';
-        }, 3000);
-      </script>
-    </body></html>\`);
-    
   } catch (error) {
-    console.error('❌ Token exchange error:', error);
-    
-    let errorDetails = 'Unknown error';
-    let statusCode = 500;
-    
-    if (error.response) {
-      console.error('   Status:', error.response.status);
-      console.error('   Data:', error.response.data);
-      console.error('   Headers:', error.response.headers);
-      
-      statusCode = error.response.status;
-      errorDetails = JSON.stringify(error.response.data, null, 2);
-      
-      // Check for specific OAuth errors
-      if (error.response.status === 401) {
-        errorDetails = 'Invalid OAuth credentials - check client_id and client_secret';
-      } else if (error.response.status === 400) {
-        errorDetails = error.response.data?.error_description || 'Invalid OAuth request';
-      }
-    }
-    
-    res.status(statusCode).send(\`<html><head><title>OAuth Failed</title></head><body>
-      <h2>❌ OAuth Installation Failed</h2>
-      <p><strong>Error:</strong> \${error.message}</p>
-      <p><strong>Details:</strong> \${errorDetails}</p>
-      <p><strong>Status Code:</strong> \${statusCode}</p>
-      <p>Please try the installation again or contact support.</p>
-      <a href="https://listings.engageautomations.com">Return to Application</a>
-      <br><br>
-      <details>
-        <summary>Debug Information</summary>
-        <pre>
-Client ID: \${CLIENT_ID}
-Redirect URI: \${REDIRECT_URI}
-Authorization Code: \${code?.substring(0, 20)}...
-Location ID: \${location_id}
-        </pre>
-      </details>
-    </body></html>\`);
+    console.error('Root endpoint error:', error);
+    res.status(500).json({ error: 'Service error' });
   }
 });
 
-// Token Access Bridge for API Backend
-app.post('/api/token-access', async (req, res) => {
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage()
+  });
+});
+
+// Installations endpoint
+app.get('/installations', (req, res) => {
   try {
-    const { installation_id } = req.body;
+    const installList = Array.from(installations.values()).map(inst => ({
+      id: inst.id,
+      location_id: inst.location_id,
+      active: inst.active,
+      created_at: inst.created_at,
+      token_status: inst.token_status || 'valid',
+      scopes: inst.scopes || 'full'
+    }));
     
-    if (!installation_id) {
-      return res.status(400).json({ success: false, error: 'installation_id required' });
-    }
+    res.json({
+      count: installations.size,
+      installations: installList
+    });
+  } catch (error) {
+    console.error('Installations endpoint error:', error);
+    res.status(500).json({ error: 'Failed to retrieve installations' });
+  }
+});
+
+// OAuth callback with correct credentials
+app.get('/api/oauth/callback', async (req, res) => {
+  console.log('=== OAUTH CALLBACK START ===');
+  console.log('Query params:', req.query);
+  console.log('Using CORRECT client credentials from Client Key file');
+  
+  try {
+    const { code, error } = req.query;
     
-    const installation = installations.get(installation_id);
-    
-    if (!installation) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Installation not found',
-        hint: 'Please complete OAuth installation first',
-        available_installations: Array.from(installations.keys())
+    if (error) {
+      console.error('OAuth error from GHL:', error);
+      return res.status(400).json({ 
+        error: 'OAuth authorization failed', 
+        details: error,
+        timestamp: new Date().toISOString()
       });
     }
     
-    // Check if token needs refresh (within 10 minutes of expiry)
-    const needsRefresh = (installation.expiresAt - Date.now()) < (10 * 60 * 1000);
+    if (!code) {
+      console.error('No authorization code received');
+      return res.status(400).json({ 
+        error: 'Authorization code required',
+        timestamp: new Date().toISOString()
+      });
+    }
     
-    if (needsRefresh && installation.refreshToken) {
-      console.log(\`🔄 Refreshing token for installation \${installation_id}\`);
-      
+    console.log('Starting token exchange with CORRECT credentials...');
+    
+    // Standard token exchange with CORRECT credentials
+    const tokenData = new URLSearchParams({
+      client_id: OAUTH_CONFIG.clientId,
+      client_secret: OAUTH_CONFIG.clientSecret,
+      grant_type: 'authorization_code',
+      code: code,
+      redirect_uri: OAUTH_CONFIG.redirectUri
+    });
+    
+    console.log('Making token exchange request...');
+    console.log('Client ID:', OAUTH_CONFIG.clientId);
+    console.log('Redirect URI:', OAUTH_CONFIG.redirectUri);
+    console.log('Authorization code:', code.substring(0, 10) + '...');
+    
+    const response = await axios.post(OAUTH_CONFIG.tokenUrl, tokenData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      timeout: 15000,
+      validateStatus: () => true
+    });
+    
+    console.log(`Token exchange response: ${response.status}`);
+    console.log('Response data keys:', Object.keys(response.data || {}));
+    
+    if (response.status !== 200) {
+      console.error('Token exchange failed:', response.data);
+      return res.status(400).json({ 
+        error: 'Token exchange failed',
+        details: response.data,
+        status: response.status,
+        credentials_used: {
+          client_id: OAUTH_CONFIG.clientId,
+          redirect_uri: OAUTH_CONFIG.redirectUri
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    console.log('Token exchange successful with CORRECT credentials!');
+    console.log('Token data:', {
+      access_token: response.data.access_token ? 'received' : 'missing',
+      refresh_token: response.data.refresh_token ? 'received' : 'missing',
+      expires_in: response.data.expires_in,
+      location_id: response.data.locationId || 'not provided',
+      scope: response.data.scope
+    });
+    
+    // Store installation
+    const installationId = `install_${Date.now()}`;
+    const installation = {
+      id: installationId,
+      access_token: response.data.access_token,
+      refresh_token: response.data.refresh_token,
+      expires_in: response.data.expires_in,
+      expires_at: Date.now() + (response.data.expires_in * 1000),
+      location_id: response.data.locationId || 'WAvk87RmW9rBSDJHeOpH',
+      scopes: response.data.scope || OAUTH_CONFIG.scope,
+      active: true,
+      created_at: new Date().toISOString(),
+      token_status: 'valid',
+      client_id: OAUTH_CONFIG.clientId
+    };
+    
+    installations.set(installationId, installation);
+    
+    console.log(`Installation stored: ${installationId}`);
+    console.log(`Location ID: ${installation.location_id}`);
+    
+    // Schedule token refresh
+    try {
+      scheduleTokenRefresh(installationId);
+    } catch (refreshError) {
+      console.error('Token refresh scheduling failed:', refreshError);
+    }
+    
+    // Redirect to frontend
+    const redirectUrl = `https://listings.engageautomations.com/?installation_id=${installationId}&location_id=${installation.location_id}&welcome=true`;
+    console.log(`Redirecting to: ${redirectUrl}`);
+    
+    res.redirect(redirectUrl);
+    
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    
+    res.status(500).json({ 
+      error: 'OAuth processing failed',
+      message: error.message,
+      credentials_used: {
+        client_id: OAUTH_CONFIG.clientId,
+        redirect_uri: OAUTH_CONFIG.redirectUri
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Token access endpoint
+app.get('/api/token-access/:installationId', async (req, res) => {
+  try {
+    const { installationId } = req.params;
+    const installation = installations.get(installationId);
+    
+    if (!installation) {
+      return res.status(404).json({ 
+        error: 'Installation not found',
+        installation_id: installationId,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    if (!installation.active) {
+      return res.status(400).json({ 
+        error: 'Installation not active',
+        installation_id: installationId,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    // Check if token needs refresh
+    const timeUntilExpiry = installation.expires_at - Date.now();
+    if (timeUntilExpiry < 600000) { // 10 minutes
+      console.log(`Token needs refresh for ${installationId}`);
       try {
-        const refreshParams = new URLSearchParams();
-        refreshParams.append('client_id', CLIENT_ID);
-        refreshParams.append('client_secret', CLIENT_SECRET);
-        refreshParams.append('grant_type', 'refresh_token');
-        refreshParams.append('refresh_token', installation.refreshToken);
-        
-        const refreshResponse = await axios.post(
-          'https://services.leadconnectorhq.com/oauth/token',
-          refreshParams,
-          {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'Accept': 'application/json'
-            }
-          }
-        );
-        
-        const { access_token, refresh_token, expires_in } = refreshResponse.data;
-        
-        // Update installation with new tokens
-        installation.accessToken = access_token;
-        installation.refreshToken = refresh_token || installation.refreshToken;
-        installation.expiresIn = expires_in;
-        installation.expiresAt = Date.now() + (expires_in * 1000);
-        installation.lastRefresh = new Date().toISOString();
-        installation.tokenStatus = 'refreshed';
-        
-        installations.set(installation_id, installation);
-        
-        console.log(\`✅ Token refreshed for installation \${installation_id}\`);
-        
+        await refreshToken(installationId);
       } catch (refreshError) {
-        console.error('❌ Token refresh failed:', refreshError);
-        installation.tokenStatus = 'refresh_failed';
-        installations.set(installation_id, installation);
+        console.error('Token refresh failed:', refreshError);
       }
     }
     
     res.json({
-      success: true,
-      accessToken: installation.accessToken,
-      installation: {
-        id: installation.id,
-        locationId: installation.locationId,
-        tokenStatus: installation.tokenStatus,
-        expiresAt: installation.expiresAt,
-        scopes: installation.scopes
-      }
+      access_token: installation.access_token,
+      location_id: installation.location_id,
+      expires_in: Math.floor(timeUntilExpiry / 1000),
+      client_id: installation.client_id,
+      timestamp: new Date().toISOString()
     });
     
   } catch (error) {
     console.error('Token access error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Token access failed'
+    res.status(500).json({ 
+      error: 'Token access failed',
+      message: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 });
 
-// Installation Status with detailed information
-app.get('/installations', (req, res) => {
-  const installList = Array.from(installations.values()).map(install => ({
-    id: install.id,
-    locationId: install.locationId,
-    tokenStatus: install.tokenStatus,
-    createdAt: install.createdAt,
-    lastRefresh: install.lastRefresh,
-    expiresAt: install.expiresAt,
-    scopes: install.scopes
-  }));
+// Token refresh function with correct credentials
+async function refreshToken(installationId) {
+  const installation = installations.get(installationId);
+  if (!installation?.refresh_token) {
+    throw new Error('No refresh token available');
+  }
   
-  res.json({
-    count: installList.length,
-    installations: installList,
-    oauth_config: {
-      client_id: CLIENT_ID,
-      redirect_uri: REDIRECT_URI
-    }
-  });
-});
-
-// Debug endpoint for OAuth configuration
-app.get('/debug', (req, res) => {
-  res.json({
-    service: 'OAuth Backend Debug',
-    oauth_config: {
-      client_id: CLIENT_ID,
-      redirect_uri: REDIRECT_URI,
-      callback_url: 'https://dir.engageautomations.com/api/oauth/callback'
-    },
-    installations: {
-      count: installations.size,
-      ids: Array.from(installations.keys())
-    },
-    last_request: new Date().toISOString()
-  });
-});
-
-// Health Check
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    service: 'Pure OAuth Backend',
-    version: '6.0.1-fixed-credentials',
-    features: ['oauth-callback', 'token-management', 'api-bridge'],
-    installations: installations.size,
-    oauth_config: {
-      client_id: CLIENT_ID,
-      redirect_uri: REDIRECT_URI
-    },
-    timestamp: Date.now()
-  });
-});
-
-// Root Status
-app.get('/', (req, res) => {
-  res.json({
-    service: 'GoHighLevel OAuth Backend',
-    version: '6.0.1-fixed-credentials', 
-    purpose: 'OAuth authentication only',
-    endpoints: [
-      'GET /api/oauth/callback',
-      'POST /api/token-access',
-      'GET /installations',
-      'GET /debug',
-      'GET /health'
-    ],
-    installations: installations.size,
-    status: 'operational'
-  });
-});
-
-app.listen(port, () => {
-  console.log(\`Pure OAuth Backend v6.0.1 running on port \${port}\`);
-  console.log('Purpose: OAuth authentication and token management only');
-  console.log('OAuth Config:', { CLIENT_ID, REDIRECT_URI });
-  console.log('API Backend: Separate service handles GoHighLevel API calls');
-});`;
-
-    console.log('3. Deploying fixed OAuth backend...');
-    
-    await octokit.rest.repos.createOrUpdateFileContents({
-      owner,
-      repo,
-      path: 'index.js',
-      message: 'Fix OAuth credentials and enhance error handling',
-      content: Buffer.from(fixedOAuthBackend).toString('base64'),
-      sha: currentIndex.sha,
-      branch
+  try {
+    const refreshData = new URLSearchParams({
+      client_id: OAUTH_CONFIG.clientId,
+      client_secret: OAUTH_CONFIG.clientSecret,
+      grant_type: 'refresh_token',
+      refresh_token: installation.refresh_token
     });
     
-    console.log('✅ OAuth Backend credentials fixed!');
-    console.log('');
-    console.log('🚀 Fix Summary:');
-    console.log('   Enhanced error handling for OAuth failures');
-    console.log('   Added debug information to error pages');
-    console.log('   Better logging for token exchange process');
-    console.log('   Debug endpoint: /debug for OAuth configuration');
-    console.log('');
-    console.log('⏱️ Railway deployment starting...');
-    console.log('🔗 Test OAuth: https://dir.engageautomations.com/debug');
-    console.log('');
-    console.log('📋 Next Steps:');
-    console.log('1. Wait for deployment (2-3 minutes)');
-    console.log('2. Check /debug endpoint for OAuth configuration');
-    console.log('3. Retry OAuth installation');
+    const response = await axios.post(OAUTH_CONFIG.tokenUrl, refreshData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      timeout: 15000,
+      validateStatus: () => true
+    });
+    
+    if (response.status !== 200) {
+      throw new Error(`Token refresh failed: ${response.status}`);
+    }
+    
+    // Update installation
+    installation.access_token = response.data.access_token;
+    installation.refresh_token = response.data.refresh_token || installation.refresh_token;
+    installation.expires_in = response.data.expires_in;
+    installation.expires_at = Date.now() + (response.data.expires_in * 1000);
+    installation.token_status = 'valid';
+    installation.last_refresh = new Date().toISOString();
+    
+    console.log(`Token refreshed successfully for ${installationId}`);
+    
+    // Schedule next refresh
+    scheduleTokenRefresh(installationId);
     
   } catch (error) {
-    console.error('❌ Fix deployment error:', error);
-    if (error.response) {
-      console.error('   Status:', error.response.status);
-      console.error('   Message:', error.response.data?.message);
-    }
+    console.error('Token refresh failed:', error);
+    installation.token_status = 'refresh_failed';
+    installation.active = false;
+    throw error;
   }
 }
 
-fixOAuthCredentials();
+// Token refresh scheduling
+function scheduleTokenRefresh(installationId) {
+  try {
+    const installation = installations.get(installationId);
+    if (!installation) return;
+    
+    const timeUntilRefresh = Math.max(installation.expires_at - Date.now() - 600000, 60000);
+    
+    setTimeout(async () => {
+      try {
+        await refreshToken(installationId);
+      } catch (error) {
+        console.error(`Scheduled refresh failed for ${installationId}:`, error);
+      }
+    }, timeUntilRefresh);
+    
+    console.log(`Token refresh scheduled for ${installationId} in ${Math.round(timeUntilRefresh / 60000)} minutes`);
+    
+  } catch (error) {
+    console.error('Token refresh scheduling error:', error);
+  }
+}
+
+// Start server
+const server = app.listen(port, () => {
+  console.log(`OAuth Backend running on port ${port}`);
+  console.log('Version: 8.5.6-correct-credentials');
+  console.log('Features: Standard OAuth with CORRECT client credentials');
+  console.log('Client ID:', OAUTH_CONFIG.clientId);
+});
+
+server.on('error', (error) => {
+  console.error('Server error:', error);
+});
+
+module.exports = app;
