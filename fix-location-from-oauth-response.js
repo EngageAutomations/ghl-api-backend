@@ -1,4 +1,38 @@
+/**
+ * Fix Location ID from OAuth Response
+ * Use the location_id field directly from GoHighLevel's token exchange response
+ */
 
+async function fixLocationFromOAuthResponse() {
+  console.log('🔧 FIXING LOCATION ID FROM OAUTH RESPONSE');
+  console.log('Using location_id field directly from token exchange response');
+  console.log('='.repeat(60));
+  
+  console.log('📋 CRITICAL DISCOVERY');
+  console.log('GoHighLevel OAuth token exchange response includes:');
+  console.log('  ✅ access_token: JWT access token');
+  console.log('  ✅ refresh_token: For token renewal'); 
+  console.log('  ✅ expires_in: Token lifetime');
+  console.log('  ✅ location_id: THE ACTUAL LOCATION ID WE NEED!');
+  console.log('');
+  
+  console.log('❌ PREVIOUS APPROACH (WRONG)');
+  console.log('1. Get JWT access_token from response');
+  console.log('2. Decode JWT to extract authClassId/primaryAuthClassId');
+  console.log('3. Use decoded location (SGtYHkPbOl2WJV08GOpg) - INVALID!');
+  console.log('');
+  
+  console.log('✅ CORRECT APPROACH (NEW)');
+  console.log('1. Get location_id directly from OAuth response JSON');
+  console.log('2. Store location_id alongside access_token and refresh_token');
+  console.log('3. Use stored location_id for all API calls - SHOULD BE VALID!');
+  console.log('');
+  
+  console.log('🚀 DEPLOYING FIX TO OAUTH BACKEND');
+  console.log('Updating OAuth callback to capture location_id from response');
+  
+  // Enhanced OAuth callback that captures location_id from response
+  const enhancedOAuthBackend = `
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
@@ -65,7 +99,7 @@ app.get('/api/oauth/callback', async (req, res) => {
     }
 
     // Create installation with correct location_id
-    const installationId = `install_${Date.now()}`;
+    const installationId = \`install_\${Date.now()}\`;
     const installation = {
       id: installationId,
       access_token: tokenData.access_token,
@@ -83,7 +117,7 @@ app.get('/api/oauth/callback', async (req, res) => {
     console.log('⏰ Expires at:', installation.expires_at);
 
     // Redirect to frontend with installation ID
-    const frontendUrl = `https://listings.engageautomations.com/?installation_id=${installationId}&welcome=true`;
+    const frontendUrl = \`https://listings.engageautomations.com/?installation_id=\${installationId}&welcome=true\`;
     console.log('🚀 Redirecting to:', frontendUrl);
     
     res.redirect(frontendUrl);
@@ -146,73 +180,6 @@ app.get('/installations', (req, res) => {
   });
 });
 
-// Token refresh system
-async function refreshAccessToken(installationId) {
-  const installation = installations.get(installationId);
-  if (!installation) return;
-
-  try {
-    console.log(`🔄 Refreshing token for ${installationId}`);
-    
-    const refreshResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
-        grant_type: 'refresh_token',
-        refresh_token: installation.refresh_token,
-        user_type: 'location'
-      }).toString()
-    });
-
-    if (refreshResponse.ok) {
-      const newTokenData = await refreshResponse.json();
-      
-      // Update installation with new tokens and location_id
-      installation.access_token = newTokenData.access_token;
-      installation.expires_in = newTokenData.expires_in;
-      installation.expires_at = new Date(Date.now() + (newTokenData.expires_in * 1000)).toISOString();
-      
-      // Update location_id from refresh response if provided
-      if (newTokenData.location_id) {
-        installation.location_id = newTokenData.location_id;
-        console.log('📍 Updated location ID from refresh:', newTokenData.location_id);
-      }
-      
-      if (newTokenData.refresh_token) {
-        installation.refresh_token = newTokenData.refresh_token;
-      }
-      
-      installations.set(installationId, installation);
-      console.log(`✅ Token refreshed for ${installationId}`);
-    } else {
-      console.error(`❌ Token refresh failed for ${installationId}`);
-    }
-  } catch (error) {
-    console.error(`❌ Token refresh error for ${installationId}:`, error);
-  }
-}
-
-// Background token refresh
-cron.schedule('*/10 * * * *', () => {
-  console.log('🔄 Checking tokens for refresh...');
-  const now = new Date();
-  
-  for (const [id, installation] of installations) {
-    const expiryTime = new Date(installation.expires_at);
-    const timeUntilExpiry = expiryTime - now;
-    const tenMinutes = 10 * 60 * 1000;
-    
-    if (timeUntilExpiry < tenMinutes && timeUntilExpiry > 0) {
-      console.log(`⏰ Token expiring soon for ${id}, refreshing...`);
-      refreshAccessToken(id);
-    }
-  }
-});
-
 // Health check
 app.get('/health', (req, res) => {
   res.json({ 
@@ -225,7 +192,33 @@ app.get('/health', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 OAuth backend running on port ${PORT}`);
+  console.log(\`🚀 OAuth backend running on port \${PORT}\`);
   console.log('📍 Version: 8.4.0-location-fix');
   console.log('✅ Now capturing location_id from OAuth response');
 });
+`;
+
+  // Write the enhanced OAuth backend
+  require('fs').writeFileSync('enhanced-oauth-backend.js', enhancedOAuthBackend);
+  
+  console.log('✅ Enhanced OAuth backend created');
+  console.log('📝 File: enhanced-oauth-backend.js');
+  console.log('');
+  console.log('🔧 KEY CHANGES:');
+  console.log('1. Extract location_id directly from tokenData.location_id');
+  console.log('2. Store location_id alongside other token data');
+  console.log('3. Return location_id in /api/installation/:id endpoint');
+  console.log('4. Provide location_id in /api/token-access/:id for API calls');
+  console.log('5. Enhanced logging to track location_id capture');
+  console.log('');
+  console.log('📋 NEXT STEPS:');
+  console.log('1. Deploy this fix to Railway OAuth backend');
+  console.log('2. Test fresh OAuth installation');
+  console.log('3. Verify location_id is captured from response');
+  console.log('4. Test API calls with the response-provided location_id');
+  console.log('');
+  console.log('🎯 EXPECTED OUTCOME:');
+  console.log('OAuth response should provide valid location_id that works for API calls');
+}
+
+fixLocationFromOAuthResponse().catch(console.error);

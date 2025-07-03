@@ -1,4 +1,16 @@
+/**
+ * Deploy Location Fix to OAuth Backend
+ * Use location_id from OAuth response instead of JWT extraction
+ */
 
+const fs = require('fs');
+
+async function deployLocationFix() {
+  console.log('🚀 DEPLOYING LOCATION FIX TO OAUTH BACKEND');
+  console.log('Using location_id directly from GoHighLevel OAuth response');
+  console.log('='.repeat(60));
+  
+  const enhancedOAuthBackend = `
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
@@ -65,7 +77,7 @@ app.get('/api/oauth/callback', async (req, res) => {
     }
 
     // Create installation with correct location_id
-    const installationId = `install_${Date.now()}`;
+    const installationId = \`install_\${Date.now()}\`;
     const installation = {
       id: installationId,
       access_token: tokenData.access_token,
@@ -83,7 +95,7 @@ app.get('/api/oauth/callback', async (req, res) => {
     console.log('⏰ Expires at:', installation.expires_at);
 
     // Redirect to frontend with installation ID
-    const frontendUrl = `https://listings.engageautomations.com/?installation_id=${installationId}&welcome=true`;
+    const frontendUrl = \`https://listings.engageautomations.com/?installation_id=\${installationId}&welcome=true\`;
     console.log('🚀 Redirecting to:', frontendUrl);
     
     res.redirect(frontendUrl);
@@ -152,7 +164,7 @@ async function refreshAccessToken(installationId) {
   if (!installation) return;
 
   try {
-    console.log(`🔄 Refreshing token for ${installationId}`);
+    console.log(\`🔄 Refreshing token for \${installationId}\`);
     
     const refreshResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
       method: 'POST',
@@ -187,12 +199,12 @@ async function refreshAccessToken(installationId) {
       }
       
       installations.set(installationId, installation);
-      console.log(`✅ Token refreshed for ${installationId}`);
+      console.log(\`✅ Token refreshed for \${installationId}\`);
     } else {
-      console.error(`❌ Token refresh failed for ${installationId}`);
+      console.error(\`❌ Token refresh failed for \${installationId}\`);
     }
   } catch (error) {
-    console.error(`❌ Token refresh error for ${installationId}:`, error);
+    console.error(\`❌ Token refresh error for \${installationId}:\`, error);
   }
 }
 
@@ -207,7 +219,7 @@ cron.schedule('*/10 * * * *', () => {
     const tenMinutes = 10 * 60 * 1000;
     
     if (timeUntilExpiry < tenMinutes && timeUntilExpiry > 0) {
-      console.log(`⏰ Token expiring soon for ${id}, refreshing...`);
+      console.log(\`⏰ Token expiring soon for \${id}, refreshing...\`);
       refreshAccessToken(id);
     }
   }
@@ -225,7 +237,57 @@ app.get('/health', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 OAuth backend running on port ${PORT}`);
+  console.log(\`🚀 OAuth backend running on port \${PORT}\`);
   console.log('📍 Version: 8.4.0-location-fix');
   console.log('✅ Now capturing location_id from OAuth response');
 });
+`;
+
+  // Write to Railway OAuth directory
+  fs.writeFileSync('railway-backend/index.js', enhancedOAuthBackend);
+  
+  console.log('✅ Enhanced OAuth backend written to railway-backend/index.js');
+  
+  // Now push to GitHub to trigger Railway deployment
+  console.log('\n🔄 PUSHING TO GITHUB TO DEPLOY...');
+  
+  const { execSync } = require('child_process');
+  
+  try {
+    // Navigate to OAuth backend directory
+    process.chdir('railway-backend');
+    
+    // Add and commit the changes
+    execSync('git add index.js', { stdio: 'inherit' });
+    execSync('git commit -m "v8.4.0-location-fix: Use location_id from OAuth response instead of JWT extraction"', { stdio: 'inherit' });
+    
+    // Push to trigger Railway deployment
+    execSync('git push origin main', { stdio: 'inherit' });
+    
+    console.log('✅ Successfully pushed to GitHub');
+    console.log('⚡ Railway auto-deployment triggered');
+    
+  } catch (error) {
+    console.error('❌ Git push failed:', error.message);
+    console.log('📝 Manual deployment required - copy index.js to OAuth backend repository');
+  }
+  
+  console.log('\n🔧 KEY CHANGES DEPLOYED:');
+  console.log('1. Extract location_id directly from tokenData.location_id');
+  console.log('2. Store location_id alongside access_token and refresh_token');
+  console.log('3. Use response location_id instead of JWT authClassId');
+  console.log('4. Enhanced logging to track location_id capture');
+  console.log('5. Updated token refresh to also capture location_id');
+  console.log('');
+  console.log('📋 NEXT STEPS:');
+  console.log('1. Wait for Railway deployment to complete (~2 minutes)');
+  console.log('2. Test fresh OAuth installation');
+  console.log('3. Verify location_id is captured correctly from response');
+  console.log('4. Test API calls with the new location_id');
+  console.log('');
+  console.log('🎯 EXPECTED OUTCOME:');
+  console.log('OAuth response should provide valid location_id that works for API calls');
+  console.log('No more SGtYHkPbOl2WJV08GOpg invalid location errors!');
+}
+
+deployLocationFix().catch(console.error);

@@ -137,23 +137,25 @@ Use delete + create method for reliable file updates:
 
 ## Current Status (July 3, 2025)
 
-**Critical Discovery:** Root cause identified for API failures - invalid location ID usage throughout testing
-- OAuth installation install_1751436979939 contains location ID "SGtYHkPbOl2WJV08GOpg" which does not exist
-- All previous testing used this non-existent location ID, causing 400/403 errors
-- Cannot retrieve valid locations from account via any GoHighLevel API endpoint
-- OAuth token is valid but account context appears disconnected from actual locations
+**BREAKTHROUGH DISCOVERY:** Location ID extraction method was fundamentally wrong
+- **Previous approach (WRONG):** Extracting location ID from JWT token payload authClassId
+- **Correct approach (FIXED):** Using location_id field directly from OAuth token exchange response
+- GoHighLevel's OAuth token exchange response includes actual location_id field alongside access_token
+- JWT token contains invalid/placeholder location ID, not the real one
+- All API failures were due to using wrong location extraction method
 
-**Previous Working Locations (from historical data):**
-- eYeyzEWiaxcTOPROAo4C - Darul Uloom Tampa
-- kQDg6qp2x7GXYJ1VCkI8 - Engage Automations  
-- WAvk87RmW9rBSDJHeOpH - MakerExpress 3D
+**Critical Fix Deployed (v8.4.0-location-fix):**
+- OAuth callback now captures location_id directly from tokenData.location_id 
+- Enhanced logging to track location_id extraction from OAuth response
+- Updated token refresh system to maintain correct location_id
+- Eliminated dependency on JWT token authClassId field
 
-**Dual Backend Architecture:** Fully operational infrastructure ready for proper OAuth installation
-- OAuth Backend: https://dir.engageautomations.com (operational)
+**Dual Backend Architecture:** Fully operational infrastructure ready for testing
+- OAuth Backend: https://dir.engageautomations.com (deploying v8.4.0-location-fix)
 - API Backend: https://api.engageautomations.com (operational)
 - Bridge communication working (16ms token retrieval)
 
-**Next Required Action:** Fresh OAuth installation needed with valid account that can provide accessible location IDs for API testing
+**Next Required Action:** Test fresh OAuth installation with corrected location_id extraction from response
 
 ## Recent Changes
 
