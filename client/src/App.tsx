@@ -39,6 +39,7 @@ import { RailwayBackendTest } from "@/components/RailwayBackendTest";
 import ProductCreationDemo from "@/components/ProductCreationDemo";
 import PricingManager from "@/pages/PricingManager";
 import ProductWorkflowPage from "@/pages/ProductWorkflowPage";
+import WorkflowTester from "@/pages/WorkflowTester";
 
 // No authentication required - direct access
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -200,6 +201,15 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <ProductWorkflowPage />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+
+      {/* Complete Workflow Tester */}
+      <Route path="/workflow-tester">
+        <ProtectedRoute>
+          <AppLayout>
+            <WorkflowTester />
           </AppLayout>
         </ProtectedRoute>
       </Route>

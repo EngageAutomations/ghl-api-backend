@@ -15,6 +15,7 @@ import { createJWTEndpoint, createGHLProxyRouter } from "./ghl-proxy";
 import { setupBridgeEndpoints } from "./bridge-integration";
 import { pool } from "./db";
 import { BridgeProtection, validateBridgeEndpoints } from "./bridge-protection";
+import completeWorkflowAPI from "./complete-workflow-api";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
@@ -1827,6 +1828,10 @@ app.use((req, res, next) => {
   const ghlRouter = createGHLProxyRouter();
   app.use('/api/ghl', ghlRouter);
   console.log('GHL proxy routes mounted at /api/ghl/*');
+  
+  // Add complete workflow API
+  app.use('/api/workflow', completeWorkflowAPI);
+  console.log('Complete workflow API mounted at /api/workflow/*');
   console.log('✅ Railway GHL proxy configured');
 
   // Create HTTP server
