@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
@@ -15,9 +14,8 @@ const installations = new Map();
 // OAuth credentials
 const CLIENT_ID = '68474924a586bce22a6e64f7';
 const CLIENT_SECRET = 'mbpkmyu4';
-const CLIENT_KEY = '68474924a586bce22a6e64f7-mbpkmyu4';
 
-// OAuth callback - FIXED to use location-level authentication
+// OAuth callback with location-level authentication
 app.get('/api/oauth/callback', async (req, res) => {
   const { code } = req.query;
   
@@ -29,7 +27,7 @@ app.get('/api/oauth/callback', async (req, res) => {
   try {
     console.log('🔄 Exchanging authorization code for LOCATION-LEVEL tokens...');
     
-    // CRITICAL FIX: Use user_type: "location" for location-level authentication
+    // Use user_type: "location" for location-level authentication
     const tokenResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
       method: 'POST',
       headers: {
@@ -40,7 +38,7 @@ app.get('/api/oauth/callback', async (req, res) => {
         client_secret: CLIENT_SECRET,
         grant_type: 'authorization_code',
         code: code,
-        user_type: 'location', // ✅ CONFIRMED: This parameter IS supported by GoHighLevel
+        user_type: 'location',
         redirect_uri: 'https://dir.engageautomations.com/api/oauth/callback'
       }).toString()
     });
@@ -53,13 +51,12 @@ app.get('/api/oauth/callback', async (req, res) => {
 
     const tokenData = await tokenResponse.json();
     console.log('✅ Location-level token exchange successful');
-    console.log('📊 Response fields:', Object.keys(tokenData));
     
-    // Extract location_id from response (should be more reliable now)
+    // Extract location_id from response
     const locationId = tokenData.location_id;
-    console.log('🎯 LOCATION ID FROM RESPONSE:', locationId);
+    console.log('🎯 LOCATION ID:', locationId);
     
-    // Verify token is location-level by decoding JWT
+    // Verify token is location-level
     if (tokenData.access_token) {
       try {
         const tokenParts = tokenData.access_token.split('.');
@@ -67,23 +64,20 @@ app.get('/api/oauth/callback', async (req, res) => {
           const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
           console.log('🔍 Token verification:');
           console.log('   Auth Class:', payload.authClass);
-          console.log('   Auth Class ID:', payload.authClassId);
-          console.log('   Location Context:', payload.primaryAuthClassId);
+          console.log('   Location ID:', payload.authClassId);
           
           if (payload.authClass === 'Location') {
             console.log('✅ SUCCESS: Token is Location-level!');
-          } else if (payload.authClass === 'Company') {
-            console.log('⚠️  WARNING: Still getting Company-level token');
           } else {
-            console.log('💡 Info: Auth class is', payload.authClass);
+            console.log('⚠️  WARNING: Still getting Company-level token');
           }
         }
       } catch (decodeError) {
-        console.log('⚠️  Could not decode token for verification');
+        console.log('⚠️  Could not decode token');
       }
     }
 
-    // Create installation with location-level context
+    // Create installation record
     const installationId = `install_${Date.now()}`;
     const installation = {
       id: installationId,
@@ -91,7 +85,7 @@ app.get('/api/oauth/callback', async (req, res) => {
       refresh_token: tokenData.refresh_token,
       expires_in: tokenData.expires_in,
       location_id: locationId,
-      auth_level: 'location', // Track that this is location-level
+      auth_level: 'location',
       created_at: new Date().toISOString(),
       expires_at: new Date(Date.now() + (tokenData.expires_in * 1000)).toISOString()
     };
@@ -99,14 +93,9 @@ app.get('/api/oauth/callback', async (req, res) => {
     installations.set(installationId, installation);
     
     console.log('💾 Location-level installation stored:', installationId);
-    console.log('📍 Location ID:', locationId);
-    console.log('🔐 Auth Level: location');
-    console.log('⏰ Expires at:', installation.expires_at);
 
-    // Redirect to frontend with installation ID
+    // Redirect to frontend
     const frontendUrl = `https://listings.engageautomations.com/?installation_id=${installationId}&welcome=true&auth_level=location`;
-    console.log('🚀 Redirecting to:', frontendUrl);
-    
     res.redirect(frontendUrl);
 
   } catch (error) {
@@ -122,7 +111,6 @@ app.get('/api/installation/:id', (req, res) => {
     return res.status(404).json({ error: 'Installation not found' });
   }
   
-  // Return installation details with auth level info
   res.json({
     id: installation.id,
     location_id: installation.location_id,
@@ -133,14 +121,13 @@ app.get('/api/installation/:id', (req, res) => {
   });
 });
 
-// Get access token for API calls (for API backend)
+// Get access token for API calls
 app.get('/api/token-access/:id', (req, res) => {
   const installation = installations.get(req.params.id);
   if (!installation) {
     return res.status(404).json({ error: 'Installation not found' });
   }
   
-  // Check if token is still valid
   if (new Date() >= new Date(installation.expires_at)) {
     return res.status(401).json({ error: 'Token expired' });
   }
@@ -170,7 +157,7 @@ app.get('/installations', (req, res) => {
   });
 });
 
-// Token refresh system - also use location-level refresh
+// Token refresh
 async function refreshAccessToken(installationId) {
   const installation = installations.get(installationId);
   if (!installation) return;
@@ -188,22 +175,19 @@ async function refreshAccessToken(installationId) {
         client_secret: CLIENT_SECRET,
         grant_type: 'refresh_token',
         refresh_token: installation.refresh_token,
-        user_type: 'location' // ✅ FIXED: Maintain location-level on refresh
+        user_type: 'location'
       }).toString()
     });
 
     if (refreshResponse.ok) {
       const newTokenData = await refreshResponse.json();
       
-      // Update installation with new tokens
       installation.access_token = newTokenData.access_token;
       installation.expires_in = newTokenData.expires_in;
       installation.expires_at = new Date(Date.now() + (newTokenData.expires_in * 1000)).toISOString();
       
-      // Update location_id from refresh response if provided
       if (newTokenData.location_id) {
         installation.location_id = newTokenData.location_id;
-        console.log('📍 Updated location ID from refresh:', newTokenData.location_id);
       }
       
       if (newTokenData.refresh_token) {
@@ -212,8 +196,6 @@ async function refreshAccessToken(installationId) {
       
       installations.set(installationId, installation);
       console.log(`✅ Location-level token refreshed for ${installationId}`);
-    } else {
-      console.error(`❌ Token refresh failed for ${installationId}`);
     }
   } catch (error) {
     console.error(`❌ Token refresh error for ${installationId}:`, error);
@@ -222,7 +204,6 @@ async function refreshAccessToken(installationId) {
 
 // Background token refresh
 cron.schedule('*/10 * * * *', () => {
-  console.log('🔄 Checking location-level tokens for refresh...');
   const now = new Date();
   
   for (const [id, installation] of installations) {
@@ -231,7 +212,6 @@ cron.schedule('*/10 * * * *', () => {
     const tenMinutes = 10 * 60 * 1000;
     
     if (timeUntilExpiry < tenMinutes && timeUntilExpiry > 0) {
-      console.log(`⏰ Location token expiring soon for ${id}, refreshing...`);
       refreshAccessToken(id);
     }
   }
@@ -241,7 +221,7 @@ cron.schedule('*/10 * * * *', () => {
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
-    version: '8.5.0-location-level-fix',
+    version: '8.5.2-location-working',
     installations: installations.size,
     auth_type: 'location',
     timestamp: new Date().toISOString()
@@ -251,7 +231,6 @@ app.get('/health', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 OAuth backend running on port ${PORT}`);
-  console.log('📍 Version: 8.5.0-location-level-fix');
-  console.log('✅ Now using LOCATION-LEVEL authentication');
-  console.log('🔐 user_type: location for all OAuth requests');
+  console.log('📍 Version: 8.5.2-location-working');
+  console.log('✅ Using LOCATION-LEVEL authentication');
 });
