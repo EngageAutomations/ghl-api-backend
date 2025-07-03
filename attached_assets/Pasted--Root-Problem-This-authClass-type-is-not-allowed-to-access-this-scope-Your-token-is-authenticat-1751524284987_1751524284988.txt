@@ -1,0 +1,82 @@
+❌ Root Problem
+"This authClass type is not allowed to access this scope."
+
+Your token is authenticated as a Company-level identity (authClass: Company), but the /medias/upload-file endpoint requires a Location-level (sub-account) token.
+
+✅ Solution: Use a Location-Level Access Token
+To fix this issue:
+
+1. Re-do OAuth using user_type = location
+Ensure your token is scoped for a location, not a company:
+
+When exchanging your OAuth code for tokens, send this payload:
+
+json
+Copy
+Edit
+{
+  "client_id": "YOUR_CLIENT_ID",
+  "client_secret": "YOUR_CLIENT_SECRET",
+  "grant_type": "authorization_code",
+  "code": "YOUR_CODE_FROM_CALLBACK_URL",
+  "user_type": "location",
+  "redirect_uri": "YOUR_REDIRECT_URI"
+}
+2. Verify the Token
+The response will include an access token authorized at the location level, and the payload of the JWT should show:
+
+json
+Copy
+Edit
+{
+  "authClass": "Location",
+  "locationId": "WAvk87RmW9rBSDJHeOpH",
+  ...
+}
+3. Re-send Media Upload Request
+Use the exact same POST request to:
+
+arduino
+Copy
+Edit
+https://services.leadconnectorhq.com/medias/upload-file
+But with the location-level token in the Authorization header.
+
+Example:
+
+http
+Copy
+Edit
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR...
+Make sure the locationId field in the multipart form matches the token's location.
+
+🧠 Why Company Tokens Don't Work
+GoHighLevel enforces scope restrictions by authClass, meaning:
+
+Company tokens can access company-level endpoints only.
+
+Location tokens are required for endpoints like:
+
+/contacts
+
+/calendars
+
+/medias/upload-file ✅
+
+Even if a company token has the medias.write scope, it will be denied access to the media upload endpoint.
+
+✅ Final Checklist
+Requirement	Status
+Token type: Location	✅ Required
+Scope: medias.write	✅ Required
+locationId in form body	✅ Required
+File format & headers correct	✅ Already good
+
+🔁 Quick Fix Summary
+Re-authenticate with user_type: location
+
+Use the new location-scoped token in your upload request
+
+Retry the POST to /medias/upload-file
+
+Would you like a ready-to-use Postman collection or code snippet that does this end-to-end?

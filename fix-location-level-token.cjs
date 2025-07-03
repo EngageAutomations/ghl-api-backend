@@ -1,4 +1,16 @@
+/**
+ * Fix Location-Level Token Issue
+ * Update OAuth backend to use user_type: "location" instead of Company-level auth
+ */
 
+const fs = require('fs');
+
+async function fixLocationLevelToken() {
+  console.log('🔧 FIXING OAUTH TO USE LOCATION-LEVEL TOKENS');
+  console.log('Updating OAuth backend to request user_type: "location"');
+  console.log('='.repeat(60));
+  
+  const fixedOAuthBackend = `
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
@@ -84,7 +96,7 @@ app.get('/api/oauth/callback', async (req, res) => {
     }
 
     // Create installation with location-level context
-    const installationId = `install_${Date.now()}`;
+    const installationId = \`install_\${Date.now()}\`;
     const installation = {
       id: installationId,
       access_token: tokenData.access_token,
@@ -104,7 +116,7 @@ app.get('/api/oauth/callback', async (req, res) => {
     console.log('⏰ Expires at:', installation.expires_at);
 
     // Redirect to frontend with installation ID
-    const frontendUrl = `https://listings.engageautomations.com/?installation_id=${installationId}&welcome=true&auth_level=location`;
+    const frontendUrl = \`https://listings.engageautomations.com/?installation_id=\${installationId}&welcome=true&auth_level=location\`;
     console.log('🚀 Redirecting to:', frontendUrl);
     
     res.redirect(frontendUrl);
@@ -176,7 +188,7 @@ async function refreshAccessToken(installationId) {
   if (!installation) return;
 
   try {
-    console.log(`🔄 Refreshing location-level token for ${installationId}`);
+    console.log(\`🔄 Refreshing location-level token for \${installationId}\`);
     
     const refreshResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
       method: 'POST',
@@ -211,12 +223,12 @@ async function refreshAccessToken(installationId) {
       }
       
       installations.set(installationId, installation);
-      console.log(`✅ Location-level token refreshed for ${installationId}`);
+      console.log(\`✅ Location-level token refreshed for \${installationId}\`);
     } else {
-      console.error(`❌ Token refresh failed for ${installationId}`);
+      console.error(\`❌ Token refresh failed for \${installationId}\`);
     }
   } catch (error) {
-    console.error(`❌ Token refresh error for ${installationId}:`, error);
+    console.error(\`❌ Token refresh error for \${installationId}:\`, error);
   }
 }
 
@@ -231,7 +243,7 @@ cron.schedule('*/10 * * * *', () => {
     const tenMinutes = 10 * 60 * 1000;
     
     if (timeUntilExpiry < tenMinutes && timeUntilExpiry > 0) {
-      console.log(`⏰ Location token expiring soon for ${id}, refreshing...`);
+      console.log(\`⏰ Location token expiring soon for \${id}, refreshing...\`);
       refreshAccessToken(id);
     }
   }
@@ -250,8 +262,34 @@ app.get('/health', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 OAuth backend running on port ${PORT}`);
+  console.log(\`🚀 OAuth backend running on port \${PORT}\`);
   console.log('📍 Version: 8.5.0-location-level-fix');
   console.log('✅ Now using LOCATION-LEVEL authentication');
   console.log('🔐 user_type: location for all OAuth requests');
 });
+`;
+
+  // Write the fixed OAuth backend
+  fs.writeFileSync('railway-backend/index.js', fixedOAuthBackend);
+  
+  console.log('✅ Fixed OAuth backend written to railway-backend/index.js');
+  console.log('');
+  console.log('🔧 CRITICAL CHANGES MADE:');
+  console.log('1. Changed user_type from implicit to explicit "location"');
+  console.log('2. Added JWT token verification to confirm auth class');
+  console.log('3. Enhanced logging to track location-level authentication');
+  console.log('4. Updated token refresh to maintain location-level context');
+  console.log('5. Added auth_level tracking to installation records');
+  console.log('');
+  console.log('📋 NEXT STEPS:');
+  console.log('1. Deploy this fix to Railway OAuth backend');
+  console.log('2. Perform fresh OAuth installation');
+  console.log('3. Verify JWT token shows authClass: "Location"');
+  console.log('4. Test media upload with location-level token');
+  console.log('');
+  console.log('🎯 EXPECTED OUTCOME:');
+  console.log('OAuth response should provide Location-level token that works for media upload');
+  console.log('JWT payload should show authClass: "Location" instead of "Company"');
+}
+
+fixLocationLevelToken().catch(console.error);

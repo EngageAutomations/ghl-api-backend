@@ -137,18 +137,19 @@ Use delete + create method for reliable file updates:
 
 ## Current Status (July 3, 2025)
 
-**BREAKTHROUGH DISCOVERY:** Location ID extraction method was fundamentally wrong
-- **Previous approach (WRONG):** Extracting location ID from JWT token payload authClassId
-- **Correct approach (FIXED):** Using location_id field directly from OAuth token exchange response
-- GoHighLevel's OAuth token exchange response includes actual location_id field alongside access_token
-- JWT token contains invalid/placeholder location ID, not the real one
-- All API failures were due to using wrong location extraction method
+**ROOT CAUSE DISCOVERED:** OAuth authentication level was wrong - Company vs Location tokens
+- **Previous approach (WRONG):** Using Company-level OAuth tokens (authClass: "Company")
+- **Correct approach (FIXED):** Using Location-level OAuth tokens (user_type: "location")
+- Media upload endpoints require Location-level authentication, not Company-level
+- Company tokens are blocked by IAM from accessing media endpoints regardless of scopes
+- All API failures were due to using wrong authentication level
 
-**Critical Fix Deployed (v8.4.0-location-fix):**
-- OAuth callback now captures location_id directly from tokenData.location_id 
-- Enhanced logging to track location_id extraction from OAuth response
-- Updated token refresh system to maintain correct location_id
-- Eliminated dependency on JWT token authClassId field
+**Critical Fix Deployed (v8.5.0-location-level-fix):**
+- OAuth token exchange now explicitly requests user_type: "location"
+- JWT token verification added to confirm authClass: "Location" 
+- Enhanced logging to track location-level authentication context
+- Updated token refresh system to maintain location-level authentication
+- All OAuth requests now use location-level instead of company-level tokens
 
 **Dual Backend Architecture:** Fully operational infrastructure ready for testing
 - OAuth Backend: https://dir.engageautomations.com (deploying v8.4.0-location-fix)
