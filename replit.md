@@ -137,19 +137,19 @@ Use delete + create method for reliable file updates:
 
 ## Current Status (July 3, 2025)
 
-**ROOT CAUSE DISCOVERED:** OAuth authentication level was wrong - Company vs Location tokens
-- **Previous approach (WRONG):** Using Company-level OAuth tokens (authClass: "Company")
-- **Correct approach (FIXED):** Using Location-level OAuth tokens (user_type: "location")
-- Media upload endpoints require Location-level authentication, not Company-level
-- Company tokens are blocked by IAM from accessing media endpoints regardless of scopes
-- All API failures were due to using wrong authentication level
+**ROOT CAUSE IDENTIFIED:** Marketplace app configuration generates Company-level tokens
+- **Issue:** GoHighLevel marketplace app configured for Company-level token generation (authClass: "Company")
+- **Required Fix:** Marketplace app needs reconfiguration for Location-level token generation (authClass: "Location")
+- Media upload endpoints require Location-level authentication, blocked by IAM for Company tokens
+- OAuth parameters cannot override marketplace app configuration settings
+- Technical implementation is correct, configuration-level restriction discovered
 
-**Critical Fix Deployed (v8.5.0-location-level-fix):**
-- OAuth token exchange now explicitly requests user_type: "location"
-- JWT token verification added to confirm authClass: "Location" 
-- Enhanced logging to track location-level authentication context
-- Updated token refresh system to maintain location-level authentication
-- All OAuth requests now use location-level instead of company-level tokens
+**Configuration Analysis Completed:**
+- OAuth backend deployment successful with enhanced logging and verification
+- JWT token analysis confirms Company-level authentication (authClass: "Company")
+- GoHighLevel IAM blocks Company tokens from media endpoints regardless of scopes
+- Marketplace app distribution type needs change from Agency to Sub-Account level
+- Alternative: Use agency-to-location token exchange endpoint as workaround
 
 **Dual Backend Architecture:** Fully operational infrastructure ready for testing
 - OAuth Backend: https://dir.engageautomations.com (deploying v8.4.0-location-fix)

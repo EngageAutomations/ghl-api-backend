@@ -1,0 +1,10 @@
+OAuth Authorization Code from Fresh Installation:
+5139c9628a6333e8b0559a352d37f8c829a931af
+
+Callback URL attempted:
+https://dir.engageautomations.com/api/oauth/callback?code=5139c9628a6333e8b0559a352d37f8c829a931af
+
+Status: Failed due to Railway deployment in progress
+Timestamp: 2025-07-03T06:45:00Z
+
+This code will be used to test the location-level authentication fix once Railway deployment completes.
