@@ -42,6 +42,81 @@ export function registerRoutes(app: Express) {
     enhancedMediaUploadService.listMedia.bind(enhancedMediaUploadService)
   );
 
+  // Location Token API - Request Location token for media uploads
+  app.post('/api/location-token/request', async (req, res) => {
+    try {
+      const { installation_id } = req.body;
+      
+      if (!installation_id) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'installation_id is required' 
+        });
+      }
+
+      console.log(`[LOCATION TOKEN API] Requesting Location token for installation: ${installation_id}`);
+      
+      // Import the converter dynamically to avoid circular dependencies
+      const { locationTokenConverter } = await import('./location-token-converter');
+      
+      // Get Location token (will convert Company token automatically)
+      const locationToken = await locationTokenConverter.getLocationToken(installation_id);
+      
+      if (!locationToken) {
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Failed to obtain Location token. Please check your OAuth installation.' 
+        });
+      }
+
+      // Don't return the actual token for security, just confirm it's available
+      res.json({
+        success: true,
+        message: 'Location token obtained successfully',
+        hasLocationToken: true,
+        installation_id: installation_id,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('[LOCATION TOKEN API] Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Internal server error requesting Location token' 
+      });
+    }
+  });
+
+  // Location Token Status - Check if Location token is available
+  app.get('/api/location-token/status/:installation_id', async (req, res) => {
+    try {
+      const { installation_id } = req.params;
+      
+      console.log(`[LOCATION TOKEN STATUS] Checking status for installation: ${installation_id}`);
+      
+      // Import the converter dynamically
+      const { locationTokenConverter } = await import('./location-token-converter');
+      
+      // Check if Location token is available
+      const hasLocationToken = await locationTokenConverter.hasLocationToken(installation_id);
+      
+      res.json({
+        success: true,
+        installation_id: installation_id,
+        hasLocationToken: hasLocationToken,
+        message: hasLocationToken ? 'Location token available' : 'Location token not available',
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('[LOCATION TOKEN STATUS] Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Internal server error checking Location token status' 
+      });
+    }
+  });
+
   // Directory Loading Page
   app.get("/directory", async (req, res) => {
     const html = `
