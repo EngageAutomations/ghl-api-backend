@@ -137,13 +137,14 @@ Use delete + create method for reliable file updates:
 
 ## Current Status (July 4, 2025)
 
-**ROOT CAUSE IDENTIFIED - APP CONFIGURATION ISSUE:** Media upload blocked by Company-level authentication
-- **OAuth Backend:** Location-only backend deployed successfully (v8.9.0-location-only) 
-- **Media Upload Test:** Confirmed 401 IAM restriction - "This authClass type is not allowed to access this scope"
-- **JWT Analysis:** Token shows authClass: "Company" with no locationId field
-- **Scope Analysis:** medias.write scope present but blocked by Company auth class
-- **Root Cause:** GoHighLevel app configured for Company-level access in marketplace
-- **Required Fix:** Update app configuration in GoHighLevel marketplace to request Location-level access
+**AUTHORIZATION FLOW ISSUE IDENTIFIED:** Media upload blocked by Company-level authentication despite correct token exchange
+- **OAuth Backend:** Correct Location implementation deployed (v9.0.0-correct-location)
+- **Token Exchange:** Uses exact `user_type: "Location"` parameter from official GoHighLevel OAuth demo
+- **Media Upload Test:** Still 401 IAM restriction - Company-level tokens generated despite correct implementation
+- **Root Cause:** Authorization URL must use `/oauth/chooselocation` to force location selection
+- **Technical Status:** All backend code correct - issue is GoHighLevel marketplace app configuration
+- **Required Fix:** Update marketplace app to use `/oauth/chooselocation` authorization endpoint
+- **Distribution Type:** Must be configured as "Sub-Account" or "Agency & Sub-Account" in marketplace
 
 **Technical Implementation Status:**
 - OAuth backend forces user_type: "Location" in token exchange
