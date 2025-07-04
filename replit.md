@@ -137,13 +137,13 @@ Use delete + create method for reliable file updates:
 
 ## Current Status (July 4, 2025)
 
-**LOCATION-LEVEL OAUTH SOLUTION DEPLOYED:** Proper GoHighLevel scope-based solution implemented
-- **OAuth Backend:** Location-only backend with proper scopes deployed (v8.9.0-location-only)
-- **Railway Deployment Issue:** Railway consistently failing to deploy OAuth backend changes
-- **GitHub Repository:** Latest Location-only backend committed and available
-- **Authentication Challenge:** Need Location-level tokens for media upload access
-- **Scope Configuration:** Includes medias.write and medias.readonly per GoHighLevel documentation
-- **Deployment Status:** Railway stuck on v8.5.8-location-case-fix despite forced deployment attempts
+**ROOT CAUSE IDENTIFIED - APP CONFIGURATION ISSUE:** Media upload blocked by Company-level authentication
+- **OAuth Backend:** Location-only backend deployed successfully (v8.9.0-location-only) 
+- **Media Upload Test:** Confirmed 401 IAM restriction - "This authClass type is not allowed to access this scope"
+- **JWT Analysis:** Token shows authClass: "Company" with no locationId field
+- **Scope Analysis:** medias.write scope present but blocked by Company auth class
+- **Root Cause:** GoHighLevel app configured for Company-level access in marketplace
+- **Required Fix:** Update app configuration in GoHighLevel marketplace to request Location-level access
 
 **Technical Implementation Status:**
 - OAuth backend forces user_type: "Location" in token exchange
