@@ -135,21 +135,21 @@ Use delete + create method for reliable file updates:
 - Automatic credential provisioning through API calls
 - Hardcoded system requiring no manual setup
 
-## Current Status (July 3, 2025)
+## Current Status (July 4, 2025)
 
-**COMPLETE WORKFLOW SYSTEM BUILT:** Three-step API workflow ready for testing
-- **Workflow API:** Complete image + product + pricing workflow implemented
-- **Frontend Interface:** WorkflowTester page at /workflow-tester with real-time progress
-- **OAuth Backend:** Location-level authentication configured (v8.5.2-location-working)
-- **API Endpoints:** Individual and complete workflow endpoints operational
-- **Error Handling:** Comprehensive error states and retry logic implemented
+**OAUTH CASE-SENSITIVE LOCATION FIX DEPLOYED:** Location-level authentication system implemented
+- **OAuth Backend:** Case-sensitive Location authentication deployed (v8.6.0-location-only)
+- **Authentication Issue:** Current installation still shows Company-level token despite Location-only backend
+- **Media Upload Status:** Still blocked by 401 IAM restriction with Company-level token
+- **Location ID Discovery:** Missing locationId in JWT payload preventing proper Location-level access
+- **Deployment Challenge:** Railway not picking up latest OAuth backend changes consistently
 
-**Technical Implementation Complete:**
-- Complete workflow API handles all three steps in sequence
-- Frontend interface with file upload and progress tracking
-- OAuth backend configured for location-level token generation
-- Test mode available with generated sample data
-- All components ready for production use after fresh OAuth installation
+**Technical Implementation Status:**
+- OAuth backend forces user_type: "Location" in token exchange
+- Company-level installation (install_1751582859348) needs replacement
+- Location-only backend deployed but not yet active on Railway
+- Fresh OAuth installation required to test Location-level token generation
+- All workflow components ready for testing once Location-level token obtained
 
 **Dual Backend Architecture:** Fully operational infrastructure ready for testing
 - OAuth Backend: https://dir.engageautomations.com (deploying v8.4.0-location-fix)

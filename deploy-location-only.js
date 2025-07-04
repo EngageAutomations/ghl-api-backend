@@ -1,13 +1,13 @@
 /**
- * Force Location-Level Authentication Deployment
- * Ensures Railway picks up the location auth changes
+ * Deploy Location-Only OAuth Backend
+ * Direct deployment of the Location-only authentication backend
  */
 
 import fs from 'fs';
 import { Octokit } from '@octokit/rest';
 
-async function forceLocationDeployment() {
-  console.log('🎯 FORCING LOCATION-LEVEL DEPLOYMENT');
+async function deployLocationOnly() {
+  console.log('🎯 DEPLOYING LOCATION-ONLY OAUTH BACKEND');
   console.log('='.repeat(50));
   
   try {
@@ -21,25 +21,15 @@ async function forceLocationDeployment() {
     const owner = 'EngageAutomations';
     const repo = 'oauth-backend';
     
-    // Read the location-only backend
-    const locationOnlyBackend = fs.readFileSync('force-location-token.js', 'utf8');
+    console.log('1. Reading Location-only backend...');
+    const locationOnlyBackend = fs.readFileSync('location-only-backend.js', 'utf8');
     
-    // Extract just the backend code part
-    const backendCode = locationOnlyBackend.substring(
-      locationOnlyBackend.indexOf('const locationOnlyBackend = `') + 'const locationOnlyBackend = `'.length,
-      locationOnlyBackend.lastIndexOf('`;')
-    );
+    console.log('2. Deploying Location-only OAuth backend...');
     
-    // Add deployment trigger
-    const deploymentTrigger = `// LOCATION-ONLY DEPLOYMENT: ${new Date().toISOString()}\n// Forces Location-level authentication only\n\n`;
-    const triggeredBackend = deploymentTrigger + backendCode;
-    
-    console.log('1. Deploying Location-only OAuth backend with trigger...');
-    
-    await updateFile(octokit, owner, repo, 'index.js', triggeredBackend, 
+    await updateFile(octokit, owner, repo, 'index.js', locationOnlyBackend, 
       'Deploy Location-Only OAuth Backend v8.6.0 - Force Location-level tokens');
     
-    console.log('✅ Location-only OAuth backend deployment forced!');
+    console.log('✅ Location-only OAuth backend deployed!');
     console.log('');
     console.log('🎯 LOCATION-ONLY FEATURES:');
     console.log('• Forces user_type: "Location" in all token exchanges');
@@ -90,4 +80,4 @@ async function updateFile(octokit, owner, repo, path, content, message) {
   }
 }
 
-forceLocationDeployment().catch(console.error);
+deployLocationOnly().catch(console.error);
