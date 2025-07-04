@@ -1,13 +1,12 @@
 /**
- * Force Railway Deployment by Adding Deployment Trigger
- * This will force Railway to recognize the changes and redeploy
+ * Force Railway Deployment - Trigger rebuild with minimal change
  */
 
 import { Octokit } from '@octokit/rest';
 
 async function forceRailwayDeployment() {
-  console.log('🎯 FORCING RAILWAY DEPLOYMENT');
-  console.log('='.repeat(50));
+  console.log('🚀 FORCING RAILWAY DEPLOYMENT');
+  console.log('='.repeat(40));
   
   try {
     const githubToken = process.env.GITHUB_TOKEN;
@@ -20,72 +19,44 @@ async function forceRailwayDeployment() {
     const owner = 'EngageAutomations';
     const repo = 'oauth-backend';
     
-    // Add a tiny deployment trigger to package.json to force Railway redeploy
-    console.log('1. Adding deployment trigger to force Railway redeploy...');
+    // Get current file content
+    const { data: currentFile } = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path: 'index.js'
+    });
     
-    const packageJson = {
-      "name": "oauth-backend",
-      "version": "8.6.0-location-only",
-      "description": "GoHighLevel OAuth Backend with Location-level authentication",
-      "main": "index.js",
-      "scripts": {
-        "start": "node index.js"
-      },
-      "dependencies": {
-        "express": "^4.18.2",
-        "cors": "^2.8.5"
-      },
-      "engines": {
-        "node": ">=18.0.0"
-      }
-    };
+    const currentContent = Buffer.from(currentFile.content, 'base64').toString();
     
-    await updateFile(octokit, owner, repo, 'package.json', JSON.stringify(packageJson, null, 2), 
-      'Force Railway Deployment - Update package.json version');
+    // Add a timestamp comment to force rebuild
+    const timestamp = new Date().toISOString();
+    const forceContent = currentContent.replace(
+      '// Version: 8.9.0-location-only',
+      `// Version: 8.9.0-location-only\n// Force deploy: ${timestamp}`
+    );
     
-    console.log('✅ Railway deployment trigger added!');
-    console.log('');
-    console.log('🎯 DEPLOYMENT TRIGGER:');
-    console.log('• Updated package.json with version 8.6.0-location-only');
-    console.log('• Railway should detect changes and redeploy automatically');
-    console.log('• Location-only OAuth backend will be active after redeploy');
-    console.log('');
-    console.log('⏳ Railway should redeploy within 2-3 minutes...');
-    console.log('Check: https://dir.engageautomations.com/ for version update');
-    
-  } catch (error) {
-    console.error('❌ Railway deployment trigger failed:', error.message);
-  }
-}
-
-async function updateFile(octokit, owner, repo, path, content, message) {
-  try {
-    let sha;
-    try {
-      const { data } = await octokit.rest.repos.getContent({
-        owner,
-        repo,
-        path
-      });
-      sha = data.sha;
-    } catch (error) {
-      if (error.status !== 404) throw error;
-    }
+    console.log('1. Adding timestamp to force Railway rebuild...');
     
     await octokit.rest.repos.createOrUpdateFileContents({
       owner,
       repo,
-      path,
-      message,
-      content: Buffer.from(content).toString('base64'),
-      sha
+      path: 'index.js',
+      message: `Force Railway deployment - ${timestamp}`,
+      content: Buffer.from(forceContent).toString('base64'),
+      sha: currentFile.sha
     });
     
-    console.log(`✅ Updated ${path}`);
+    console.log('✅ Minimal change committed to trigger Railway deployment');
+    console.log('⏳ Railway should redeploy within 2-3 minutes...');
+    console.log('');
+    console.log('📄 What will happen:');
+    console.log('• GitHub webhook triggers Railway rebuild');
+    console.log('• Railway deploys Location-only OAuth backend v8.9.0');
+    console.log('• Backend includes proper GoHighLevel scopes for media upload');
+    console.log('• Fresh OAuth installation should generate Location-level tokens');
     
   } catch (error) {
-    console.error(`❌ Failed to update ${path}:`, error.message);
-    throw error;
+    console.error('❌ Force deployment failed:', error.message);
   }
 }
 
