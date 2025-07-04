@@ -70,17 +70,45 @@ Media Upload: 401 IAM restriction persists
 **Version**: 9.0.0-correct-location  
 **Implementation**: Exact replica of GoHighLevel official demo
 
-**Token Exchange Parameters**:
+**Token Exchange Implementation**:
 ```javascript
-{
+// Method: exchangeCodeForLocationToken()
+// Endpoint: https://services.leadconnectorhq.com/oauth/token
+
+const params = new URLSearchParams({
   'client_id': CLIENT_ID,
   'client_secret': CLIENT_SECRET,
   'grant_type': 'authorization_code',
   'code': authorizationCode,
-  'user_type': 'Location',  // From official demo
+  'user_type': 'Location',  // KEY PARAMETER from official demo
   'redirect_uri': REDIRECT_URI
-}
+});
+
+const postData = params.toString();
+
+const options = {
+  hostname: 'services.leadconnectorhq.com',
+  port: 443,
+  path: '/oauth/token',
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'Content-Length': postData.length
+  }
+};
 ```
+
+**Request Format**: 
+- Content-Type: `application/x-www-form-urlencoded`
+- Method: POST to `/oauth/token`
+- Body: URL-encoded parameters (not JSON)
+
+**Key Implementation Details**:
+- Uses `URLSearchParams.append()` method for proper encoding
+- Matches exact parameter names from official GoHighLevel demo
+- Sends `user_type: 'Location'` parameter explicitly
+- Uses form-encoded data format as required by GoHighLevel API
 
 **Scopes Requested**:
 - `products/prices.write`
@@ -153,22 +181,157 @@ The `user_type: "Location"` parameter in token exchange cannot override the auth
 
 ### 1. Enhanced Scope Configuration
 - **Attempted**: Added all possible media-related scopes
+- **Implementation**: Standard OAuth flow with comprehensive scope list
 - **Result**: Scopes granted but auth class remained Company
 - **Lesson**: Scopes don't determine auth class level
 
-### 2. Multiple Backend Versions
-- **v8.4.0-location-fix**: Enhanced location ID extraction
-- **v8.9.0-location-only**: Location-specific scope requests
-- **v9.0.0-correct-location**: Official demo implementation
-- **Result**: All versions produce identical Company-level tokens
+### 2. Multiple Backend Versions with Different Location Request Methods
+
+#### Version 8.4.0-location-fix
+**Approach**: Enhanced location ID extraction from JWT token
+```javascript
+// Method: Extract location from JWT payload
+const tokenPayload = decodeJWTPayload(accessToken);
+const locationId = tokenPayload?.locationId || tokenPayload?.location_id;
+```
+**Result**: No locationId found in Company-level tokens
+
+#### Version 8.9.0-location-only  
+**Approach**: Location-specific scope requests
+```javascript
+// Method: Force location-only scopes in authorization
+const scopes = [
+  'locations.readonly',
+  'medias.write',
+  'medias.readonly'
+  // Removed company-level scopes
+];
+```
+**Result**: Still received Company-level tokens despite location-only scopes
+
+#### Version 9.0.0-correct-location
+**Approach**: Official GoHighLevel demo implementation
+```javascript
+// Method: Exact replication of official demo token exchange
+async function exchangeCodeForLocationToken(code) {
+  const params = new URLSearchParams({
+    'client_id': CLIENT_ID,
+    'client_secret': CLIENT_SECRET,
+    'grant_type': 'authorization_code',
+    'code': code,
+    'user_type': 'Location',  // FROM OFFICIAL DEMO
+    'redirect_uri': REDIRECT_URI
+  });
+  
+  // POST to https://services.leadconnectorhq.com/oauth/token
+  // Content-Type: application/x-www-form-urlencoded
+}
+```
+**Result**: Correct implementation but still Company-level tokens
 
 ### 3. Token Exchange Parameter Variations
-- **Attempted**: Various parameter combinations and formats
-- **Result**: Official demo parameters are correct, issue elsewhere
 
-### 4. Direct API Testing
-- **Attempted**: Manual media upload with Company-level tokens
-- **Result**: Consistent 401 IAM restriction confirms auth class limitation
+#### Attempt A: JSON Format
+```javascript
+// Attempted JSON body format
+const body = JSON.stringify({
+  client_id: CLIENT_ID,
+  client_secret: CLIENT_SECRET,
+  grant_type: 'authorization_code',
+  code: authCode,
+  user_type: 'Location'
+});
+// Content-Type: application/json
+```
+**Result**: GoHighLevel requires form-encoded data, not JSON
+
+#### Attempt B: Manual Form Encoding
+```javascript
+// Manual parameter building
+const formData = `client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=authorization_code&code=${authCode}&user_type=Location&redirect_uri=${REDIRECT_URI}`;
+```
+**Result**: Encoding correct, but same Company-level result
+
+#### Attempt C: Alternative Parameter Names
+```javascript
+// Tested variations of user_type parameter
+'user_type': 'Location'      // Official demo version
+'userType': 'Location'       // Camel case variation  
+'auth_class': 'Location'     // Alternative naming
+'level': 'Location'          // Different approach
+```
+**Result**: Only 'user_type': 'Location' accepted, others ignored
+
+### 4. Authorization URL Analysis
+
+#### Current Marketplace Flow (Suspected)
+```
+User clicks "Install" on marketplace
+  ↓
+Redirected to: https://marketplace.leadconnectorhq.com/oauth/authorize?
+  response_type=code
+  redirect_uri=https://dir.engageautomations.com/api/oauth/callback
+  client_id=68474924a586bce22a6e64f7-mbpkmyu4
+  scope=[full scope list]
+  ↓
+Company-level authorization code generated
+  ↓ 
+Token exchange with user_type: 'Location'
+  ↓
+Company-level token returned (authorization level cannot be overridden)
+```
+
+#### Official Demo Flow
+```
+Manual authorization URL: https://marketplace.leadconnectorhq.com/oauth/chooselocation?
+  response_type=code
+  redirect_uri=http://localhost:3000/oauth/callback
+  client_id=[demo_client_id]
+  scope=calendars.readonly campaigns.readonly contacts.readonly
+  ↓
+Location selection required
+  ↓
+Location-specific authorization code generated
+  ↓
+Token exchange with user_type: 'Location'
+  ↓
+Location-level token returned
+```
+
+### 5. Direct API Testing with Different Token Types
+
+#### Test A: Company-Level Token Media Upload
+```bash
+curl -X POST https://services.leadconnectorhq.com/medias/upload-file \
+  -H "Authorization: Bearer [company_token]" \
+  -H "Version: 2021-04-15" \
+  -F "file=@test.jpg" \
+  -F "hosted=true"
+```
+**Result**: 401 "This authClass type is not allowed to access this scope"
+
+#### Test B: Product Creation (Working)
+```bash
+curl -X POST https://services.leadconnectorhq.com/products \
+  -H "Authorization: Bearer [company_token]" \
+  -H "Version: 2021-04-15" \
+  -d '{"name":"Test Product","locationId":"WAvk87RmW9rBSDJHeOpH"}'
+```
+**Result**: 201 Success - Product creation works with Company tokens
+
+#### Test C: Token Validation
+```javascript
+// JWT payload analysis of Company-level token
+{
+  "authClass": "Company",
+  "locationId": undefined,
+  "userType": undefined,
+  "companyId": undefined,
+  "scopes": ["medias.write", "medias.readonly", ...],
+  "exp": 1751692249
+}
+```
+**Result**: Scopes present but blocked by authClass restriction
 
 ## Current System Status
 
