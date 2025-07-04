@@ -3,13 +3,10 @@
  * This will force Railway to recognize the changes and redeploy
  */
 
-import fs from 'fs';
 import { Octokit } from '@octokit/rest';
 
 async function forceRailwayDeployment() {
-  
-  console.log('🚀 FORCING RAILWAY DEPLOYMENT');
-  console.log('Adding deployment trigger to force rebuild');
+  console.log('🎯 FORCING RAILWAY DEPLOYMENT');
   console.log('='.repeat(50));
   
   try {
@@ -23,31 +20,41 @@ async function forceRailwayDeployment() {
     const owner = 'EngageAutomations';
     const repo = 'oauth-backend';
     
-    console.log('1. Reading current OAuth backend...');
-    const currentBackend = fs.readFileSync('fix-oauth-credentials.js', 'utf8');
+    // Add a tiny deployment trigger to package.json to force Railway redeploy
+    console.log('1. Adding deployment trigger to force Railway redeploy...');
     
-    // Add deployment trigger comment
-    const deploymentTrigger = `// DEPLOYMENT TRIGGER: ${new Date().toISOString()}\n// Force rebuild with correct credentials\n\n`;
-    const triggeredBackend = deploymentTrigger + currentBackend;
+    const packageJson = {
+      "name": "oauth-backend",
+      "version": "8.6.0-location-only",
+      "description": "GoHighLevel OAuth Backend with Location-level authentication",
+      "main": "index.js",
+      "scripts": {
+        "start": "node index.js"
+      },
+      "dependencies": {
+        "express": "^4.18.2",
+        "cors": "^2.8.5"
+      },
+      "engines": {
+        "node": ">=18.0.0"
+      }
+    };
     
-    console.log('2. Adding deployment trigger...');
+    await updateFile(octokit, owner, repo, 'package.json', JSON.stringify(packageJson, null, 2), 
+      'Force Railway Deployment - Update package.json version');
     
-    // Update index.js with deployment trigger
-    await updateFile(octokit, owner, repo, 'index.js', triggeredBackend, 
-      'Force Deployment - OAuth Backend with Correct Credentials v8.5.6');
-    
-    console.log('✅ Deployment trigger added successfully!');
+    console.log('✅ Railway deployment trigger added!');
     console.log('');
-    console.log('🚀 DEPLOYMENT DETAILS:');
-    console.log('• Forced Railway to recognize changes');
-    console.log('• OAuth backend should rebuild with correct credentials');
-    console.log('• Client ID: 68474924a586bce22a6e64f7-mbpkmyu4');
-    console.log('• Version: 8.5.6-correct-credentials');
+    console.log('🎯 DEPLOYMENT TRIGGER:');
+    console.log('• Updated package.json with version 8.6.0-location-only');
+    console.log('• Railway should detect changes and redeploy automatically');
+    console.log('• Location-only OAuth backend will be active after redeploy');
     console.log('');
     console.log('⏳ Railway should redeploy within 2-3 minutes...');
+    console.log('Check: https://dir.engageautomations.com/ for version update');
     
   } catch (error) {
-    console.error('❌ Deployment trigger failed:', error.message);
+    console.error('❌ Railway deployment trigger failed:', error.message);
   }
 }
 
