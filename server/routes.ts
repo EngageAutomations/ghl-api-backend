@@ -6,6 +6,8 @@ import { z } from "zod";
 import { storage } from "./storage";
 import { RailwayBridge, bridgeRoutes } from "./bridge-endpoints";
 import { workflowRoutes } from "./workflow-routes";
+import { enhancedMediaUploadService, mediaUploadMiddleware } from "./enhanced-media-upload";
+import { ensureLocationToken, checkLocationTokenAvailability } from "./middleware/location-token-middleware";
 import multer from "multer";
 import axios from "axios";
 
@@ -27,6 +29,18 @@ export function registerRoutes(app: Express) {
 
   // Product Creation Workflow Routes
   app.use('/api/workflow', workflowRoutes);
+
+  // Enhanced Media Upload Routes with Location Token Conversion
+  app.post('/api/media/upload', 
+    mediaUploadMiddleware, 
+    ensureLocationToken, 
+    enhancedMediaUploadService.uploadMedia.bind(enhancedMediaUploadService)
+  );
+
+  app.get('/api/media/list', 
+    checkLocationTokenAvailability,
+    enhancedMediaUploadService.listMedia.bind(enhancedMediaUploadService)
+  );
 
   // Directory Loading Page
   app.get("/directory", async (req, res) => {
