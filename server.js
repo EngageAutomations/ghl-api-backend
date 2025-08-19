@@ -504,7 +504,7 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
-    version: '2.0.0-enhanced-installation-capture',
+    version: '10.0.0-oauth-enhanced',
     databases: {
       installations: installationsDbPath,
       tokens: tokensDbPath,
@@ -602,7 +602,7 @@ app.listen(PORT, () => {
   console.log(`✨ Installation capture enabled for marketplace OAuth flow`);
   log('info', 'server', 'Enhanced OAuth server started', {
     port: PORT,
-    version: '2.0.0-enhanced-installation-capture',
+    version: '10.0.0-oauth-enhanced',
     callback_url: process.env.GHL_REDIRECT_URI
   });
 });
