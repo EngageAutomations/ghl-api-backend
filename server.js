@@ -539,7 +539,7 @@ function generateDashboard() {
         <div class="header">
           <h1>🔐 Enhanced OAuth Callback Server</h1>
           <div class="status">✅ Server Running - Installation Capture Enabled</div>
-          <p><strong>Version:</strong> 2.0.0-enhanced-installation-capture</p>
+          <p><strong>Version:</strong> 10.0.0-oauth-enhanced</p>
           <p><strong>Port:</strong> ${PORT}</p>
           <p><strong>Environment:</strong> ${process.env.NODE_ENV || 'development'}</p>
         </div>
