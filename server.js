@@ -30,7 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 const CLIENT_ID = process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4';
 const CLIENT_SECRET = process.env.GHL_CLIENT_SECRET || 'b5a7a120-7df7-4d23-8796-4863cbd08f94';
 const REDIRECT_URI = 'https://dir.engageautomations.com/api/oauth/callback';
-const PORT = 3008;
+const PORT = process.env.PORT || 3008;
 
 // Database setup
 const INSTALLATION_DB_PATH = path.join(__dirname, 'oauth_installations_enhanced.db');
