@@ -1,0 +1,26 @@
+# Ignore subdirectories that should not be deployed
+enhanced-oauth-deploy/
+
+# Ignore development files
+*.log
+*.tmp
+.env.local
+.env.development
+
+# Ignore test files
+test/
+tests/
+__tests__/
+*.test.js
+*.spec.js
+
+# Ignore documentation
+docs/
+README.md
+
+# Ignore git files
+.git/
+.gitignore
+
+# Ignore node modules (handled by package.json)
+node_modules/
