@@ -1,11 +1,11 @@
 /**
- * Enhanced OAuth Backend with Location Token Conversion
- * v10.0.0-location-conversion - Automatic Company → Location token conversion
+ * Enhanced OAuth Backend with Installation Guide Integration
+ * v11.0.1-oauth-guide-enhanced - Enhanced OAuth flow with comprehensive installation guide
  * 
  * DEPLOYMENT INSTRUCTIONS:
  * 1. Copy this entire file content
- * 2. Replace the index.js content in the oauth-backend GitHub repository
- * 3. Update package.json version to "10.0.0-location-conversion"
+ * 2. Replace the index.js content in the ghl-api-backend GitHub repository
+ * 3. Update version to "11.0.1-oauth-guide-enhanced"
  * 4. Railway will automatically deploy the changes
  */
 
@@ -1818,16 +1818,16 @@ app.get('/health', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Enhanced OAuth Backend v11.0.0 with Shared User Profiles running on port ${PORT}`);
-  console.log('✅ Location token conversion enabled');
+  console.log(`🚀 Enhanced OAuth Backend v11.0.1 with Enhanced OAuth Guide running on port ${PORT}`);
+  console.log('✅ Enhanced OAuth flow with comprehensive installation guide');
   console.log('✅ Automatic Company → Location token conversion for media APIs');
   console.log('✅ Enhanced token management with dual token storage');
   console.log('✅ Shared user profile management across applications');
-  console.log('✅ Multi-application OAuth support');
+  console.log('✅ Multi-application OAuth support with installation guidance');
   console.log('');
-  console.log('📋 OAUTH ENDPOINTS:');
-  console.log('• GET /api/oauth/callback - Main OAuth callback');
-  console.log('• GET /api/oauth/callback/multi-app - Multi-app OAuth callback');
+  console.log('📋 ENHANCED OAUTH ENDPOINTS:');
+  console.log('• GET /api/oauth/callback - Enhanced OAuth callback with installation guide');
+  console.log('• GET /api/oauth/callback/multi-app - Multi-app OAuth callback with guidance');
   console.log('• GET /api/location-token/:id - Get Location token for installation');
   console.log('• POST /api/convert-to-location/:id - Manual Location token conversion');
   console.log('• POST /api/media/upload - Enhanced media upload with Location tokens');
@@ -1848,12 +1848,12 @@ app.listen(PORT, () => {
   console.log('• GET /api/workflows/active - List active workflows');
   console.log('• GET /api/workflows/stats - Get workflow statistics');
   console.log('');
-  console.log('🔄 User Profile Integration Flow:');
-  console.log('1. OAuth callback processes user authentication');
-  console.log('2. User data extracted from JWT token');
-  console.log('3. User profile created/updated in shared database');
-  console.log('4. App usage tracked across all applications');
-  console.log('5. Centralized user data accessible via API');
+  console.log('🔄 Enhanced OAuth Guide Flow:');
+  console.log('1. OAuth callback processes user authentication with installation guide');
+  console.log('2. User data extracted from JWT token with enhanced validation');
+  console.log('3. User profile created/updated in shared database with guide integration');
+  console.log('4. App usage tracked across all applications with installation guidance');
+  console.log('5. Centralized user data accessible via API with enhanced OAuth support');
   console.log('');
   console.log('🌐 Server ready and listening for connections...');
   console.log('🔗 Health check: http://localhost:' + PORT + '/health');
