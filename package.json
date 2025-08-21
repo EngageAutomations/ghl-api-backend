@@ -2,10 +2,10 @@
   "name": "ghl-enhanced-oauth-backend",
   "version": "11.0.1-oauth-guide-enhanced",
   "description": "Enhanced OAuth Backend with Installation Guide Integration",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node index.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
