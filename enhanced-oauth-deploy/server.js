@@ -194,7 +194,7 @@ class EnhancedOAuthHandler {
     app.get('/health', (req, res) => {
       res.json({
         service: 'GoHighLevel OAuth Backend',
-        version: '11.0.0-oauth-guide-enhanced',
+        version: '11.0.1-oauth-guide-enhanced',
         features: [
           'installation-id-capture',
           'oauth-guide-implementation',
