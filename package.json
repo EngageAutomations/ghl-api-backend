@@ -1,31 +1,29 @@
 {
-  "name": "ghl-enhanced-oauth-backend",
+  "name": "oauth-backend",
   "version": "11.0.1-oauth-guide-enhanced",
-  "description": "Enhanced OAuth Backend with Installation Guide Integration",
-  "main": "server.js",
+  "description": "Enhanced GoHighLevel OAuth Backend with Location Token Conversion and Error Prevention",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "db:backup": "node scripts/backup-db.js",
+    "db:export": "node scripts/export-data.js",
+    "deploy": "node deploy-database-manual.ps1"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "axios": "^1.6.0",
+    "@octokit/rest": "^22.0.0",
+    "axios": "^1.11.0",
     "cors": "^2.8.5",
-    "multer": "^1.4.5-lts.1",
+    "dotenv": "^17.2.0",
+    "express": "^4.18.2",
     "form-data": "^4.0.0",
-    "jsonwebtoken": "^9.0.2",
-    "sqlite3": "^5.1.6",
-    "node-cron": "^3.0.3"
+    "multer": "^1.4.5-lts.1",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   },
   "engines": {
     "node": ">=18.0.0"
-  },
-  "keywords": [
-    "oauth",
-    "gohighlevel",
-    "enhanced",
-    "installation-guide"
-  ],
-  "author": "EngageAutomations",
-  "license": "MIT"
+  }
 }
