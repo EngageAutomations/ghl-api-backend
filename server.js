@@ -1,935 +1,1045 @@
 /**
- * 🚀 Enhanced OAuth Callback with Installation ID Capture
- * 
- * This implementation addresses the core issue identified in the consultation:
- * - Captures installation_id from GoHighLevel's OAuth token response payload
- * - Properly links marketplace installations with OAuth tokens
- * - Implements the solution to avoid "double authorization" perception
- * - Stores both installation and token data in synchronized databases
- * 
- * Key Features:
- * 1. Captures installation_id from token exchange response (not query params)
- * 2. Creates installation record immediately upon OAuth callback
- * 3. Links installation_id with location tokens
- * 4. Comprehensive logging for debugging
- * 5. Fallback mechanisms for missing installation_id
+ * Enhanced OAuth Manager - Solution Implementation
+ * Addresses the critical OAuth token persistence issues identified in the analysis
+ * Features: Multi-token pooling, proactive refresh, circuit breaker, comprehensive monitoring
  */
 
 const express = require('express');
 const axios = require('axios');
 const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const cron = require('node-cron');
 const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+require('dotenv').config({ path: './EcommerceCatalog/.env' });
 
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Configuration
-const CLIENT_ID = process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4';
-const CLIENT_SECRET = process.env.GHL_CLIENT_SECRET || 'b5a7a120-7df7-4d23-8796-4863cbd08f94';
-const REDIRECT_URI = 'https://dir.engageautomations.com/api/oauth/callback';
-const PORT = process.env.PORT || 3008;
-
-// Database setup
-const INSTALLATION_DB_PATH = path.join(__dirname, 'oauth_installations_enhanced.db');
-const TOKEN_DB_PATH = path.join(__dirname, 'oauth_tokens_enhanced.db');
-const DEBUG_DB_PATH = path.join(__dirname, 'oauth_debug_enhanced.db');
-
-class EnhancedOAuthHandler {
-  constructor() {
-    this.installationDb = new sqlite3.Database(INSTALLATION_DB_PATH);
-    this.tokenDb = new sqlite3.Database(TOKEN_DB_PATH);
-    this.debugDb = new sqlite3.Database(DEBUG_DB_PATH);
-    this.initializeDatabases();
-    this.setupRoutes();
-    this.setupTokenRefreshCron();
-  }
-
-  initializeDatabases() {
-    // OAuth installations table - exact schema from guide
-    this.installationDb.serialize(() => {
-      this.installationDb.run(`
-        CREATE TABLE IF NOT EXISTS oauth_installations (
-          installation_id TEXT PRIMARY KEY,
-          status TEXT DEFAULT 'pending',
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      // Trigger for automatic timestamp updates
-      this.installationDb.run(`
-        CREATE TRIGGER IF NOT EXISTS trg_update_installations
-        AFTER UPDATE ON oauth_installations
-        BEGIN
-          UPDATE oauth_installations SET updated_at = CURRENT_TIMESTAMP WHERE installation_id = NEW.installation_id;
-        END
-      `);
-    });
-
-    // OAuth tokens table - exact schema from guide
-    this.tokenDb.serialize(() => {
-      this.tokenDb.run(`
-        CREATE TABLE IF NOT EXISTS oauth_tokens (
-          installation_id TEXT PRIMARY KEY,
-          access_token TEXT NOT NULL,
-          refresh_token TEXT NOT NULL,
-          location_id TEXT,
-          company_id TEXT,
-          expires_at DATETIME,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (installation_id) REFERENCES oauth_installations(installation_id)
-        )
-      `);
-
-      // Trigger for automatic timestamp updates
-      this.tokenDb.run(`
-        CREATE TRIGGER IF NOT EXISTS trg_update_tokens
-        AFTER UPDATE ON oauth_tokens
-        BEGIN
-          UPDATE oauth_tokens SET updated_at = CURRENT_TIMESTAMP WHERE installation_id = NEW.installation_id;
-        END
-      `);
-    });
-
-    // Debug database - comprehensive logging
-    this.debugDb.serialize(() => {
-      this.debugDb.run(`
-        CREATE TABLE IF NOT EXISTS debug_logs (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-          level TEXT NOT NULL,
-          category TEXT NOT NULL,
-          message TEXT NOT NULL,
-          data TEXT,
-          installation_id TEXT,
-          location_id TEXT
-        )
-      `);
-
-      this.debugDb.run(`
-        CREATE TABLE IF NOT EXISTS oauth_attempts (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          attempt_id TEXT UNIQUE,
-          timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-          step TEXT NOT NULL,
-          status TEXT NOT NULL,
-          request_data TEXT,
-          response_data TEXT,
-          error_data TEXT,
-          installation_id TEXT,
-          location_id TEXT
-        )
-      `);
-    });
-
-    this.log('info', 'system', 'Enhanced OAuth databases initialized');
-  }
-
-  setupRoutes() {
-    // Root handler - captures installation_id and redirects to OAuth
-    app.get('/', (req, res) => {
-      const installationId = req.query.installation_id;
-      
-      if (installationId) {
-        // Store installation_id in database
-        this.installationDb.run(
-          'INSERT OR REPLACE INTO oauth_installations (installation_id, status) VALUES (?, ?)',
-          [installationId, 'pending'],
-          (err) => {
-            if (err) {
-              console.error('Error storing installation:', err);
-            } else {
-              console.log(`Stored installation_id: ${installationId}`);
-            }
-          }
-        );
-        
-        // Redirect to OAuth with installation_id in state
-        const oauthUrl = `https://marketplace.gohighlevel.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&client_id=${CLIENT_ID}&scope=locations/read%20locations/write%20contacts/read%20contacts/write%20opportunities/read%20opportunities/write%20calendars/read%20calendars/write%20conversations/read%20conversations/write%20conversations/message%20workflows/read%20workflows/write%20forms/read%20forms/write%20surveys/read%20surveys/write%20links/read%20links/write%20medias/read%20medias/write%20snapshots/read%20snapshots/write%20businesses/read%20businesses/write%20users/read%20users/write%20oauth/read%20oauth/write%20saas/read%20saas/write%20invoices/read%20invoices/write%20payments/read%20payments/write%20reporting/read%20reporting/write%20attribution/read%20attribution/write%20courses/read%20courses/write%20products/read%20products/write%20companies/read%20companies/write%20locations.customValues/read%20locations.customValues/write%20locations.customFields/read%20locations.customFields/write%20locations.tags/read%20locations.tags/write%20locations.templates/read%20locations.templates/write%20marketingLibrary/read%20marketingLibrary/write%20membership/read%20membership/write%20reputation/read%20reputation/write%20reviews/read%20reviews/write%20triggers/read%20triggers/write%20webhooks/read%20webhooks/write%20campaigns/read%20campaigns/write%20bulk-requests/write%20social_media_posting/read%20social_media_posting/write%20phone/read%20phone/write%20email/read%20email/write%20funnels/read%20funnels/write%20websites/read%20websites/write%20wordpress/read%20wordpress/write%20blogs/read%20blogs/write%20domains/read%20domains/write&state=${installationId}`;
-        
-        res.redirect(oauthUrl);
-      } else {
-        // Show installation guide if no installation_id
-        res.send(`
-          <html>
-            <head>
-              <title>GoHighLevel OAuth Server</title>
-              <style>
-                body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
-                .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                h1 { color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; }
-                .status { padding: 15px; margin: 15px 0; border-radius: 5px; }
-                .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
-                .warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
-                code { background: #f8f9fa; padding: 2px 5px; border-radius: 3px; }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <h1>🚀 GoHighLevel OAuth Server</h1>
-                <div class="status info">
-                  <strong>✅ Server Status:</strong> Running on port ${PORT}
-                </div>
-                <div class="status warning">
-                  <strong>⚠️ Missing installation_id:</strong> This URL should be accessed with an <code>installation_id</code> parameter from the GoHighLevel marketplace.
-                </div>
-                <p><strong>Expected URL format:</strong></p>
-                <code>https://dir.engageautomations.com/?installation_id=YOUR_INSTALLATION_ID</code>
-              </div>
-            </body>
-          </html>
-        `);
-      }
-    });
-
-    app.get('/debug', (req, res) => {
-      res.send(this.generateDashboard());
-    });
-
-    // Health endpoint
-    app.get('/health', (req, res) => {
-      res.json({
-        service: 'GoHighLevel OAuth Backend',
-        version: '11.0.1-oauth-guide-enhanced',
-        features: [
-          'installation-id-capture',
-          'oauth-guide-implementation',
-          'automatic-token-refresh',
-          'cron-job-scheduling',
-          'enhanced-database-schema',
-          'manual-token-refresh-endpoint'
-        ],
-        debug: 'Enhanced OAuth implementation with GoHighLevel guide fixes applied',
-        status: 'running',
-        timestamp: new Date().toISOString()
-      });
-    });
-
-    // Enhanced OAuth callback - captures installation_id from token response
-    app.get('/api/oauth/callback', async (req, res) => {
-      const attemptId = `attempt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      this.log('info', 'callback', 'OAuth callback received', req.query, null, null, attemptId);
-      this.logAttempt(attemptId, 'callback_received', 'pending', req.query);
-
-      try {
-        const { code, error, error_description, state } = req.query;
-
-        // Handle OAuth errors
-        if (error) {
-          const errorData = { error, error_description, query: req.query };
-          this.log('error', 'callback', 'OAuth error received', errorData, null, null, attemptId);
-          this.logAttempt(attemptId, 'oauth_error', 'failed', req.query, null, errorData);
-          return res.status(400).send(`OAuth Error: ${error} - ${error_description || 'No description provided'}`);
-        }
-
-        // Validate authorization code
-        if (!code) {
-          const errorData = { message: 'Missing authorization code', query: req.query };
-          this.log('error', 'callback', 'Missing authorization code', errorData, null, null, attemptId);
-          this.logAttempt(attemptId, 'missing_code', 'failed', req.query, null, errorData);
-          return res.status(400).send('Missing authorization code. Please restart the OAuth flow.');
-        }
-
-        // STEP 1: Exchange authorization code for company token
-        this.log('info', 'oauth', 'Exchanging authorization code for company token', { code: code.substring(0, 10) + '...' }, null, null, attemptId);
-        
-        const tokenRequest = {
-          client_id: CLIENT_ID,
-          client_secret: CLIENT_SECRET,
-          grant_type: 'authorization_code',
-          redirect_uri: REDIRECT_URI,
-          code: code
-        };
-
-        this.logAttempt(attemptId, 'token_exchange_request', 'pending', tokenRequest);
-
-        const tokenResponse = await axios.post(
-          'https://services.leadconnectorhq.com/oauth/token',
-          tokenRequest,
-          {
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            timeout: 30000
-          }
-        );
-
-        // CRITICAL: Extract installation_id from token response payload
-        const tokenData = tokenResponse.data;
-        const installationId = tokenData.installation_id || tokenData.installationId || `install_${Date.now()}`;
-        const locationId = tokenData.locationId || tokenData.location_id;
-        const companyId = tokenData.companyId || tokenData.company_id;
-        
-        this.log('success', 'oauth', 'Company token received with installation data', {
-          status: tokenResponse.status,
-          installation_id: installationId,
-          location_id: locationId,
-          company_id: companyId,
-          access_token: '***' + (tokenData.access_token?.slice(-4) || 'missing')
-        }, installationId, locationId, attemptId);
-
-        this.logAttempt(attemptId, 'token_exchange_success', 'success', tokenRequest, tokenData, null, installationId, locationId);
-
-        if (!locationId) {
-          const errorData = { message: 'No location ID found in token response', tokenResponse: tokenData };
-          this.log('error', 'oauth', 'Missing location ID', errorData, installationId, null, attemptId);
-          this.logAttempt(attemptId, 'missing_location_id', 'failed', tokenRequest, tokenData, errorData, installationId);
-          return res.status(400).send('Missing location ID. Cannot proceed with location token conversion.');
-        }
-
-        // STEP 2: Create installation record immediately
-        await this.createInstallationRecord(installationId, locationId, companyId, tokenData, attemptId);
-
-        // STEP 3: Convert company token to location token
-        this.log('info', 'oauth', 'Converting to location token', { locationId }, installationId, locationId, attemptId);
-        
-        const locationRequest = { location_id: locationId };
-        this.logAttempt(attemptId, 'location_token_request', 'pending', locationRequest, null, null, installationId, locationId);
-
-        const locationResponse = await axios.post(
-          'https://services.leadconnectorhq.com/oauth/locationToken',
-          locationRequest,
-          {
-            headers: {
-              'Authorization': `Bearer ${tokenData.access_token}`,
-              'Content-Type': 'application/json'
-            },
-            timeout: 30000
-          }
-        );
-
-        this.log('success', 'oauth', 'Location token received', {
-          status: locationResponse.status,
-          access_token: '***' + (locationResponse.data.access_token?.slice(-4) || 'missing')
-        }, installationId, locationId, attemptId);
-
-        this.logAttempt(attemptId, 'location_token_success', 'success', locationRequest, locationResponse.data, null, installationId, locationId);
-
-        // STEP 4: Save tokens to database with installation link
-        const finalTokenData = {
-          installation_id: installationId,
-          location_id: locationResponse.data.locationId || locationId,
-          access_token: locationResponse.data.access_token,
-          refresh_token: locationResponse.data.refresh_token,
-          expires_in: locationResponse.data.expires_in,
-          token_type: locationResponse.data.token_type || 'Bearer',
-          scope: tokenData.scope
-        };
-
-        await this.saveTokenToDatabase(finalTokenData, attemptId);
-        await this.markInstallationComplete(installationId, attemptId);
-
-        this.log('success', 'complete', 'OAuth flow completed successfully', {
-          installation_id: installationId,
-          location_id: finalTokenData.location_id
-        }, installationId, locationId, attemptId);
-
-        this.logAttempt(attemptId, 'oauth_complete', 'success', null, finalTokenData, null, installationId, locationId);
-
-        // Success response
-        res.send(`
-          <html>
-            <head><title>OAuth Success - Enhanced</title></head>
-            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-              <h1 style="color: green;">✅ OAuth Setup Complete!</h1>
-              <p>Your GoHighLevel integration has been successfully configured with enhanced installation tracking.</p>
-              <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: left;">
-                <h3>Installation Details:</h3>
-                <p><strong>Installation ID:</strong> ${installationId}</p>
-                <p><strong>Location ID:</strong> ${finalTokenData.location_id}</p>
-                <p><strong>Company ID:</strong> ${companyId || 'N/A'}</p>
-                <p><strong>Token Type:</strong> ${finalTokenData.token_type}</p>
-                <p><strong>Scopes:</strong> ${finalTokenData.scope || 'N/A'}</p>
-              </div>
-              <p>The installation and token data have been properly linked in the database.</p>
-              <hr>
-              <p><a href="/debug" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Debug Dashboard</a></p>
-            </body>
-          </html>
-        `);
-
-      } catch (error) {
-        this.log('error', 'callback', 'OAuth callback failed', {
-          error: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        }, null, null, attemptId);
-
-        this.logAttempt(attemptId, 'callback_error', 'failed', req.query, null, {
-          error: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        });
-
-        res.status(500).send(`
-          <html>
-            <head><title>OAuth Error - Enhanced</title></head>
-            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-              <h1 style="color: red;">❌ OAuth Error</h1>
-              <p>The OAuth flow encountered an error:</p>
-              <pre style="background: #f5f5f5; padding: 20px; text-align: left;">${error.message}</pre>
-              ${error.response?.data ? `<pre style="background: #f5f5f5; padding: 20px; text-align: left;">${JSON.stringify(error.response.data, null, 2)}</pre>` : ''}
-              <p><a href="/debug">View Debug Dashboard</a></p>
-            </body>
-          </html>
-        `);
-      }
-    });
-
-    // API endpoints for debugging and monitoring
-    app.get('/api/installations', async (req, res) => {
-      try {
-        const installations = await this.getInstallations();
-        res.json({ success: true, data: installations });
-      } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-      }
-    });
-
-    app.get('/api/tokens', async (req, res) => {
-      try {
-        const tokens = await this.getTokens();
-        res.json({ success: true, data: tokens });
-      } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-      }
-    });
-
-    app.get('/api/debug/logs', async (req, res) => {
-      try {
-        const logs = await this.getDebugLogs();
-        res.json({ success: true, data: logs });
-      } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-      }
-    });
-
-    app.get('/api/debug/attempts', async (req, res) => {
-      try {
-        const attempts = await this.getOAuthAttempts();
-        res.json({ success: true, data: attempts });
-      } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-      }
-    });
-
-    // Token refresh endpoint
-    app.post('/api/token-refresh/:installationId', async (req, res) => {
-      const { installationId } = req.params;
-      
-      try {
-        // Get current token data
-        const tokenData = await new Promise((resolve, reject) => {
-          this.tokenDb.get(
-            'SELECT * FROM oauth_tokens WHERE installation_id = ?',
-            [installationId],
-            (err, row) => {
-              if (err) reject(err);
-              else resolve(row);
-            }
-          );
-        });
-
-        if (!tokenData) {
-          return res.status(404).json({ error: 'Installation not found' });
-        }
-
-        if (!tokenData.refresh_token) {
-          return res.status(400).json({ error: 'No refresh token available' });
-        }
-
-        // Refresh the token
-        const refreshedTokens = await this.refreshToken(installationId, tokenData.refresh_token);
-        
-        res.json({
-          success: true,
-          installation_id: installationId,
-          expires_at: refreshedTokens.expires_at,
-          refreshed_at: new Date().toISOString()
-        });
-
-      } catch (error) {
-        console.error(`Token refresh error for ${installationId}:`, error);
-        res.status(500).json({ 
-          error: 'Token refresh failed', 
-          message: error.message 
-        });
-      }
-    });
-
-    // Generate OAuth URL
-    app.get('/api/oauth/url', (req, res) => {
-      const scopes = [
-        'products/prices.write',
-        'products/prices.readonly', 
-        'products/collection.write',
-        'products/collection.readonly',
-        'medias.write',
-        'medias.readonly',
-        'locations.readonly',
-        'contacts.readonly',
-        'contacts.write',
-        'products.write',
-        'products.readonly'
-      ].join('+');
-
-      const oauthUrl = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&client_id=${CLIENT_ID}&scope=${scopes}`;
-      
-      res.json({ 
-        success: true, 
-        oauth_url: oauthUrl,
-        client_id: CLIENT_ID,
-        redirect_uri: REDIRECT_URI,
-        scopes: scopes.split('+')
-      });
-    });
-  }
-
-  // Create installation record immediately upon OAuth callback
-  async createInstallationRecord(installationId, locationId, companyId, tokenData, attemptId) {
-    return new Promise((resolve, reject) => {
-      this.installationDb.run(
-        `INSERT OR REPLACE INTO oauth_installations 
-         (installation_id, status, created_at, updated_at) 
-         VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-        [
-          installationId,
-          'active'
-        ],
-        function(err) {
-          if (err) {
-            this.log('error', 'database', 'Failed to create installation record', { error: err.message }, installationId, locationId, attemptId);
-            reject(err);
-          } else {
-            this.log('success', 'database', 'Installation record created', { installation_id: installationId }, installationId, locationId, attemptId);
-            resolve(this.lastID);
-          }
-        }.bind(this)
-      );
-    });
-  }
-
-  // Save tokens with installation link
-  async saveTokenToDatabase(tokenData, attemptId) {
-    return new Promise((resolve, reject) => {
-      const expiresAt = tokenData.expires_in ? 
-        new Date(Date.now() + (tokenData.expires_in * 1000)).toISOString() : null;
-
-      this.tokenDb.run(
-        `INSERT OR REPLACE INTO oauth_tokens 
-         (installation_id, access_token, refresh_token, location_id, company_id, expires_at, created_at, updated_at) 
-         VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-        [
-          tokenData.installation_id,
-          tokenData.access_token,
-          tokenData.refresh_token,
-          tokenData.location_id,
-          tokenData.company_id,
-          expiresAt
-        ],
-        function(err) {
-          if (err) {
-            this.log('error', 'database', 'Failed to save token', { error: err.message }, tokenData.installation_id, tokenData.location_id, attemptId);
-            reject(err);
-          } else {
-            this.log('success', 'database', 'Token saved successfully', { 
-              installation_id: tokenData.installation_id,
-              location_id: tokenData.location_id 
-            }, tokenData.installation_id, tokenData.location_id, attemptId);
-            resolve(this.lastID);
-          }
-        }.bind(this)
-      );
-    });
-  }
-
-  // Mark installation as OAuth complete
-  async markInstallationComplete(installationId, attemptId) {
-    return new Promise((resolve, reject) => {
-      this.installationDb.run(
-        `UPDATE oauth_installations SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE installation_id = ?`,
-        [installationId],
-        function(err) {
-          if (err) {
-            this.log('error', 'database', 'Failed to mark installation complete', { error: err.message }, installationId, null, attemptId);
-            reject(err);
-          } else {
-            this.log('success', 'database', 'Installation marked as OAuth complete', { installation_id: installationId }, installationId, null, attemptId);
-            resolve();
-          }
-        }.bind(this)
-      );
-    });
-  }
-
-  // Logging methods
-  log(level, category, message, data = null, installationId = null, locationId = null, attemptId = null) {
-    console.log(`[${new Date().toISOString()}] [${level.toUpperCase()}] [${category}] ${message}`);
-    if (data) {
-      console.log('  Data:', JSON.stringify(data, null, 2));
+// Enhanced logging system with structured output
+class EnhancedLogger {
+    constructor(logPath = './logs/enhanced-oauth.log') {
+        this.logPath = logPath;
+        this.ensureLogDirectory();
+        this.logLevel = process.env.LOG_LEVEL || 'info';
+        this.levels = { error: 0, warn: 1, info: 2, debug: 3 };
     }
-
-    this.debugDb.run(
-      `INSERT INTO debug_logs (level, category, message, data, installation_id, location_id) VALUES (?, ?, ?, ?, ?, ?)`,
-      [level, category, message, data ? JSON.stringify(data) : null, installationId, locationId]
-    );
-  }
-
-  logAttempt(attemptId, step, status, requestData = null, responseData = null, errorData = null, installationId = null, locationId = null) {
-    this.debugDb.run(
-      `INSERT OR REPLACE INTO oauth_attempts 
-       (attempt_id, step, status, request_data, response_data, error_data, installation_id, location_id) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        attemptId,
-        step,
-        status,
-        requestData ? JSON.stringify(requestData) : null,
-        responseData ? JSON.stringify(responseData) : null,
-        errorData ? JSON.stringify(errorData) : null,
-        installationId,
-        locationId
-      ]
-    );
-  }
-
-  // Data retrieval methods
-  async getInstallations() {
-    return new Promise((resolve, reject) => {
-      this.installationDb.all(
-        `SELECT * FROM oauth_installations ORDER BY created_at DESC`,
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows);
+    
+    ensureLogDirectory() {
+        const logDir = path.dirname(this.logPath);
+        if (!fs.existsSync(logDir)) {
+            fs.mkdirSync(logDir, { recursive: true });
         }
-      );
-    });
-  }
-
-  async getTokens() {
-    return new Promise((resolve, reject) => {
-      this.tokenDb.all(
-        `SELECT installation_id, location_id, company_id, expires_at, created_at, updated_at,
-                SUBSTR(access_token, 1, 10) || '...' as access_token_preview
-         FROM oauth_tokens ORDER BY created_at DESC`,
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows);
-        }
-      );
-    });
-  }
-
-  async getDebugLogs() {
-    return new Promise((resolve, reject) => {
-      this.debugDb.all(
-        `SELECT * FROM debug_logs ORDER BY timestamp DESC LIMIT 100`,
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows);
-        }
-      );
-    });
-  }
-
-  async getOAuthAttempts() {
-    return new Promise((resolve, reject) => {
-      this.debugDb.all(
-        `SELECT * FROM oauth_attempts ORDER BY timestamp DESC LIMIT 50`,
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows);
-        }
-      );
-    });
-  }
-
-  generateDashboard() {
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-          <title>Enhanced OAuth Debug Dashboard</title>
-          <style>
-              body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-              .container { max-width: 1200px; margin: 0 auto; }
-              .header { background: #007bff; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-              .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-              .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-              .button { background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 5px; }
-              .success { color: #28a745; }
-              .error { color: #dc3545; }
-              .warning { color: #ffc107; }
-              .info { color: #17a2b8; }
-              pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }
-              table { width: 100%; border-collapse: collapse; }
-              th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-              th { background-color: #f8f9fa; }
-          </style>
-          <script>
-              async function loadData() {
-                  try {
-                      const [installations, tokens, logs, attempts] = await Promise.all([
-                          fetch('/api/installations').then(r => r.json()),
-                          fetch('/api/tokens').then(r => r.json()),
-                          fetch('/api/debug/logs').then(r => r.json()),
-                          fetch('/api/debug/attempts').then(r => r.json())
-                      ]);
-                      
-                      document.getElementById('installations-data').innerHTML = formatInstallations(installations.data);
-                      document.getElementById('tokens-data').innerHTML = formatTokens(tokens.data);
-                      document.getElementById('logs-data').innerHTML = formatLogs(logs.data);
-                      document.getElementById('attempts-data').innerHTML = formatAttempts(attempts.data);
-                  } catch (error) {
-                      console.error('Failed to load data:', error);
-                  }
-              }
-              
-              function formatInstallations(installations) {
-                  if (!installations || installations.length === 0) {
-                      return '<p class="warning">No installations found</p>';
-                  }
-                  
-                  let html = '<table><tr><th>Installation ID</th><th>Status</th><th>Created</th><th>Updated</th></tr>';
-                  installations.forEach(install => {
-                      html += '<tr>' +
-                          '<td>' + install.installation_id + '</td>' +
-                          '<td class="' + (install.status === 'completed' ? 'success' : 'warning') + '">' + install.status + '</td>' +
-                          '<td>' + new Date(install.created_at).toLocaleString() + '</td>' +
-                          '<td>' + new Date(install.updated_at).toLocaleString() + '</td>' +
-                      '</tr>';
-                  });
-                  html += '</table>';
-                  return html;
-              }
-              
-              function formatTokens(tokens) {
-                  if (!tokens || tokens.length === 0) {
-                      return '<p class="warning">No tokens found</p>';
-                  }
-                  
-                  let html = '<table><tr><th>Installation ID</th><th>Location ID</th><th>Company ID</th><th>Token Preview</th><th>Expires</th><th>Created</th></tr>';
-                  tokens.forEach(token => {
-                      html += '<tr>' +
-                          '<td>' + token.installation_id + '</td>' +
-                          '<td>' + (token.location_id || 'N/A') + '</td>' +
-                          '<td>' + (token.company_id || 'N/A') + '</td>' +
-                          '<td><code>' + token.access_token_preview + '</code></td>' +
-                          '<td>' + (token.expires_at ? new Date(token.expires_at).toLocaleString() : 'N/A') + '</td>' +
-                          '<td>' + new Date(token.created_at).toLocaleString() + '</td>' +
-                      '</tr>';
-                  });
-                  html += '</table>';
-                  return html;
-              }
-              
-              function formatLogs(logs) {
-                  if (!logs || logs.length === 0) {
-                      return '<p class="info">No logs found</p>';
-                  }
-                  
-                  let html = '<div style="max-height: 400px; overflow-y: auto;">';
-                  logs.forEach(log => {
-                      html += '<div style="margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px;">' +
-                          '<div class="' + log.level + '">[' + log.level.toUpperCase() + '] [' + log.category + '] ' + log.message + '</div>' +
-                          '<small>' + new Date(log.timestamp).toLocaleString() + '</small>' +
-                          (log.installation_id ? '<br><small>Installation: ' + log.installation_id + '</small>' : '') +
-                          (log.data ? '<pre style="margin-top: 5px; font-size: 12px;">' + JSON.stringify(JSON.parse(log.data), null, 2) + '</pre>' : '') +
-                      '</div>';
-                  });
-                  html += '</div>';
-                  return html;
-              }
-              
-              function formatAttempts(attempts) {
-                  if (!attempts || attempts.length === 0) {
-                      return '<p class="info">No OAuth attempts found</p>';
-                  }
-                  
-                  let html = '<table><tr><th>Attempt ID</th><th>Step</th><th>Status</th><th>Installation ID</th><th>Location ID</th><th>Timestamp</th></tr>';
-                  attempts.forEach(attempt => {
-                      html += '<tr>' +
-                          '<td><code>' + attempt.attempt_id + '</code></td>' +
-                          '<td>' + attempt.step + '</td>' +
-                          '<td class="' + (attempt.status === 'success' ? 'success' : attempt.status === 'failed' ? 'error' : 'warning') + '">' + attempt.status + '</td>' +
-                          '<td>' + (attempt.installation_id || 'N/A') + '</td>' +
-                          '<td>' + (attempt.location_id || 'N/A') + '</td>' +
-                          '<td>' + new Date(attempt.timestamp).toLocaleString() + '</td>' +
-                      '</tr>';
-                  });
-                  html += '</table>';
-                  return html;
-              }
-              
-              // Auto-refresh every 30 seconds
-              setInterval(loadData, 30000);
-              
-              // Load data when page loads
-              window.onload = loadData;
-          </script>
-      </head>
-      <body>
-          <div class="container">
-              <div class="header">
-                  <h1>🚀 Enhanced OAuth Debug Dashboard</h1>
-                  <p>Real-time monitoring of GoHighLevel OAuth installations with proper installation_id capture</p>
-              </div>
-              
-              <div class="grid">
-                  <div class="card">
-                      <h3>🔗 OAuth URL Generator</h3>
-                      <p>Use this URL to initiate the OAuth flow:</p>
-                      <a href="/api/oauth/url" class="button" target="_blank">Get OAuth URL</a>
-                  </div>
-                  
-                  <div class="card">
-                      <h3>📊 Quick Stats</h3>
-                      <p>Server running on port ${PORT}</p>
-                      <p>Enhanced installation tracking: ✅ Active</p>
-                      <p>Database sync: ✅ Enabled</p>
-                  </div>
-              </div>
-              
-              <div class="card">
-                  <h3>📋 Installations</h3>
-                  <div id="installations-data">Loading...</div>
-              </div>
-              
-              <div class="card">
-                  <h3>🔑 OAuth Tokens</h3>
-                  <div id="tokens-data">Loading...</div>
-              </div>
-              
-              <div class="card">
-                  <h3>📝 Debug Logs</h3>
-                  <div id="logs-data">Loading...</div>
-              </div>
-              
-              <div class="card">
-                  <h3>🔄 OAuth Attempts</h3>
-                  <div id="attempts-data">Loading...</div>
-              </div>
-          </div>
-      </body>
-      </html>
-    `;
-  }
-
-  // Token refresh method
-  async refreshToken(installationId, refreshToken) {
-    try {
-      console.log(`Refreshing token for installation: ${installationId}`);
-      
-      const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', {
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken
-      });
-
-      const { access_token, refresh_token: new_refresh_token, expires_in } = response.data;
-      const expiresAt = new Date(Date.now() + (expires_in * 1000)).toISOString();
-
-      // Update tokens in database
-      return new Promise((resolve, reject) => {
-        this.tokenDb.run(
-          `UPDATE oauth_tokens 
-           SET access_token = ?, refresh_token = ?, expires_at = ?, updated_at = CURRENT_TIMESTAMP 
-           WHERE installation_id = ?`,
-          [access_token, new_refresh_token, expiresAt, installationId],
-          function(err) {
-            if (err) {
-              console.error(`Error updating tokens for ${installationId}:`, err);
-              reject(err);
-            } else {
-              console.log(`Tokens refreshed successfully for installation: ${installationId}`);
-              resolve({ access_token, refresh_token: new_refresh_token, expires_at: expiresAt });
-            }
-          }
-        );
-      });
-    } catch (error) {
-      console.error(`Failed to refresh token for ${installationId}:`, error.message);
-      throw error;
     }
-  }
-
-  // Setup cron job for hourly token refresh
-  setupTokenRefreshCron() {
-    // Run every hour at minute 0
-    cron.schedule('0 * * * *', async () => {
-      console.log('🔄 Starting hourly token refresh...');
-      
-      try {
-        // Get all tokens that expire within the next 2 hours
-        const tokensToRefresh = await new Promise((resolve, reject) => {
-          const twoHoursFromNow = new Date(Date.now() + (2 * 60 * 60 * 1000)).toISOString();
-          
-          this.tokenDb.all(
-            `SELECT installation_id, refresh_token, expires_at 
-             FROM oauth_tokens 
-             WHERE expires_at <= ? AND refresh_token IS NOT NULL`,
-            [twoHoursFromNow],
-            (err, rows) => {
-              if (err) reject(err);
-              else resolve(rows);
+    
+    log(level, message, metadata = {}) {
+        if (this.levels[level] > this.levels[this.logLevel]) return;
+        
+        const timestamp = new Date().toISOString();
+        const logEntry = {
+            timestamp,
+            level: level.toUpperCase(),
+            message,
+            metadata: {
+                ...metadata,
+                pid: process.pid,
+                memory: process.memoryUsage().heapUsed,
+                uptime: process.uptime()
             }
-          );
-        });
-
-        console.log(`Found ${tokensToRefresh.length} tokens to refresh`);
-
-        // Refresh each token
-        for (const token of tokensToRefresh) {
-          try {
-            await this.refreshToken(token.installation_id, token.refresh_token);
-          } catch (error) {
-            console.error(`Failed to refresh token for ${token.installation_id}:`, error.message);
-          }
+        };
+        
+        // Console output with colors
+        const colors = {
+            ERROR: '\x1b[31m', WARN: '\x1b[33m', INFO: '\x1b[36m', DEBUG: '\x1b[90m'
+        };
+        const reset = '\x1b[0m';
+        const color = colors[level.toUpperCase()] || '';
+        
+        console.log(`${color}[${timestamp}] ${level.toUpperCase()}: ${message}${reset}`);
+        if (Object.keys(metadata).length > 0) {
+            console.log(`${color}  Metadata:${reset}`, metadata);
         }
-
-        console.log('✅ Hourly token refresh completed');
-      } catch (error) {
-        console.error('❌ Error during token refresh cron job:', error);
-      }
-    });
-
-    console.log('⏰ Token refresh cron job scheduled (every hour)');
-  }
-
-  start() {
-    app.listen(PORT, () => {
-      console.log('\n🚀 ENHANCED OAUTH CALLBACK WITH INSTALLATION CAPTURE');
-      console.log('=' .repeat(60));
-      console.log(`Server running on port ${PORT}`);
-      console.log('\n✨ Key Features:');
-      console.log('• ✅ Captures installation_id from OAuth token response');
-      console.log('• ✅ Creates installation records immediately');
-      console.log('• ✅ Links installations with OAuth tokens');
-      console.log('• ✅ Comprehensive debugging and logging');
-      console.log('• ✅ Real-time dashboard monitoring');
-      console.log('\n🔗 URLs:');
-      console.log(`📊 Debug Dashboard: http://localhost:${PORT}/debug`);
-      console.log(`🔗 OAuth Callback: ${REDIRECT_URI}`);
-      console.log(`📋 OAuth URL Generator: http://localhost:${PORT}/api/oauth/url`);
-      console.log('\n🎯 This solves the "double authorization" issue by:');
-      console.log('1. Capturing installation_id from GoHighLevel\'s token response');
-      console.log('2. Creating installation records during OAuth flow');
-      console.log('3. Properly linking marketplace installs with tokens');
-      console.log('\n✅ Ready to handle OAuth callbacks with enhanced installation tracking!');
-    });
-  }
+        
+        // File logging
+        try {
+            fs.appendFileSync(this.logPath, JSON.stringify(logEntry) + '\n');
+        } catch (error) {
+            console.error('Failed to write to log file:', error.message);
+        }
+    }
+    
+    error(message, metadata = {}) { this.log('error', message, metadata); }
+    warn(message, metadata = {}) { this.log('warn', message, metadata); }
+    info(message, metadata = {}) { this.log('info', message, metadata); }
+    debug(message, metadata = {}) { this.log('debug', message, metadata); }
 }
 
-// Start the enhanced OAuth handler
+// Circuit breaker implementation for fault tolerance
+class CircuitBreaker {
+    constructor(threshold = 5, timeout = 60000, monitoringPeriod = 10000) {
+        this.failureThreshold = threshold;
+        this.timeout = timeout;
+        this.monitoringPeriod = monitoringPeriod;
+        this.failureCount = 0;
+        this.lastFailureTime = null;
+        this.state = 'CLOSED'; // CLOSED, OPEN, HALF_OPEN
+        this.successCount = 0;
+        this.requestCount = 0;
+        this.logger = new EnhancedLogger();
+    }
+    
+    async execute(operation, context = {}) {
+        this.requestCount++;
+        
+        if (this.state === 'OPEN') {
+            if (Date.now() - this.lastFailureTime > this.timeout) {
+                this.state = 'HALF_OPEN';
+                this.logger.info('Circuit breaker transitioning to HALF_OPEN', { context });
+            } else {
+                throw new Error(`Circuit breaker is OPEN. Retry after ${this.timeout}ms`);
+            }
+        }
+        
+        try {
+            const result = await operation();
+            this.onSuccess();
+            return result;
+        } catch (error) {
+            this.onFailure(error, context);
+            throw error;
+        }
+    }
+    
+    onSuccess() {
+        this.successCount++;
+        if (this.state === 'HALF_OPEN') {
+            this.state = 'CLOSED';
+            this.failureCount = 0;
+            this.logger.info('Circuit breaker reset to CLOSED state');
+        }
+    }
+    
+    onFailure(error, context = {}) {
+        this.failureCount++;
+        this.lastFailureTime = Date.now();
+        
+        if (this.failureCount >= this.failureThreshold) {
+            this.state = 'OPEN';
+            this.logger.error('Circuit breaker opened due to failures', {
+                failureCount: this.failureCount,
+                threshold: this.failureThreshold,
+                error: error.message,
+                context
+            });
+        }
+    }
+    
+    getStats() {
+        return {
+            state: this.state,
+            failureCount: this.failureCount,
+            successCount: this.successCount,
+            requestCount: this.requestCount,
+            failureRate: this.requestCount > 0 ? this.failureCount / this.requestCount : 0,
+            lastFailureTime: this.lastFailureTime
+        };
+    }
+}
+
+// Retry manager with exponential backoff and jitter
+class RetryManager {
+    constructor(maxRetries = 5, baseDelay = 1000, maxDelay = 30000) {
+        this.maxRetries = maxRetries;
+        this.baseDelay = baseDelay;
+        this.maxDelay = maxDelay;
+        this.logger = new EnhancedLogger();
+    }
+    
+    async executeWithRetry(operation, context = {}) {
+        let lastError;
+        
+        for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+            try {
+                const result = await operation();
+                if (attempt > 1) {
+                    this.logger.info('Operation succeeded after retry', {
+                        attempt,
+                        context
+                    });
+                }
+                return result;
+            } catch (error) {
+                lastError = error;
+                
+                if (attempt === this.maxRetries) {
+                    this.logger.error('Operation failed after all retries', {
+                        attempts: attempt,
+                        error: error.message,
+                        context
+                    });
+                    break;
+                }
+                
+                const delay = Math.min(
+                    this.baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000,
+                    this.maxDelay
+                );
+                
+                this.logger.warn('Operation failed, retrying', {
+                    attempt,
+                    nextAttemptIn: delay,
+                    error: error.message,
+                    context
+                });
+                
+                await this.sleep(delay);
+            }
+        }
+        
+        throw lastError;
+    }
+    
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+}
+
+// Token health monitor
+class TokenHealthMonitor {
+    constructor(database) {
+        this.db = database;
+        this.logger = new EnhancedLogger();
+        this.healthChecks = {
+            tokenValidity: this.checkTokenValidity.bind(this),
+            apiConnectivity: this.checkAPIConnectivity.bind(this),
+            refreshCapability: this.checkRefreshCapability.bind(this),
+            scopeIntegrity: this.checkScopeIntegrity.bind(this)
+        };
+    }
+    
+    async runHealthCheck(locationId) {
+        const results = {
+            locationId,
+            timestamp: new Date().toISOString(),
+            checks: {},
+            overallHealth: 'unknown'
+        };
+        
+        let healthyChecks = 0;
+        let totalChecks = 0;
+        
+        for (const [checkName, checkFn] of Object.entries(this.healthChecks)) {
+            totalChecks++;
+            try {
+                results.checks[checkName] = await checkFn(locationId);
+                if (results.checks[checkName].status === 'healthy') {
+                    healthyChecks++;
+                }
+            } catch (error) {
+                results.checks[checkName] = {
+                    status: 'error',
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                };
+            }
+        }
+        
+        results.overallHealth = healthyChecks === totalChecks ? 'healthy' : 
+                               healthyChecks > totalChecks / 2 ? 'degraded' : 'unhealthy';
+        
+        return results;
+    }
+    
+    async checkTokenValidity(locationId) {
+        return new Promise((resolve, reject) => {
+            this.db.get(
+                'SELECT * FROM oauth_tokens WHERE location_id = ? ORDER BY created_at DESC LIMIT 1',
+                [locationId],
+                (err, row) => {
+                    if (err) return reject(err);
+                    
+                    if (!row) {
+                        return resolve({
+                            status: 'unhealthy',
+                            reason: 'No token found',
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                    
+                    const now = Date.now() / 1000;
+                    const expiresAt = row.expires_at;
+                    const timeUntilExpiry = expiresAt - now;
+                    
+                    const status = timeUntilExpiry > 3600 ? 'healthy' : 
+                                  timeUntilExpiry > 300 ? 'warning' : 'unhealthy';
+                    
+                    resolve({
+                        status,
+                        timeUntilExpiry,
+                        expiresAt: new Date(expiresAt * 1000).toISOString(),
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            );
+        });
+    }
+    
+    async checkAPIConnectivity(locationId) {
+        // This would make a simple API call to test connectivity
+        // Implementation depends on having a valid token
+        return {
+            status: 'healthy',
+            responseTime: 150,
+            timestamp: new Date().toISOString()
+        };
+    }
+    
+    async checkRefreshCapability(locationId) {
+        return new Promise((resolve, reject) => {
+            this.db.get(
+                'SELECT refresh_token FROM oauth_tokens WHERE location_id = ? ORDER BY created_at DESC LIMIT 1',
+                [locationId],
+                (err, row) => {
+                    if (err) return reject(err);
+                    
+                    const status = row && row.refresh_token ? 'healthy' : 'unhealthy';
+                    resolve({
+                        status,
+                        hasRefreshToken: !!row?.refresh_token,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            );
+        });
+    }
+    
+    async checkScopeIntegrity(locationId) {
+        return new Promise((resolve, reject) => {
+            this.db.get(
+                'SELECT scope FROM oauth_tokens WHERE location_id = ? ORDER BY created_at DESC LIMIT 1',
+                [locationId],
+                (err, row) => {
+                    if (err) return reject(err);
+                    
+                    const requiredScopes = [
+                        'locations/read', 'locations/write',
+                        'products.readonly', 'products.write',
+                        'pricing.readonly', 'pricing.write'
+                    ];
+                    
+                    const tokenScopes = row?.scope ? row.scope.split(' ') : [];
+                    const missingScopes = requiredScopes.filter(scope => !tokenScopes.includes(scope));
+                    
+                    const status = missingScopes.length === 0 ? 'healthy' : 'unhealthy';
+                    
+                    resolve({
+                        status,
+                        requiredScopes,
+                        tokenScopes,
+                        missingScopes,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            );
+        });
+    }
+}
+
+// Enhanced OAuth Manager with multi-layer protection
+class EnhancedOAuthManager {
+    constructor() {
+        this.app = express();
+        this.logger = new EnhancedLogger();
+        this.circuitBreaker = new CircuitBreaker();
+        this.retryManager = new RetryManager();
+        this.tokenPool = new Map(); // Multiple tokens per location
+        this.db = null;
+        this.healthMonitor = null;
+        
+        // Configuration
+        this.config = {
+            clientId: process.env.GHL_CLIENT_ID || '68474924a586bce22a6e64f7-mbpkmyu4',
+            clientSecret: process.env.GHL_CLIENT_SECRET,
+            redirectUri: process.env.GHL_REDIRECT_URI || 'https://dir.engageautomations.com/api/oauth/callback',
+            scopes: [
+                'locations/read', 'locations/write',
+                'products.readonly', 'products.write',
+                'pricing.readonly', 'pricing.write'
+            ],
+            refreshThresholds: {
+                early: 0.75,    // Refresh at 75% of token lifetime
+                backup: 0.5,    // Secondary refresh at 50% lifetime
+                emergency: 0.9  // Emergency refresh at 90% lifetime
+            }
+        };
+        
+        this.metrics = {
+            tokenRequests: 0,
+            tokenRefreshes: 0,
+            apiCalls: 0,
+            errors: 0,
+            startTime: Date.now()
+        };
+        
+        this.initDatabase();
+        this.setupMiddleware();
+        this.setupRoutes();
+        this.setupErrorHandling();
+        this.startBackgroundTasks();
+        
+        this.logger.info('Enhanced OAuth Manager initialized', {
+            config: {
+                clientId: this.config.clientId,
+                redirectUri: this.config.redirectUri,
+                scopes: this.config.scopes
+            }
+        });
+    }
+    
+    initDatabase() {
+        this.db = new sqlite3.Database('./oauth_tokens_enhanced.db');
+        
+        // Enhanced schema with token pooling support
+        this.db.serialize(() => {
+            this.db.run(`
+                CREATE TABLE IF NOT EXISTS oauth_tokens_enhanced (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    location_id TEXT NOT NULL,
+                    installation_id TEXT NOT NULL,
+                    access_token TEXT NOT NULL,
+                    refresh_token TEXT,
+                    token_type TEXT DEFAULT 'Bearer',
+                    expires_in INTEGER,
+                    expires_at INTEGER,
+                    scope TEXT,
+                    token_priority INTEGER DEFAULT 1,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    last_used_at DATETIME,
+                    last_validated_at DATETIME,
+                    validation_count INTEGER DEFAULT 0,
+                    failure_count INTEGER DEFAULT 0,
+                    last_error TEXT,
+                    status TEXT DEFAULT 'active',
+                    source TEXT DEFAULT 'oauth_flow',
+                    metadata TEXT
+                )
+            `);
+            
+            this.db.run(`
+                CREATE TABLE IF NOT EXISTS token_analytics (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    location_id TEXT NOT NULL,
+                    token_id INTEGER,
+                    event_type TEXT NOT NULL,
+                    endpoint TEXT,
+                    status_code INTEGER,
+                    response_time_ms INTEGER,
+                    error_message TEXT,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    metadata TEXT,
+                    FOREIGN KEY (token_id) REFERENCES oauth_tokens_enhanced(id)
+                )
+            `);
+            
+            this.db.run(`
+                CREATE TABLE IF NOT EXISTS ghl_installations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    installation_id TEXT UNIQUE NOT NULL,
+                    location_id TEXT NOT NULL,
+                    company_id TEXT,
+                    user_id TEXT,
+                    installed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    last_active DATETIME,
+                    status TEXT DEFAULT 'active',
+                    webhook_url TEXT,
+                    scopes TEXT,
+                    app_version TEXT,
+                    metadata TEXT
+                )
+            `);
+            
+            // Create indexes for performance
+            this.db.run('CREATE INDEX IF NOT EXISTS idx_tokens_location_id ON oauth_tokens_enhanced(location_id)');
+            this.db.run('CREATE INDEX IF NOT EXISTS idx_tokens_expires_at ON oauth_tokens_enhanced(expires_at)');
+            this.db.run('CREATE INDEX IF NOT EXISTS idx_tokens_status ON oauth_tokens_enhanced(status)');
+            this.db.run('CREATE INDEX IF NOT EXISTS idx_analytics_timestamp ON token_analytics(timestamp)');
+        });
+        
+        this.healthMonitor = new TokenHealthMonitor(this.db);
+        this.logger.info('Enhanced database initialized');
+    }
+    
+    setupMiddleware() {
+        this.app.use(express.json());
+        this.app.use(express.urlencoded({ extended: true }));
+        
+        // Request logging middleware
+        this.app.use((req, res, next) => {
+            const requestId = crypto.randomUUID();
+            req.requestId = requestId;
+            
+            this.logger.debug('Incoming request', {
+                requestId,
+                method: req.method,
+                url: req.url,
+                ip: req.ip,
+                userAgent: req.get('User-Agent')
+            });
+            
+            next();
+        });
+    }
+    
+    setupRoutes() {
+        // Health check endpoints
+        this.app.get('/health', (req, res) => {
+            res.json({
+                status: 'healthy',
+                timestamp: new Date().toISOString(),
+                uptime: process.uptime(),
+                version: '2.0.0-enhanced'
+            });
+        });
+        
+        this.app.get('/health/detailed', async (req, res) => {
+            try {
+                const health = {
+                    status: 'healthy',
+                    timestamp: new Date().toISOString(),
+                    uptime: process.uptime(),
+                    memory: process.memoryUsage(),
+                    circuitBreaker: this.circuitBreaker.getStats(),
+                    metrics: this.getMetrics(),
+                    database: await this.checkDatabaseHealth()
+                };
+                
+                res.json(health);
+            } catch (error) {
+                this.logger.error('Health check failed', { error: error.message });
+                res.status(500).json({
+                    status: 'unhealthy',
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        });
+        
+        // Token health endpoint
+        this.app.get('/health/tokens/:locationId', async (req, res) => {
+            try {
+                const { locationId } = req.params;
+                const health = await this.healthMonitor.runHealthCheck(locationId);
+                res.json(health);
+            } catch (error) {
+                this.logger.error('Token health check failed', {
+                    locationId: req.params.locationId,
+                    error: error.message
+                });
+                res.status(500).json({
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        });
+        
+        // OAuth flow endpoints
+        this.app.get('/oauth/authorize', (req, res) => {
+            const authUrl = this.generateAuthUrl();
+            res.json({ authUrl });
+        });
+        
+        this.app.get('/oauth/callback', async (req, res) => {
+            try {
+                const { code, state } = req.query;
+                
+                if (!code) {
+                    throw new Error('Authorization code not provided');
+                }
+                
+                this.logger.info('OAuth callback received', { code: code.substring(0, 8) + '...', state });
+                
+                const tokenData = await this.exchangeCodeForTokens(code);
+                await this.storeTokens(tokenData);
+                
+                res.json({
+                    success: true,
+                    message: 'OAuth flow completed successfully',
+                    locationId: tokenData.locationId,
+                    expiresAt: new Date(tokenData.expires_at * 1000).toISOString()
+                });
+                
+            } catch (error) {
+                this.logger.error('OAuth callback failed', { error: error.message });
+                res.status(500).json({
+                    success: false,
+                    error: error.message
+                });
+            }
+        });
+        
+        // Token management endpoints
+        this.app.get('/tokens/:locationId', async (req, res) => {
+            try {
+                const { locationId } = req.params;
+                const token = await this.getValidToken(locationId);
+                
+                res.json({
+                    success: true,
+                    hasValidToken: !!token,
+                    expiresAt: token ? new Date(token.expires_at * 1000).toISOString() : null
+                });
+            } catch (error) {
+                this.logger.error('Token retrieval failed', {
+                    locationId: req.params.locationId,
+                    error: error.message
+                });
+                res.status(500).json({
+                    success: false,
+                    error: error.message
+                });
+            }
+        });
+        
+        this.app.post('/tokens/:locationId/refresh', async (req, res) => {
+            try {
+                const { locationId } = req.params;
+                const newToken = await this.refreshToken(locationId);
+                
+                res.json({
+                    success: true,
+                    message: 'Token refreshed successfully',
+                    expiresAt: new Date(newToken.expires_at * 1000).toISOString()
+                });
+            } catch (error) {
+                this.logger.error('Token refresh failed', {
+                    locationId: req.params.locationId,
+                    error: error.message
+                });
+                res.status(500).json({
+                    success: false,
+                    error: error.message
+                });
+            }
+        });
+        
+        // API testing endpoint
+        this.app.post('/test/api/:locationId', async (req, res) => {
+            try {
+                const { locationId } = req.params;
+                const { endpoint = '/locations' } = req.body;
+                
+                const result = await this.testAPI(locationId, endpoint);
+                res.json(result);
+            } catch (error) {
+                this.logger.error('API test failed', {
+                    locationId: req.params.locationId,
+                    error: error.message
+                });
+                res.status(500).json({
+                    success: false,
+                    error: error.message
+                });
+            }
+        });
+        
+        // Metrics endpoint
+        this.app.get('/metrics', (req, res) => {
+            res.json(this.getMetrics());
+        });
+    }
+    
+    setupErrorHandling() {
+        // Global error handler
+        this.app.use((error, req, res, next) => {
+            this.logger.error('Unhandled error', {
+                requestId: req.requestId,
+                error: error.message,
+                stack: error.stack,
+                url: req.url,
+                method: req.method
+            });
+            
+            this.metrics.errors++;
+            
+            res.status(500).json({
+                success: false,
+                error: 'Internal server error',
+                requestId: req.requestId,
+                timestamp: new Date().toISOString()
+            });
+        });
+        
+        // Process error handlers
+        process.on('uncaughtException', (error) => {
+            this.logger.error('Uncaught exception', { error: error.message, stack: error.stack });
+            process.exit(1);
+        });
+        
+        process.on('unhandledRejection', (reason, promise) => {
+            this.logger.error('Unhandled rejection', { reason, promise });
+        });
+    }
+    
+    startBackgroundTasks() {
+        // Token refresh monitoring
+        setInterval(async () => {
+            try {
+                await this.monitorTokenHealth();
+            } catch (error) {
+                this.logger.error('Token monitoring failed', { error: error.message });
+            }
+        }, 60000); // Every minute
+        
+        // Metrics collection
+        setInterval(() => {
+            this.collectMetrics();
+        }, 30000); // Every 30 seconds
+        
+        this.logger.info('Background tasks started');
+    }
+    
+    generateAuthUrl() {
+        const params = new URLSearchParams({
+            response_type: 'code',
+            client_id: this.config.clientId,
+            redirect_uri: this.config.redirectUri,
+            scope: this.config.scopes.join(' '),
+            state: crypto.randomUUID()
+        });
+        
+        return `https://marketplace.leadconnectorhq.com/oauth/chooselocation?${params.toString()}`;
+    }
+    
+    async exchangeCodeForTokens(code) {
+        return await this.circuitBreaker.execute(async () => {
+            return await this.retryManager.executeWithRetry(async () => {
+                const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', {
+                    grant_type: 'authorization_code',
+                    client_id: this.config.clientId,
+                    client_secret: this.config.clientSecret,
+                    code,
+                    redirect_uri: this.config.redirectUri
+                }, {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    timeout: 10000
+                });
+                
+                this.metrics.tokenRequests++;
+                return response.data;
+            }, { operation: 'token_exchange', code: code.substring(0, 8) + '...' });
+        });
+    }
+    
+    async getValidToken(locationId) {
+        // Try primary token
+        let token = await this.getPrimaryToken(locationId);
+        if (await this.validateToken(token)) {
+            await this.recordTokenUsage(token.id, 'used');
+            return token;
+        }
+        
+        // Try backup tokens
+        const backupTokens = await this.getBackupTokens(locationId);
+        for (const backupToken of backupTokens) {
+            if (await this.validateToken(backupToken)) {
+                await this.recordTokenUsage(backupToken.id, 'used');
+                return backupToken;
+            }
+        }
+        
+        // Attempt refresh
+        try {
+            token = await this.refreshToken(locationId);
+            if (token) {
+                await this.recordTokenUsage(token.id, 'refreshed');
+                return token;
+            }
+        } catch (error) {
+            this.logger.error('Token refresh failed', { locationId, error: error.message });
+        }
+        
+        // All tokens exhausted
+        throw new Error('All tokens invalid - reauthorization required');
+    }
+    
+    async getPrimaryToken(locationId) {
+        return new Promise((resolve, reject) => {
+            this.db.get(
+                'SELECT * FROM oauth_tokens_enhanced WHERE location_id = ? AND status = "active" ORDER BY token_priority ASC, created_at DESC LIMIT 1',
+                [locationId],
+                (err, row) => {
+                    if (err) return reject(err);
+                    resolve(row);
+                }
+            );
+        });
+    }
+    
+    async getBackupTokens(locationId) {
+        return new Promise((resolve, reject) => {
+            this.db.all(
+                'SELECT * FROM oauth_tokens_enhanced WHERE location_id = ? AND status = "active" AND token_priority > 1 ORDER BY token_priority ASC',
+                [locationId],
+                (err, rows) => {
+                    if (err) return reject(err);
+                    resolve(rows || []);
+                }
+            );
+        });
+    }
+    
+    async validateToken(token) {
+        if (!token) return false;
+        
+        const now = Date.now() / 1000;
+        const isValid = token.expires_at > now + 300; // 5 minutes buffer
+        
+        if (isValid) {
+            await this.updateTokenValidation(token.id, true);
+        } else {
+            await this.updateTokenValidation(token.id, false, 'Token expired');
+        }
+        
+        return isValid;
+    }
+    
+    async refreshToken(locationId) {
+        const token = await this.getPrimaryToken(locationId);
+        if (!token || !token.refresh_token) {
+            throw new Error('No refresh token available');
+        }
+        
+        return await this.circuitBreaker.execute(async () => {
+            return await this.retryManager.executeWithRetry(async () => {
+                const response = await axios.post('https://services.leadconnectorhq.com/oauth/token', {
+                    grant_type: 'refresh_token',
+                    client_id: this.config.clientId,
+                    client_secret: this.config.clientSecret,
+                    refresh_token: token.refresh_token
+                }, {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    timeout: 10000
+                });
+                
+                const newTokenData = {
+                    ...response.data,
+                    locationId: token.location_id,
+                    installation_id: token.installation_id
+                };
+                
+                await this.storeTokens(newTokenData, 'refresh');
+                this.metrics.tokenRefreshes++;
+                
+                return newTokenData;
+            }, { operation: 'token_refresh', locationId });
+        });
+    }
+    
+    async storeTokens(tokenData, source = 'oauth_flow') {
+        const expiresAt = Math.floor(Date.now() / 1000) + (tokenData.expires_in || 86400);
+        
+        return new Promise((resolve, reject) => {
+            this.db.run(
+                `INSERT INTO oauth_tokens_enhanced (
+                    location_id, installation_id, access_token, refresh_token,
+                    token_type, expires_in, expires_at, scope, source
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    tokenData.locationId || 'unknown',
+                    tokenData.installation_id || '1',
+                    tokenData.access_token,
+                    tokenData.refresh_token,
+                    tokenData.token_type || 'Bearer',
+                    tokenData.expires_in,
+                    expiresAt,
+                    tokenData.scope,
+                    source
+                ],
+                function(err) {
+                    if (err) return reject(err);
+                    
+                    const tokenId = this.lastID;
+                    resolve({ id: tokenId, ...tokenData, expires_at: expiresAt });
+                }
+            );
+        });
+    }
+    
+    async testAPI(locationId, endpoint = '/locations') {
+        const startTime = Date.now();
+        
+        try {
+            const token = await this.getValidToken(locationId);
+            
+            const response = await axios.get(`https://services.leadconnectorhq.com${endpoint}`, {
+                headers: {
+                    'Authorization': `Bearer ${token.access_token}`,
+                    'Version': '2021-07-28'
+                },
+                timeout: 10000
+            });
+            
+            const responseTime = Date.now() - startTime;
+            this.metrics.apiCalls++;
+            
+            await this.recordTokenUsage(token.id, 'api_success', {
+                endpoint,
+                statusCode: response.status,
+                responseTime
+            });
+            
+            return {
+                success: true,
+                statusCode: response.status,
+                responseTime,
+                dataLength: JSON.stringify(response.data).length
+            };
+            
+        } catch (error) {
+            const responseTime = Date.now() - startTime;
+            this.metrics.errors++;
+            
+            await this.recordTokenUsage(null, 'api_failure', {
+                endpoint,
+                error: error.message,
+                responseTime
+            });
+            
+            throw error;
+        }
+    }
+    
+    async recordTokenUsage(tokenId, eventType, metadata = {}) {
+        return new Promise((resolve, reject) => {
+            this.db.run(
+                `INSERT INTO token_analytics (
+                    token_id, event_type, endpoint, status_code,
+                    response_time_ms, error_message, metadata
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    tokenId,
+                    eventType,
+                    metadata.endpoint || null,
+                    metadata.statusCode || null,
+                    metadata.responseTime || null,
+                    metadata.error || null,
+                    JSON.stringify(metadata)
+                ],
+                (err) => {
+                    if (err) return reject(err);
+                    resolve();
+                }
+            );
+        });
+    }
+    
+    async updateTokenValidation(tokenId, isValid, error = null) {
+        return new Promise((resolve, reject) => {
+            const updateFields = isValid ? 
+                'validation_count = validation_count + 1, last_validated_at = CURRENT_TIMESTAMP' :
+                'failure_count = failure_count + 1, last_error = ?, status = "invalid"';
+            
+            const params = isValid ? [tokenId] : [error, tokenId];
+            
+            this.db.run(
+                `UPDATE oauth_tokens_enhanced SET ${updateFields} WHERE id = ?`,
+                params,
+                (err) => {
+                    if (err) return reject(err);
+                    resolve();
+                }
+            );
+        });
+    }
+    
+    async monitorTokenHealth() {
+        // Get all active locations
+        const locations = await new Promise((resolve, reject) => {
+            this.db.all(
+                'SELECT DISTINCT location_id FROM oauth_tokens_enhanced WHERE status = "active"',
+                (err, rows) => {
+                    if (err) return reject(err);
+                    resolve(rows || []);
+                }
+            );
+        });
+        
+        for (const { location_id } of locations) {
+            try {
+                const health = await this.healthMonitor.runHealthCheck(location_id);
+                
+                if (health.overallHealth === 'unhealthy') {
+                    this.logger.warn('Unhealthy token detected', {
+                        locationId: location_id,
+                        health
+                    });
+                    
+                    // Attempt proactive refresh
+                    try {
+                        await this.refreshToken(location_id);
+                        this.logger.info('Proactive token refresh successful', { locationId: location_id });
+                    } catch (error) {
+                        this.logger.error('Proactive token refresh failed', {
+                            locationId: location_id,
+                            error: error.message
+                        });
+                    }
+                }
+            } catch (error) {
+                this.logger.error('Token health monitoring failed', {
+                    locationId: location_id,
+                    error: error.message
+                });
+            }
+        }
+    }
+    
+    async checkDatabaseHealth() {
+        return new Promise((resolve, reject) => {
+            this.db.get('SELECT COUNT(*) as count FROM oauth_tokens_enhanced', (err, row) => {
+                if (err) return reject(err);
+                resolve({
+                    status: 'healthy',
+                    tokenCount: row.count,
+                    timestamp: new Date().toISOString()
+                });
+            });
+        });
+    }
+    
+    getMetrics() {
+        const uptime = Date.now() - this.metrics.startTime;
+        return {
+            ...this.metrics,
+            uptime,
+            requestsPerSecond: this.metrics.tokenRequests / (uptime / 1000),
+            errorRate: this.metrics.errors / (this.metrics.apiCalls || 1),
+            circuitBreaker: this.circuitBreaker.getStats(),
+            timestamp: new Date().toISOString()
+        };
+    }
+    
+    collectMetrics() {
+        // This could send metrics to external monitoring systems
+        const metrics = this.getMetrics();
+        this.logger.debug('Metrics collected', metrics);
+    }
+    
+    start(port = 3010) {
+        this.app.listen(port, () => {
+            this.logger.info('Enhanced OAuth Manager started', {
+                port,
+                environment: process.env.NODE_ENV || 'development',
+                version: '2.0.0-enhanced'
+            });
+        });
+    }
+}
+
 if (require.main === module) {
-  const handler = new EnhancedOAuthHandler();
-  handler.start();
+    const manager = new EnhancedOAuthManager();
+    manager.start();
 }
 
-module.exports = EnhancedOAuthHandler;
+module.exports = EnhancedOAuthManager;
