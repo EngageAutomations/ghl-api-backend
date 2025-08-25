@@ -3,9 +3,15 @@ builder = "nixpacks"
 
 [deploy]
 healthcheckPath = "/health"
-healthcheckTimeout = 300
+healthcheckTimeout = 30
 restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
 
 [env]
 NODE_ENV = "production"
-PORT = "3000"
+PORT = "3001"
+DATABASE_PATH = "/app/data/oauth_installations.db"
+ALLOWED_ORIGINS = "https://dir.engageautomations.com,https://oauth-backend-production.up.railway.app"
+
+[volumes]
+data = "/app/data"
