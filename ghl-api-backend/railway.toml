@@ -6,3 +6,5 @@ startCommand = "npm start"
 
 [env]
 OAUTH_BACKEND_URL = "https://dir.engageautomations.com"
+NANGO_SECRET_KEY = "409dd726-7e1c-4a7a-ac78-2bfa74631f39"
+NANGO_SHARED_SECRET = "409dd726-7e1c-4a7a-ac78-2bfa74631f39"
