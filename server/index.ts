@@ -21,8 +21,8 @@ import { users } from "../shared/schema";
 import { UniversalAPIRouter, requireOAuth, handleSessionRecovery } from "./stytch-universal-api-router";
 
 import { createJWTEndpoint, createGHLProxyRouter } from "./ghl-proxy";
-import { requireHealthAccess, requireInternalApiKey } from "./admin-middleware";
-import { requireReadAccess, requireWriteAccess } from "./rbac-middleware";
+import { requireHealthAccess, requireInternalApiKey } from "./admin-middleware.ts";
+import { requireReadAccess, requireWriteAccess } from "./rbac-middleware.ts";
 import { setupBridgeEndpoints } from "./bridge-integration";
 import { pool } from "./db";
 import { BridgeProtection, validateBridgeEndpoints } from "./bridge-protection";
@@ -30,10 +30,10 @@ import completeWorkflowAPI from "./complete-workflow-api";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
-import stytchAuthRoutes from "./stytch-auth-routes";
-import { setupStytchOAuthIntegration } from "./stytch-oauth-integration";
-import { createTokenRefreshMonitoringRouter } from "./token-refresh-monitoring";
-import adminMigrationRouter from "./admin-migration";
+import stytchAuthRoutes from "./stytch-auth-routes.ts";
+import { setupStytchOAuthIntegration } from "./stytch-oauth-integration.ts";
+import { createTokenRefreshMonitoringRouter } from "./token-refresh-monitoring.ts";
+import adminMigrationRouter from "./admin-migration.ts";
 import { logger, requestLogger, securityLogger } from './utils/logger.js';
 import security from './middleware/security.js';
 
