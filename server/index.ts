@@ -1,4 +1,13 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
+
+// Debug environment variables
+console.log('🔍 Server Environment Debug:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('INTERNAL_API_KEY present:', !!process.env.INTERNAL_API_KEY);
+console.log('INTERNAL_API_KEY length:', process.env.INTERNAL_API_KEY?.length);
+console.log('INTERNAL_API_KEY first 10:', process.env.INTERNAL_API_KEY?.substring(0, 10));
+console.log('Working directory:', process.cwd());
 import { createServer, type Server } from "http";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
@@ -6,12 +15,14 @@ import { setupVite, serveStatic, log } from "./vite";
 // import { setupProductionRouting } from "./production-routing";
 // import { privateDeploymentGuard, ipWhitelist } from "./privacy"; // Removed for public custom domain access
 import { setupDomainRedirects, setupCORS } from "./domain-config";
-// import { setupDirectOAuthRoutes } from "./oauth-direct";
+
 import { DatabaseStorage } from "./storage";
 import { users } from "../shared/schema";
-import { UniversalAPIRouter, requireOAuth, handleSessionRecovery } from "./universal-api-router";
-// import { handleOAuthCallback } from "./oauth-enhanced";
+import { UniversalAPIRouter, requireOAuth, handleSessionRecovery } from "./stytch-universal-api-router";
+
 import { createJWTEndpoint, createGHLProxyRouter } from "./ghl-proxy";
+import { requireHealthAccess, requireInternalApiKey } from "./admin-middleware";
+import { requireReadAccess, requireWriteAccess } from "./rbac-middleware";
 import { setupBridgeEndpoints } from "./bridge-integration";
 import { pool } from "./db";
 import { BridgeProtection, validateBridgeEndpoints } from "./bridge-protection";
@@ -19,6 +30,12 @@ import completeWorkflowAPI from "./complete-workflow-api";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
+import stytchAuthRoutes from "./stytch-auth-routes";
+import { setupStytchOAuthIntegration } from "./stytch-oauth-integration";
+import { createTokenRefreshMonitoringRouter } from "./token-refresh-monitoring";
+import adminMigrationRouter from "./admin-migration";
+import { logger, requestLogger, securityLogger } from './utils/logger.js';
+import security from './middleware/security.js';
 
 // ES Module compatibility fixes for __dirname error
 const __filename = fileURLToPath(import.meta.url);
@@ -80,6 +97,17 @@ function setupOAuthRoutesProduction(app: express.Express) {
     }
   });
 
+  // OAuth callback status endpoint for production verification
+  app.get('/api/oauth/callback/status', (req, res) => {
+    res.json({
+      service: 'OAuth Callback Handler',
+      status: 'ready',
+      timestamp: new Date().toISOString(),
+      redirectUri: process.env.GHL_REDIRECT_URI,
+      environment: process.env.NODE_ENV
+    });
+  });
+
   // OAuth callback - handles complete OAuth flow
   app.get(['/api/oauth/callback', '/oauth/callback'], async (req, res) => {
     console.log('=== OAUTH CALLBACK HIT ===');
@@ -89,6 +117,21 @@ function setupOAuthRoutesProduction(app: express.Express) {
     console.log('Method:', req.method);
 
     const { code, state, error, action } = req.query;
+
+    // Structured event: callback received
+    try {
+      const cbIp = (req.headers['cf-connecting-ip'] as string) || (req.headers['x-forwarded-for'] as string) || req.ip;
+      logger.oauth('callback.received', {
+        code_present: Boolean(code),
+        state_present: Boolean(state),
+        path: req.path,
+        query: req.query,
+      }, {
+        ip: Array.isArray(cbIp) ? cbIp[0] : (cbIp as string),
+        userAgent: req.get('User-Agent'),
+      });
+    } catch {}
+
     
     // Handle OAuth URL generation requests
     if (action === 'generate-url') {
@@ -157,6 +200,9 @@ function setupOAuthRoutesProduction(app: express.Express) {
         if (!tokenResponse.ok) {
           const errorText = await tokenResponse.text();
           console.error('❌ Token exchange failed:', tokenResponse.status, errorText);
+          try {
+            logger.oauth('token.exchange.failed', { status: tokenResponse.status, body: errorText });
+          } catch {}
           throw new Error(`Token exchange failed: ${tokenResponse.status}`);
         }
 
@@ -166,6 +212,10 @@ function setupOAuthRoutesProduction(app: express.Express) {
         console.log('Refresh token received:', tokenData.refresh_token ? 'Yes' : 'No');
         console.log('Token expires in:', tokenData.expires_in, 'seconds');
         console.log('Scopes granted:', tokenData.scope);
+        try {
+          logger.oauth('token.exchanged', { expires_in: tokenData.expires_in, scope: tokenData.scope });
+        } catch {}
+
 
         // Fetch user information
         console.log('👤 Fetching user information...');
@@ -187,32 +237,72 @@ function setupOAuthRoutesProduction(app: express.Express) {
         console.log('User email:', userData.email);
         console.log('User name:', userData.name || userData.firstName + ' ' + userData.lastName);
 
-        // Try to get location information if available
-        let locationData = null;
+        // Step 1: Fetch installed location (as per OAuth installation instructions)
+        console.log('🏢 Fetching installed location information...');
+        let installedLocationData = null;
         try {
-          console.log('🏢 Fetching location information...');
-          const locationResponse = await fetch('https://services.leadconnectorhq.com/locations/', {
+          const installedLocationResponse = await fetch('https://services.leadconnectorhq.com/oauth/get-installed-location', {
             headers: {
               'Authorization': `Bearer ${tokenData.access_token}`,
               'Version': '2021-07-28',
             },
           });
 
-          if (locationResponse.ok) {
-            const locationResult = await locationResponse.json();
-            if (locationResult.locations && locationResult.locations.length > 0) {
-              locationData = locationResult.locations[0]; // Use first location
-              console.log('✅ Location information retrieved');
-              console.log('Location ID:', locationData.id);
-              console.log('Location name:', locationData.name);
-            }
+          if (!installedLocationResponse.ok) {
+            console.error('❌ Failed to fetch installed location:', installedLocationResponse.status);
+            throw new Error(`Installed location fetch failed: ${installedLocationResponse.status}`);
           }
+
+          installedLocationData = await installedLocationResponse.json();
+          console.log('✅ Installed location information retrieved');
+          console.log('Company ID:', installedLocationData.companyId);
+          console.log('Location ID:', installedLocationData.locationId || installedLocationData._id);
+          console.log('Location Name:', installedLocationData.name);
+          console.log('Location Address:', installedLocationData.address);
+          try {
+            logger.oauth('locations.synced:1', { companyId: installedLocationData.companyId, locationId: installedLocationData.locationId || installedLocationData._id });
+          } catch {}
+
         } catch (locationError) {
-          console.log('ℹ️ Location data not available or not accessible');
+          console.error('❌ Failed to fetch installed location:', locationError);
+          throw new Error('Required installed location data not available');
+        }
+
+        // Step 2: Get location access token (as per OAuth installation instructions)
+        console.log('🔑 Fetching location access token...');
+        let locationTokenData = null;
+        const locationId = installedLocationData.locationId || installedLocationData._id;
+        
+        if (locationId) {
+          try {
+            const locationTokenResponse = await fetch('https://services.leadconnectorhq.com/oauth/get-location-access-token', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${tokenData.access_token}`,
+                'Content-Type': 'application/json',
+                'Version': '2021-07-28',
+              },
+              body: JSON.stringify({
+                locationId: locationId
+              })
+            });
+
+            if (!locationTokenResponse.ok) {
+              console.error('❌ Failed to fetch location token:', locationTokenResponse.status);
+              throw new Error(`Location token fetch failed: ${locationTokenResponse.status}`);
+            }
+
+            locationTokenData = await locationTokenResponse.json();
+            console.log('✅ Location access token retrieved');
+            console.log('Location token expires in:', locationTokenData.expires_in, 'seconds');
+          } catch (locationTokenError) {
+            console.error('❌ Failed to fetch location token:', locationTokenError);
+            // Continue without location token for now
+          }
         }
 
         // Log captured OAuth data for testing
-        console.log('💾 OAuth Account Data Captured Successfully:');
+        console.log('💾 OAuth Installation Data Captured Successfully:');
         console.log('=== USER INFORMATION ===');
         console.log('User ID:', userData.id);
         console.log('Email:', userData.email);
@@ -220,21 +310,29 @@ function setupOAuthRoutesProduction(app: express.Express) {
         console.log('Phone:', userData.phone);
         console.log('Company:', userData.companyName);
         
-        console.log('=== TOKEN INFORMATION ===');
+        console.log('=== ACCOUNT TOKEN INFORMATION ===');
         console.log('Access Token:', tokenData.access_token ? 'Present' : 'Missing');
         console.log('Refresh Token:', tokenData.refresh_token ? 'Present' : 'Missing');
         console.log('Token Type:', tokenData.token_type);
         console.log('Expires In:', tokenData.expires_in, 'seconds');
         console.log('Scopes:', tokenData.scope);
         
-        console.log('=== LOCATION INFORMATION ===');
-        if (locationData) {
-          console.log('Location ID:', locationData.id);
-          console.log('Location Name:', locationData.name);
-          console.log('Business Type:', locationData.businessType);
-          console.log('Address:', locationData.address);
+        console.log('=== INSTALLED LOCATION INFORMATION ===');
+        if (installedLocationData) {
+          console.log('Company ID:', installedLocationData.companyId);
+          console.log('Location ID:', installedLocationData.locationId || installedLocationData._id);
+          console.log('Location Name:', installedLocationData.name);
+          console.log('Location Address:', installedLocationData.address);
         } else {
-          console.log('No location data available');
+          console.log('No installed location data available');
+        }
+        
+        console.log('=== LOCATION TOKEN INFORMATION ===');
+        if (locationTokenData) {
+          console.log('Location Access Token:', locationTokenData.access_token ? 'Present' : 'Missing');
+          console.log('Location Token Expires In:', locationTokenData.expires_in, 'seconds');
+        } else {
+          console.log('No location token data available');
         }
         
         // Store in database using direct SQL for compatibility
@@ -243,10 +341,76 @@ function setupOAuthRoutesProduction(app: express.Express) {
           
           const expiryDate = new Date(Date.now() + (tokenData.expires_in * 1000));
           
-          // Import database connection
-          const { pool } = await import('./db.js');
+          // Phase 5.1: Dual-token storage implementation
+          const { storage } = await import('./storage.js');
+          const { locationTokenBroker } = await import('./location-token-broker.js');
           
-          // Use raw SQL to avoid schema field mapping issues
+          // Calculate token expiry timestamps
+          const expiresAt = Math.floor(Date.now() / 1000) + tokenData.expires_in;
+          const nextRefreshAt = expiresAt - 300; // 5 minutes before expiry
+          
+          // Step 1: Store installation data according to OAuth installation instructions
+          const accountId = installedLocationData.companyId;
+          const locationId = installedLocationData.locationId || installedLocationData._id;
+          
+          const oauthInstallation = await storage.createOAuthInstallation({
+            ghlUserId: userData.id,
+            ghlUserEmail: userData.email,
+            ghlUserName: userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
+            ghlUserPhone: userData.phone || null,
+            ghlUserCompany: userData.companyName || null,
+            ghlLocationId: locationId,
+            ghlLocationName: installedLocationData.name || null,
+            ghlLocationBusinessType: null,
+            ghlLocationAddress: installedLocationData.address || null,
+            ghlAccessToken: tokenData.access_token,
+            ghlRefreshToken: tokenData.refresh_token,
+            ghlTokenType: tokenData.token_type || 'Bearer',
+            ghlExpiresIn: tokenData.expires_in,
+            ghlScopes: tokenData.scope || '',
+            status: 'active',
+            rotationCounter: 0,
+            needsReauth: 0,
+            expiresAt,
+            nextRefreshAt,
+            // Additional fields for proper installation tracking
+            accountId: accountId,
+            locationAccessToken: locationTokenData?.access_token || null,
+            locationTokenExpiresAt: locationTokenData ? Math.floor(Date.now() / 1000) + locationTokenData.expires_in : null,
+          });
+          
+          console.log('✅ Company token stored in oauthInstallations:', oauthInstallation.id);
+          
+          // Step 2: Store location token data according to OAuth installation instructions
+          if (locationTokenData && locationId) {
+            try {
+              const locationTokenResult = await locationTokenBroker.storeLocationToken({
+                installationId: oauthInstallation.id,
+                locationId: locationId,
+                locationName: installedLocationData.name || null,
+                locationAddress: installedLocationData.address || null,
+                accessToken: locationTokenData.access_token,
+                tokenType: locationTokenData.token_type || 'Bearer',
+                expiresIn: locationTokenData.expires_in,
+                expiresAt: Math.floor(Date.now() / 1000) + locationTokenData.expires_in,
+                scopes: locationTokenData.scope || '',
+                status: 'active'
+              });
+              
+              if (locationTokenResult.success) {
+                console.log('✅ Location token stored successfully for location:', locationId);
+              } else {
+                console.warn('⚠️ Location token storage failed:', locationTokenResult.error);
+              }
+            } catch (locationError) {
+              console.error('❌ Location token storage error:', locationError);
+            }
+          } else {
+            console.log('⚠️ No location token data or location ID available for storage');
+          }
+          
+          // Legacy: Also store in users table for backward compatibility
+          const { pool } = await import('./db.js');
           const insertQuery = `
             INSERT INTO users (
               username, email, display_name, ghl_user_id, 
@@ -268,6 +432,7 @@ function setupOAuthRoutesProduction(app: express.Express) {
             RETURNING id, email, ghl_user_id, ghl_location_id, ghl_location_name
           `;
           
+          const userExpiryDate = new Date(Date.now() + (tokenData.expires_in * 1000));
           const values = [
             userData.email || 'oauth_user_' + userData.id,
             userData.email,
@@ -275,10 +440,10 @@ function setupOAuthRoutesProduction(app: express.Express) {
             userData.id,
             tokenData.access_token,
             tokenData.refresh_token,
-            expiryDate,
+            userExpiryDate,
             tokenData.scope || '',
-            locationData?.id || '',
-            locationData?.name || '',
+            locationId || '',
+            installedLocationData?.name || '',
             'oauth',
             true,
             new Date(),
@@ -1010,20 +1175,21 @@ function setupOAuthRoutesProduction(app: express.Express) {
         console.warn('Failed to get detailed user data:', userError.message);
       }
 
-      // Store OAuth installation data in database
+      // Process OAuth installation with location data
       try {
-        console.log('=== STORING INSTALLATION DATA IN DATABASE ===');
+        console.log('=== PROCESSING OAUTH INSTALLATION WITH LOCATION DATA ===');
         
         const { pool } = await import('./db.js');
+        const { GHLLocationService } = await import('./ghl-location-service.js');
         
-        const installationData = {
+        const baseInstallationData = {
           ghl_user_id: userData?.id || userInfo?.id || `user_${Date.now()}`,
           ghl_user_email: userData?.email || userInfo?.email,
           ghl_user_name: userData?.name || userInfo?.name,
           ghl_user_phone: userData?.phone,
           ghl_user_company: userData?.companyName,
           ghl_location_id: userInfo?.locationId,
-          ghl_location_name: null, // Will be fetched separately
+          ghl_location_name: null, // Will be fetched from API
           ghl_access_token: tokenData.access_token,
           ghl_refresh_token: tokenData.refresh_token,
           ghl_token_type: tokenData.token_type || 'Bearer',
@@ -1033,6 +1199,25 @@ function setupOAuthRoutesProduction(app: express.Express) {
           last_token_refresh: new Date(),
           is_active: true
         };
+        
+        // Fetch installed locations and convert tokens
+        let processedInstallation;
+        try {
+          processedInstallation = await GHLLocationService.processOAuthInstallation(
+            tokenData.access_token,
+            tokenData.refresh_token,
+            baseInstallationData
+          );
+          console.log('✅ Successfully processed installation with location data');
+        } catch (locationError) {
+          console.warn('⚠️ Failed to fetch location data, proceeding with company-level installation:', locationError.message);
+          processedInstallation = {
+            companyInstallation: baseInstallationData,
+            locationInstallations: []
+          };
+        }
+        
+        const installationData = processedInstallation.companyInstallation;
 
         const insertQuery = `
           INSERT INTO oauth_installations (
@@ -1069,11 +1254,60 @@ function setupOAuthRoutesProduction(app: express.Express) {
           installationData.is_active
         ]);
 
-        console.log('✅ OAUTH INSTALLATION SAVED TO DATABASE!');
-        console.log('Installation ID:', result.rows[0].id);
+        const companyInstallationId = result.rows[0].id;
+        console.log('✅ COMPANY OAUTH INSTALLATION SAVED TO DATABASE!');
+        console.log('Installation ID:', companyInstallationId);
         console.log('User ID:', result.rows[0].ghl_user_id);
         console.log('Location ID:', result.rows[0].ghl_location_id);
-        console.log('✅ REAL ACCESS TOKEN AND USER DATA CAPTURED');
+        console.log('Total Locations Found:', processedInstallation.locationInstallations.length);
+        
+        // Store location-specific tokens in locationTokens table
+        if (processedInstallation.locationInstallations.length > 0) {
+          console.log('🏢 Storing location-specific tokens...');
+          
+          for (const locationData of processedInstallation.locationInstallations) {
+            try {
+              const locationTokenQuery = `
+                INSERT INTO "locationTokens" (
+                  "installationId", "locationId", "accessToken", "refreshToken",
+                  "tokenType", "expiresAt", "scopes", "locationName", "locationAddress",
+                  "createdAt", "updatedAt"
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                ON CONFLICT ("installationId", "locationId") DO UPDATE SET
+                  "accessToken" = EXCLUDED."accessToken",
+                  "refreshToken" = EXCLUDED."refreshToken",
+                  "expiresAt" = EXCLUDED."expiresAt",
+                  "updatedAt" = EXCLUDED."updatedAt"
+                RETURNING id
+              `;
+              
+              const expiresAt = new Date(Date.now() + (locationData.expiresIn * 1000));
+              
+              const locationResult = await pool.query(locationTokenQuery, [
+                companyInstallationId,
+                locationData.locationId,
+                locationData.accessToken,
+                locationData.refreshToken,
+                'Bearer',
+                expiresAt,
+                installationData.ghl_scopes,
+                locationData.locationName,
+                locationData.locationAddress,
+                new Date(),
+                new Date()
+              ]);
+              
+              console.log(`✅ Location token stored: ${locationData.locationName} (${locationData.locationId})`);
+              
+            } catch (locationTokenError) {
+              console.error(`❌ Failed to store location token for ${locationData.locationId}:`, locationTokenError);
+            }
+          }
+          
+          console.log(`✅ Stored ${processedInstallation.locationInstallations.length} location-specific tokens`);
+        }
+        
+        console.log('✅ COMPLETE OAUTH INSTALLATION WITH LOCATION DATA PROCESSED!');
 
         // Redirect to success page
         res.redirect(`/?oauth_success=true&installation_id=${result.rows[0].id}`);
@@ -1534,11 +1768,53 @@ function getEnhancedOAuthAppHTML(): string {
 
 const app = express();
 
-// Parse JSON requests first
-app.use(express.json());
+// Security middleware (applied first for all requests)
+app.use(security.requestId);
+app.use(security.securityHeaders);
+app.use(security.configureCORS);
+app.use(security.validateRequest);
+
+// Logging middleware
+app.use(requestLogger);
+app.use(securityLogger);
+
+// Early request logging for OAuth routes (before any handler logic)
+app.use('/api/oauth', (req, res, next) => {
+  try {
+    const clientIp = (req.headers['cf-connecting-ip'] as string) || (req.headers['x-forwarded-for'] as string) || req.ip;
+    logger.oauth('route.request.start', {
+      method: req.method,
+      path: req.path,
+      code_present: Boolean((req.query as any)?.code),
+      state_present: Boolean((req.query as any)?.state),
+      query: req.query,
+    }, {
+      ip: Array.isArray(clientIp) ? clientIp[0] : (clientIp as string),
+      userAgent: req.get('User-Agent'),
+    });
+  } catch (e) {
+    // no-op
+  }
+  next();
+});
+
+// Rate limiting for different endpoint types
+app.use('/api', security.rateLimiters.general);
+app.use('/api/oauth', security.rateLimiters.oauth);
+app.use('/api/debug', security.rateLimiters.debug);
+app.use('/health', security.rateLimiters.health);
+
+// Parse JSON and URL-encoded requests with size limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Canary endpoint to verify callback reachability (no auth)
+app.get('/api/oauth/callback/ping', (req, res) => {
+  res.json({ ok: true, ts: new Date().toISOString() });
+});
 
 // HIGHEST PRIORITY: Session data extraction for your marketplace installation
-app.get('/api/oauth/session-data', async (req, res) => {
+app.get('/api/oauth/session-data', requireReadAccess, async (req, res) => {
   console.log('=== SESSION DATA ENDPOINT HIT ===');
   console.log('Query params:', req.query);
   
@@ -1595,7 +1871,7 @@ app.get('/api/oauth/session-data', async (req, res) => {
 });
 
 // Location data retrieval endpoint
-app.get('/api/oauth/location-data', async (req, res) => {
+app.get('/api/oauth/location-data', requireReadAccess, async (req, res) => {
   try {
     console.log('=== LOCATION DATA RETRIEVAL ===');
     
@@ -1723,7 +1999,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // Setup direct OAuth routes AFTER cookie parser to ensure cookies are available
-// setupDirectOAuthRoutes(app);
+
 
 // Domain and CORS setup
 app.use(setupDomainRedirects);
@@ -1778,7 +2054,7 @@ app.use((req, res, next) => {
   let appServer: Server;
   
   // CRITICAL: Add Railway proxy routes directly to bypass Vite middleware
-  app.get("/api/railway/health", async (req, res) => {
+  app.get("/api/railway/health", requireHealthAccess, async (req, res) => {
     try {
       const response = await fetch('https://dir.engageautomations.com/health');
       const data = await response.json();
@@ -1793,7 +2069,7 @@ app.use((req, res, next) => {
     }
   });
 
-  app.get("/api/railway/installations/latest", async (req, res) => {
+  app.get("/api/railway/installations/latest", requireInternalApiKey, async (req, res) => {
     try {
       const response = await fetch('https://dir.engageautomations.com/api/installations/latest');
       const data = await response.json();
@@ -1811,15 +2087,211 @@ app.use((req, res, next) => {
     }
   });
 
+  // New: DB-backed endpoint to list latest location token records
+  app.get("/api/railway/location-tokens/latest", requireInternalApiKey, async (_req, res) => {
+    try {
+      const { rows } = await pool.query(
+        `SELECT location_id, expires_at, rotation_counter
+         FROM location_tokens
+         ORDER BY updated_at DESC NULLS LAST, id DESC
+         LIMIT 50`
+      );
+      res.json(rows ?? []);
+    } catch (error) {
+      console.error('Error fetching latest location tokens:', error);
+      res.status(500).json({ success: false, error: 'Database query failed' });
+    }
+  });
 
 
   // Add health check endpoint
-  app.get('/api/health', (req, res) => {
+  app.get('/api/health', requireHealthAccess, (req, res) => {
     res.json({ 
       status: 'healthy', 
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development'
     });
+  });
+
+  // Add version endpoint
+  app.get('/version', async (req, res) => {
+    try {
+      const { readFileSync } = await import('fs');
+      const packageJsonPath = path.join(__dirname, '../package.json');
+      const packageJsonContent = readFileSync(packageJsonPath, 'utf8');
+      const packageJson = JSON.parse(packageJsonContent);
+      
+      res.json({
+        version: packageJson.version || '1.0.0',
+        gitSha: process.env.GIT_SHA || 'unknown',
+        buildTime: process.env.BUILD_TIME || new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+      });
+    } catch (error) {
+      res.json({
+        version: '1.0.0',
+        gitSha: process.env.GIT_SHA || 'unknown',
+        buildTime: process.env.BUILD_TIME || new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        error: 'Could not read package.json'
+      });
+    }
+  });
+
+  // Add debug endpoints with internal API key protection
+  app.get('/api/debug/installations/:accountId', requireInternalApiKey, async (req, res) => {
+    try {
+      const { accountId } = req.params;
+      const storage = new DatabaseStorage();
+      const installation = await storage.getOAuthInstallation(accountId);
+      
+      if (!installation) {
+        return res.status(404).json({ error: 'Installation not found' });
+      }
+      
+      // Mask sensitive tokens
+      const maskedInstallation = {
+        ...installation,
+        accessToken: installation.accessToken ? `${installation.accessToken.substring(0, 8)}...` : null,
+        refreshToken: installation.refreshToken ? `${installation.refreshToken.substring(0, 8)}...` : null
+      };
+      
+      res.json({ installation: maskedInstallation });
+    } catch (error) {
+      console.error('Debug installations error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get('/api/debug/locations/:locationId', requireInternalApiKey, async (req, res) => {
+    try {
+      const { locationId } = req.params;
+      const storage = new DatabaseStorage();
+      const installations = await storage.getAllOAuthInstallations();
+      const location = installations.find(inst => inst.ghlLocationId === locationId);
+      
+      if (!location) {
+        return res.status(404).json({ error: 'Location not found' });
+      }
+      
+      // Mask sensitive tokens
+      const maskedLocation = {
+        ...location,
+        accessToken: location.accessToken ? `${location.accessToken.substring(0, 8)}...` : null,
+        refreshToken: location.refreshToken ? `${location.refreshToken.substring(0, 8)}...` : null
+      };
+      
+      res.json({ location: maskedLocation });
+    } catch (error) {
+      console.error('Debug locations error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/debug/test-call', requireInternalApiKey, async (req, res) => {
+    try {
+      const { type = 'account', accountId, locationId } = req.body;
+      const storage = new DatabaseStorage();
+      
+      if (type === 'account' && accountId) {
+        const installation = await storage.getOAuthInstallation(accountId);
+        if (!installation?.accessToken) {
+          return res.status(404).json({ error: 'Account token not found' });
+        }
+        
+        // Test account-level API call
+        const response = await fetch('https://services.leadconnectorhq.com/users/me', {
+          headers: {
+            'Authorization': `Bearer ${installation.accessToken}`,
+            'Version': '2021-07-28'
+          }
+        });
+        
+        const result = await response.json();
+        res.json({ success: response.ok, status: response.status, result });
+        
+      } else if (type === 'location' && locationId) {
+        const installations = await storage.getAllOAuthInstallations();
+        const location = installations.find(inst => inst.ghlLocationId === locationId);
+        if (!location?.accessToken) {
+          return res.status(404).json({ error: 'Location token not found' });
+        }
+        
+        // Test location-level API call
+        const response = await fetch(`https://services.leadconnectorhq.com/locations/${locationId}`, {
+          headers: {
+            'Authorization': `Bearer ${location.accessToken}`,
+            'Version': '2021-07-28'
+          }
+        });
+        
+        const result = await response.json();
+        res.json({ success: response.ok, status: response.status, result });
+        
+      } else {
+        res.status(400).json({ error: 'Invalid request. Provide type and corresponding ID.' });
+      }
+    } catch (error) {
+      console.error('Debug test-call error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/debug/force-refresh', requireInternalApiKey, async (req, res) => {
+    try {
+      const { accountId } = req.body;
+      
+      if (!accountId) {
+        return res.status(400).json({ error: 'accountId is required' });
+      }
+      
+      const storage = new DatabaseStorage();
+      const installation = await storage.getOAuthInstallation(accountId);
+      
+      if (!installation?.refreshToken) {
+        return res.status(404).json({ error: 'Installation or refresh token not found' });
+      }
+      
+      // Force token refresh
+      const refreshResponse = await fetch('https://services.leadconnectorhq.com/oauth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          client_id: process.env.GHL_CLIENT_ID!,
+          client_secret: process.env.GHL_CLIENT_SECRET!,
+          grant_type: 'refresh_token',
+          refresh_token: installation.refreshToken
+        })
+      });
+      
+      const refreshResult = await refreshResponse.json();
+      
+      if (refreshResponse.ok) {
+        // Update tokens in database
+        await storage.updateInstallationTokens(accountId, {
+          accessToken: refreshResult.access_token,
+          refreshToken: refreshResult.refresh_token,
+          expiresAt: new Date(Date.now() + (refreshResult.expires_in * 1000))
+        });
+        
+        res.json({ 
+          success: true, 
+          message: 'Tokens refreshed successfully',
+          expiresIn: refreshResult.expires_in
+        });
+      } else {
+        res.status(400).json({ 
+          success: false, 
+          error: 'Token refresh failed', 
+          details: refreshResult 
+        });
+      }
+    } catch (error) {
+      console.error('Debug force-refresh error:', error);
+      res.status(500).json({ error: error.message });
+    }
   });
 
   // Add Railway proxy endpoints for GHL integration
@@ -1833,13 +2305,34 @@ app.use((req, res, next) => {
   app.use('/api/workflow', completeWorkflowAPI);
   console.log('Complete workflow API mounted at /api/workflow/*');
   console.log('✅ Railway GHL proxy configured');
+  
+  // Add token refresh monitoring routes
+  const tokenRefreshMonitoringRouter = createTokenRefreshMonitoringRouter();
+  app.use('/api/token-refresh', tokenRefreshMonitoringRouter);
+  console.log('Token refresh monitoring routes mounted at /api/token-refresh/*');
+  
+  // Add admin migration routes
+  app.use('/api/admin', adminMigrationRouter);
+  console.log('Admin migration routes mounted at /api/admin/*');
 
   // Create HTTP server
   const httpServer = createServer(app);
   
+  // Setup Stytch authentication routes
+  app.use(stytchAuthRoutes);
+  console.log("✅ Stytch authentication routes registered");
+  
+  // Setup Stytch OAuth integration routes
+  setupStytchOAuthIntegration(app);
+  console.log("✅ Stytch OAuth integration routes registered");
+  
   // Register API routes
   await registerRoutes(app);
   console.log("✅ API routes registered successfully");
+  
+  // Setup OAuth routes (works in both development and production)
+  setupOAuthRoutesProduction(app);
+  console.log("✅ OAuth routes registered successfully");
 
   // Add request tracing middleware AFTER API routes
   app.use((req, res, next) => {
@@ -1862,9 +2355,9 @@ app.use((req, res, next) => {
     throw err;
   });
   
-  // Add redirect for old OAuth route to fix caching issues
+  
   app.get('/oauth/start', (req, res) => {
-    console.log('🔄 Redirecting old OAuth route to working solution');
+    
     res.redirect('/oauth-redirect.html');
   });
 
@@ -1911,7 +2404,7 @@ app.use((req, res, next) => {
   }
 
   // GoHighLevel product management endpoints
-  app.post('/api/products/create', async (req, res) => {
+  app.post('/api/products/create', requireWriteAccess, async (req, res) => {
     try {
       const { GHLProductService } = await import('./ghl-product-service');
       
@@ -1937,7 +2430,7 @@ app.use((req, res, next) => {
     }
   });
 
-  app.get('/api/products/list', async (req, res) => {
+  app.get('/api/products/list', requireReadAccess, async (req, res) => {
     try {
       const { GHLProductService } = await import('./ghl-product-service');
       const result = await GHLProductService.listProducts();
@@ -1948,7 +2441,7 @@ app.use((req, res, next) => {
     }
   });
 
-  app.post('/api/images/upload', async (req, res) => {
+  app.post('/api/images/upload', requireWriteAccess, async (req, res) => {
     try {
       const { GHLProductService } = await import('./ghl-product-service');
       const files = req.body.files || [];
@@ -1959,6 +2452,10 @@ app.use((req, res, next) => {
       res.status(500).json({ error: error.message });
     }
   });
+
+  // Error handling middleware (must be last)
+  app.use(security.notFoundHandler);
+  app.use(security.errorHandler);
 
   // Use Replit's PORT environment variable (default 5000) 
   const port = parseInt(process.env.PORT || '5000', 10);
